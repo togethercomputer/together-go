@@ -35,7 +35,7 @@ func NewFineTuneService(opts ...option.RequestOption) (r *FineTuneService) {
 	return
 }
 
-// Create a fine-tuning job
+// Use a model to create a fine-tuning job.
 func (r *FineTuneService) New(ctx context.Context, body FineTuneNewParams, opts ...option.RequestOption) (res *FineTune, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "fine-tunes"
@@ -43,7 +43,7 @@ func (r *FineTuneService) New(ctx context.Context, body FineTuneNewParams, opts 
 	return
 }
 
-// Retrieve fine-tune job details
+// List the metadata for a single fine-tuning job.
 func (r *FineTuneService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTune, err error) {
 	opts = append(r.Options[:], opts...)
 	if id == "" {
@@ -55,7 +55,7 @@ func (r *FineTuneService) Get(ctx context.Context, id string, opts ...option.Req
 	return
 }
 
-// List fine-tune job history
+// List the metadata for all fine-tuning jobs.
 func (r *FineTuneService) List(ctx context.Context, opts ...option.RequestOption) (res *FineTuneListResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "fine-tunes"
@@ -63,7 +63,7 @@ func (r *FineTuneService) List(ctx context.Context, opts ...option.RequestOption
 	return
 }
 
-// Cancels a running fine-tuning job.
+// Cancel a currently running fine-tuning job.
 func (r *FineTuneService) Cancel(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTune, err error) {
 	opts = append(r.Options[:], opts...)
 	if id == "" {
@@ -75,7 +75,7 @@ func (r *FineTuneService) Cancel(ctx context.Context, id string, opts ...option.
 	return
 }
 
-// Downloads a compressed fine-tuned model or checkpoint to local disk.
+// Download a compressed fine-tuned model or checkpoint to local disk.
 func (r *FineTuneService) Download(ctx context.Context, query FineTuneDownloadParams, opts ...option.RequestOption) (res *FineTuneDownloadResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "finetune/download"
@@ -83,7 +83,7 @@ func (r *FineTuneService) Download(ctx context.Context, query FineTuneDownloadPa
 	return
 }
 
-// List events of a fine-tune job
+// List the events for a single fine-tuning job.
 func (r *FineTuneService) ListEvents(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneEvent, err error) {
 	opts = append(r.Options[:], opts...)
 	if id == "" {

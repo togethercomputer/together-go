@@ -31,7 +31,7 @@ func NewChatCompletionService(opts ...option.RequestOption) (r *ChatCompletionSe
 	return
 }
 
-// Creates a model response for the given chat conversation.
+// Query a chat model.
 func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (res *ChatCompletion, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "chat/completions"
@@ -329,7 +329,7 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	FrequencyPenalty param.Field[float64] `json:"frequency_penalty"`
 	// The `logit_bias` parameter allows us to adjust the likelihood of specific tokens
 	// appearing in the generated output.
-	LogitBias param.Field[map[string]interface{}] `json:"logit_bias"`
+	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
 	// Determines the number of most likely tokens to return at each token position log
 	// probabilities to return
 	Logprobs param.Field[int64] `json:"logprobs"`
@@ -353,7 +353,8 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	// A list of string sequences that will truncate (stop) inference text output.
 	Stop param.Field[[]string] `json:"stop"`
 	// If set, tokens are returned as Server-Sent Events as they are made available.
-	// Stream terminates with `data: [DONE]`
+	// Stream terminates with `data: [DONE]`. If false, return a single JSON object
+	// containing the results.
 	Stream param.Field[ChatCompletionNewParamsChatCompletionRequestStream] `json:"stream"`
 	// Determines the degree of randomness in the response.
 	Temperature param.Field[float64] `json:"temperature"`
@@ -418,7 +419,8 @@ func (r ChatCompletionNewParamsChatCompletionRequestResponseFormat) MarshalJSON(
 }
 
 // If set, tokens are returned as Server-Sent Events as they are made available.
-// Stream terminates with `data: [DONE]`
+// Stream terminates with `data: [DONE]`. If false, return a single JSON object
+// containing the results.
 type ChatCompletionNewParamsChatCompletionRequestStream bool
 
 const (
@@ -460,7 +462,8 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	// The name of the model to query.
 	Model param.Field[string] `json:"model,required"`
 	// If set, tokens are returned as Server-Sent Events as they are made available.
-	// Stream terminates with `data: [DONE]`
+	// Stream terminates with `data: [DONE]`. If false, return a single JSON object
+	// containing the results.
 	Stream param.Field[ChatCompletionNewParamsChatCompletionRequestStream] `json:"stream,required"`
 	// If set, the response will contain the prompt, and will also return prompt
 	// logprobs if set with logprobs.
@@ -471,7 +474,7 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	FrequencyPenalty param.Field[float64] `json:"frequency_penalty"`
 	// The `logit_bias` parameter allows us to adjust the likelihood of specific tokens
 	// appearing in the generated output.
-	LogitBias param.Field[map[string]interface{}] `json:"logit_bias"`
+	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
 	// Determines the number of most likely tokens to return at each token position log
 	// probabilities to return
 	Logprobs param.Field[int64] `json:"logprobs"`

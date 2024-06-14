@@ -32,7 +32,7 @@ func NewFileService(opts ...option.RequestOption) (r *FileService) {
 	return
 }
 
-// Retrieve a file
+// List the metadata for a single uploaded data file.
 func (r *FileService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FileGetResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	if id == "" {
@@ -44,7 +44,7 @@ func (r *FileService) Get(ctx context.Context, id string, opts ...option.Request
 	return
 }
 
-// List all files
+// List the metadata for all uploaded data files.
 func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (res *FileListResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "files"
@@ -52,7 +52,7 @@ func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (r
 	return
 }
 
-// Delete a file
+// Delete a previously uploaded data file.
 func (r *FileService) Delete(ctx context.Context, id string, opts ...option.RequestOption) (res *FileDeleteResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	if id == "" {
@@ -64,7 +64,7 @@ func (r *FileService) Delete(ctx context.Context, id string, opts ...option.Requ
 	return
 }
 
-// Retrieve file content
+// Get the contents of a single uploaded data file.
 func (r *FileService) Content(ctx context.Context, id string, opts ...option.RequestOption) (res *http.Response, err error) {
 	opts = append(r.Options[:], opts...)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/binary")}, opts...)

@@ -31,7 +31,7 @@ func NewCompletionService(opts ...option.RequestOption) (r *CompletionService) {
 	return
 }
 
-// Creates a completion for the provided prompt and parameters
+// Query a language, code, or image model.
 func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (res *Completion, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "completions"
@@ -233,7 +233,7 @@ type CompletionNewParamsCompletionRequest struct {
 	FrequencyPenalty param.Field[float64] `json:"frequency_penalty"`
 	// The `logit_bias` parameter allows us to adjust the likelihood of specific tokens
 	// appearing in the generated output.
-	LogitBias param.Field[map[string]interface{}] `json:"logit_bias"`
+	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
 	// Determines the number of most likely tokens to return at each token position log
 	// probabilities to return
 	Logprobs param.Field[int64] `json:"logprobs"`
@@ -308,7 +308,7 @@ type CompletionNewParamsCompletionRequest struct {
 	FrequencyPenalty param.Field[float64] `json:"frequency_penalty"`
 	// The `logit_bias` parameter allows us to adjust the likelihood of specific tokens
 	// appearing in the generated output.
-	LogitBias param.Field[map[string]interface{}] `json:"logit_bias"`
+	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
 	// Determines the number of most likely tokens to return at each token position log
 	// probabilities to return
 	Logprobs param.Field[int64] `json:"logprobs"`
