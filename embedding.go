@@ -31,7 +31,7 @@ func NewEmbeddingService(opts ...option.RequestOption) (r *EmbeddingService) {
 	return
 }
 
-// Creates an embedding vector representing the input text
+// Query an embedding model for a given string of text.
 func (r *EmbeddingService) New(ctx context.Context, body EmbeddingNewParams, opts ...option.RequestOption) (res *Embedding, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "embeddings"
