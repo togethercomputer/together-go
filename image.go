@@ -31,7 +31,7 @@ func NewImageService(opts ...option.RequestOption) (r *ImageService) {
 	return
 }
 
-// Generate images based on a given prompt using a specified model
+// Use an image model to generate an image for a given prompt.
 func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...option.RequestOption) (res *ImageFile, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "images/generations"

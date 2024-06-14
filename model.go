@@ -30,7 +30,7 @@ func NewModelService(opts ...option.RequestOption) (r *ModelService) {
 	return
 }
 
-// Lists all the available models
+// Lists all of Together's open-source models
 func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (res *[]ModelListResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "models"
