@@ -40,11 +40,11 @@ func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewP
 }
 
 type ChatCompletion struct {
-	ID      string                 `json:"id"`
-	Choices []ChatCompletionChoice `json:"choices"`
-	Created int64                  `json:"created"`
-	Model   string                 `json:"model"`
-	Object  ChatCompletionObject   `json:"object"`
+	ID      string                 `json:"id,required"`
+	Choices []ChatCompletionChoice `json:"choices,required"`
+	Created int64                  `json:"created,required"`
+	Model   string                 `json:"model,required"`
+	Object  ChatCompletionObject   `json:"object,required"`
 	Usage   ChatCompletionUsage    `json:"usage,nullable"`
 	JSON    chatCompletionJSON     `json:"-"`
 }
@@ -71,8 +71,11 @@ func (r chatCompletionJSON) RawJSON() string {
 
 type ChatCompletionChoice struct {
 	FinishReason ChatCompletionChoicesFinishReason `json:"finish_reason"`
+	Index        int64                             `json:"index"`
 	Logprobs     LogProbs                          `json:"logprobs,nullable"`
 	Message      ChatCompletionChoicesMessage      `json:"message"`
+	Seed         int64                             `json:"seed"`
+	Text         string                            `json:"text"`
 	JSON         chatCompletionChoiceJSON          `json:"-"`
 }
 
@@ -80,8 +83,11 @@ type ChatCompletionChoice struct {
 // [ChatCompletionChoice]
 type chatCompletionChoiceJSON struct {
 	FinishReason apijson.Field
+	Index        apijson.Field
 	Logprobs     apijson.Field
 	Message      apijson.Field
+	Seed         apijson.Field
+	Text         apijson.Field
 	raw          string
 	ExtraFields  map[string]apijson.Field
 }
@@ -97,33 +103,38 @@ func (r chatCompletionChoiceJSON) RawJSON() string {
 type ChatCompletionChoicesFinishReason string
 
 const (
-	ChatCompletionChoicesFinishReasonStop      ChatCompletionChoicesFinishReason = "stop"
-	ChatCompletionChoicesFinishReasonEos       ChatCompletionChoicesFinishReason = "eos"
-	ChatCompletionChoicesFinishReasonLength    ChatCompletionChoicesFinishReason = "length"
-	ChatCompletionChoicesFinishReasonToolCalls ChatCompletionChoicesFinishReason = "tool_calls"
+	ChatCompletionChoicesFinishReasonStop         ChatCompletionChoicesFinishReason = "stop"
+	ChatCompletionChoicesFinishReasonEos          ChatCompletionChoicesFinishReason = "eos"
+	ChatCompletionChoicesFinishReasonLength       ChatCompletionChoicesFinishReason = "length"
+	ChatCompletionChoicesFinishReasonToolCalls    ChatCompletionChoicesFinishReason = "tool_calls"
+	ChatCompletionChoicesFinishReasonFunctionCall ChatCompletionChoicesFinishReason = "function_call"
 )
 
 func (r ChatCompletionChoicesFinishReason) IsKnown() bool {
 	switch r {
-	case ChatCompletionChoicesFinishReasonStop, ChatCompletionChoicesFinishReasonEos, ChatCompletionChoicesFinishReasonLength, ChatCompletionChoicesFinishReasonToolCalls:
+	case ChatCompletionChoicesFinishReasonStop, ChatCompletionChoicesFinishReasonEos, ChatCompletionChoicesFinishReasonLength, ChatCompletionChoicesFinishReasonToolCalls, ChatCompletionChoicesFinishReasonFunctionCall:
 		return true
 	}
 	return false
 }
 
 type ChatCompletionChoicesMessage struct {
-	Content string                           `json:"content"`
-	Role    string                           `json:"role"`
-	JSON    chatCompletionChoicesMessageJSON `json:"-"`
+	Content      string                                   `json:"content,required,nullable"`
+	Role         ChatCompletionChoicesMessageRole         `json:"role,required"`
+	FunctionCall ChatCompletionChoicesMessageFunctionCall `json:"function_call"`
+	ToolCalls    []ToolChoice                             `json:"tool_calls"`
+	JSON         chatCompletionChoicesMessageJSON         `json:"-"`
 }
 
 // chatCompletionChoicesMessageJSON contains the JSON metadata for the struct
 // [ChatCompletionChoicesMessage]
 type chatCompletionChoicesMessageJSON struct {
-	Content     apijson.Field
-	Role        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Content      apijson.Field
+	Role         apijson.Field
+	FunctionCall apijson.Field
+	ToolCalls    apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
 }
 
 func (r *ChatCompletionChoicesMessage) UnmarshalJSON(data []byte) (err error) {
@@ -131,6 +142,43 @@ func (r *ChatCompletionChoicesMessage) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (r chatCompletionChoicesMessageJSON) RawJSON() string {
+	return r.raw
+}
+
+type ChatCompletionChoicesMessageRole string
+
+const (
+	ChatCompletionChoicesMessageRoleAssistant ChatCompletionChoicesMessageRole = "assistant"
+)
+
+func (r ChatCompletionChoicesMessageRole) IsKnown() bool {
+	switch r {
+	case ChatCompletionChoicesMessageRoleAssistant:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionChoicesMessageFunctionCall struct {
+	Arguments string                                       `json:"arguments,required"`
+	Name      string                                       `json:"name,required"`
+	JSON      chatCompletionChoicesMessageFunctionCallJSON `json:"-"`
+}
+
+// chatCompletionChoicesMessageFunctionCallJSON contains the JSON metadata for the
+// struct [ChatCompletionChoicesMessageFunctionCall]
+type chatCompletionChoicesMessageFunctionCallJSON struct {
+	Arguments   apijson.Field
+	Name        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ChatCompletionChoicesMessageFunctionCall) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r chatCompletionChoicesMessageFunctionCallJSON) RawJSON() string {
 	return r.raw
 }
 
@@ -149,28 +197,28 @@ func (r ChatCompletionObject) IsKnown() bool {
 }
 
 type ChatCompletionChunk struct {
-	ID           string                          `json:"id,required"`
-	Token        ChatCompletionChunkToken        `json:"token,required"`
-	Choices      []ChatCompletionChunkChoice     `json:"choices,required"`
-	Created      int64                           `json:"created,required"`
-	Object       ChatCompletionChunkObject       `json:"object,required"`
-	FinishReason ChatCompletionChunkFinishReason `json:"finish_reason,nullable"`
-	Usage        ChatCompletionUsage             `json:"usage,nullable"`
-	JSON         chatCompletionChunkJSON         `json:"-"`
+	ID                string                      `json:"id,required"`
+	Choices           []ChatCompletionChunkChoice `json:"choices,required"`
+	Created           int64                       `json:"created,required"`
+	Model             string                      `json:"model,required"`
+	Object            ChatCompletionChunkObject   `json:"object,required"`
+	SystemFingerprint string                      `json:"system_fingerprint"`
+	Usage             ChatCompletionUsage         `json:"usage,nullable"`
+	JSON              chatCompletionChunkJSON     `json:"-"`
 }
 
 // chatCompletionChunkJSON contains the JSON metadata for the struct
 // [ChatCompletionChunk]
 type chatCompletionChunkJSON struct {
-	ID           apijson.Field
-	Token        apijson.Field
-	Choices      apijson.Field
-	Created      apijson.Field
-	Object       apijson.Field
-	FinishReason apijson.Field
-	Usage        apijson.Field
-	raw          string
-	ExtraFields  map[string]apijson.Field
+	ID                apijson.Field
+	Choices           apijson.Field
+	Created           apijson.Field
+	Model             apijson.Field
+	Object            apijson.Field
+	SystemFingerprint apijson.Field
+	Usage             apijson.Field
+	raw               string
+	ExtraFields       map[string]apijson.Field
 }
 
 func (r *ChatCompletionChunk) UnmarshalJSON(data []byte) (err error) {
@@ -181,46 +229,23 @@ func (r chatCompletionChunkJSON) RawJSON() string {
 	return r.raw
 }
 
-type ChatCompletionChunkToken struct {
-	ID      int64                        `json:"id,required"`
-	Logprob float64                      `json:"logprob,required"`
-	Special bool                         `json:"special,required"`
-	Text    string                       `json:"text,required"`
-	JSON    chatCompletionChunkTokenJSON `json:"-"`
-}
-
-// chatCompletionChunkTokenJSON contains the JSON metadata for the struct
-// [ChatCompletionChunkToken]
-type chatCompletionChunkTokenJSON struct {
-	ID          apijson.Field
-	Logprob     apijson.Field
-	Special     apijson.Field
-	Text        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ChatCompletionChunkToken) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r chatCompletionChunkTokenJSON) RawJSON() string {
-	return r.raw
-}
-
 type ChatCompletionChunkChoice struct {
-	Delta ChatCompletionChunkChoicesDelta `json:"delta,required"`
-	Index int64                           `json:"index,required"`
-	JSON  chatCompletionChunkChoiceJSON   `json:"-"`
+	Delta        ChatCompletionChunkChoicesDelta        `json:"delta,required"`
+	FinishReason ChatCompletionChunkChoicesFinishReason `json:"finish_reason,required"`
+	Index        int64                                  `json:"index,required"`
+	Logprobs     LogProbs                               `json:"logprobs"`
+	JSON         chatCompletionChunkChoiceJSON          `json:"-"`
 }
 
 // chatCompletionChunkChoiceJSON contains the JSON metadata for the struct
 // [ChatCompletionChunkChoice]
 type chatCompletionChunkChoiceJSON struct {
-	Delta       apijson.Field
-	Index       apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Delta        apijson.Field
+	FinishReason apijson.Field
+	Index        apijson.Field
+	Logprobs     apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
 }
 
 func (r *ChatCompletionChunkChoice) UnmarshalJSON(data []byte) (err error) {
@@ -232,16 +257,24 @@ func (r chatCompletionChunkChoiceJSON) RawJSON() string {
 }
 
 type ChatCompletionChunkChoicesDelta struct {
-	Content string                              `json:"content,required"`
-	JSON    chatCompletionChunkChoicesDeltaJSON `json:"-"`
+	Content      string                                      `json:"content,nullable"`
+	FunctionCall ChatCompletionChunkChoicesDeltaFunctionCall `json:"function_call,nullable"`
+	Role         ChatCompletionChunkChoicesDeltaRole         `json:"role"`
+	TokenID      int64                                       `json:"token_id"`
+	ToolCalls    []ToolChoice                                `json:"tool_calls"`
+	JSON         chatCompletionChunkChoicesDeltaJSON         `json:"-"`
 }
 
 // chatCompletionChunkChoicesDeltaJSON contains the JSON metadata for the struct
 // [ChatCompletionChunkChoicesDelta]
 type chatCompletionChunkChoicesDeltaJSON struct {
-	Content     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Content      apijson.Field
+	FunctionCall apijson.Field
+	Role         apijson.Field
+	TokenID      apijson.Field
+	ToolCalls    apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
 }
 
 func (r *ChatCompletionChunkChoicesDelta) UnmarshalJSON(data []byte) (err error) {
@@ -250,6 +283,65 @@ func (r *ChatCompletionChunkChoicesDelta) UnmarshalJSON(data []byte) (err error)
 
 func (r chatCompletionChunkChoicesDeltaJSON) RawJSON() string {
 	return r.raw
+}
+
+type ChatCompletionChunkChoicesDeltaFunctionCall struct {
+	Arguments string                                          `json:"arguments,required"`
+	Name      string                                          `json:"name,required"`
+	JSON      chatCompletionChunkChoicesDeltaFunctionCallJSON `json:"-"`
+}
+
+// chatCompletionChunkChoicesDeltaFunctionCallJSON contains the JSON metadata for
+// the struct [ChatCompletionChunkChoicesDeltaFunctionCall]
+type chatCompletionChunkChoicesDeltaFunctionCallJSON struct {
+	Arguments   apijson.Field
+	Name        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ChatCompletionChunkChoicesDeltaFunctionCall) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r chatCompletionChunkChoicesDeltaFunctionCallJSON) RawJSON() string {
+	return r.raw
+}
+
+type ChatCompletionChunkChoicesDeltaRole string
+
+const (
+	ChatCompletionChunkChoicesDeltaRoleSystem    ChatCompletionChunkChoicesDeltaRole = "system"
+	ChatCompletionChunkChoicesDeltaRoleUser      ChatCompletionChunkChoicesDeltaRole = "user"
+	ChatCompletionChunkChoicesDeltaRoleAssistant ChatCompletionChunkChoicesDeltaRole = "assistant"
+	ChatCompletionChunkChoicesDeltaRoleFunction  ChatCompletionChunkChoicesDeltaRole = "function"
+	ChatCompletionChunkChoicesDeltaRoleTool      ChatCompletionChunkChoicesDeltaRole = "tool"
+)
+
+func (r ChatCompletionChunkChoicesDeltaRole) IsKnown() bool {
+	switch r {
+	case ChatCompletionChunkChoicesDeltaRoleSystem, ChatCompletionChunkChoicesDeltaRoleUser, ChatCompletionChunkChoicesDeltaRoleAssistant, ChatCompletionChunkChoicesDeltaRoleFunction, ChatCompletionChunkChoicesDeltaRoleTool:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionChunkChoicesFinishReason string
+
+const (
+	ChatCompletionChunkChoicesFinishReasonStop         ChatCompletionChunkChoicesFinishReason = "stop"
+	ChatCompletionChunkChoicesFinishReasonEos          ChatCompletionChunkChoicesFinishReason = "eos"
+	ChatCompletionChunkChoicesFinishReasonLength       ChatCompletionChunkChoicesFinishReason = "length"
+	ChatCompletionChunkChoicesFinishReasonToolCalls    ChatCompletionChunkChoicesFinishReason = "tool_calls"
+	ChatCompletionChunkChoicesFinishReasonFunctionCall ChatCompletionChunkChoicesFinishReason = "function_call"
+)
+
+func (r ChatCompletionChunkChoicesFinishReason) IsKnown() bool {
+	switch r {
+	case ChatCompletionChunkChoicesFinishReasonStop, ChatCompletionChunkChoicesFinishReasonEos, ChatCompletionChunkChoicesFinishReasonLength, ChatCompletionChunkChoicesFinishReasonToolCalls, ChatCompletionChunkChoicesFinishReasonFunctionCall:
+		return true
+	}
+	return false
 }
 
 type ChatCompletionChunkObject string
@@ -261,23 +353,6 @@ const (
 func (r ChatCompletionChunkObject) IsKnown() bool {
 	switch r {
 	case ChatCompletionChunkObjectChatCompletionChunk:
-		return true
-	}
-	return false
-}
-
-type ChatCompletionChunkFinishReason string
-
-const (
-	ChatCompletionChunkFinishReasonStop      ChatCompletionChunkFinishReason = "stop"
-	ChatCompletionChunkFinishReasonEos       ChatCompletionChunkFinishReason = "eos"
-	ChatCompletionChunkFinishReasonLength    ChatCompletionChunkFinishReason = "length"
-	ChatCompletionChunkFinishReasonToolCalls ChatCompletionChunkFinishReason = "tool_calls"
-)
-
-func (r ChatCompletionChunkFinishReason) IsKnown() bool {
-	switch r {
-	case ChatCompletionChunkFinishReasonStop, ChatCompletionChunkFinishReasonEos, ChatCompletionChunkFinishReasonLength, ChatCompletionChunkFinishReasonToolCalls:
 		return true
 	}
 	return false
@@ -325,7 +400,8 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	Echo param.Field[bool] `json:"echo"`
 	// A number between -2.0 and 2.0 where a positive value decreases the likelihood of
 	// repeating tokens that have already been mentioned.
-	FrequencyPenalty param.Field[float64] `json:"frequency_penalty"`
+	FrequencyPenalty param.Field[float64]                                                       `json:"frequency_penalty"`
+	FunctionCall     param.Field[ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion] `json:"function_call"`
 	// Adjusts the likelihood of specific tokens appearing in the generated output.
 	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
 	// Determines the number of most likely tokens to return at each token position log
@@ -419,6 +495,53 @@ func (r ChatCompletionNewParamsChatCompletionRequestMessagesRole) IsKnown() bool
 	return false
 }
 
+type ChatCompletionNewParamsChatCompletionRequestFunctionCall struct {
+	Name param.Field[string] `json:"name,required"`
+}
+
+func (r ChatCompletionNewParamsChatCompletionRequestFunctionCall) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsChatCompletionRequestFunctionCall) implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion() {
+}
+
+// Satisfied by [ChatCompletionNewParamsChatCompletionRequestFunctionCallString],
+// [ChatCompletionNewParamsChatCompletionRequestFunctionCallObject],
+// [ChatCompletionNewParamsChatCompletionRequestFunctionCall].
+type ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion interface {
+	implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion()
+}
+
+type ChatCompletionNewParamsChatCompletionRequestFunctionCallString string
+
+const (
+	ChatCompletionNewParamsChatCompletionRequestFunctionCallStringNone ChatCompletionNewParamsChatCompletionRequestFunctionCallString = "none"
+	ChatCompletionNewParamsChatCompletionRequestFunctionCallStringAuto ChatCompletionNewParamsChatCompletionRequestFunctionCallString = "auto"
+)
+
+func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallString) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsChatCompletionRequestFunctionCallStringNone, ChatCompletionNewParamsChatCompletionRequestFunctionCallStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallString) implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion() {
+}
+
+type ChatCompletionNewParamsChatCompletionRequestFunctionCallObject struct {
+	Name param.Field[string] `json:"name,required"`
+}
+
+func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallObject) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallObject) implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion() {
+}
+
 // An object specifying the format that the model must output.
 type ChatCompletionNewParamsChatCompletionRequestResponseFormat struct {
 	// The schema of the response format.
@@ -451,8 +574,10 @@ func (r ChatCompletionNewParamsChatCompletionRequestStream) IsKnown() bool {
 // Controls which (if any) function is called by the model. By default uses `auto`,
 // which lets the model pick between generating a message or calling a function.
 type ChatCompletionNewParamsChatCompletionRequestToolChoice struct {
-	Type     param.Field[string]      `json:"type"`
-	Function param.Field[interface{}] `json:"function,required"`
+	Index    param.Field[float64]                                                    `json:"index,required"`
+	ID       param.Field[string]                                                     `json:"id,required"`
+	Type     param.Field[ChatCompletionNewParamsChatCompletionRequestToolChoiceType] `json:"type,required"`
+	Function param.Field[interface{}]                                                `json:"function"`
 }
 
 func (r ChatCompletionNewParamsChatCompletionRequestToolChoice) MarshalJSON() (data []byte, err error) {
@@ -485,7 +610,8 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	Echo param.Field[bool] `json:"echo"`
 	// A number between -2.0 and 2.0 where a positive value decreases the likelihood of
 	// repeating tokens that have already been mentioned.
-	FrequencyPenalty param.Field[float64] `json:"frequency_penalty"`
+	FrequencyPenalty param.Field[float64]                                                       `json:"frequency_penalty"`
+	FunctionCall     param.Field[ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion] `json:"function_call"`
 	// Adjusts the likelihood of specific tokens appearing in the generated output.
 	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
 	// Determines the number of most likely tokens to return at each token position log

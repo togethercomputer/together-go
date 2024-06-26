@@ -40,6 +40,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		Model:            together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
 		Echo:             together.F(true),
 		FrequencyPenalty: together.F(0.000000),
+		FunctionCall:     together.F[together.ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion](together.ChatCompletionNewParamsChatCompletionRequestFunctionCallString(together.ChatCompletionNewParamsChatCompletionRequestFunctionCallStringNone)),
 		LogitBias: together.F(map[string]float64{
 			"105":  21.400000,
 			"1024": -10.500000,
