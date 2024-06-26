@@ -73,7 +73,7 @@ func (r completionJSON) RawJSON() string {
 
 type CompletionChoice struct {
 	FinishReason CompletionChoicesFinishReason `json:"finish_reason"`
-	Logprobs     LogProbs                      `json:"logprobs,nullable"`
+	Logprobs     LogProbs                      `json:"logprobs"`
 	Text         string                        `json:"text"`
 	JSON         completionChoiceJSON          `json:"-"`
 }
@@ -99,15 +99,16 @@ func (r completionChoiceJSON) RawJSON() string {
 type CompletionChoicesFinishReason string
 
 const (
-	CompletionChoicesFinishReasonStop      CompletionChoicesFinishReason = "stop"
-	CompletionChoicesFinishReasonEos       CompletionChoicesFinishReason = "eos"
-	CompletionChoicesFinishReasonLength    CompletionChoicesFinishReason = "length"
-	CompletionChoicesFinishReasonToolCalls CompletionChoicesFinishReason = "tool_calls"
+	CompletionChoicesFinishReasonStop         CompletionChoicesFinishReason = "stop"
+	CompletionChoicesFinishReasonEos          CompletionChoicesFinishReason = "eos"
+	CompletionChoicesFinishReasonLength       CompletionChoicesFinishReason = "length"
+	CompletionChoicesFinishReasonToolCalls    CompletionChoicesFinishReason = "tool_calls"
+	CompletionChoicesFinishReasonFunctionCall CompletionChoicesFinishReason = "function_call"
 )
 
 func (r CompletionChoicesFinishReason) IsKnown() bool {
 	switch r {
-	case CompletionChoicesFinishReasonStop, CompletionChoicesFinishReasonEos, CompletionChoicesFinishReasonLength, CompletionChoicesFinishReasonToolCalls:
+	case CompletionChoicesFinishReasonStop, CompletionChoicesFinishReasonEos, CompletionChoicesFinishReasonLength, CompletionChoicesFinishReasonToolCalls, CompletionChoicesFinishReasonFunctionCall:
 		return true
 	}
 	return false
@@ -151,6 +152,7 @@ func (r completionPromptJSON) RawJSON() string {
 }
 
 type LogProbs struct {
+	Content []LogProbsContent `json:"content"`
 	// List of token log probabilities
 	TokenLogprobs []float64 `json:"token_logprobs"`
 	// List of token strings
@@ -160,6 +162,7 @@ type LogProbs struct {
 
 // logProbsJSON contains the JSON metadata for the struct [LogProbs]
 type logProbsJSON struct {
+	Content       apijson.Field
 	TokenLogprobs apijson.Field
 	Tokens        apijson.Field
 	raw           string
@@ -174,9 +177,96 @@ func (r logProbsJSON) RawJSON() string {
 	return r.raw
 }
 
+type LogProbsContent struct {
+	Token   string              `json:"token,required"`
+	Logprob float64             `json:"logprob,required"`
+	JSON    logProbsContentJSON `json:"-"`
+}
+
+// logProbsContentJSON contains the JSON metadata for the struct [LogProbsContent]
+type logProbsContentJSON struct {
+	Token       apijson.Field
+	Logprob     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *LogProbsContent) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r logProbsContentJSON) RawJSON() string {
+	return r.raw
+}
+
+type ToolChoice struct {
+	ID       string             `json:"id,required"`
+	Function ToolChoiceFunction `json:"function,required"`
+	Index    float64            `json:"index,required"`
+	Type     ToolChoiceType     `json:"type,required"`
+	JSON     toolChoiceJSON     `json:"-"`
+}
+
+// toolChoiceJSON contains the JSON metadata for the struct [ToolChoice]
+type toolChoiceJSON struct {
+	ID          apijson.Field
+	Function    apijson.Field
+	Index       apijson.Field
+	Type        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ToolChoice) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r toolChoiceJSON) RawJSON() string {
+	return r.raw
+}
+
+type ToolChoiceFunction struct {
+	Arguments string                 `json:"arguments,required"`
+	Name      string                 `json:"name,required"`
+	JSON      toolChoiceFunctionJSON `json:"-"`
+}
+
+// toolChoiceFunctionJSON contains the JSON metadata for the struct
+// [ToolChoiceFunction]
+type toolChoiceFunctionJSON struct {
+	Arguments   apijson.Field
+	Name        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ToolChoiceFunction) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r toolChoiceFunctionJSON) RawJSON() string {
+	return r.raw
+}
+
+type ToolChoiceType string
+
+const (
+	ToolChoiceTypeFunction ToolChoiceType = "function"
+)
+
+func (r ToolChoiceType) IsKnown() bool {
+	switch r {
+	case ToolChoiceTypeFunction:
+		return true
+	}
+	return false
+}
+
 type ToolChoiceParam struct {
-	Function param.Field[ToolChoiceFunctionParam] `json:"function"`
-	Type     param.Field[string]                  `json:"type"`
+	ID       param.Field[string]                  `json:"id,required"`
+	Function param.Field[ToolChoiceFunctionParam] `json:"function,required"`
+	Index    param.Field[float64]                 `json:"index,required"`
+	Type     param.Field[ToolChoiceType]          `json:"type,required"`
 }
 
 func (r ToolChoiceParam) MarshalJSON() (data []byte, err error) {
@@ -186,7 +276,8 @@ func (r ToolChoiceParam) MarshalJSON() (data []byte, err error) {
 func (r ToolChoiceParam) ImplementsChatCompletionNewParamsChatCompletionRequestToolChoiceUnion() {}
 
 type ToolChoiceFunctionParam struct {
-	Name param.Field[string] `json:"name"`
+	Arguments param.Field[string] `json:"arguments,required"`
+	Name      param.Field[string] `json:"name,required"`
 }
 
 func (r ToolChoiceFunctionParam) MarshalJSON() (data []byte, err error) {
