@@ -24,9 +24,9 @@ func TestUsage(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test!"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),

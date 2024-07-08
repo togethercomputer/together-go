@@ -52,9 +52,9 @@ func main() {
 	client := together.NewClient(
 		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("TOGETHER_API_KEY")
 	)
-	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test!"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -180,9 +180,9 @@ When the API returns a non-success status code, we return an error with type
 To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
-_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParamsChatCompletionRequest{
-	Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-		Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
+	Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+		Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 		Content: together.F("Say this is a test"),
 	}}),
 	Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -213,9 +213,9 @@ ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
 client.Chat.Completions.New(
 	ctx,
-	together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -255,9 +255,9 @@ client := together.NewClient(
 // Override per-request:
 client.Chat.Completions.New(
 	context.TODO(),
-	together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),

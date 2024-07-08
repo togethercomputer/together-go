@@ -39,6 +39,22 @@ func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewP
 	return
 }
 
+// Query a chat model.
+func (r *ChatCompletionService) NewStream(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (stream *Stream[ChatCompletionChunk]) {
+	var (
+		raw *http.Response
+		err error
+	)
+	opts = append(r.Options[:], opts...)
+	opts = append([]option.RequestOption{option.WithJSONSet("stream", true)}, opts...)
+	path := "chat/completions"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
+	return &Stream[ChatCompletionChunk]{
+		decoder: NewDecoder(raw),
+		err:     err,
+	}
+}
+
 type ChatCompletion struct {
 	ID      string                 `json:"id,required"`
 	Choices []ChatCompletionChoice `json:"choices,required"`
@@ -383,16 +399,9 @@ func (r chatCompletionUsageJSON) RawJSON() string {
 	return r.raw
 }
 
-// This interface is a union satisfied by one of the following:
-// [ChatCompletionNewParamsChatCompletionRequest],
-// [ChatCompletionNewParamsChatCompletionRequest].
-type ChatCompletionNewParams interface {
-	ImplementsChatCompletionNewParams()
-}
-
-type ChatCompletionNewParamsChatCompletionRequest struct {
+type ChatCompletionNewParams struct {
 	// A list of messages comprising the conversation so far.
-	Messages param.Field[[]ChatCompletionNewParamsChatCompletionRequestMessage] `json:"messages,required"`
+	Messages param.Field[[]ChatCompletionNewParamsMessage] `json:"messages,required"`
 	// The name of the model to query.
 	Model param.Field[string] `json:"model,required"`
 	// If true, the response will contain the prompt. Can be used with `logprobs` to
@@ -400,8 +409,8 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	Echo param.Field[bool] `json:"echo"`
 	// A number between -2.0 and 2.0 where a positive value decreases the likelihood of
 	// repeating tokens that have already been mentioned.
-	FrequencyPenalty param.Field[float64]                                                       `json:"frequency_penalty"`
-	FunctionCall     param.Field[ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion] `json:"function_call"`
+	FrequencyPenalty param.Field[float64]                                  `json:"frequency_penalty"`
+	FunctionCall     param.Field[ChatCompletionNewParamsFunctionCallUnion] `json:"function_call"`
 	// Adjusts the likelihood of specific tokens appearing in the generated output.
 	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
 	// Determines the number of most likely tokens to return at each token position log
@@ -420,7 +429,7 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	// likelihood of repeated sequences. Higher values decrease repetition.
 	RepetitionPenalty param.Field[float64] `json:"repetition_penalty"`
 	// An object specifying the format that the model must output.
-	ResponseFormat param.Field[ChatCompletionNewParamsChatCompletionRequestResponseFormat] `json:"response_format"`
+	ResponseFormat param.Field[ChatCompletionNewParamsResponseFormat] `json:"response_format"`
 	// The name of the moderation model used to validate tokens. Choose from the
 	// available moderation models found
 	// [here](https://docs.together.ai/docs/inference-models#moderation-models).
@@ -429,10 +438,6 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	// example, "</s>" will stop generation as soon as the model generates the given
 	// token.
 	Stop param.Field[[]string] `json:"stop"`
-	// If true, stream tokens as Server-Sent Events as the model generates them instead
-	// of waiting for the full model response. The stream terminates with
-	// `data: [DONE]`. If false, return a single JSON object containing the results.
-	Stream param.Field[ChatCompletionNewParamsChatCompletionRequestStream] `json:"stream"`
 	// A decimal number from 0-1 that determines the degree of randomness in the
 	// response. A temperature less than 1 favors more correctness and is appropriate
 	// for question answering or summarization. A value closer to 1 introduces more
@@ -440,7 +445,7 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	Temperature param.Field[float64] `json:"temperature"`
 	// Controls which (if any) function is called by the model. By default uses `auto`,
 	// which lets the model pick between generating a message or calling a function.
-	ToolChoice param.Field[ChatCompletionNewParamsChatCompletionRequestToolChoiceUnion] `json:"tool_choice"`
+	ToolChoice param.Field[ChatCompletionNewParamsToolChoiceUnion] `json:"tool_choice"`
 	// A list of tools the model may call. Currently, only functions are supported as a
 	// tool. Use this to provide a list of functions the model may generate JSON inputs
 	// for.
@@ -459,216 +464,89 @@ type ChatCompletionNewParamsChatCompletionRequest struct {
 	TopP param.Field[float64] `json:"top_p"`
 }
 
-func (r ChatCompletionNewParamsChatCompletionRequest) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-func (ChatCompletionNewParamsChatCompletionRequest) ImplementsChatCompletionNewParams() {
-
-}
-
-type ChatCompletionNewParamsChatCompletionRequestMessage struct {
+type ChatCompletionNewParamsMessage struct {
 	// The contents of the message.
 	Content param.Field[string] `json:"content,required"`
 	// The role of the messages author. Choice between: system, user, or assistant.
-	Role param.Field[ChatCompletionNewParamsChatCompletionRequestMessagesRole] `json:"role,required"`
+	Role param.Field[ChatCompletionNewParamsMessagesRole] `json:"role,required"`
 }
 
-func (r ChatCompletionNewParamsChatCompletionRequestMessage) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsMessage) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
 // The role of the messages author. Choice between: system, user, or assistant.
-type ChatCompletionNewParamsChatCompletionRequestMessagesRole string
+type ChatCompletionNewParamsMessagesRole string
 
 const (
-	ChatCompletionNewParamsChatCompletionRequestMessagesRoleSystem    ChatCompletionNewParamsChatCompletionRequestMessagesRole = "system"
-	ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser      ChatCompletionNewParamsChatCompletionRequestMessagesRole = "user"
-	ChatCompletionNewParamsChatCompletionRequestMessagesRoleAssistant ChatCompletionNewParamsChatCompletionRequestMessagesRole = "assistant"
+	ChatCompletionNewParamsMessagesRoleSystem    ChatCompletionNewParamsMessagesRole = "system"
+	ChatCompletionNewParamsMessagesRoleUser      ChatCompletionNewParamsMessagesRole = "user"
+	ChatCompletionNewParamsMessagesRoleAssistant ChatCompletionNewParamsMessagesRole = "assistant"
 )
 
-func (r ChatCompletionNewParamsChatCompletionRequestMessagesRole) IsKnown() bool {
+func (r ChatCompletionNewParamsMessagesRole) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsChatCompletionRequestMessagesRoleSystem, ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser, ChatCompletionNewParamsChatCompletionRequestMessagesRoleAssistant:
+	case ChatCompletionNewParamsMessagesRoleSystem, ChatCompletionNewParamsMessagesRoleUser, ChatCompletionNewParamsMessagesRoleAssistant:
 		return true
 	}
 	return false
 }
 
-type ChatCompletionNewParamsChatCompletionRequestFunctionCall struct {
-	Name param.Field[string] `json:"name,required"`
+// Satisfied by [ChatCompletionNewParamsFunctionCallString],
+// [ChatCompletionNewParamsFunctionCallObject].
+type ChatCompletionNewParamsFunctionCallUnion interface {
+	implementsChatCompletionNewParamsFunctionCallUnion()
 }
 
-func (r ChatCompletionNewParamsChatCompletionRequestFunctionCall) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsChatCompletionRequestFunctionCall) implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion() {
-}
-
-// Satisfied by [ChatCompletionNewParamsChatCompletionRequestFunctionCallString],
-// [ChatCompletionNewParamsChatCompletionRequestFunctionCallObject],
-// [ChatCompletionNewParamsChatCompletionRequestFunctionCall].
-type ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion interface {
-	implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion()
-}
-
-type ChatCompletionNewParamsChatCompletionRequestFunctionCallString string
+type ChatCompletionNewParamsFunctionCallString string
 
 const (
-	ChatCompletionNewParamsChatCompletionRequestFunctionCallStringNone ChatCompletionNewParamsChatCompletionRequestFunctionCallString = "none"
-	ChatCompletionNewParamsChatCompletionRequestFunctionCallStringAuto ChatCompletionNewParamsChatCompletionRequestFunctionCallString = "auto"
+	ChatCompletionNewParamsFunctionCallStringNone ChatCompletionNewParamsFunctionCallString = "none"
+	ChatCompletionNewParamsFunctionCallStringAuto ChatCompletionNewParamsFunctionCallString = "auto"
 )
 
-func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallString) IsKnown() bool {
+func (r ChatCompletionNewParamsFunctionCallString) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsChatCompletionRequestFunctionCallStringNone, ChatCompletionNewParamsChatCompletionRequestFunctionCallStringAuto:
+	case ChatCompletionNewParamsFunctionCallStringNone, ChatCompletionNewParamsFunctionCallStringAuto:
 		return true
 	}
 	return false
 }
 
-func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallString) implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion() {
+func (r ChatCompletionNewParamsFunctionCallString) implementsChatCompletionNewParamsFunctionCallUnion() {
 }
 
-type ChatCompletionNewParamsChatCompletionRequestFunctionCallObject struct {
+type ChatCompletionNewParamsFunctionCallObject struct {
 	Name param.Field[string] `json:"name,required"`
 }
 
-func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallObject) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsFunctionCallObject) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-func (r ChatCompletionNewParamsChatCompletionRequestFunctionCallObject) implementsChatCompletionNewParamsChatCompletionRequestFunctionCallUnion() {
+func (r ChatCompletionNewParamsFunctionCallObject) implementsChatCompletionNewParamsFunctionCallUnion() {
 }
 
 // An object specifying the format that the model must output.
-type ChatCompletionNewParamsChatCompletionRequestResponseFormat struct {
+type ChatCompletionNewParamsResponseFormat struct {
 	// The schema of the response format.
 	Schema param.Field[map[string]string] `json:"schema"`
 	// The type of the response format.
 	Type param.Field[string] `json:"type"`
 }
 
-func (r ChatCompletionNewParamsChatCompletionRequestResponseFormat) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsResponseFormat) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
-}
-
-// If true, stream tokens as Server-Sent Events as the model generates them instead
-// of waiting for the full model response. The stream terminates with
-// `data: [DONE]`. If false, return a single JSON object containing the results.
-type ChatCompletionNewParamsChatCompletionRequestStream bool
-
-const (
-	ChatCompletionNewParamsChatCompletionRequestStreamFalse ChatCompletionNewParamsChatCompletionRequestStream = false
-)
-
-func (r ChatCompletionNewParamsChatCompletionRequestStream) IsKnown() bool {
-	switch r {
-	case ChatCompletionNewParamsChatCompletionRequestStreamFalse:
-		return true
-	}
-	return false
-}
-
-// Controls which (if any) function is called by the model. By default uses `auto`,
-// which lets the model pick between generating a message or calling a function.
-type ChatCompletionNewParamsChatCompletionRequestToolChoice struct {
-	Index    param.Field[float64]                                                    `json:"index,required"`
-	ID       param.Field[string]                                                     `json:"id,required"`
-	Type     param.Field[ChatCompletionNewParamsChatCompletionRequestToolChoiceType] `json:"type,required"`
-	Function param.Field[interface{}]                                                `json:"function"`
-}
-
-func (r ChatCompletionNewParamsChatCompletionRequestToolChoice) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsChatCompletionRequestToolChoice) ImplementsChatCompletionNewParamsChatCompletionRequestToolChoiceUnion() {
 }
 
 // Controls which (if any) function is called by the model. By default uses `auto`,
 // which lets the model pick between generating a message or calling a function.
 //
-// Satisfied by [shared.UnionString], [ToolChoiceParam],
-// [ChatCompletionNewParamsChatCompletionRequestToolChoice].
-type ChatCompletionNewParamsChatCompletionRequestToolChoiceUnion interface {
-	ImplementsChatCompletionNewParamsChatCompletionRequestToolChoiceUnion()
-}
-
-type ChatCompletionNewParamsChatCompletionRequest struct {
-	// A list of messages comprising the conversation so far.
-	Messages param.Field[[]ChatCompletionNewParamsChatCompletionRequestMessage] `json:"messages,required"`
-	// The name of the model to query.
-	Model param.Field[string] `json:"model,required"`
-	// If true, stream tokens as Server-Sent Events as the model generates them instead
-	// of waiting for the full model response. The stream terminates with
-	// `data: [DONE]`. If false, return a single JSON object containing the results.
-	Stream param.Field[ChatCompletionNewParamsChatCompletionRequestStream] `json:"stream,required"`
-	// If true, the response will contain the prompt. Can be used with `logprobs` to
-	// return prompt logprobs.
-	Echo param.Field[bool] `json:"echo"`
-	// A number between -2.0 and 2.0 where a positive value decreases the likelihood of
-	// repeating tokens that have already been mentioned.
-	FrequencyPenalty param.Field[float64]                                                       `json:"frequency_penalty"`
-	FunctionCall     param.Field[ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion] `json:"function_call"`
-	// Adjusts the likelihood of specific tokens appearing in the generated output.
-	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
-	// Determines the number of most likely tokens to return at each token position log
-	// probabilities to return.
-	Logprobs param.Field[int64] `json:"logprobs"`
-	// The maximum number of tokens to generate.
-	MaxTokens param.Field[int64] `json:"max_tokens"`
-	// A number between 0 and 1 that can be used as an alternative to temperature.
-	MinP param.Field[float64] `json:"min_p"`
-	// The number of completions to generate for each prompt.
-	N param.Field[int64] `json:"n"`
-	// A number between -2.0 and 2.0 where a positive value increases the likelihood of
-	// a model talking about new topics.
-	PresencePenalty param.Field[float64] `json:"presence_penalty"`
-	// A number that controls the diversity of generated text by reducing the
-	// likelihood of repeated sequences. Higher values decrease repetition.
-	RepetitionPenalty param.Field[float64] `json:"repetition_penalty"`
-	// An object specifying the format that the model must output.
-	ResponseFormat param.Field[ChatCompletionNewParamsChatCompletionRequestResponseFormat] `json:"response_format"`
-	// The name of the moderation model used to validate tokens. Choose from the
-	// available moderation models found
-	// [here](https://docs.together.ai/docs/inference-models#moderation-models).
-	SafetyModel param.Field[string] `json:"safety_model"`
-	// A list of string sequences that will truncate (stop) inference text output. For
-	// example, "</s>" will stop generation as soon as the model generates the given
-	// token.
-	Stop param.Field[[]string] `json:"stop"`
-	// A decimal number from 0-1 that determines the degree of randomness in the
-	// response. A temperature less than 1 favors more correctness and is appropriate
-	// for question answering or summarization. A value closer to 1 introduces more
-	// randomness in the output.
-	Temperature param.Field[float64] `json:"temperature"`
-	// Controls which (if any) function is called by the model. By default uses `auto`,
-	// which lets the model pick between generating a message or calling a function.
-	ToolChoice param.Field[ChatCompletionNewParamsChatCompletionRequestToolChoiceUnion] `json:"tool_choice"`
-	// A list of tools the model may call. Currently, only functions are supported as a
-	// tool. Use this to provide a list of functions the model may generate JSON inputs
-	// for.
-	Tools param.Field[[]ToolsParam] `json:"tools"`
-	// An integer that's used to limit the number of choices for the next predicted
-	// word or token. It specifies the maximum number of tokens to consider at each
-	// step, based on their probability of occurrence. This technique helps to speed up
-	// the generation process and can improve the quality of the generated text by
-	// focusing on the most likely options.
-	TopK param.Field[int64] `json:"top_k"`
-	// A percentage (also called the nucleus parameter) that's used to dynamically
-	// adjust the number of choices for each predicted token based on the cumulative
-	// probabilities. It specifies a probability threshold below which all less likely
-	// tokens are filtered out. This technique helps maintain diversity and generate
-	// more fluent and natural-sounding text.
-	TopP param.Field[float64] `json:"top_p"`
-}
-
-func (r ChatCompletionNewParamsChatCompletionRequest) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (ChatCompletionNewParamsChatCompletionRequest) ImplementsChatCompletionNewParams() {
-
+// Satisfied by [shared.UnionString], [ToolChoiceParam].
+type ChatCompletionNewParamsToolChoiceUnion interface {
+	ImplementsChatCompletionNewParamsToolChoiceUnion()
 }

@@ -117,7 +117,7 @@ func (r EmbeddingObject) IsKnown() bool {
 
 type EmbeddingNewParams struct {
 	// A string providing the text for the model to embed.
-	Input param.Field[string] `json:"input,required"`
+	Input param.Field[EmbeddingNewParamsInputUnion] `json:"input,required"`
 	// The name of the embedding model to use.
 	Model param.Field[string] `json:"model,required"`
 }
@@ -125,3 +125,14 @@ type EmbeddingNewParams struct {
 func (r EmbeddingNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
+
+// A string providing the text for the model to embed.
+//
+// Satisfied by [shared.UnionString], [EmbeddingNewParamsInputArray].
+type EmbeddingNewParamsInputUnion interface {
+	ImplementsEmbeddingNewParamsInputUnion()
+}
+
+type EmbeddingNewParamsInputArray []string
+
+func (r EmbeddingNewParamsInputArray) ImplementsEmbeddingNewParamsInputUnion() {}

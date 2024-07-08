@@ -39,6 +39,22 @@ func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, o
 	return
 }
 
+// Query a language, code, or image model.
+func (r *CompletionService) NewStream(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (stream *Stream[Completion]) {
+	var (
+		raw *http.Response
+		err error
+	)
+	opts = append(r.Options[:], opts...)
+	opts = append([]option.RequestOption{option.WithJSONSet("stream", true)}, opts...)
+	path := "completions"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
+	return &Stream[Completion]{
+		decoder: NewDecoder(raw),
+		err:     err,
+	}
+}
+
 type Completion struct {
 	ID      string              `json:"id,required"`
 	Choices []CompletionChoice  `json:"choices,required"`
@@ -273,7 +289,7 @@ func (r ToolChoiceParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-func (r ToolChoiceParam) ImplementsChatCompletionNewParamsChatCompletionRequestToolChoiceUnion() {}
+func (r ToolChoiceParam) ImplementsChatCompletionNewParamsToolChoiceUnion() {}
 
 type ToolChoiceFunctionParam struct {
 	Arguments param.Field[string] `json:"arguments,required"`
@@ -304,105 +320,11 @@ func (r ToolsFunctionParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-// This interface is a union satisfied by one of the following:
-// [CompletionNewParamsCompletionRequest], [CompletionNewParamsCompletionRequest].
-type CompletionNewParams interface {
-	ImplementsCompletionNewParams()
-}
-
-type CompletionNewParamsCompletionRequest struct {
+type CompletionNewParams struct {
 	// The name of the model to query.
 	Model param.Field[string] `json:"model,required"`
 	// A string providing context for the model to complete.
 	Prompt param.Field[string] `json:"prompt,required"`
-	// If true, the response will contain the prompt. Can be used with `logprobs` to
-	// return prompt logprobs.
-	Echo param.Field[bool] `json:"echo"`
-	// A number between -2.0 and 2.0 where a positive value decreases the likelihood of
-	// repeating tokens that have already been mentioned.
-	FrequencyPenalty param.Field[float64] `json:"frequency_penalty"`
-	// Adjusts the likelihood of specific tokens appearing in the generated output.
-	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
-	// Determines the number of most likely tokens to return at each token position log
-	// probabilities to return.
-	Logprobs param.Field[int64] `json:"logprobs"`
-	// The maximum number of tokens to generate.
-	MaxTokens param.Field[int64] `json:"max_tokens"`
-	// A number between 0 and 1 that can be used as an alternative to temperature.
-	MinP param.Field[float64] `json:"min_p"`
-	// The number of completions to generate for each prompt.
-	N param.Field[int64] `json:"n"`
-	// A number between -2.0 and 2.0 where a positive value increases the likelihood of
-	// a model talking about new topics.
-	PresencePenalty param.Field[float64] `json:"presence_penalty"`
-	// A number that controls the diversity of generated text by reducing the
-	// likelihood of repeated sequences. Higher values decrease repetition.
-	RepetitionPenalty param.Field[float64] `json:"repetition_penalty"`
-	// The name of the moderation model used to validate tokens. Choose from the
-	// available moderation models found
-	// [here](https://docs.together.ai/docs/inference-models#moderation-models).
-	SafetyModel param.Field[string] `json:"safety_model"`
-	// A list of string sequences that will truncate (stop) inference text output. For
-	// example, "</s>" will stop generation as soon as the model generates the given
-	// token.
-	Stop param.Field[[]string] `json:"stop"`
-	// If true, stream tokens as Server-Sent Events as the model generates them instead
-	// of waiting for the full model response. The stream terminates with
-	// `data: [DONE]`. If false, return a single JSON object containing the results.
-	Stream param.Field[CompletionNewParamsCompletionRequestStream] `json:"stream"`
-	// A decimal number from 0-1 that determines the degree of randomness in the
-	// response. A temperature less than 1 favors more correctness and is appropriate
-	// for question answering or summarization. A value closer to 1 introduces more
-	// randomness in the output.
-	Temperature param.Field[float64] `json:"temperature"`
-	// An integer that's used to limit the number of choices for the next predicted
-	// word or token. It specifies the maximum number of tokens to consider at each
-	// step, based on their probability of occurrence. This technique helps to speed up
-	// the generation process and can improve the quality of the generated text by
-	// focusing on the most likely options.
-	TopK param.Field[int64] `json:"top_k"`
-	// A percentage (also called the nucleus parameter) that's used to dynamically
-	// adjust the number of choices for each predicted token based on the cumulative
-	// probabilities. It specifies a probability threshold below which all less likely
-	// tokens are filtered out. This technique helps maintain diversity and generate
-	// more fluent and natural-sounding text.
-	TopP param.Field[float64] `json:"top_p"`
-}
-
-func (r CompletionNewParamsCompletionRequest) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (CompletionNewParamsCompletionRequest) ImplementsCompletionNewParams() {
-
-}
-
-// If true, stream tokens as Server-Sent Events as the model generates them instead
-// of waiting for the full model response. The stream terminates with
-// `data: [DONE]`. If false, return a single JSON object containing the results.
-type CompletionNewParamsCompletionRequestStream bool
-
-const (
-	CompletionNewParamsCompletionRequestStreamFalse CompletionNewParamsCompletionRequestStream = false
-)
-
-func (r CompletionNewParamsCompletionRequestStream) IsKnown() bool {
-	switch r {
-	case CompletionNewParamsCompletionRequestStreamFalse:
-		return true
-	}
-	return false
-}
-
-type CompletionNewParamsCompletionRequest struct {
-	// The name of the model to query.
-	Model param.Field[string] `json:"model,required"`
-	// A string providing context for the model to complete.
-	Prompt param.Field[string] `json:"prompt,required"`
-	// If true, stream tokens as Server-Sent Events as the model generates them instead
-	// of waiting for the full model response. The stream terminates with
-	// `data: [DONE]`. If false, return a single JSON object containing the results.
-	Stream param.Field[CompletionNewParamsCompletionRequestStream] `json:"stream,required"`
 	// If true, the response will contain the prompt. Can be used with `logprobs` to
 	// return prompt logprobs.
 	Echo param.Field[bool] `json:"echo"`
@@ -453,10 +375,6 @@ type CompletionNewParamsCompletionRequest struct {
 	TopP param.Field[float64] `json:"top_p"`
 }
 
-func (r CompletionNewParamsCompletionRequest) MarshalJSON() (data []byte, err error) {
+func (r CompletionNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
-}
-
-func (CompletionNewParamsCompletionRequest) ImplementsCompletionNewParams() {
-
 }
