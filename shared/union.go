@@ -4,4 +4,5 @@ package shared
 
 type UnionString string
 
-func (UnionString) ImplementsChatCompletionNewParamsChatCompletionRequestToolChoiceUnion() {}
+func (UnionString) ImplementsChatCompletionNewParamsToolChoiceUnion() {}
+func (UnionString) ImplementsEmbeddingNewParamsInputUnion()           {}

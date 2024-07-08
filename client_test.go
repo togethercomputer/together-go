@@ -36,9 +36,9 @@ func TestUserAgentHeader(t *testing.T) {
 			},
 		}),
 	)
-	client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -65,9 +65,9 @@ func TestRetryAfter(t *testing.T) {
 			},
 		}),
 	)
-	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -97,9 +97,9 @@ func TestRetryAfterMs(t *testing.T) {
 			},
 		}),
 	)
-	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -125,9 +125,9 @@ func TestContextCancel(t *testing.T) {
 	)
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	cancel()
-	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -150,9 +150,9 @@ func TestContextCancelDelay(t *testing.T) {
 	)
 	cancelCtx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
 	defer cancel()
-	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
@@ -181,9 +181,9 @@ func TestContextDeadline(t *testing.T) {
 				},
 			}),
 		)
-		res, err := client.Chat.Completions.New(deadlineCtx, together.ChatCompletionNewParamsChatCompletionRequest{
-			Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-				Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
+		res, err := client.Chat.Completions.New(deadlineCtx, together.ChatCompletionNewParams{
+			Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+				Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 				Content: together.F("Say this is a test"),
 			}}),
 			Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),

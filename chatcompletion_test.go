@@ -26,21 +26,21 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleSystem),
+	_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 			Content: together.F("string"),
 		}, {
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleSystem),
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 			Content: together.F("string"),
 		}, {
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleSystem),
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 			Content: together.F("string"),
 		}}),
 		Model:            together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
 		Echo:             together.F(true),
 		FrequencyPenalty: together.F(0.000000),
-		FunctionCall:     together.F[together.ChatCompletionNewParamsChatCompletionRequestFunctionCallUnion](together.ChatCompletionNewParamsChatCompletionRequestFunctionCallString(together.ChatCompletionNewParamsChatCompletionRequestFunctionCallStringNone)),
+		FunctionCall:     together.F[together.ChatCompletionNewParamsFunctionCallUnion](together.ChatCompletionNewParamsFunctionCallString(together.ChatCompletionNewParamsFunctionCallStringNone)),
 		LogitBias: together.F(map[string]float64{
 			"105":  21.400000,
 			"1024": -10.500000,
@@ -51,7 +51,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		N:                 together.F(int64(1)),
 		PresencePenalty:   together.F(0.000000),
 		RepetitionPenalty: together.F(0.000000),
-		ResponseFormat: together.F(together.ChatCompletionNewParamsChatCompletionRequestResponseFormat{
+		ResponseFormat: together.F(together.ChatCompletionNewParamsResponseFormat{
 			Type: together.F("json"),
 			Schema: together.F(map[string]string{
 				"foo": "string",
@@ -59,9 +59,8 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		}),
 		SafetyModel: together.F("safety_model_name"),
 		Stop:        together.F([]string{"string", "string", "string"}),
-		Stream:      together.F(together.ChatCompletionNewParamsChatCompletionRequestStreamFalse),
 		Temperature: together.F(0.000000),
-		ToolChoice:  together.F[together.ChatCompletionNewParamsChatCompletionRequestToolChoiceUnion](shared.UnionString("tool_name")),
+		ToolChoice:  together.F[together.ChatCompletionNewParamsToolChoiceUnion](shared.UnionString("tool_name")),
 		Tools: together.F([]together.ToolsParam{{
 			Type: together.F("tool_type"),
 			Function: together.F(together.ToolsFunctionParam{
