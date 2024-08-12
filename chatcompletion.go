@@ -10,6 +10,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/ssestream"
 )
 
 // ChatCompletionService contains methods and other services that help with
@@ -40,7 +41,7 @@ func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewP
 }
 
 // Query a chat model.
-func (r *ChatCompletionService) NewStream(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (stream *Stream[ChatCompletionChunk]) {
+func (r *ChatCompletionService) NewStreaming(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[ChatCompletionChunk]) {
 	var (
 		raw *http.Response
 		err error
@@ -49,10 +50,7 @@ func (r *ChatCompletionService) NewStream(ctx context.Context, body ChatCompleti
 	opts = append([]option.RequestOption{option.WithJSONSet("stream", true)}, opts...)
 	path := "chat/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
-	return &Stream[ChatCompletionChunk]{
-		decoder: NewDecoder(raw),
-		err:     err,
-	}
+	return ssestream.NewStream[ChatCompletionChunk](ssestream.NewDecoder(raw), err)
 }
 
 type ChatCompletion struct {
@@ -249,7 +247,7 @@ type ChatCompletionChunkChoice struct {
 	Delta        ChatCompletionChunkChoicesDelta        `json:"delta,required"`
 	FinishReason ChatCompletionChunkChoicesFinishReason `json:"finish_reason,required"`
 	Index        int64                                  `json:"index,required"`
-	Logprobs     LogProbs                               `json:"logprobs"`
+	Logprobs     float64                                `json:"logprobs,nullable"`
 	JSON         chatCompletionChunkChoiceJSON          `json:"-"`
 }
 
@@ -273,9 +271,9 @@ func (r chatCompletionChunkChoiceJSON) RawJSON() string {
 }
 
 type ChatCompletionChunkChoicesDelta struct {
+	Role         ChatCompletionChunkChoicesDeltaRole         `json:"role,required"`
 	Content      string                                      `json:"content,nullable"`
 	FunctionCall ChatCompletionChunkChoicesDeltaFunctionCall `json:"function_call,nullable"`
-	Role         ChatCompletionChunkChoicesDeltaRole         `json:"role"`
 	TokenID      int64                                       `json:"token_id"`
 	ToolCalls    []ToolChoice                                `json:"tool_calls"`
 	JSON         chatCompletionChunkChoicesDeltaJSON         `json:"-"`
@@ -284,9 +282,9 @@ type ChatCompletionChunkChoicesDelta struct {
 // chatCompletionChunkChoicesDeltaJSON contains the JSON metadata for the struct
 // [ChatCompletionChunkChoicesDelta]
 type chatCompletionChunkChoicesDeltaJSON struct {
+	Role         apijson.Field
 	Content      apijson.Field
 	FunctionCall apijson.Field
-	Role         apijson.Field
 	TokenID      apijson.Field
 	ToolCalls    apijson.Field
 	raw          string
@@ -299,6 +297,24 @@ func (r *ChatCompletionChunkChoicesDelta) UnmarshalJSON(data []byte) (err error)
 
 func (r chatCompletionChunkChoicesDeltaJSON) RawJSON() string {
 	return r.raw
+}
+
+type ChatCompletionChunkChoicesDeltaRole string
+
+const (
+	ChatCompletionChunkChoicesDeltaRoleSystem    ChatCompletionChunkChoicesDeltaRole = "system"
+	ChatCompletionChunkChoicesDeltaRoleUser      ChatCompletionChunkChoicesDeltaRole = "user"
+	ChatCompletionChunkChoicesDeltaRoleAssistant ChatCompletionChunkChoicesDeltaRole = "assistant"
+	ChatCompletionChunkChoicesDeltaRoleFunction  ChatCompletionChunkChoicesDeltaRole = "function"
+	ChatCompletionChunkChoicesDeltaRoleTool      ChatCompletionChunkChoicesDeltaRole = "tool"
+)
+
+func (r ChatCompletionChunkChoicesDeltaRole) IsKnown() bool {
+	switch r {
+	case ChatCompletionChunkChoicesDeltaRoleSystem, ChatCompletionChunkChoicesDeltaRoleUser, ChatCompletionChunkChoicesDeltaRoleAssistant, ChatCompletionChunkChoicesDeltaRoleFunction, ChatCompletionChunkChoicesDeltaRoleTool:
+		return true
+	}
+	return false
 }
 
 type ChatCompletionChunkChoicesDeltaFunctionCall struct {
@@ -322,24 +338,6 @@ func (r *ChatCompletionChunkChoicesDeltaFunctionCall) UnmarshalJSON(data []byte)
 
 func (r chatCompletionChunkChoicesDeltaFunctionCallJSON) RawJSON() string {
 	return r.raw
-}
-
-type ChatCompletionChunkChoicesDeltaRole string
-
-const (
-	ChatCompletionChunkChoicesDeltaRoleSystem    ChatCompletionChunkChoicesDeltaRole = "system"
-	ChatCompletionChunkChoicesDeltaRoleUser      ChatCompletionChunkChoicesDeltaRole = "user"
-	ChatCompletionChunkChoicesDeltaRoleAssistant ChatCompletionChunkChoicesDeltaRole = "assistant"
-	ChatCompletionChunkChoicesDeltaRoleFunction  ChatCompletionChunkChoicesDeltaRole = "function"
-	ChatCompletionChunkChoicesDeltaRoleTool      ChatCompletionChunkChoicesDeltaRole = "tool"
-)
-
-func (r ChatCompletionChunkChoicesDeltaRole) IsKnown() bool {
-	switch r {
-	case ChatCompletionChunkChoicesDeltaRoleSystem, ChatCompletionChunkChoicesDeltaRoleUser, ChatCompletionChunkChoicesDeltaRoleAssistant, ChatCompletionChunkChoicesDeltaRoleFunction, ChatCompletionChunkChoicesDeltaRoleTool:
-		return true
-	}
-	return false
 }
 
 type ChatCompletionChunkChoicesFinishReason string
@@ -418,7 +416,7 @@ type ChatCompletionNewParams struct {
 	Logprobs param.Field[int64] `json:"logprobs"`
 	// The maximum number of tokens to generate.
 	MaxTokens param.Field[int64] `json:"max_tokens"`
-	// A number between 0 and 1 that can be used as an alternative to temperature.
+	// A number between 0 and 1 that can be used as an alternative to top_p and top-k.
 	MinP param.Field[float64] `json:"min_p"`
 	// The number of completions to generate for each prompt.
 	N param.Field[int64] `json:"n"`
@@ -497,7 +495,7 @@ func (r ChatCompletionNewParamsMessagesRole) IsKnown() bool {
 }
 
 // Satisfied by [ChatCompletionNewParamsFunctionCallString],
-// [ChatCompletionNewParamsFunctionCallObject].
+// [ChatCompletionNewParamsFunctionCallName].
 type ChatCompletionNewParamsFunctionCallUnion interface {
 	implementsChatCompletionNewParamsFunctionCallUnion()
 }
@@ -520,15 +518,15 @@ func (r ChatCompletionNewParamsFunctionCallString) IsKnown() bool {
 func (r ChatCompletionNewParamsFunctionCallString) implementsChatCompletionNewParamsFunctionCallUnion() {
 }
 
-type ChatCompletionNewParamsFunctionCallObject struct {
+type ChatCompletionNewParamsFunctionCallName struct {
 	Name param.Field[string] `json:"name,required"`
 }
 
-func (r ChatCompletionNewParamsFunctionCallObject) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsFunctionCallName) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-func (r ChatCompletionNewParamsFunctionCallObject) implementsChatCompletionNewParamsFunctionCallUnion() {
+func (r ChatCompletionNewParamsFunctionCallName) implementsChatCompletionNewParamsFunctionCallUnion() {
 }
 
 // An object specifying the format that the model must output.

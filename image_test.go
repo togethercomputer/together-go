@@ -30,7 +30,7 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 		Prompt:         together.F("cat floating in space, cinematic"),
 		Height:         together.F(int64(0)),
 		N:              together.F(int64(0)),
-		NegativePrompt: together.F("string"),
+		NegativePrompt: together.F("negative_prompt"),
 		Seed:           together.F(int64(0)),
 		Steps:          together.F(int64(0)),
 		Width:          together.F(int64(0)),

@@ -10,6 +10,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/ssestream"
 )
 
 // CompletionService contains methods and other services that help with interacting
@@ -40,7 +41,7 @@ func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, o
 }
 
 // Query a language, code, or image model.
-func (r *CompletionService) NewStream(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (stream *Stream[Completion]) {
+func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[Completion]) {
 	var (
 		raw *http.Response
 		err error
@@ -49,10 +50,7 @@ func (r *CompletionService) NewStream(ctx context.Context, body CompletionNewPar
 	opts = append([]option.RequestOption{option.WithJSONSet("stream", true)}, opts...)
 	path := "completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
-	return &Stream[Completion]{
-		decoder: NewDecoder(raw),
-		err:     err,
-	}
+	return ssestream.NewStream[Completion](ssestream.NewDecoder(raw), err)
 }
 
 type Completion struct {
@@ -338,7 +336,7 @@ type CompletionNewParams struct {
 	Logprobs param.Field[int64] `json:"logprobs"`
 	// The maximum number of tokens to generate.
 	MaxTokens param.Field[int64] `json:"max_tokens"`
-	// A number between 0 and 1 that can be used as an alternative to temperature.
+	// A number between 0 and 1 that can be used as an alternative to top-p and top-k.
 	MinP param.Field[float64] `json:"min_p"`
 	// The number of completions to generate for each prompt.
 	N param.Field[int64] `json:"n"`

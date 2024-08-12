@@ -29,13 +29,13 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 	_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
-			Content: together.F("string"),
+			Content: together.F("content"),
 		}, {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
-			Content: together.F("string"),
+			Content: together.F("content"),
 		}, {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
-			Content: together.F("string"),
+			Content: together.F("content"),
 		}}),
 		Model:            together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
 		Echo:             together.F(true),

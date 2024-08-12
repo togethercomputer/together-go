@@ -29,7 +29,7 @@ func TestFileGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Files.Get(context.TODO(), "string")
+	_, err := client.Files.Get(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -73,7 +73,7 @@ func TestFileDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Files.Delete(context.TODO(), "string")
+	_, err := client.Files.Delete(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -94,7 +94,7 @@ func TestFileContent(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	resp, err := client.Files.Content(context.TODO(), "string")
+	resp, err := client.Files.Content(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

@@ -26,14 +26,14 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.New(context.TODO(), together.FineTuneNewParams{
-		Model:        together.F("string"),
-		TrainingFile: together.F("string"),
+		Model:        together.F("model"),
+		TrainingFile: together.F("training_file"),
 		BatchSize:    together.F(int64(0)),
 		LearningRate: together.F(0.000000),
 		NCheckpoints: together.F(int64(0)),
 		NEpochs:      together.F(int64(0)),
-		Suffix:       together.F("string"),
-		WandbAPIKey:  together.F("string"),
+		Suffix:       together.F("suffix"),
+		WandbAPIKey:  together.F("wandb_api_key"),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -56,7 +56,7 @@ func TestFineTuneGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.Get(context.TODO(), "string")
+	_, err := client.FineTune.Get(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -100,7 +100,7 @@ func TestFineTuneCancel(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.Cancel(context.TODO(), "string")
+	_, err := client.FineTune.Cancel(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -123,9 +123,9 @@ func TestFineTuneDownloadWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.Download(context.TODO(), together.FineTuneDownloadParams{
-		FtID:           together.F("string"),
+		FtID:           together.F("ft_id"),
 		CheckpointStep: together.F(int64(0)),
-		Output:         together.F("string"),
+		Output:         together.F("output"),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -148,7 +148,7 @@ func TestFineTuneListEvents(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.ListEvents(context.TODO(), "string")
+	_, err := client.FineTune.ListEvents(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
