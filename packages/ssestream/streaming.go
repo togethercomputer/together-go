@@ -1,20 +1,43 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-package together
+package ssestream
 
 import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
+	"strings"
 )
 
-type Decoder struct {
-	Event Event
+type Decoder interface {
+	Event() Event
+	Next() bool
+	Close() error
+	Err() error
+}
 
-	res *http.Response
-	scn *bufio.Scanner
-	err error
+func NewDecoder(res *http.Response) Decoder {
+	if res == nil || res.Body == nil {
+		return nil
+	}
+
+	var decoder Decoder
+	contentType := res.Header.Get("content-type")
+	if t, ok := decoderTypes[contentType]; ok {
+		decoder = t(res.Body)
+	} else {
+		scanner := bufio.NewScanner(res.Body)
+		decoder = &eventStreamDecoder{rc: res.Body, scn: scanner}
+	}
+	return decoder
+}
+
+var decoderTypes = map[string](func(io.ReadCloser) Decoder){}
+
+func RegisterDecoder(contentType string, decoder func(io.ReadCloser) Decoder) {
+	decoderTypes[strings.ToLower(contentType)] = decoder
 }
 
 type Event struct {
@@ -22,18 +45,15 @@ type Event struct {
 	Data []byte
 }
 
-func NewDecoder(res *http.Response) *Decoder {
-	if res == nil || res.Body == nil {
-		return nil
-	}
-	scn := bufio.NewScanner(res.Body)
-	return &Decoder{
-		res: res,
-		scn: scn,
-	}
+// A base implementation of a Decoder for text/event-stream.
+type eventStreamDecoder struct {
+	evt Event
+	rc  io.ReadCloser
+	scn *bufio.Scanner
+	err error
 }
 
-func (s *Decoder) Next() bool {
+func (s *eventStreamDecoder) Next() bool {
 	if s.err != nil {
 		return false
 	}
@@ -46,7 +66,7 @@ func (s *Decoder) Next() bool {
 
 		// Dispatch event on an empty line
 		if len(txt) == 0 {
-			s.Event = Event{
+			s.evt = Event{
 				Type: event,
 				Data: data.Bytes(),
 			}
@@ -82,15 +102,30 @@ func (s *Decoder) Next() bool {
 	return false
 }
 
-func (s *Decoder) Close() error {
-	return s.res.Body.Close()
+func (s *eventStreamDecoder) Event() Event {
+	return s.evt
+}
+
+func (s *eventStreamDecoder) Close() error {
+	return s.rc.Close()
+}
+
+func (s *eventStreamDecoder) Err() error {
+	return s.err
 }
 
 type Stream[T any] struct {
-	decoder *Decoder
+	decoder Decoder
 	cur     T
 	err     error
 	done    bool
+}
+
+func NewStream[T any](decoder Decoder, err error) *Stream[T] {
+	return &Stream[T]{
+		decoder: decoder,
+		err:     err,
+	}
 }
 
 func (s *Stream[T]) Next() bool {
@@ -103,13 +138,13 @@ func (s *Stream[T]) Next() bool {
 			return false
 		}
 
-		if bytes.HasPrefix(s.decoder.Event.Data, []byte("[DONE]")) {
+		if bytes.HasPrefix(s.decoder.Event().Data, []byte("[DONE]")) {
 			s.done = true
 			return false
 		}
 
-		if s.decoder.Event.Type == "" {
-			s.err = json.Unmarshal(s.decoder.Event.Data, &s.cur)
+		if s.decoder.Event().Type == "" {
+			s.err = json.Unmarshal(s.decoder.Event().Data, &s.cur)
 			if s.err != nil {
 				return false
 			}
