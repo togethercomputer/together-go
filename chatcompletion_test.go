@@ -28,14 +28,14 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 			Content: together.F("content"),
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 		}, {
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 			Content: together.F("content"),
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 		}, {
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 			Content: together.F("content"),
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 		}}),
 		Model:            together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
 		Echo:             together.F(true),
@@ -52,17 +52,16 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		PresencePenalty:   together.F(0.000000),
 		RepetitionPenalty: together.F(0.000000),
 		ResponseFormat: together.F(together.ChatCompletionNewParamsResponseFormat{
-			Type: together.F("json"),
 			Schema: together.F(map[string]string{
 				"foo": "string",
 			}),
+			Type: together.F("json"),
 		}),
 		SafetyModel: together.F("safety_model_name"),
 		Stop:        together.F([]string{"string", "string", "string"}),
 		Temperature: together.F(0.000000),
 		ToolChoice:  together.F[together.ChatCompletionNewParamsToolChoiceUnion](shared.UnionString("tool_name")),
 		Tools: together.F([]together.ToolsParam{{
-			Type: together.F("tool_type"),
 			Function: together.F(together.ToolsFunctionParam{
 				Description: together.F("A description of the function."),
 				Name:        together.F("function_name"),
@@ -70,8 +69,8 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 					"foo": "bar",
 				}),
 			}),
+			Type: together.F("tool_type"),
 		}, {
-			Type: together.F("tool_type"),
 			Function: together.F(together.ToolsFunctionParam{
 				Description: together.F("A description of the function."),
 				Name:        together.F("function_name"),
@@ -79,8 +78,8 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 					"foo": "bar",
 				}),
 			}),
+			Type: together.F("tool_type"),
 		}, {
-			Type: together.F("tool_type"),
 			Function: together.F(together.ToolsFunctionParam{
 				Description: together.F("A description of the function."),
 				Name:        together.F("function_name"),
@@ -88,6 +87,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 					"foo": "bar",
 				}),
 			}),
+			Type: together.F("tool_type"),
 		}}),
 		TopK: together.F(int64(0)),
 		TopP: together.F(0.000000),
