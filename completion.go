@@ -166,7 +166,8 @@ func (r completionPromptJSON) RawJSON() string {
 }
 
 type LogProbs struct {
-	Content []LogProbsContent `json:"content"`
+	// List of token IDs corresponding to the logprobs
+	TokenIDs []float64 `json:"token_ids"`
 	// List of token log probabilities
 	TokenLogprobs []float64 `json:"token_logprobs"`
 	// List of token strings
@@ -176,7 +177,7 @@ type LogProbs struct {
 
 // logProbsJSON contains the JSON metadata for the struct [LogProbs]
 type logProbsJSON struct {
-	Content       apijson.Field
+	TokenIDs      apijson.Field
 	TokenLogprobs apijson.Field
 	Tokens        apijson.Field
 	raw           string
@@ -188,28 +189,6 @@ func (r *LogProbs) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (r logProbsJSON) RawJSON() string {
-	return r.raw
-}
-
-type LogProbsContent struct {
-	Token   string              `json:"token,required"`
-	Logprob float64             `json:"logprob,required"`
-	JSON    logProbsContentJSON `json:"-"`
-}
-
-// logProbsContentJSON contains the JSON metadata for the struct [LogProbsContent]
-type logProbsContentJSON struct {
-	Token       apijson.Field
-	Logprob     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *LogProbsContent) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r logProbsContentJSON) RawJSON() string {
 	return r.raw
 }
 
