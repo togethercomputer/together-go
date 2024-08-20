@@ -245,7 +245,7 @@ func (r chatCompletionChunkJSON) RawJSON() string {
 
 type ChatCompletionChunkChoice struct {
 	Delta        ChatCompletionChunkChoicesDelta        `json:"delta,required"`
-	FinishReason ChatCompletionChunkChoicesFinishReason `json:"finish_reason,required"`
+	FinishReason ChatCompletionChunkChoicesFinishReason `json:"finish_reason,required,nullable"`
 	Index        int64                                  `json:"index,required"`
 	Logprobs     float64                                `json:"logprobs,nullable"`
 	JSON         chatCompletionChunkChoiceJSON          `json:"-"`
