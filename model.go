@@ -86,11 +86,12 @@ const (
 	ModelListResponseTypeImage      ModelListResponseType = "image"
 	ModelListResponseTypeEmbedding  ModelListResponseType = "embedding"
 	ModelListResponseTypeModeration ModelListResponseType = "moderation"
+	ModelListResponseTypeRerank     ModelListResponseType = "rerank"
 )
 
 func (r ModelListResponseType) IsKnown() bool {
 	switch r {
-	case ModelListResponseTypeChat, ModelListResponseTypeLanguage, ModelListResponseTypeCode, ModelListResponseTypeImage, ModelListResponseTypeEmbedding, ModelListResponseTypeModeration:
+	case ModelListResponseTypeChat, ModelListResponseTypeLanguage, ModelListResponseTypeCode, ModelListResponseTypeImage, ModelListResponseTypeEmbedding, ModelListResponseTypeModeration, ModelListResponseTypeRerank:
 		return true
 	}
 	return false
