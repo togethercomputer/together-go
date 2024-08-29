@@ -107,20 +107,22 @@ type FineTune struct {
 	LearningRate         float64         `json:"learning_rate"`
 	Lora                 bool            `json:"lora"`
 	LoraAlpha            int64           `json:"lora_alpha"`
-	LoraDropout          int64           `json:"lora_dropout"`
+	LoraDropout          float64         `json:"lora_dropout"`
 	LoraR                int64           `json:"lora_r"`
+	LoraTrainableModules string          `json:"lora_trainable_modules"`
 	Model                string          `json:"model"`
 	ModelOutputName      string          `json:"model_output_name"`
 	ModelOutputPath      string          `json:"model_output_path"`
 	NCheckpoints         int64           `json:"n_checkpoints"`
 	NEpochs              int64           `json:"n_epochs"`
+	NEvals               int64           `json:"n_evals"`
 	ParamCount           int64           `json:"param_count"`
 	QueueDepth           int64           `json:"queue_depth"`
 	TokenCount           int64           `json:"token_count"`
 	TotalPrice           int64           `json:"total_price"`
 	TrainingFile         string          `json:"training_file"`
-	TrainingFileNumLines int64           `json:"TrainingFileNumLines"`
-	TrainingFileSize     int64           `json:"TrainingFileSize"`
+	TrainingfileNumlines int64           `json:"trainingfile_numlines"`
+	TrainingfileSize     int64           `json:"trainingfile_size"`
 	UpdatedAt            string          `json:"updated_at"`
 	ValidationFile       string          `json:"validation_file"`
 	WandbProjectName     string          `json:"wandb_project_name"`
@@ -143,18 +145,20 @@ type fineTuneJSON struct {
 	LoraAlpha            apijson.Field
 	LoraDropout          apijson.Field
 	LoraR                apijson.Field
+	LoraTrainableModules apijson.Field
 	Model                apijson.Field
 	ModelOutputName      apijson.Field
 	ModelOutputPath      apijson.Field
 	NCheckpoints         apijson.Field
 	NEpochs              apijson.Field
+	NEvals               apijson.Field
 	ParamCount           apijson.Field
 	QueueDepth           apijson.Field
 	TokenCount           apijson.Field
 	TotalPrice           apijson.Field
 	TrainingFile         apijson.Field
-	TrainingFileNumLines apijson.Field
-	TrainingFileSize     apijson.Field
+	TrainingfileNumlines apijson.Field
+	TrainingfileSize     apijson.Field
 	UpdatedAt            apijson.Field
 	ValidationFile       apijson.Field
 	WandbProjectName     apijson.Field
@@ -353,18 +357,33 @@ func (r fineTuneDownloadResponseJSON) RawJSON() string {
 type FineTuneNewParams struct {
 	// Name of the base model to run fine-tune job on
 	Model param.Field[string] `json:"model,required"`
-	// File-ID of a file uploaded to the Together API
+	// File-ID of a training file uploaded to the Together API
 	TrainingFile param.Field[string] `json:"training_file,required"`
 	// Batch size for fine-tuning
 	BatchSize param.Field[int64] `json:"batch_size"`
 	// Learning rate multiplier to use for training
 	LearningRate param.Field[float64] `json:"learning_rate"`
+	// Whether to enable LoRA training. If not provided, full fine-tuning will be
+	// applied.
+	Lora param.Field[bool] `json:"lora"`
+	// The alpha value for LoRA adapter training.
+	LoraAlpha param.Field[int64] `json:"lora_alpha"`
+	// The dropout probability for Lora layers.
+	LoraDropout param.Field[float64] `json:"lora_dropout"`
+	// Rank for LoRA adapter weights
+	LoraR param.Field[int64] `json:"lora_r"`
+	// A list of LoRA trainable modules, separated by a comma
+	LoraTrainableModules param.Field[string] `json:"lora_trainable_modules"`
 	// Number of checkpoints to save during fine-tuning
 	NCheckpoints param.Field[int64] `json:"n_checkpoints"`
 	// Number of epochs for fine-tuning
 	NEpochs param.Field[int64] `json:"n_epochs"`
+	// Number of evaluations to be run on a given validation set during training
+	NEvals param.Field[int64] `json:"n_evals"`
 	// Suffix that will be added to your fine-tuned model name
 	Suffix param.Field[string] `json:"suffix"`
+	// File-ID of a validation file uploaded to the Together API
+	ValidationFile param.Field[string] `json:"validation_file"`
 	// API key for Weights & Biases integration
 	WandbAPIKey param.Field[string] `json:"wandb_api_key"`
 }
