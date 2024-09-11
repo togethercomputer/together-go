@@ -248,6 +248,7 @@ type ChatCompletionChunkChoice struct {
 	FinishReason ChatCompletionChunkChoicesFinishReason `json:"finish_reason,required,nullable"`
 	Index        int64                                  `json:"index,required"`
 	Logprobs     float64                                `json:"logprobs,nullable"`
+	Seed         int64                                  `json:"seed,nullable"`
 	JSON         chatCompletionChunkChoiceJSON          `json:"-"`
 }
 
@@ -258,6 +259,7 @@ type chatCompletionChunkChoiceJSON struct {
 	FinishReason apijson.Field
 	Index        apijson.Field
 	Logprobs     apijson.Field
+	Seed         apijson.Field
 	raw          string
 	ExtraFields  map[string]apijson.Field
 }
@@ -432,6 +434,8 @@ type ChatCompletionNewParams struct {
 	// available moderation models found
 	// [here](https://docs.together.ai/docs/inference-models#moderation-models).
 	SafetyModel param.Field[string] `json:"safety_model"`
+	// Seed value for reproducibility.
+	Seed param.Field[int64] `json:"seed"`
 	// A list of string sequences that will truncate (stop) inference text output. For
 	// example, "</s>" will stop generation as soon as the model generates the given
 	// token.

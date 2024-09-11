@@ -41,6 +41,7 @@ func TestCompletionNewWithOptionalParams(t *testing.T) {
 		PresencePenalty:   together.F(0.000000),
 		RepetitionPenalty: together.F(0.000000),
 		SafetyModel:       together.F("safety_model_name"),
+		Seed:              together.F(int64(42)),
 		Stop:              together.F([]string{"string", "string", "string"}),
 		Temperature:       together.F(0.000000),
 		TopK:              together.F(int64(0)),
