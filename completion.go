@@ -88,6 +88,7 @@ func (r completionJSON) RawJSON() string {
 type CompletionChoice struct {
 	FinishReason CompletionChoicesFinishReason `json:"finish_reason"`
 	Logprobs     LogProbs                      `json:"logprobs"`
+	Seed         int64                         `json:"seed"`
 	Text         string                        `json:"text"`
 	JSON         completionChoiceJSON          `json:"-"`
 }
@@ -97,6 +98,7 @@ type CompletionChoice struct {
 type completionChoiceJSON struct {
 	FinishReason apijson.Field
 	Logprobs     apijson.Field
+	Seed         apijson.Field
 	Text         apijson.Field
 	raw          string
 	ExtraFields  map[string]apijson.Field
@@ -329,6 +331,8 @@ type CompletionNewParams struct {
 	// available moderation models found
 	// [here](https://docs.together.ai/docs/inference-models#moderation-models).
 	SafetyModel param.Field[string] `json:"safety_model"`
+	// Seed value for reproducibility.
+	Seed param.Field[int64] `json:"seed"`
 	// A list of string sequences that will truncate (stop) inference text output. For
 	// example, "</s>" will stop generation as soon as the model generates the given
 	// token.

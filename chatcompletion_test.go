@@ -58,6 +58,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 			Type: together.F("json"),
 		}),
 		SafetyModel: together.F("safety_model_name"),
+		Seed:        together.F(int64(42)),
 		Stop:        together.F([]string{"string", "string", "string"}),
 		Temperature: together.F(0.000000),
 		ToolChoice:  together.F[together.ChatCompletionNewParamsToolChoiceUnion](shared.UnionString("tool_name")),
