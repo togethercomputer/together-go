@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"reflect"
 
+	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
 	"github.com/togethercomputer/together-go/internal/param"
@@ -96,38 +98,34 @@ func (r *FineTuneService) ListEvents(ctx context.Context, id string, opts ...opt
 }
 
 type FineTune struct {
-	ID                   string          `json:"id,required" format:"uuid"`
-	Status               FineTuneStatus  `json:"status,required"`
-	BatchSize            int64           `json:"batch_size"`
-	CreatedAt            string          `json:"created_at"`
-	EpochsCompleted      int64           `json:"epochs_completed"`
-	EvalSteps            int64           `json:"eval_steps"`
-	Events               []FineTuneEvent `json:"events"`
-	JobID                string          `json:"job_id"`
-	LearningRate         float64         `json:"learning_rate"`
-	Lora                 bool            `json:"lora"`
-	LoraAlpha            int64           `json:"lora_alpha"`
-	LoraDropout          float64         `json:"lora_dropout"`
-	LoraR                int64           `json:"lora_r"`
-	LoraTrainableModules string          `json:"lora_trainable_modules"`
-	Model                string          `json:"model"`
-	ModelOutputName      string          `json:"model_output_name"`
-	ModelOutputPath      string          `json:"model_output_path"`
-	NCheckpoints         int64           `json:"n_checkpoints"`
-	NEpochs              int64           `json:"n_epochs"`
-	NEvals               int64           `json:"n_evals"`
-	ParamCount           int64           `json:"param_count"`
-	QueueDepth           int64           `json:"queue_depth"`
-	TokenCount           int64           `json:"token_count"`
-	TotalPrice           int64           `json:"total_price"`
-	TrainingFile         string          `json:"training_file"`
-	TrainingfileNumlines int64           `json:"trainingfile_numlines"`
-	TrainingfileSize     int64           `json:"trainingfile_size"`
-	UpdatedAt            string          `json:"updated_at"`
-	ValidationFile       string          `json:"validation_file"`
-	WandbProjectName     string          `json:"wandb_project_name"`
-	WandbURL             string          `json:"wandb_url"`
-	JSON                 fineTuneJSON    `json:"-"`
+	ID                   string               `json:"id,required" format:"uuid"`
+	Status               FineTuneStatus       `json:"status,required"`
+	BatchSize            int64                `json:"batch_size"`
+	CreatedAt            string               `json:"created_at"`
+	EpochsCompleted      int64                `json:"epochs_completed"`
+	EvalSteps            int64                `json:"eval_steps"`
+	Events               []FineTuneEvent      `json:"events"`
+	JobID                string               `json:"job_id"`
+	LearningRate         float64              `json:"learning_rate"`
+	Model                string               `json:"model"`
+	ModelOutputName      string               `json:"model_output_name"`
+	ModelOutputPath      string               `json:"model_output_path"`
+	NCheckpoints         int64                `json:"n_checkpoints"`
+	NEpochs              int64                `json:"n_epochs"`
+	NEvals               int64                `json:"n_evals"`
+	ParamCount           int64                `json:"param_count"`
+	QueueDepth           int64                `json:"queue_depth"`
+	TokenCount           int64                `json:"token_count"`
+	TotalPrice           int64                `json:"total_price"`
+	TrainingFile         string               `json:"training_file"`
+	TrainingType         FineTuneTrainingType `json:"training_type"`
+	TrainingfileNumlines int64                `json:"trainingfile_numlines"`
+	TrainingfileSize     int64                `json:"trainingfile_size"`
+	UpdatedAt            string               `json:"updated_at"`
+	ValidationFile       string               `json:"validation_file"`
+	WandbProjectName     string               `json:"wandb_project_name"`
+	WandbURL             string               `json:"wandb_url"`
+	JSON                 fineTuneJSON         `json:"-"`
 }
 
 // fineTuneJSON contains the JSON metadata for the struct [FineTune]
@@ -141,11 +139,6 @@ type fineTuneJSON struct {
 	Events               apijson.Field
 	JobID                apijson.Field
 	LearningRate         apijson.Field
-	Lora                 apijson.Field
-	LoraAlpha            apijson.Field
-	LoraDropout          apijson.Field
-	LoraR                apijson.Field
-	LoraTrainableModules apijson.Field
 	Model                apijson.Field
 	ModelOutputName      apijson.Field
 	ModelOutputPath      apijson.Field
@@ -157,6 +150,7 @@ type fineTuneJSON struct {
 	TokenCount           apijson.Field
 	TotalPrice           apijson.Field
 	TrainingFile         apijson.Field
+	TrainingType         apijson.Field
 	TrainingfileNumlines apijson.Field
 	TrainingfileSize     apijson.Field
 	UpdatedAt            apijson.Field
@@ -304,6 +298,168 @@ func (r FineTuneEventsType) IsKnown() bool {
 	return false
 }
 
+type FineTuneTrainingType struct {
+	Type                 FineTuneTrainingTypeType `json:"type,required"`
+	LoraR                int64                    `json:"lora_r"`
+	LoraAlpha            int64                    `json:"lora_alpha"`
+	LoraDropout          float64                  `json:"lora_dropout"`
+	LoraTrainableModules string                   `json:"lora_trainable_modules"`
+	JSON                 fineTuneTrainingTypeJSON `json:"-"`
+	union                FineTuneTrainingTypeUnion
+}
+
+// fineTuneTrainingTypeJSON contains the JSON metadata for the struct
+// [FineTuneTrainingType]
+type fineTuneTrainingTypeJSON struct {
+	Type                 apijson.Field
+	LoraR                apijson.Field
+	LoraAlpha            apijson.Field
+	LoraDropout          apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r fineTuneTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneTrainingType) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneTrainingType{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneTrainingTypeUnion] interface which you can cast to
+// the specific types for more type safety.
+//
+// Possible runtime types of the union are [FineTuneTrainingTypeFullTrainingType],
+// [FineTuneTrainingTypeLoRaTrainingType].
+func (r FineTuneTrainingType) AsUnion() FineTuneTrainingTypeUnion {
+	return r.union
+}
+
+// Union satisfied by [FineTuneTrainingTypeFullTrainingType] or
+// [FineTuneTrainingTypeLoRaTrainingType].
+type FineTuneTrainingTypeUnion interface {
+	implementsFineTuneTrainingType()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneTrainingTypeUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneTrainingTypeFullTrainingType{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneTrainingTypeLoRaTrainingType{}),
+		},
+	)
+}
+
+type FineTuneTrainingTypeFullTrainingType struct {
+	Type FineTuneTrainingTypeFullTrainingTypeType `json:"type,required"`
+	JSON fineTuneTrainingTypeFullTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneTrainingTypeFullTrainingTypeJSON contains the JSON metadata for the
+// struct [FineTuneTrainingTypeFullTrainingType]
+type fineTuneTrainingTypeFullTrainingTypeJSON struct {
+	Type        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneTrainingTypeFullTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneTrainingTypeFullTrainingType) implementsFineTuneTrainingType() {}
+
+type FineTuneTrainingTypeFullTrainingTypeType string
+
+const (
+	FineTuneTrainingTypeFullTrainingTypeTypeFull FineTuneTrainingTypeFullTrainingTypeType = "Full"
+)
+
+func (r FineTuneTrainingTypeFullTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneTrainingTypeFullTrainingTypeTypeFull:
+		return true
+	}
+	return false
+}
+
+type FineTuneTrainingTypeLoRaTrainingType struct {
+	LoraAlpha            int64                                    `json:"lora_alpha,required"`
+	LoraR                int64                                    `json:"lora_r,required"`
+	Type                 FineTuneTrainingTypeLoRaTrainingTypeType `json:"type,required"`
+	LoraDropout          float64                                  `json:"lora_dropout"`
+	LoraTrainableModules string                                   `json:"lora_trainable_modules"`
+	JSON                 fineTuneTrainingTypeLoRaTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneTrainingTypeLoRaTrainingTypeJSON contains the JSON metadata for the
+// struct [FineTuneTrainingTypeLoRaTrainingType]
+type fineTuneTrainingTypeLoRaTrainingTypeJSON struct {
+	LoraAlpha            apijson.Field
+	LoraR                apijson.Field
+	Type                 apijson.Field
+	LoraDropout          apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r *FineTuneTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneTrainingTypeLoRaTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneTrainingTypeLoRaTrainingType) implementsFineTuneTrainingType() {}
+
+type FineTuneTrainingTypeLoRaTrainingTypeType string
+
+const (
+	FineTuneTrainingTypeLoRaTrainingTypeTypeLora FineTuneTrainingTypeLoRaTrainingTypeType = "Lora"
+)
+
+func (r FineTuneTrainingTypeLoRaTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneTrainingTypeLoRaTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
+type FineTuneTrainingTypeType string
+
+const (
+	FineTuneTrainingTypeTypeFull FineTuneTrainingTypeType = "Full"
+	FineTuneTrainingTypeTypeLora FineTuneTrainingTypeType = "Lora"
+)
+
+func (r FineTuneTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneTrainingTypeTypeFull, FineTuneTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
 type FineTuneListResponse struct {
 	Data []FineTune               `json:"data,required"`
 	JSON fineTuneListResponseJSON `json:"-"`
@@ -363,17 +519,6 @@ type FineTuneNewParams struct {
 	BatchSize param.Field[int64] `json:"batch_size"`
 	// Learning rate multiplier to use for training
 	LearningRate param.Field[float64] `json:"learning_rate"`
-	// Whether to enable LoRA training. If not provided, full fine-tuning will be
-	// applied.
-	Lora param.Field[bool] `json:"lora"`
-	// The alpha value for LoRA adapter training.
-	LoraAlpha param.Field[int64] `json:"lora_alpha"`
-	// The dropout probability for Lora layers.
-	LoraDropout param.Field[float64] `json:"lora_dropout"`
-	// Rank for LoRA adapter weights
-	LoraR param.Field[int64] `json:"lora_r"`
-	// A list of LoRA trainable modules, separated by a comma
-	LoraTrainableModules param.Field[string] `json:"lora_trainable_modules"`
 	// Number of checkpoints to save during fine-tuning
 	NCheckpoints param.Field[int64] `json:"n_checkpoints"`
 	// Number of epochs for fine-tuning
@@ -381,7 +526,8 @@ type FineTuneNewParams struct {
 	// Number of evaluations to be run on a given validation set during training
 	NEvals param.Field[int64] `json:"n_evals"`
 	// Suffix that will be added to your fine-tuned model name
-	Suffix param.Field[string] `json:"suffix"`
+	Suffix       param.Field[string]                             `json:"suffix"`
+	TrainingType param.Field[FineTuneNewParamsTrainingTypeUnion] `json:"training_type"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Field[string] `json:"validation_file"`
 	// API key for Weights & Biases integration
@@ -390,6 +536,96 @@ type FineTuneNewParams struct {
 
 func (r FineTuneNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+type FineTuneNewParamsTrainingType struct {
+	Type                 param.Field[FineTuneNewParamsTrainingTypeType] `json:"type,required"`
+	LoraR                param.Field[int64]                             `json:"lora_r"`
+	LoraAlpha            param.Field[int64]                             `json:"lora_alpha"`
+	LoraDropout          param.Field[float64]                           `json:"lora_dropout"`
+	LoraTrainableModules param.Field[string]                            `json:"lora_trainable_modules"`
+}
+
+func (r FineTuneNewParamsTrainingType) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsTrainingType) implementsFineTuneNewParamsTrainingTypeUnion() {}
+
+// Satisfied by [FineTuneNewParamsTrainingTypeFullTrainingType],
+// [FineTuneNewParamsTrainingTypeLoRaTrainingType],
+// [FineTuneNewParamsTrainingType].
+type FineTuneNewParamsTrainingTypeUnion interface {
+	implementsFineTuneNewParamsTrainingTypeUnion()
+}
+
+type FineTuneNewParamsTrainingTypeFullTrainingType struct {
+	Type param.Field[FineTuneNewParamsTrainingTypeFullTrainingTypeType] `json:"type,required"`
+}
+
+func (r FineTuneNewParamsTrainingTypeFullTrainingType) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsTrainingTypeFullTrainingType) implementsFineTuneNewParamsTrainingTypeUnion() {
+}
+
+type FineTuneNewParamsTrainingTypeFullTrainingTypeType string
+
+const (
+	FineTuneNewParamsTrainingTypeFullTrainingTypeTypeFull FineTuneNewParamsTrainingTypeFullTrainingTypeType = "Full"
+)
+
+func (r FineTuneNewParamsTrainingTypeFullTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainingTypeFullTrainingTypeTypeFull:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewParamsTrainingTypeLoRaTrainingType struct {
+	LoraAlpha            param.Field[int64]                                             `json:"lora_alpha,required"`
+	LoraR                param.Field[int64]                                             `json:"lora_r,required"`
+	Type                 param.Field[FineTuneNewParamsTrainingTypeLoRaTrainingTypeType] `json:"type,required"`
+	LoraDropout          param.Field[float64]                                           `json:"lora_dropout"`
+	LoraTrainableModules param.Field[string]                                            `json:"lora_trainable_modules"`
+}
+
+func (r FineTuneNewParamsTrainingTypeLoRaTrainingType) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsTrainingTypeLoRaTrainingType) implementsFineTuneNewParamsTrainingTypeUnion() {
+}
+
+type FineTuneNewParamsTrainingTypeLoRaTrainingTypeType string
+
+const (
+	FineTuneNewParamsTrainingTypeLoRaTrainingTypeTypeLora FineTuneNewParamsTrainingTypeLoRaTrainingTypeType = "Lora"
+)
+
+func (r FineTuneNewParamsTrainingTypeLoRaTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainingTypeLoRaTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewParamsTrainingTypeType string
+
+const (
+	FineTuneNewParamsTrainingTypeTypeFull FineTuneNewParamsTrainingTypeType = "Full"
+	FineTuneNewParamsTrainingTypeTypeLora FineTuneNewParamsTrainingTypeType = "Lora"
+)
+
+func (r FineTuneNewParamsTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainingTypeTypeFull, FineTuneNewParamsTrainingTypeTypeLora:
+		return true
+	}
+	return false
 }
 
 type FineTuneDownloadParams struct {
