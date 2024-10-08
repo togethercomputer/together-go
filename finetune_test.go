@@ -26,21 +26,19 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.New(context.TODO(), together.FineTuneNewParams{
-		Model:                together.F("model"),
-		TrainingFile:         together.F("training_file"),
-		BatchSize:            together.F(int64(0)),
-		LearningRate:         together.F(0.000000),
-		Lora:                 together.F(true),
-		LoraAlpha:            together.F(int64(0)),
-		LoraDropout:          together.F(0.000000),
-		LoraR:                together.F(int64(0)),
-		LoraTrainableModules: together.F("lora_trainable_modules"),
-		NCheckpoints:         together.F(int64(0)),
-		NEpochs:              together.F(int64(0)),
-		NEvals:               together.F(int64(0)),
-		Suffix:               together.F("suffix"),
-		ValidationFile:       together.F("validation_file"),
-		WandbAPIKey:          together.F("wandb_api_key"),
+		Model:        together.F("model"),
+		TrainingFile: together.F("training_file"),
+		BatchSize:    together.F(int64(0)),
+		LearningRate: together.F(0.000000),
+		NCheckpoints: together.F(int64(0)),
+		NEpochs:      together.F(int64(0)),
+		NEvals:       together.F(int64(0)),
+		Suffix:       together.F("suffix"),
+		TrainingType: together.F[together.FineTuneNewParamsTrainingTypeUnion](together.FineTuneNewParamsTrainingTypeFullTrainingType{
+			Type: together.F(together.FineTuneNewParamsTrainingTypeFullTrainingTypeTypeFull),
+		}),
+		ValidationFile: together.F("validation_file"),
+		WandbAPIKey:    together.F("wandb_api_key"),
 	})
 	if err != nil {
 		var apierr *together.Error
