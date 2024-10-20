@@ -39,6 +39,7 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		}),
 		ValidationFile: together.F("validation_file"),
 		WandbAPIKey:    together.F("wandb_api_key"),
+		WarmupRatio:    together.F(0.000000),
 	})
 	if err != nil {
 		var apierr *together.Error

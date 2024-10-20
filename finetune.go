@@ -125,6 +125,7 @@ type FineTune struct {
 	ValidationFile       string               `json:"validation_file"`
 	WandbProjectName     string               `json:"wandb_project_name"`
 	WandbURL             string               `json:"wandb_url"`
+	WarmupRatio          float64              `json:"warmup_ratio"`
 	JSON                 fineTuneJSON         `json:"-"`
 }
 
@@ -157,6 +158,7 @@ type fineTuneJSON struct {
 	ValidationFile       apijson.Field
 	WandbProjectName     apijson.Field
 	WandbURL             apijson.Field
+	WarmupRatio          apijson.Field
 	raw                  string
 	ExtraFields          map[string]apijson.Field
 }
@@ -532,6 +534,9 @@ type FineTuneNewParams struct {
 	ValidationFile param.Field[string] `json:"validation_file"`
 	// API key for Weights & Biases integration
 	WandbAPIKey param.Field[string] `json:"wandb_api_key"`
+	// The percent of steps at the start of training to linearly increase the
+	// learning-rate.
+	WarmupRatio param.Field[float64] `json:"warmup_ratio"`
 }
 
 func (r FineTuneNewParams) MarshalJSON() (data []byte, err error) {
