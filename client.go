@@ -117,3 +117,11 @@ func (r *Client) Patch(ctx context.Context, path string, params interface{}, res
 func (r *Client) Delete(ctx context.Context, path string, params interface{}, res interface{}, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodDelete, path, params, res, opts...)
 }
+
+// Query a reranker model
+func (r *Client) Rerank(ctx context.Context, body RerankParams, opts ...option.RequestOption) (res *RerankResponse, err error) {
+	opts = append(r.Options[:], opts...)
+	path := "rerank"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}

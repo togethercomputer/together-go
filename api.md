@@ -1,3 +1,13 @@
+# together
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankResponse">RerankResponse</a>
+
+Methods:
+
+- <code title="post /rerank">client.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#TogetherService.Rerank">Rerank</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankParams">RerankParams</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankResponse">RerankResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 # Chat
 
 ## Completions
