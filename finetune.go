@@ -534,8 +534,8 @@ type FineTuneNewParams struct {
 	ValidationFile param.Field[string] `json:"validation_file"`
 	// API key for Weights & Biases integration
 	WandbAPIKey param.Field[string] `json:"wandb_api_key"`
-	// The percent of steps at the start of training to linearly increase the
-	// learning-rate.
+	// The percent of steps at the start of training to linearly increase the learning
+	// rate.
 	WarmupRatio param.Field[float64] `json:"warmup_ratio"`
 }
 
