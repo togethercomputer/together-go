@@ -37,7 +37,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 			Content: together.F("content"),
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 		}}),
-		Model:            together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model:            together.F("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 		Echo:             together.F(true),
 		FrequencyPenalty: together.F(0.000000),
 		FunctionCall:     together.F[together.ChatCompletionNewParamsFunctionCallUnion](together.ChatCompletionNewParamsFunctionCallString(together.ChatCompletionNewParamsFunctionCallStringNone)),
