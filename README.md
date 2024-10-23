@@ -57,7 +57,7 @@ func main() {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test!"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err != nil {
 		panic(err.Error())
@@ -185,7 +185,7 @@ _, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNew
 		Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 		Content: together.F("Say this is a test"),
 	}}),
-	Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+	Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 })
 if err != nil {
 	var apierr *together.Error
@@ -218,7 +218,7 @@ client.Chat.Completions.New(
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	},
 	// This sets the per-retry timeout
 	option.WithRequestTimeout(20*time.Second),
@@ -260,7 +260,7 @@ client.Chat.Completions.New(
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	},
 	option.WithMaxRetries(5),
 )

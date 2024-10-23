@@ -29,7 +29,7 @@ func TestUsage(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test!"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err != nil {
 		t.Error(err)
