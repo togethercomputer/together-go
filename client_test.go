@@ -42,7 +42,7 @@ func TestUserAgentHeader(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if userAgent != fmt.Sprintf("Together/Go %s", internal.PackageVersion) {
 		t.Errorf("Expected User-Agent to be correct, but got: %#v", userAgent)
@@ -71,7 +71,7 @@ func TestRetryAfter(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err == nil || res != nil {
 		t.Error("Expected there to be a cancel error and for the response to be nil")
@@ -111,7 +111,7 @@ func TestDeleteRetryCountHeader(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err == nil || res != nil {
 		t.Error("Expected there to be a cancel error and for the response to be nil")
@@ -146,7 +146,7 @@ func TestOverwriteRetryCountHeader(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err == nil || res != nil {
 		t.Error("Expected there to be a cancel error and for the response to be nil")
@@ -180,7 +180,7 @@ func TestRetryAfterMs(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err == nil || res != nil {
 		t.Error("Expected there to be a cancel error and for the response to be nil")
@@ -208,7 +208,7 @@ func TestContextCancel(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err == nil || res != nil {
 		t.Error("Expected there to be a cancel error and for the response to be nil")
@@ -233,7 +233,7 @@ func TestContextCancelDelay(t *testing.T) {
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 			Content: together.F("Say this is a test"),
 		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
 	if err == nil || res != nil {
 		t.Error("expected there to be a cancel error and for the response to be nil")
@@ -264,7 +264,7 @@ func TestContextDeadline(t *testing.T) {
 				Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
 				Content: together.F("Say this is a test"),
 			}}),
-			Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+			Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 		})
 		if err == nil || res != nil {
 			t.Error("expected there to be a deadline error and for the response to be nil")
