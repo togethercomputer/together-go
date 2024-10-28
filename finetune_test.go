@@ -130,6 +130,7 @@ func TestFineTuneDownloadWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.FineTune.Download(context.TODO(), together.FineTuneDownloadParams{
 		FtID:           together.F("ft_id"),
+		Checkpoint:     together.F(together.FineTuneDownloadParamsCheckpointMerged),
 		CheckpointStep: together.F(int64(0)),
 		Output:         together.F("output"),
 	})

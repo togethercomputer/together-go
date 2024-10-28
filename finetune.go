@@ -636,7 +636,11 @@ func (r FineTuneNewParamsTrainingTypeType) IsKnown() bool {
 type FineTuneDownloadParams struct {
 	// Fine-tune ID to download. A string that starts with `ft-`.
 	FtID param.Field[string] `query:"ft_id,required"`
-	// Specifies step number for checkpoint to download.
+	// Specifies checkpoint type to download - `merged` vs `adapter`. This field is
+	// required if the checkpoint_step is not set.
+	Checkpoint param.Field[FineTuneDownloadParamsCheckpoint] `query:"checkpoint"`
+	// Specifies step number for checkpoint to download. Ignores `checkpoint` value if
+	// set.
 	CheckpointStep param.Field[int64] `query:"checkpoint_step"`
 	// Specifies output file name for downloaded model. Defaults to
 	// `$PWD/{model_name}.{extension}`.
@@ -649,4 +653,21 @@ func (r FineTuneDownloadParams) URLQuery() (v url.Values) {
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
+}
+
+// Specifies checkpoint type to download - `merged` vs `adapter`. This field is
+// required if the checkpoint_step is not set.
+type FineTuneDownloadParamsCheckpoint string
+
+const (
+	FineTuneDownloadParamsCheckpointMerged  FineTuneDownloadParamsCheckpoint = "merged"
+	FineTuneDownloadParamsCheckpointAdapter FineTuneDownloadParamsCheckpoint = "adapter"
+)
+
+func (r FineTuneDownloadParamsCheckpoint) IsKnown() bool {
+	switch r {
+	case FineTuneDownloadParamsCheckpointMerged, FineTuneDownloadParamsCheckpointAdapter:
+		return true
+	}
+	return false
 }
