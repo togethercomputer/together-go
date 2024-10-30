@@ -301,7 +301,9 @@ func (r ToolsFunctionParam) MarshalJSON() (data []byte, err error) {
 
 type CompletionNewParams struct {
 	// The name of the model to query.
-	Model param.Field[string] `json:"model,required"`
+	//
+	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
+	Model param.Field[CompletionNewParamsModel] `json:"model,required"`
 	// A string providing context for the model to complete.
 	Prompt param.Field[string] `json:"prompt,required"`
 	// If true, the response will contain the prompt. Can be used with `logprobs` to
@@ -330,7 +332,7 @@ type CompletionNewParams struct {
 	// The name of the moderation model used to validate tokens. Choose from the
 	// available moderation models found
 	// [here](https://docs.together.ai/docs/inference-models#moderation-models).
-	SafetyModel param.Field[string] `json:"safety_model"`
+	SafetyModel param.Field[CompletionNewParamsSafetyModel] `json:"safety_model"`
 	// Seed value for reproducibility.
 	Seed param.Field[int64] `json:"seed"`
 	// A list of string sequences that will truncate (stop) inference text output. For
@@ -358,4 +360,35 @@ type CompletionNewParams struct {
 
 func (r CompletionNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+type CompletionNewParamsModel string
+
+const (
+	CompletionNewParamsModelMetaLlamaLlama2_70bHf    CompletionNewParamsModel = "meta-llama/Llama-2-70b-hf"
+	CompletionNewParamsModelMistralaiMistral7BV0_1   CompletionNewParamsModel = "mistralai/Mistral-7B-v0.1"
+	CompletionNewParamsModelMistralaiMixtral8x7BV0_1 CompletionNewParamsModel = "mistralai/Mixtral-8x7B-v0.1"
+	CompletionNewParamsModelMetaLlamaLlamaGuard7b    CompletionNewParamsModel = "Meta-Llama/Llama-Guard-7b"
+)
+
+func (r CompletionNewParamsModel) IsKnown() bool {
+	switch r {
+	case CompletionNewParamsModelMetaLlamaLlama2_70bHf, CompletionNewParamsModelMistralaiMistral7BV0_1, CompletionNewParamsModelMistralaiMixtral8x7BV0_1, CompletionNewParamsModelMetaLlamaLlamaGuard7b:
+		return true
+	}
+	return false
+}
+
+type CompletionNewParamsSafetyModel string
+
+const (
+	CompletionNewParamsSafetyModelMetaLlamaLlamaGuard7b CompletionNewParamsSafetyModel = "Meta-Llama/Llama-Guard-7b"
+)
+
+func (r CompletionNewParamsSafetyModel) IsKnown() bool {
+	switch r {
+	case CompletionNewParamsSafetyModelMetaLlamaLlamaGuard7b:
+		return true
+	}
+	return false
 }

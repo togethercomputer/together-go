@@ -26,7 +26,7 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.New(context.TODO(), together.ImageNewParams{
-		Model:          together.F("stabilityai/stable-diffusion-xl-base-1.0"),
+		Model:          together.F(together.ImageNewParamsModelBlackForestLabsFlux1SchnellFree),
 		Prompt:         together.F("cat floating in space, cinematic"),
 		Height:         together.F(int64(0)),
 		N:              together.F(int64(0)),
