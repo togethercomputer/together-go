@@ -28,7 +28,7 @@ func TestEmbeddingNew(t *testing.T) {
 	)
 	_, err := client.Embeddings.New(context.TODO(), together.EmbeddingNewParams{
 		Input: together.F[together.EmbeddingNewParamsInputUnion](shared.UnionString("Our solar system orbits the Milky Way galaxy at about 515,000 mph")),
-		Model: together.F("togethercomputer/m2-bert-80M-8k-retrieval"),
+		Model: together.F(together.EmbeddingNewParamsModelWhereIsAIUaeLargeV1),
 	})
 	if err != nil {
 		var apierr *together.Error

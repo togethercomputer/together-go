@@ -403,6 +403,8 @@ type ChatCompletionNewParams struct {
 	// A list of messages comprising the conversation so far.
 	Messages param.Field[[]ChatCompletionNewParamsMessage] `json:"messages,required"`
 	// The name of the model to query.
+	//
+	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
 	Model param.Field[ChatCompletionNewParamsModel] `json:"model,required"`
 	// If true, the response will contain the prompt. Can be used with `logprobs` to
 	// return prompt logprobs.

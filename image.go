@@ -103,7 +103,9 @@ func (r ImageFileObject) IsKnown() bool {
 
 type ImageNewParams struct {
 	// The model to use for image generation.
-	Model param.Field[string] `json:"model,required"`
+	//
+	// [See all of Together AI's image models](https://docs.together.ai/docs/serverless-models#image-models)
+	Model param.Field[ImageNewParamsModel] `json:"model,required"`
 	// A description of the desired images. Maximum length varies by model.
 	Prompt param.Field[string] `json:"prompt,required"`
 	// Height of the image to generate in number of pixels.
@@ -122,4 +124,20 @@ type ImageNewParams struct {
 
 func (r ImageNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+type ImageNewParamsModel string
+
+const (
+	ImageNewParamsModelBlackForestLabsFlux1SchnellFree ImageNewParamsModel = "black-forest-labs/FLUX.1-schnell-Free"
+	ImageNewParamsModelBlackForestLabsFlux1Schnell     ImageNewParamsModel = "black-forest-labs/FLUX.1-schnell"
+	ImageNewParamsModelBlackForestLabsFlux1_1Pro       ImageNewParamsModel = "black-forest-labs/FLUX.1.1-pro"
+)
+
+func (r ImageNewParamsModel) IsKnown() bool {
+	switch r {
+	case ImageNewParamsModelBlackForestLabsFlux1SchnellFree, ImageNewParamsModelBlackForestLabsFlux1Schnell, ImageNewParamsModelBlackForestLabsFlux1_1Pro:
+		return true
+	}
+	return false
 }
