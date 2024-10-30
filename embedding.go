@@ -119,7 +119,9 @@ type EmbeddingNewParams struct {
 	// A string providing the text for the model to embed.
 	Input param.Field[EmbeddingNewParamsInputUnion] `json:"input,required"`
 	// The name of the embedding model to use.
-	Model param.Field[string] `json:"model,required"`
+	//
+	// [See all of Together AI's embedding models](https://docs.together.ai/docs/serverless-models#embedding-models)
+	Model param.Field[EmbeddingNewParamsModel] `json:"model,required"`
 }
 
 func (r EmbeddingNewParams) MarshalJSON() (data []byte, err error) {
@@ -136,3 +138,20 @@ type EmbeddingNewParamsInputUnion interface {
 type EmbeddingNewParamsInputArray []string
 
 func (r EmbeddingNewParamsInputArray) ImplementsEmbeddingNewParamsInputUnion() {}
+
+type EmbeddingNewParamsModel string
+
+const (
+	EmbeddingNewParamsModelWhereIsAIUaeLargeV1                  EmbeddingNewParamsModel = "WhereIsAI/UAE-Large-V1"
+	EmbeddingNewParamsModelBaaiBgeLargeEnV1_5                   EmbeddingNewParamsModel = "BAAI/bge-large-en-v1.5"
+	EmbeddingNewParamsModelBaaiBgeBaseEnV1_5                    EmbeddingNewParamsModel = "BAAI/bge-base-en-v1.5"
+	EmbeddingNewParamsModelTogethercomputerM2Bert80M8kRetrieval EmbeddingNewParamsModel = "togethercomputer/m2-bert-80M-8k-retrieval"
+)
+
+func (r EmbeddingNewParamsModel) IsKnown() bool {
+	switch r {
+	case EmbeddingNewParamsModelWhereIsAIUaeLargeV1, EmbeddingNewParamsModelBaaiBgeLargeEnV1_5, EmbeddingNewParamsModelBaaiBgeBaseEnV1_5, EmbeddingNewParamsModelTogethercomputerM2Bert80M8kRetrieval:
+		return true
+	}
+	return false
+}

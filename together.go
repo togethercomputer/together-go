@@ -103,7 +103,9 @@ type RerankParams struct {
 	// List of documents, which can be either strings or objects.
 	Documents param.Field[RerankParamsDocumentsUnion] `json:"documents,required"`
 	// The model to be used for the rerank request.
-	Model param.Field[string] `json:"model,required"`
+	//
+	// [See all of Together AI's rerank models](https://docs.together.ai/docs/serverless-models#rerank-models)
+	Model param.Field[RerankParamsModel] `json:"model,required"`
 	// The search query to be used for ranking.
 	Query param.Field[string] `json:"query,required"`
 	// List of keys in the JSON Object document to rank by. Defaults to use all
@@ -129,3 +131,17 @@ type RerankParamsDocumentsUnion interface {
 type RerankParamsDocumentsArray []map[string]interface{}
 
 func (r RerankParamsDocumentsArray) implementsRerankParamsDocumentsUnion() {}
+
+type RerankParamsModel string
+
+const (
+	RerankParamsModelSalesforceLlamaRankV1 RerankParamsModel = "Salesforce/Llama-Rank-v1"
+)
+
+func (r RerankParamsModel) IsKnown() bool {
+	switch r {
+	case RerankParamsModelSalesforceLlamaRankV1:
+		return true
+	}
+	return false
+}

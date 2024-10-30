@@ -39,7 +39,7 @@ func TestTogetherRerankWithOptionalParams(t *testing.T) {
 			"title": "bar",
 			"text":  "bar",
 		}})),
-		Model:           together.F("Salesforce/Llama-Rank-V1"),
+		Model:           together.F(together.RerankParamsModelSalesforceLlamaRankV1),
 		Query:           together.F("What animals can I find near Peru?"),
 		RankFields:      together.F([]string{"title", "text"}),
 		ReturnDocuments: together.F(true),
