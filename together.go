@@ -132,6 +132,9 @@ type RerankParamsDocumentsArray []map[string]interface{}
 
 func (r RerankParamsDocumentsArray) implementsRerankParamsDocumentsUnion() {}
 
+// The model to be used for the rerank request.
+//
+// [See all of Together AI's rerank models](https://docs.together.ai/docs/serverless-models#rerank-models)
 type RerankParamsModel string
 
 const (
