@@ -139,6 +139,9 @@ type EmbeddingNewParamsInputArray []string
 
 func (r EmbeddingNewParamsInputArray) ImplementsEmbeddingNewParamsInputUnion() {}
 
+// The name of the embedding model to use.
+//
+// [See all of Together AI's embedding models](https://docs.together.ai/docs/serverless-models#embedding-models)
 type EmbeddingNewParamsModel string
 
 const (

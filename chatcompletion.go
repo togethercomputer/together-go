@@ -501,6 +501,9 @@ func (r ChatCompletionNewParamsMessagesRole) IsKnown() bool {
 	return false
 }
 
+// The name of the model to query.
+//
+// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
 type ChatCompletionNewParamsModel string
 
 const (
