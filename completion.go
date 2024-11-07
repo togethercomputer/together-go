@@ -362,6 +362,9 @@ func (r CompletionNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
+// The name of the model to query.
+//
+// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
 type CompletionNewParamsModel string
 
 const (
@@ -379,6 +382,9 @@ func (r CompletionNewParamsModel) IsKnown() bool {
 	return false
 }
 
+// The name of the moderation model used to validate tokens. Choose from the
+// available moderation models found
+// [here](https://docs.together.ai/docs/inference-models#moderation-models).
 type CompletionNewParamsSafetyModel string
 
 const (

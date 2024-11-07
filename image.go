@@ -126,6 +126,9 @@ func (r ImageNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
+// The model to use for image generation.
+//
+// [See all of Together AI's image models](https://docs.together.ai/docs/serverless-models#image-models)
 type ImageNewParamsModel string
 
 const (
