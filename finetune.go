@@ -302,9 +302,9 @@ func (r FineTuneEventsType) IsKnown() bool {
 
 type FineTuneTrainingType struct {
 	Type                 FineTuneTrainingTypeType `json:"type,required"`
-	LoraR                int64                    `json:"lora_r"`
 	LoraAlpha            int64                    `json:"lora_alpha"`
 	LoraDropout          float64                  `json:"lora_dropout"`
+	LoraR                int64                    `json:"lora_r"`
 	LoraTrainableModules string                   `json:"lora_trainable_modules"`
 	JSON                 fineTuneTrainingTypeJSON `json:"-"`
 	union                FineTuneTrainingTypeUnion
@@ -314,9 +314,9 @@ type FineTuneTrainingType struct {
 // [FineTuneTrainingType]
 type fineTuneTrainingTypeJSON struct {
 	Type                 apijson.Field
-	LoraR                apijson.Field
 	LoraAlpha            apijson.Field
 	LoraDropout          apijson.Field
+	LoraR                apijson.Field
 	LoraTrainableModules apijson.Field
 	raw                  string
 	ExtraFields          map[string]apijson.Field
@@ -545,9 +545,9 @@ func (r FineTuneNewParams) MarshalJSON() (data []byte, err error) {
 
 type FineTuneNewParamsTrainingType struct {
 	Type                 param.Field[FineTuneNewParamsTrainingTypeType] `json:"type,required"`
-	LoraR                param.Field[int64]                             `json:"lora_r"`
 	LoraAlpha            param.Field[int64]                             `json:"lora_alpha"`
 	LoraDropout          param.Field[float64]                           `json:"lora_dropout"`
+	LoraR                param.Field[int64]                             `json:"lora_r"`
 	LoraTrainableModules param.Field[string]                            `json:"lora_trainable_modules"`
 }
 
