@@ -16,6 +16,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/shared"
 )
 
 // FineTuneService contains methods and other services that help with interacting
@@ -98,35 +99,36 @@ func (r *FineTuneService) ListEvents(ctx context.Context, id string, opts ...opt
 }
 
 type FineTune struct {
-	ID                   string               `json:"id,required" format:"uuid"`
-	Status               FineTuneStatus       `json:"status,required"`
-	BatchSize            int64                `json:"batch_size"`
-	CreatedAt            string               `json:"created_at"`
-	EpochsCompleted      int64                `json:"epochs_completed"`
-	EvalSteps            int64                `json:"eval_steps"`
-	Events               []FineTuneEvent      `json:"events"`
-	JobID                string               `json:"job_id"`
-	LearningRate         float64              `json:"learning_rate"`
-	Model                string               `json:"model"`
-	ModelOutputName      string               `json:"model_output_name"`
-	ModelOutputPath      string               `json:"model_output_path"`
-	NCheckpoints         int64                `json:"n_checkpoints"`
-	NEpochs              int64                `json:"n_epochs"`
-	NEvals               int64                `json:"n_evals"`
-	ParamCount           int64                `json:"param_count"`
-	QueueDepth           int64                `json:"queue_depth"`
-	TokenCount           int64                `json:"token_count"`
-	TotalPrice           int64                `json:"total_price"`
-	TrainingFile         string               `json:"training_file"`
-	TrainingType         FineTuneTrainingType `json:"training_type"`
-	TrainingfileNumlines int64                `json:"trainingfile_numlines"`
-	TrainingfileSize     int64                `json:"trainingfile_size"`
-	UpdatedAt            string               `json:"updated_at"`
-	ValidationFile       string               `json:"validation_file"`
-	WandbProjectName     string               `json:"wandb_project_name"`
-	WandbURL             string               `json:"wandb_url"`
-	WarmupRatio          float64              `json:"warmup_ratio"`
-	JSON                 fineTuneJSON         `json:"-"`
+	ID                   string                     `json:"id,required" format:"uuid"`
+	Status               FineTuneStatus             `json:"status,required"`
+	BatchSize            int64                      `json:"batch_size"`
+	CreatedAt            string                     `json:"created_at"`
+	EpochsCompleted      int64                      `json:"epochs_completed"`
+	EvalSteps            int64                      `json:"eval_steps"`
+	Events               []FineTuneEvent            `json:"events"`
+	JobID                string                     `json:"job_id"`
+	LearningRate         float64                    `json:"learning_rate"`
+	Model                string                     `json:"model"`
+	ModelOutputName      string                     `json:"model_output_name"`
+	ModelOutputPath      string                     `json:"model_output_path"`
+	NCheckpoints         int64                      `json:"n_checkpoints"`
+	NEpochs              int64                      `json:"n_epochs"`
+	NEvals               int64                      `json:"n_evals"`
+	ParamCount           int64                      `json:"param_count"`
+	QueueDepth           int64                      `json:"queue_depth"`
+	TokenCount           int64                      `json:"token_count"`
+	TotalPrice           int64                      `json:"total_price"`
+	TrainOnInputs        FineTuneTrainOnInputsUnion `json:"train_on_inputs"`
+	TrainingFile         string                     `json:"training_file"`
+	TrainingType         FineTuneTrainingType       `json:"training_type"`
+	TrainingfileNumlines int64                      `json:"trainingfile_numlines"`
+	TrainingfileSize     int64                      `json:"trainingfile_size"`
+	UpdatedAt            string                     `json:"updated_at"`
+	ValidationFile       string                     `json:"validation_file"`
+	WandbProjectName     string                     `json:"wandb_project_name"`
+	WandbURL             string                     `json:"wandb_url"`
+	WarmupRatio          float64                    `json:"warmup_ratio"`
+	JSON                 fineTuneJSON               `json:"-"`
 }
 
 // fineTuneJSON contains the JSON metadata for the struct [FineTune]
@@ -150,6 +152,7 @@ type fineTuneJSON struct {
 	QueueDepth           apijson.Field
 	TokenCount           apijson.Field
 	TotalPrice           apijson.Field
+	TrainOnInputs        apijson.Field
 	TrainingFile         apijson.Field
 	TrainingType         apijson.Field
 	TrainingfileNumlines apijson.Field
@@ -299,6 +302,46 @@ func (r FineTuneEventsType) IsKnown() bool {
 	}
 	return false
 }
+
+// Union satisfied by [shared.UnionBool] or [FineTuneTrainOnInputsString].
+type FineTuneTrainOnInputsUnion interface {
+	ImplementsFineTuneTrainOnInputsUnion()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneTrainOnInputsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.True,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.False,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.String,
+			Type:       reflect.TypeOf(FineTuneTrainOnInputsString("")),
+		},
+	)
+}
+
+type FineTuneTrainOnInputsString string
+
+const (
+	FineTuneTrainOnInputsStringAuto FineTuneTrainOnInputsString = "auto"
+)
+
+func (r FineTuneTrainOnInputsString) IsKnown() bool {
+	switch r {
+	case FineTuneTrainOnInputsStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneTrainOnInputsString) ImplementsFineTuneTrainOnInputsUnion() {}
 
 type FineTuneTrainingType struct {
 	Type                 FineTuneTrainingTypeType `json:"type,required"`
@@ -528,8 +571,11 @@ type FineTuneNewParams struct {
 	// Number of evaluations to be run on a given validation set during training
 	NEvals param.Field[int64] `json:"n_evals"`
 	// Suffix that will be added to your fine-tuned model name
-	Suffix       param.Field[string]                             `json:"suffix"`
-	TrainingType param.Field[FineTuneNewParamsTrainingTypeUnion] `json:"training_type"`
+	Suffix param.Field[string] `json:"suffix"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs param.Field[FineTuneNewParamsTrainOnInputsUnion] `json:"train_on_inputs"`
+	TrainingType  param.Field[FineTuneNewParamsTrainingTypeUnion]  `json:"training_type"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Field[string] `json:"validation_file"`
 	// API key for Weights & Biases integration
@@ -542,6 +588,30 @@ type FineTuneNewParams struct {
 func (r FineTuneNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
+
+// Whether to mask the user messages in conversational data or prompts in
+// instruction data.
+//
+// Satisfied by [shared.UnionBool], [FineTuneNewParamsTrainOnInputsString].
+type FineTuneNewParamsTrainOnInputsUnion interface {
+	ImplementsFineTuneNewParamsTrainOnInputsUnion()
+}
+
+type FineTuneNewParamsTrainOnInputsString string
+
+const (
+	FineTuneNewParamsTrainOnInputsStringAuto FineTuneNewParamsTrainOnInputsString = "auto"
+)
+
+func (r FineTuneNewParamsTrainOnInputsString) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainOnInputsStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneNewParamsTrainOnInputsString) ImplementsFineTuneNewParamsTrainOnInputsUnion() {}
 
 type FineTuneNewParamsTrainingType struct {
 	Type                 param.Field[FineTuneNewParamsTrainingTypeType] `json:"type,required"`
