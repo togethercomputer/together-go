@@ -6,3 +6,8 @@ type UnionString string
 
 func (UnionString) ImplementsChatCompletionNewParamsToolChoiceUnion() {}
 func (UnionString) ImplementsEmbeddingNewParamsInputUnion()           {}
+
+type UnionBool bool
+
+func (UnionBool) ImplementsFineTuneTrainOnInputsUnion()          {}
+func (UnionBool) ImplementsFineTuneNewParamsTrainOnInputsUnion() {}

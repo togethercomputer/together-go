@@ -11,6 +11,7 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/shared"
 )
 
 func TestFineTuneNewWithOptionalParams(t *testing.T) {
@@ -26,14 +27,15 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.New(context.TODO(), together.FineTuneNewParams{
-		Model:        together.F("model"),
-		TrainingFile: together.F("training_file"),
-		BatchSize:    together.F(int64(0)),
-		LearningRate: together.F(0.000000),
-		NCheckpoints: together.F(int64(0)),
-		NEpochs:      together.F(int64(0)),
-		NEvals:       together.F(int64(0)),
-		Suffix:       together.F("suffix"),
+		Model:         together.F("model"),
+		TrainingFile:  together.F("training_file"),
+		BatchSize:     together.F(int64(0)),
+		LearningRate:  together.F(0.000000),
+		NCheckpoints:  together.F(int64(0)),
+		NEpochs:       together.F(int64(0)),
+		NEvals:        together.F(int64(0)),
+		Suffix:        together.F("suffix"),
+		TrainOnInputs: together.F[together.FineTuneNewParamsTrainOnInputsUnion](shared.UnionBool(true)),
 		TrainingType: together.F[together.FineTuneNewParamsTrainingTypeUnion](together.FineTuneNewParamsTrainingTypeFullTrainingType{
 			Type: together.F(together.FineTuneNewParamsTrainingTypeFullTrainingTypeTypeFull),
 		}),
