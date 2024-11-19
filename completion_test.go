@@ -42,7 +42,7 @@ func TestCompletionNewWithOptionalParams(t *testing.T) {
 		RepetitionPenalty: together.F(0.000000),
 		SafetyModel:       together.F(together.CompletionNewParamsSafetyModelMetaLlamaLlamaGuard7b),
 		Seed:              together.F(int64(42)),
-		Stop:              together.F([]string{"string", "string", "string"}),
+		Stop:              together.F([]string{"string"}),
 		Temperature:       together.F(0.000000),
 		TopK:              together.F(int64(0)),
 		TopP:              together.F(0.000000),
