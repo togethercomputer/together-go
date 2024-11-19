@@ -108,6 +108,8 @@ type FineTune struct {
 	Events               []FineTuneEvent            `json:"events"`
 	JobID                string                     `json:"job_id"`
 	LearningRate         float64                    `json:"learning_rate"`
+	LrScheduler          FineTuneLrScheduler        `json:"lr_scheduler"`
+	MaxGradNorm          float64                    `json:"max_grad_norm"`
 	Model                string                     `json:"model"`
 	ModelOutputName      string                     `json:"model_output_name"`
 	ModelOutputPath      string                     `json:"model_output_path"`
@@ -128,6 +130,7 @@ type FineTune struct {
 	WandbProjectName     string                     `json:"wandb_project_name"`
 	WandbURL             string                     `json:"wandb_url"`
 	WarmupRatio          float64                    `json:"warmup_ratio"`
+	WeightDecay          float64                    `json:"weight_decay"`
 	JSON                 fineTuneJSON               `json:"-"`
 }
 
@@ -142,6 +145,8 @@ type fineTuneJSON struct {
 	Events               apijson.Field
 	JobID                apijson.Field
 	LearningRate         apijson.Field
+	LrScheduler          apijson.Field
+	MaxGradNorm          apijson.Field
 	Model                apijson.Field
 	ModelOutputName      apijson.Field
 	ModelOutputPath      apijson.Field
@@ -162,6 +167,7 @@ type fineTuneJSON struct {
 	WandbProjectName     apijson.Field
 	WandbURL             apijson.Field
 	WarmupRatio          apijson.Field
+	WeightDecay          apijson.Field
 	raw                  string
 	ExtraFields          map[string]apijson.Field
 }
@@ -301,6 +307,51 @@ func (r FineTuneEventsType) IsKnown() bool {
 		return true
 	}
 	return false
+}
+
+type FineTuneLrScheduler struct {
+	LrSchedulerType string                             `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FineTuneLrSchedulerLrSchedulerArgs `json:"lr_scheduler_args"`
+	JSON            fineTuneLrSchedulerJSON            `json:"-"`
+}
+
+// fineTuneLrSchedulerJSON contains the JSON metadata for the struct
+// [FineTuneLrScheduler]
+type fineTuneLrSchedulerJSON struct {
+	LrSchedulerType apijson.Field
+	LrSchedulerArgs apijson.Field
+	raw             string
+	ExtraFields     map[string]apijson.Field
+}
+
+func (r *FineTuneLrScheduler) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneLrSchedulerJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneLrSchedulerLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64                                `json:"min_lr_ratio"`
+	JSON       fineTuneLrSchedulerLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneLrSchedulerLrSchedulerArgsJSON contains the JSON metadata for the struct
+// [FineTuneLrSchedulerLrSchedulerArgs]
+type fineTuneLrSchedulerLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneLrSchedulerLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneLrSchedulerLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
 }
 
 // Union satisfied by [shared.UnionBool] or [FineTuneTrainOnInputsString].
@@ -563,7 +614,10 @@ type FineTuneNewParams struct {
 	// Batch size for fine-tuning
 	BatchSize param.Field[int64] `json:"batch_size"`
 	// Learning rate multiplier to use for training
-	LearningRate param.Field[float64] `json:"learning_rate"`
+	LearningRate param.Field[float64]                      `json:"learning_rate"`
+	LrScheduler  param.Field[FineTuneNewParamsLrScheduler] `json:"lr_scheduler"`
+	// Max gradient norm to be used for gradient clipping. Set to 0 to disable.
+	MaxGradNorm param.Field[float64] `json:"max_grad_norm"`
 	// Number of checkpoints to save during fine-tuning
 	NCheckpoints param.Field[int64] `json:"n_checkpoints"`
 	// Number of epochs for fine-tuning
@@ -583,9 +637,29 @@ type FineTuneNewParams struct {
 	// The percent of steps at the start of training to linearly increase the learning
 	// rate.
 	WarmupRatio param.Field[float64] `json:"warmup_ratio"`
+	// Weight decay
+	WeightDecay param.Field[float64] `json:"weight_decay"`
 }
 
 func (r FineTuneNewParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type FineTuneNewParamsLrScheduler struct {
+	LrSchedulerType param.Field[string]                                      `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs param.Field[FineTuneNewParamsLrSchedulerLrSchedulerArgs] `json:"lr_scheduler_args"`
+}
+
+func (r FineTuneNewParamsLrScheduler) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type FineTuneNewParamsLrSchedulerLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio param.Field[float64] `json:"min_lr_ratio"`
+}
+
+func (r FineTuneNewParamsLrSchedulerLrSchedulerArgs) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
