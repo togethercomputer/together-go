@@ -27,10 +27,17 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.New(context.TODO(), together.FineTuneNewParams{
-		Model:         together.F("model"),
-		TrainingFile:  together.F("training_file"),
-		BatchSize:     together.F(int64(0)),
-		LearningRate:  together.F(0.000000),
+		Model:        together.F("model"),
+		TrainingFile: together.F("training_file"),
+		BatchSize:    together.F(int64(0)),
+		LearningRate: together.F(0.000000),
+		LrScheduler: together.F(together.FineTuneNewParamsLrScheduler{
+			LrSchedulerType: together.F("lr_scheduler_type"),
+			LrSchedulerArgs: together.F(together.FineTuneNewParamsLrSchedulerLrSchedulerArgs{
+				MinLrRatio: together.F(0.000000),
+			}),
+		}),
+		MaxGradNorm:   together.F(0.000000),
 		NCheckpoints:  together.F(int64(0)),
 		NEpochs:       together.F(int64(0)),
 		NEvals:        together.F(int64(0)),
@@ -42,6 +49,7 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		ValidationFile: together.F("validation_file"),
 		WandbAPIKey:    together.F("wandb_api_key"),
 		WarmupRatio:    together.F(0.000000),
+		WeightDecay:    together.F(0.000000),
 	})
 	if err != nil {
 		var apierr *together.Error
