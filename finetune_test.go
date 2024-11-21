@@ -46,10 +46,13 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		TrainingType: together.F[together.FineTuneNewParamsTrainingTypeUnion](together.FineTuneNewParamsTrainingTypeFullTrainingType{
 			Type: together.F(together.FineTuneNewParamsTrainingTypeFullTrainingTypeTypeFull),
 		}),
-		ValidationFile: together.F("validation_file"),
-		WandbAPIKey:    together.F("wandb_api_key"),
-		WarmupRatio:    together.F(0.000000),
-		WeightDecay:    together.F(0.000000),
+		ValidationFile:   together.F("validation_file"),
+		WandbAPIKey:      together.F("wandb_api_key"),
+		WandbBaseURL:     together.F("wandb_base_url"),
+		WandbName:        together.F("wandb_name"),
+		WandbProjectName: together.F("wandb_project_name"),
+		WarmupRatio:      together.F(0.000000),
+		WeightDecay:      together.F(0.000000),
 	})
 	if err != nil {
 		var apierr *together.Error
