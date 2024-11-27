@@ -66,15 +66,17 @@ func (r imageFileJSON) RawJSON() string {
 }
 
 type ImageFileData struct {
-	B64Json string            `json:"b64_json,required"`
 	Index   int64             `json:"index,required"`
+	B64Json string            `json:"b64_json"`
+	URL     string            `json:"url"`
 	JSON    imageFileDataJSON `json:"-"`
 }
 
 // imageFileDataJSON contains the JSON metadata for the struct [ImageFileData]
 type imageFileDataJSON struct {
-	B64Json     apijson.Field
 	Index       apijson.Field
+	B64Json     apijson.Field
+	URL         apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
@@ -110,10 +112,14 @@ type ImageNewParams struct {
 	Prompt param.Field[string] `json:"prompt,required"`
 	// Height of the image to generate in number of pixels.
 	Height param.Field[int64] `json:"height"`
+	// URL of an image to use for image models that support it.
+	ImageURL param.Field[string] `json:"image_url"`
 	// Number of image results to generate.
 	N param.Field[int64] `json:"n"`
 	// The prompt or prompts not to guide the image generation.
 	NegativePrompt param.Field[string] `json:"negative_prompt"`
+	// Format of the image response. Can be either a base64 string or a URL.
+	ResponseFormat param.Field[ImageNewParamsResponseFormat] `json:"response_format"`
 	// Seed used for generation. Can be used to reproduce image generations.
 	Seed param.Field[int64] `json:"seed"`
 	// Number of generation steps.
@@ -140,6 +146,22 @@ const (
 func (r ImageNewParamsModel) IsKnown() bool {
 	switch r {
 	case ImageNewParamsModelBlackForestLabsFlux1SchnellFree, ImageNewParamsModelBlackForestLabsFlux1Schnell, ImageNewParamsModelBlackForestLabsFlux1_1Pro:
+		return true
+	}
+	return false
+}
+
+// Format of the image response. Can be either a base64 string or a URL.
+type ImageNewParamsResponseFormat string
+
+const (
+	ImageNewParamsResponseFormatBase64 ImageNewParamsResponseFormat = "base64"
+	ImageNewParamsResponseFormatURL    ImageNewParamsResponseFormat = "url"
+)
+
+func (r ImageNewParamsResponseFormat) IsKnown() bool {
+	switch r {
+	case ImageNewParamsResponseFormatBase64, ImageNewParamsResponseFormatURL:
 		return true
 	}
 	return false
