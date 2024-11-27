@@ -28,7 +28,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Content: together.F("content"),
+			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("string")),
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
 		}}),
 		Model:            together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
