@@ -13,7 +13,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 type closureTransport struct {
@@ -41,7 +40,7 @@ func TestUserAgentHeader(t *testing.T) {
 	client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -70,7 +69,7 @@ func TestRetryAfter(t *testing.T) {
 	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -110,7 +109,7 @@ func TestDeleteRetryCountHeader(t *testing.T) {
 	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -145,7 +144,7 @@ func TestOverwriteRetryCountHeader(t *testing.T) {
 	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -179,7 +178,7 @@ func TestRetryAfterMs(t *testing.T) {
 	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -207,7 +206,7 @@ func TestContextCancel(t *testing.T) {
 	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -232,7 +231,7 @@ func TestContextCancelDelay(t *testing.T) {
 	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
 		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -263,7 +262,7 @@ func TestContextDeadline(t *testing.T) {
 		res, err := client.Chat.Completions.New(deadlineCtx, together.ChatCompletionNewParams{
 			Messages: together.F([]together.ChatCompletionNewParamsMessage{{
 				Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-				Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+				Content: together.F("Say this is a test"),
 			}}),
 			Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 		})

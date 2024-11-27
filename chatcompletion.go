@@ -475,88 +475,13 @@ func (r ChatCompletionNewParams) MarshalJSON() (data []byte, err error) {
 type ChatCompletionNewParamsMessage struct {
 	// The content of the message, which can either be a simple string or a structured
 	// format.
-	Content param.Field[ChatCompletionNewParamsMessagesContentUnion] `json:"content,required"`
+	Content param.Field[string] `json:"content,required"`
 	// The role of the messages author. Choice between: system, user, or assistant.
 	Role param.Field[ChatCompletionNewParamsMessagesRole] `json:"role,required"`
 }
 
 func (r ChatCompletionNewParamsMessage) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
-}
-
-// The content of the message, which can either be a simple string or a structured
-// format.
-//
-// Satisfied by [shared.UnionString],
-// [ChatCompletionNewParamsMessagesContentArray].
-type ChatCompletionNewParamsMessagesContentUnion interface {
-	ImplementsChatCompletionNewParamsMessagesContentUnion()
-}
-
-type ChatCompletionNewParamsMessagesContentArray []ChatCompletionNewParamsMessagesContentArrayItemUnion
-
-func (r ChatCompletionNewParamsMessagesContentArray) ImplementsChatCompletionNewParamsMessagesContentUnion() {
-}
-
-type ChatCompletionNewParamsMessagesContentArrayItem struct {
-	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayType] `json:"type,required"`
-	ImageURL param.Field[interface{}]                                     `json:"image_url"`
-	Text     param.Field[string]                                          `json:"text"`
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayItem) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayItem) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
-}
-
-// Satisfied by [ChatCompletionNewParamsMessagesContentArrayObject],
-// [ChatCompletionNewParamsMessagesContentArrayObject],
-// [ChatCompletionNewParamsMessagesContentArrayItem].
-type ChatCompletionNewParamsMessagesContentArrayItemUnion interface {
-	implementsChatCompletionNewParamsMessagesContentArrayItemUnion()
-}
-
-type ChatCompletionNewParamsMessagesContentArrayObject struct {
-	Text param.Field[string]                                                `json:"text,required"`
-	Type param.Field[ChatCompletionNewParamsMessagesContentArrayObjectType] `json:"type,required"`
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayObject) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayObject) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
-}
-
-type ChatCompletionNewParamsMessagesContentArrayObjectType string
-
-const (
-	ChatCompletionNewParamsMessagesContentArrayObjectTypeText ChatCompletionNewParamsMessagesContentArrayObjectType = "text"
-)
-
-func (r ChatCompletionNewParamsMessagesContentArrayObjectType) IsKnown() bool {
-	switch r {
-	case ChatCompletionNewParamsMessagesContentArrayObjectTypeText:
-		return true
-	}
-	return false
-}
-
-type ChatCompletionNewParamsMessagesContentArrayType string
-
-const (
-	ChatCompletionNewParamsMessagesContentArrayTypeText     ChatCompletionNewParamsMessagesContentArrayType = "text"
-	ChatCompletionNewParamsMessagesContentArrayTypeImageURL ChatCompletionNewParamsMessagesContentArrayType = "image_url"
-)
-
-func (r ChatCompletionNewParamsMessagesContentArrayType) IsKnown() bool {
-	switch r {
-	case ChatCompletionNewParamsMessagesContentArrayTypeText, ChatCompletionNewParamsMessagesContentArrayTypeImageURL:
-		return true
-	}
-	return false
 }
 
 // The role of the messages author. Choice between: system, user, or assistant.
