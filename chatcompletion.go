@@ -374,6 +374,67 @@ func (r ChatCompletionChunkObject) IsKnown() bool {
 	return false
 }
 
+type ChatCompletionStructuredMessageImageURLParam struct {
+	ImageURL param.Field[ChatCompletionStructuredMessageImageURLImageURLParam] `json:"image_url,required"`
+	Type     param.Field[ChatCompletionStructuredMessageImageURLType]          `json:"type,required"`
+}
+
+func (r ChatCompletionStructuredMessageImageURLParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionStructuredMessageImageURLParam) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
+}
+
+type ChatCompletionStructuredMessageImageURLImageURLParam struct {
+	// The URL of the image as a plain string.
+	URL param.Field[string] `json:"url,required"`
+}
+
+func (r ChatCompletionStructuredMessageImageURLImageURLParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type ChatCompletionStructuredMessageImageURLType string
+
+const (
+	ChatCompletionStructuredMessageImageURLTypeImageURL ChatCompletionStructuredMessageImageURLType = "image_url"
+)
+
+func (r ChatCompletionStructuredMessageImageURLType) IsKnown() bool {
+	switch r {
+	case ChatCompletionStructuredMessageImageURLTypeImageURL:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionStructuredMessageTextParam struct {
+	Text param.Field[string]                                  `json:"text,required"`
+	Type param.Field[ChatCompletionStructuredMessageTextType] `json:"type,required"`
+}
+
+func (r ChatCompletionStructuredMessageTextParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionStructuredMessageTextParam) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
+}
+
+type ChatCompletionStructuredMessageTextType string
+
+const (
+	ChatCompletionStructuredMessageTextTypeText ChatCompletionStructuredMessageTextType = "text"
+)
+
+func (r ChatCompletionStructuredMessageTextType) IsKnown() bool {
+	switch r {
+	case ChatCompletionStructuredMessageTextTypeText:
+		return true
+	}
+	return false
+}
+
 type ChatCompletionUsage struct {
 	CompletionTokens int64                   `json:"completion_tokens,required"`
 	PromptTokens     int64                   `json:"prompt_tokens,required"`
@@ -511,37 +572,11 @@ func (r ChatCompletionNewParamsMessagesContentArrayItem) MarshalJSON() (data []b
 func (r ChatCompletionNewParamsMessagesContentArrayItem) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
 }
 
-// Satisfied by [ChatCompletionNewParamsMessagesContentArrayObject],
-// [ChatCompletionNewParamsMessagesContentArrayObject],
+// Satisfied by [ChatCompletionStructuredMessageTextParam],
+// [ChatCompletionStructuredMessageImageURLParam],
 // [ChatCompletionNewParamsMessagesContentArrayItem].
 type ChatCompletionNewParamsMessagesContentArrayItemUnion interface {
 	implementsChatCompletionNewParamsMessagesContentArrayItemUnion()
-}
-
-type ChatCompletionNewParamsMessagesContentArrayObject struct {
-	Text param.Field[string]                                                `json:"text,required"`
-	Type param.Field[ChatCompletionNewParamsMessagesContentArrayObjectType] `json:"type,required"`
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayObject) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayObject) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
-}
-
-type ChatCompletionNewParamsMessagesContentArrayObjectType string
-
-const (
-	ChatCompletionNewParamsMessagesContentArrayObjectTypeText ChatCompletionNewParamsMessagesContentArrayObjectType = "text"
-)
-
-func (r ChatCompletionNewParamsMessagesContentArrayObjectType) IsKnown() bool {
-	switch r {
-	case ChatCompletionNewParamsMessagesContentArrayObjectTypeText:
-		return true
-	}
-	return false
 }
 
 type ChatCompletionNewParamsMessagesContentArrayType string
