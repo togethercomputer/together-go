@@ -116,13 +116,13 @@ func (r fileGetResponseJSON) RawJSON() string {
 type FileGetResponseFileType string
 
 const (
-	FileGetResponseFileTypeJsonl   FileGetResponseFileType = "jsonl"
+	FileGetResponseFileTypeJSONL   FileGetResponseFileType = "jsonl"
 	FileGetResponseFileTypeParquet FileGetResponseFileType = "parquet"
 )
 
 func (r FileGetResponseFileType) IsKnown() bool {
 	switch r {
-	case FileGetResponseFileTypeJsonl, FileGetResponseFileTypeParquet:
+	case FileGetResponseFileTypeJSONL, FileGetResponseFileTypeParquet:
 		return true
 	}
 	return false
@@ -203,13 +203,13 @@ func (r fileListResponseDataJSON) RawJSON() string {
 type FileListResponseDataFileType string
 
 const (
-	FileListResponseDataFileTypeJsonl   FileListResponseDataFileType = "jsonl"
+	FileListResponseDataFileTypeJSONL   FileListResponseDataFileType = "jsonl"
 	FileListResponseDataFileTypeParquet FileListResponseDataFileType = "parquet"
 )
 
 func (r FileListResponseDataFileType) IsKnown() bool {
 	switch r {
-	case FileListResponseDataFileTypeJsonl, FileListResponseDataFileTypeParquet:
+	case FileListResponseDataFileTypeJSONL, FileListResponseDataFileTypeParquet:
 		return true
 	}
 	return false
