@@ -133,8 +133,9 @@ func (r ChatCompletionChoicesFinishReason) IsKnown() bool {
 }
 
 type ChatCompletionChoicesMessage struct {
-	Content      string                                   `json:"content,required,nullable"`
-	Role         ChatCompletionChoicesMessageRole         `json:"role,required"`
+	Content string                           `json:"content,required,nullable"`
+	Role    ChatCompletionChoicesMessageRole `json:"role,required"`
+	// Deprecated: deprecated
 	FunctionCall ChatCompletionChoicesMessageFunctionCall `json:"function_call"`
 	ToolCalls    []ToolChoice                             `json:"tool_calls"`
 	JSON         chatCompletionChoicesMessageJSON         `json:"-"`
@@ -173,6 +174,7 @@ func (r ChatCompletionChoicesMessageRole) IsKnown() bool {
 	return false
 }
 
+// Deprecated: deprecated
 type ChatCompletionChoicesMessageFunctionCall struct {
 	Arguments string                                       `json:"arguments,required"`
 	Name      string                                       `json:"name,required"`
@@ -273,8 +275,9 @@ func (r chatCompletionChunkChoiceJSON) RawJSON() string {
 }
 
 type ChatCompletionChunkChoicesDelta struct {
-	Role         ChatCompletionChunkChoicesDeltaRole         `json:"role,required"`
-	Content      string                                      `json:"content,nullable"`
+	Role    ChatCompletionChunkChoicesDeltaRole `json:"role,required"`
+	Content string                              `json:"content,nullable"`
+	// Deprecated: deprecated
 	FunctionCall ChatCompletionChunkChoicesDeltaFunctionCall `json:"function_call,nullable"`
 	TokenID      int64                                       `json:"token_id"`
 	ToolCalls    []ToolChoice                                `json:"tool_calls"`
@@ -319,6 +322,7 @@ func (r ChatCompletionChunkChoicesDeltaRole) IsKnown() bool {
 	return false
 }
 
+// Deprecated: deprecated
 type ChatCompletionChunkChoicesDeltaFunctionCall struct {
 	Arguments string                                          `json:"arguments,required"`
 	Name      string                                          `json:"name,required"`
