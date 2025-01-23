@@ -3,7 +3,7 @@
 <a href="https://pkg.go.dev/github.com/togethercomputer/together-go"><img src="https://pkg.go.dev/badge/github.com/togethercomputer/together-go.svg" alt="Go Reference"></a>
 
 The Together Go library provides convenient access to [the Together REST
-API](https://docs.together.ai) from applications written in Go. The full API of this library can be found in [api.md](api.md).
+API](https://docs.together.ai/) from applications written in Go. The full API of this library can be found in [api.md](api.md).
 
 It is generated with [Stainless](https://www.stainlessapi.com/).
 

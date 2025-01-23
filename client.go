@@ -22,6 +22,7 @@ type Client struct {
 	Files       *FileService
 	FineTune    *FineTuneService
 	Images      *ImageService
+	Audio       *AudioService
 	Models      *ModelService
 }
 
@@ -44,6 +45,7 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 	r.Files = NewFileService(opts...)
 	r.FineTune = NewFineTuneService(opts...)
 	r.Images = NewImageService(opts...)
+	r.Audio = NewAudioService(opts...)
 	r.Models = NewModelService(opts...)
 
 	return
