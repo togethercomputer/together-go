@@ -26,9 +26,14 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.New(context.TODO(), together.ImageNewParams{
-		Model:          together.F(together.ImageNewParamsModelBlackForestLabsFlux1SchnellFree),
-		Prompt:         together.F("cat floating in space, cinematic"),
-		Height:         together.F(int64(0)),
+		Model:    together.F(together.ImageNewParamsModelBlackForestLabsFlux1SchnellFree),
+		Prompt:   together.F("cat floating in space, cinematic"),
+		Guidance: together.F(0.000000),
+		Height:   together.F(int64(0)),
+		ImageLoras: together.F([]together.ImageNewParamsImageLora{{
+			Path:  together.F("path"),
+			Scale: together.F(0.000000),
+		}}),
 		ImageURL:       together.F("image_url"),
 		N:              together.F(int64(0)),
 		NegativePrompt: together.F("negative_prompt"),

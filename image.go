@@ -110,8 +110,15 @@ type ImageNewParams struct {
 	Model param.Field[ImageNewParamsModel] `json:"model,required"`
 	// A description of the desired images. Maximum length varies by model.
 	Prompt param.Field[string] `json:"prompt,required"`
+	// Adjusts the alignment of the generated image with the input prompt. Higher
+	// values (e.g., 8-10) make the output more faithful to the prompt, while lower
+	// values (e.g., 1-5) encourage more creative freedom.
+	Guidance param.Field[float64] `json:"guidance"`
 	// Height of the image to generate in number of pixels.
 	Height param.Field[int64] `json:"height"`
+	// An array of objects that define LoRAs (Low-Rank Adaptations) to influence the
+	// generated image.
+	ImageLoras param.Field[[]ImageNewParamsImageLora] `json:"image_loras"`
 	// URL of an image to use for image models that support it.
 	ImageURL param.Field[string] `json:"image_url"`
 	// Number of image results to generate.
@@ -149,6 +156,18 @@ func (r ImageNewParamsModel) IsKnown() bool {
 		return true
 	}
 	return false
+}
+
+type ImageNewParamsImageLora struct {
+	// The URL of the LoRA to apply (e.g.
+	// https://huggingface.co/strangerzonehf/Flux-Midjourney-Mix2-LoRA).
+	Path param.Field[string] `json:"path,required"`
+	// The strength of the LoRA's influence. Most LoRA's recommend a value of 1.
+	Scale param.Field[float64] `json:"scale,required"`
+}
+
+func (r ImageNewParamsImageLora) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
 }
 
 // Format of the image response. Can be either a base64 string or a URL.
