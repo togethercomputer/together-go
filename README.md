@@ -267,6 +267,34 @@ client.Chat.Completions.New(
 )
 ```
 
+### Accessing raw response data (e.g. response headers)
+
+You can access the raw HTTP response data by using the `option.WithResponseInto()` request option. This is useful when
+you need to examine response headers, status codes, or other details.
+
+```go
+// Create a variable to store the HTTP response
+var response *http.Response
+chatCompletion, err := client.Chat.Completions.New(
+	context.TODO(),
+	together.ChatCompletionNewParams{
+		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
+			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		}}),
+		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
+	},
+	option.WithResponseInto(&response),
+)
+if err != nil {
+	// handle error
+}
+fmt.Printf("%+v\n", chatCompletion)
+
+fmt.Printf("Status Code: %d\n", response.StatusCode)
+fmt.Printf("Headers: %+#v\n", response.Header)
+```
+
 ### Making custom/undocumented requests
 
 This library is typed for convenient access to the documented API. If you need to access undocumented
