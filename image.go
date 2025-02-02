@@ -125,6 +125,9 @@ type ImageNewParams struct {
 	N param.Field[int64] `json:"n"`
 	// The prompt or prompts not to guide the image generation.
 	NegativePrompt param.Field[string] `json:"negative_prompt"`
+	// The format of the image response. Can be either be `jpeg` or `png`. Defaults to
+	// `jpeg`.
+	OutputFormat param.Field[ImageNewParamsOutputFormat] `json:"output_format"`
 	// Format of the image response. Can be either a base64 string or a URL.
 	ResponseFormat param.Field[ImageNewParamsResponseFormat] `json:"response_format"`
 	// Seed used for generation. Can be used to reproduce image generations.
@@ -168,6 +171,23 @@ type ImageNewParamsImageLora struct {
 
 func (r ImageNewParamsImageLora) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+// The format of the image response. Can be either be `jpeg` or `png`. Defaults to
+// `jpeg`.
+type ImageNewParamsOutputFormat string
+
+const (
+	ImageNewParamsOutputFormatJpeg ImageNewParamsOutputFormat = "jpeg"
+	ImageNewParamsOutputFormatPng  ImageNewParamsOutputFormat = "png"
+)
+
+func (r ImageNewParamsOutputFormat) IsKnown() bool {
+	switch r {
+	case ImageNewParamsOutputFormatJpeg, ImageNewParamsOutputFormatPng:
+		return true
+	}
+	return false
 }
 
 // Format of the image response. Can be either a base64 string or a URL.
