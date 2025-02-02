@@ -38,6 +38,7 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 		ImageURL:       together.F("image_url"),
 		N:              together.F(int64(0)),
 		NegativePrompt: together.F("negative_prompt"),
+		OutputFormat:   together.F(together.ImageNewParamsOutputFormatJpeg),
 		ResponseFormat: together.F(together.ImageNewParamsResponseFormatBase64),
 		Seed:           together.F(int64(0)),
 		Steps:          together.F(int64(0)),
