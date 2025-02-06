@@ -471,6 +471,11 @@ type ChatCompletionNewParams struct {
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
 	Model param.Field[ChatCompletionNewParamsModel] `json:"model,required"`
+	// Defined the behavior of the API when max_tokens exceed the maximum context
+	// length of the model. When set to 'error', API will return 400 with appropriate
+	// error message. When set to 'truncate', override the max_tokens with maximum
+	// context length of the model.
+	ContextLengthExceededBehavior param.Field[ChatCompletionNewParamsContextLengthExceededBehavior] `json:"context_length_exceeded_behavior"`
 	// If true, the response will contain the prompt. Can be used with `logprobs` to
 	// return prompt logprobs.
 	Echo param.Field[bool] `json:"echo"`
@@ -632,6 +637,25 @@ const (
 func (r ChatCompletionNewParamsModel) IsKnown() bool {
 	switch r {
 	case ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo, ChatCompletionNewParamsModelQwenQwen2_5_7BInstructTurbo, ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_405BInstructTurbo, ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_70BInstructTurbo, ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo:
+		return true
+	}
+	return false
+}
+
+// Defined the behavior of the API when max_tokens exceed the maximum context
+// length of the model. When set to 'error', API will return 400 with appropriate
+// error message. When set to 'truncate', override the max_tokens with maximum
+// context length of the model.
+type ChatCompletionNewParamsContextLengthExceededBehavior string
+
+const (
+	ChatCompletionNewParamsContextLengthExceededBehaviorTruncate ChatCompletionNewParamsContextLengthExceededBehavior = "truncate"
+	ChatCompletionNewParamsContextLengthExceededBehaviorError    ChatCompletionNewParamsContextLengthExceededBehavior = "error"
+)
+
+func (r ChatCompletionNewParamsContextLengthExceededBehavior) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsContextLengthExceededBehaviorTruncate, ChatCompletionNewParamsContextLengthExceededBehaviorError:
 		return true
 	}
 	return false
