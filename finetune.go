@@ -203,31 +203,41 @@ func (r FineTuneStatus) IsKnown() bool {
 }
 
 type FineTuneEvent struct {
-	CreatedAt  string               `json:"created_at"`
-	Hash       string               `json:"hash"`
-	Level      FineTuneEventsLevel  `json:"level,nullable"`
-	Message    string               `json:"message"`
-	Object     FineTuneEventsObject `json:"object"`
-	ParamCount int64                `json:"param_count"`
-	TokenCount int64                `json:"token_count"`
-	Type       FineTuneEventsType   `json:"type"`
-	WandbURL   string               `json:"wandb_url"`
-	JSON       fineTuneEventJSON    `json:"-"`
+	CheckpointPath string               `json:"checkpoint_path,required"`
+	CreatedAt      string               `json:"created_at,required"`
+	Hash           string               `json:"hash,required"`
+	Message        string               `json:"message,required"`
+	ModelPath      string               `json:"model_path,required"`
+	Object         FineTuneEventsObject `json:"object,required"`
+	ParamCount     int64                `json:"param_count,required"`
+	Step           int64                `json:"step,required"`
+	TokenCount     int64                `json:"token_count,required"`
+	TotalSteps     int64                `json:"total_steps,required"`
+	TrainingOffset int64                `json:"training_offset,required"`
+	Type           FineTuneEventsType   `json:"type,required"`
+	WandbURL       string               `json:"wandb_url,required"`
+	Level          FineTuneEventsLevel  `json:"level,nullable"`
+	JSON           fineTuneEventJSON    `json:"-"`
 }
 
 // fineTuneEventJSON contains the JSON metadata for the struct [FineTuneEvent]
 type fineTuneEventJSON struct {
-	CreatedAt   apijson.Field
-	Hash        apijson.Field
-	Level       apijson.Field
-	Message     apijson.Field
-	Object      apijson.Field
-	ParamCount  apijson.Field
-	TokenCount  apijson.Field
-	Type        apijson.Field
-	WandbURL    apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	CheckpointPath apijson.Field
+	CreatedAt      apijson.Field
+	Hash           apijson.Field
+	Message        apijson.Field
+	ModelPath      apijson.Field
+	Object         apijson.Field
+	ParamCount     apijson.Field
+	Step           apijson.Field
+	TokenCount     apijson.Field
+	TotalSteps     apijson.Field
+	TrainingOffset apijson.Field
+	Type           apijson.Field
+	WandbURL       apijson.Field
+	Level          apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
 }
 
 func (r *FineTuneEvent) UnmarshalJSON(data []byte) (err error) {
@@ -238,34 +248,15 @@ func (r fineTuneEventJSON) RawJSON() string {
 	return r.raw
 }
 
-type FineTuneEventsLevel string
-
-const (
-	FineTuneEventsLevelInfo           FineTuneEventsLevel = "info"
-	FineTuneEventsLevelWarning        FineTuneEventsLevel = "warning"
-	FineTuneEventsLevelError          FineTuneEventsLevel = "error"
-	FineTuneEventsLevelLegacyInfo     FineTuneEventsLevel = "legacy_info"
-	FineTuneEventsLevelLegacyIwarning FineTuneEventsLevel = "legacy_iwarning"
-	FineTuneEventsLevelLegacyIerror   FineTuneEventsLevel = "legacy_ierror"
-)
-
-func (r FineTuneEventsLevel) IsKnown() bool {
-	switch r {
-	case FineTuneEventsLevelInfo, FineTuneEventsLevelWarning, FineTuneEventsLevelError, FineTuneEventsLevelLegacyInfo, FineTuneEventsLevelLegacyIwarning, FineTuneEventsLevelLegacyIerror:
-		return true
-	}
-	return false
-}
-
 type FineTuneEventsObject string
 
 const (
-	FineTuneEventsObjectFinetuneEvent FineTuneEventsObject = "FinetuneEvent"
+	FineTuneEventsObjectFineTuneEvent FineTuneEventsObject = "fine-tune-event"
 )
 
 func (r FineTuneEventsObject) IsKnown() bool {
 	switch r {
-	case FineTuneEventsObjectFinetuneEvent:
+	case FineTuneEventsObjectFineTuneEvent:
 		return true
 	}
 	return false
@@ -304,6 +295,25 @@ const (
 func (r FineTuneEventsType) IsKnown() bool {
 	switch r {
 	case FineTuneEventsTypeJobPending, FineTuneEventsTypeJobStart, FineTuneEventsTypeJobStopped, FineTuneEventsTypeModelDownloading, FineTuneEventsTypeModelDownloadComplete, FineTuneEventsTypeTrainingDataDownloading, FineTuneEventsTypeTrainingDataDownloadComplete, FineTuneEventsTypeValidationDataDownloading, FineTuneEventsTypeValidationDataDownloadComplete, FineTuneEventsTypeWandbInit, FineTuneEventsTypeTrainingStart, FineTuneEventsTypeCheckpointSave, FineTuneEventsTypeBillingLimit, FineTuneEventsTypeEpochComplete, FineTuneEventsTypeTrainingComplete, FineTuneEventsTypeModelCompressing, FineTuneEventsTypeModelCompressionComplete, FineTuneEventsTypeModelUploading, FineTuneEventsTypeModelUploadComplete, FineTuneEventsTypeJobComplete, FineTuneEventsTypeJobError, FineTuneEventsTypeCancelRequested, FineTuneEventsTypeJobRestarted, FineTuneEventsTypeRefund, FineTuneEventsTypeWarning:
+		return true
+	}
+	return false
+}
+
+type FineTuneEventsLevel string
+
+const (
+	FineTuneEventsLevelInfo           FineTuneEventsLevel = "info"
+	FineTuneEventsLevelWarning        FineTuneEventsLevel = "warning"
+	FineTuneEventsLevelError          FineTuneEventsLevel = "error"
+	FineTuneEventsLevelLegacyInfo     FineTuneEventsLevel = "legacy_info"
+	FineTuneEventsLevelLegacyIwarning FineTuneEventsLevel = "legacy_iwarning"
+	FineTuneEventsLevelLegacyIerror   FineTuneEventsLevel = "legacy_ierror"
+)
+
+func (r FineTuneEventsLevel) IsKnown() bool {
+	switch r {
+	case FineTuneEventsLevelInfo, FineTuneEventsLevelWarning, FineTuneEventsLevelError, FineTuneEventsLevelLegacyInfo, FineTuneEventsLevelLegacyIwarning, FineTuneEventsLevelLegacyIerror:
 		return true
 	}
 	return false
