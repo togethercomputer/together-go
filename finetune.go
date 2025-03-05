@@ -621,16 +621,19 @@ type FineTuneNewParams struct {
 	Model param.Field[string] `json:"model,required"`
 	// File-ID of a training file uploaded to the Together API
 	TrainingFile param.Field[string] `json:"training_file,required"`
-	// Batch size for fine-tuning
+	// Number of training examples processed together (larger batches use more memory
+	// but may train faster)
 	BatchSize param.Field[int64] `json:"batch_size"`
-	// Learning rate multiplier to use for training
+	// Controls how quickly the model adapts to new information (too high may cause
+	// instability, too low may slow convergence)
 	LearningRate param.Field[float64]                      `json:"learning_rate"`
 	LrScheduler  param.Field[FineTuneNewParamsLrScheduler] `json:"lr_scheduler"`
 	// Max gradient norm to be used for gradient clipping. Set to 0 to disable.
 	MaxGradNorm param.Field[float64] `json:"max_grad_norm"`
-	// Number of checkpoints to save during fine-tuning
+	// Number of intermediate model versions saved during training for evaluation
 	NCheckpoints param.Field[int64] `json:"n_checkpoints"`
-	// Number of epochs for fine-tuning
+	// Number of complete passes through the training dataset (higher values may
+	// improve results but increase cost and risk of overfitting)
 	NEpochs param.Field[int64] `json:"n_epochs"`
 	// Number of evaluations to be run on a given validation set during training
 	NEvals param.Field[int64] `json:"n_evals"`
@@ -642,7 +645,7 @@ type FineTuneNewParams struct {
 	TrainingType  param.Field[FineTuneNewParamsTrainingTypeUnion]  `json:"training_type"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Field[string] `json:"validation_file"`
-	// API key for Weights & Biases integration
+	// Integration key for tracking experiments and model metrics on W&B platform
 	WandbAPIKey param.Field[string] `json:"wandb_api_key"`
 	// The base URL of a dedicated Weights & Biases instance.
 	WandbBaseURL param.Field[string] `json:"wandb_base_url"`

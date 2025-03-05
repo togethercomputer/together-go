@@ -485,8 +485,8 @@ type ChatCompletionNewParams struct {
 	FunctionCall     param.Field[ChatCompletionNewParamsFunctionCallUnion] `json:"function_call"`
 	// Adjusts the likelihood of specific tokens appearing in the generated output.
 	LogitBias param.Field[map[string]float64] `json:"logit_bias"`
-	// Determines the number of most likely tokens to return at each token position log
-	// probabilities to return.
+	// Integer (0 or 1) that controls whether log probabilities of generated tokens are
+	// returned. Log probabilities help assess model confidence in token predictions.
 	Logprobs param.Field[int64] `json:"logprobs"`
 	// The maximum number of tokens to generate.
 	MaxTokens param.Field[int64] `json:"max_tokens"`
