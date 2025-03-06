@@ -379,8 +379,8 @@ func (r ChatCompletionChunkObject) IsKnown() bool {
 }
 
 type ChatCompletionStructuredMessageImageURLParam struct {
-	ImageURL param.Field[ChatCompletionStructuredMessageImageURLImageURLParam] `json:"image_url,required"`
-	Type     param.Field[ChatCompletionStructuredMessageImageURLType]          `json:"type,required"`
+	ImageURL param.Field[ChatCompletionStructuredMessageImageURLImageURLParam] `json:"image_url"`
+	Type     param.Field[ChatCompletionStructuredMessageImageURLType]          `json:"type"`
 }
 
 func (r ChatCompletionStructuredMessageImageURLParam) MarshalJSON() (data []byte, err error) {
@@ -391,7 +391,7 @@ func (r ChatCompletionStructuredMessageImageURLParam) implementsChatCompletionNe
 }
 
 type ChatCompletionStructuredMessageImageURLImageURLParam struct {
-	// The URL of the image as a plain string.
+	// The URL of the image
 	URL param.Field[string] `json:"url,required"`
 }
 
@@ -569,9 +569,10 @@ func (r ChatCompletionNewParamsMessagesContentArray) ImplementsChatCompletionNew
 }
 
 type ChatCompletionNewParamsMessagesContentArrayItem struct {
-	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayType] `json:"type,required"`
 	ImageURL param.Field[interface{}]                                     `json:"image_url"`
 	Text     param.Field[string]                                          `json:"text"`
+	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayType] `json:"type"`
+	VideoURL param.Field[interface{}]                                     `json:"video_url"`
 }
 
 func (r ChatCompletionNewParamsMessagesContentArrayItem) MarshalJSON() (data []byte, err error) {
@@ -583,9 +584,45 @@ func (r ChatCompletionNewParamsMessagesContentArrayItem) implementsChatCompletio
 
 // Satisfied by [ChatCompletionStructuredMessageTextParam],
 // [ChatCompletionStructuredMessageImageURLParam],
+// [ChatCompletionNewParamsMessagesContentArrayObject],
 // [ChatCompletionNewParamsMessagesContentArrayItem].
 type ChatCompletionNewParamsMessagesContentArrayItemUnion interface {
 	implementsChatCompletionNewParamsMessagesContentArrayItemUnion()
+}
+
+type ChatCompletionNewParamsMessagesContentArrayObject struct {
+	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayObjectType]     `json:"type,required"`
+	VideoURL param.Field[ChatCompletionNewParamsMessagesContentArrayObjectVideoURL] `json:"video_url,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesContentArrayObject) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsMessagesContentArrayObject) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
+}
+
+type ChatCompletionNewParamsMessagesContentArrayObjectType string
+
+const (
+	ChatCompletionNewParamsMessagesContentArrayObjectTypeVideoURL ChatCompletionNewParamsMessagesContentArrayObjectType = "video_url"
+)
+
+func (r ChatCompletionNewParamsMessagesContentArrayObjectType) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsMessagesContentArrayObjectTypeVideoURL:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionNewParamsMessagesContentArrayObjectVideoURL struct {
+	// The URL of the video
+	URL param.Field[string] `json:"url,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesContentArrayObjectVideoURL) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
 }
 
 type ChatCompletionNewParamsMessagesContentArrayType string
@@ -593,11 +630,12 @@ type ChatCompletionNewParamsMessagesContentArrayType string
 const (
 	ChatCompletionNewParamsMessagesContentArrayTypeText     ChatCompletionNewParamsMessagesContentArrayType = "text"
 	ChatCompletionNewParamsMessagesContentArrayTypeImageURL ChatCompletionNewParamsMessagesContentArrayType = "image_url"
+	ChatCompletionNewParamsMessagesContentArrayTypeVideoURL ChatCompletionNewParamsMessagesContentArrayType = "video_url"
 )
 
 func (r ChatCompletionNewParamsMessagesContentArrayType) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsMessagesContentArrayTypeText, ChatCompletionNewParamsMessagesContentArrayTypeImageURL:
+	case ChatCompletionNewParamsMessagesContentArrayTypeText, ChatCompletionNewParamsMessagesContentArrayTypeImageURL, ChatCompletionNewParamsMessagesContentArrayTypeVideoURL:
 		return true
 	}
 	return false
