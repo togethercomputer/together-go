@@ -106,6 +106,7 @@ type FineTune struct {
 	EpochsCompleted      int64                      `json:"epochs_completed"`
 	EvalSteps            int64                      `json:"eval_steps"`
 	Events               []FineTuneEvent            `json:"events"`
+	FromCheckpoint       string                     `json:"from_checkpoint"`
 	JobID                string                     `json:"job_id"`
 	LearningRate         float64                    `json:"learning_rate"`
 	LrScheduler          FineTuneLrScheduler        `json:"lr_scheduler"`
@@ -143,6 +144,7 @@ type fineTuneJSON struct {
 	EpochsCompleted      apijson.Field
 	EvalSteps            apijson.Field
 	Events               apijson.Field
+	FromCheckpoint       apijson.Field
 	JobID                apijson.Field
 	LearningRate         apijson.Field
 	LrScheduler          apijson.Field
@@ -624,6 +626,10 @@ type FineTuneNewParams struct {
 	// Number of training examples processed together (larger batches use more memory
 	// but may train faster)
 	BatchSize param.Field[int64] `json:"batch_size"`
+	// The checkpoint identifier to continue training from a previous fine-tuning job.
+	// Format `{$JOB_ID/$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional,
+	// without it the final checkpoint will be used.
+	FromCheckpoint param.Field[string] `json:"from_checkpoint"`
 	// Controls how quickly the model adapts to new information (too high may cause
 	// instability, too low may slow convergence)
 	LearningRate param.Field[float64]                      `json:"learning_rate"`

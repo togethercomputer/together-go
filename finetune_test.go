@@ -27,10 +27,11 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.New(context.TODO(), together.FineTuneNewParams{
-		Model:        together.F("model"),
-		TrainingFile: together.F("training_file"),
-		BatchSize:    together.F(int64(0)),
-		LearningRate: together.F(0.000000),
+		Model:          together.F("model"),
+		TrainingFile:   together.F("training_file"),
+		BatchSize:      together.F(int64(0)),
+		FromCheckpoint: together.F("from_checkpoint"),
+		LearningRate:   together.F(0.000000),
 		LrScheduler: together.F(together.FineTuneNewParamsLrScheduler{
 			LrSchedulerType: together.F("lr_scheduler_type"),
 			LrSchedulerArgs: together.F(together.FineTuneNewParamsLrSchedulerLrSchedulerArgs{
