@@ -103,6 +103,7 @@ type FineTune struct {
 	Status               FineTuneStatus             `json:"status,required"`
 	BatchSize            int64                      `json:"batch_size"`
 	CreatedAt            string                     `json:"created_at"`
+	DpoBeta              float64                    `json:"dpo_beta"`
 	EpochsCompleted      int64                      `json:"epochs_completed"`
 	EvalSteps            int64                      `json:"eval_steps"`
 	Events               []FineTuneEvent            `json:"events"`
@@ -123,6 +124,7 @@ type FineTune struct {
 	TotalPrice           int64                      `json:"total_price"`
 	TrainOnInputs        FineTuneTrainOnInputsUnion `json:"train_on_inputs"`
 	TrainingFile         string                     `json:"training_file"`
+	TrainingMethod       FineTuneTrainingMethod     `json:"training_method"`
 	TrainingType         FineTuneTrainingType       `json:"training_type"`
 	TrainingfileNumlines int64                      `json:"trainingfile_numlines"`
 	TrainingfileSize     int64                      `json:"trainingfile_size"`
@@ -141,6 +143,7 @@ type fineTuneJSON struct {
 	Status               apijson.Field
 	BatchSize            apijson.Field
 	CreatedAt            apijson.Field
+	DpoBeta              apijson.Field
 	EpochsCompleted      apijson.Field
 	EvalSteps            apijson.Field
 	Events               apijson.Field
@@ -161,6 +164,7 @@ type fineTuneJSON struct {
 	TotalPrice           apijson.Field
 	TrainOnInputs        apijson.Field
 	TrainingFile         apijson.Field
+	TrainingMethod       apijson.Field
 	TrainingType         apijson.Field
 	TrainingfileNumlines apijson.Field
 	TrainingfileSize     apijson.Field
@@ -406,6 +410,21 @@ func (r FineTuneTrainOnInputsString) IsKnown() bool {
 
 func (r FineTuneTrainOnInputsString) ImplementsFineTuneTrainOnInputsUnion() {}
 
+type FineTuneTrainingMethod string
+
+const (
+	FineTuneTrainingMethodSft FineTuneTrainingMethod = "sft"
+	FineTuneTrainingMethodDpo FineTuneTrainingMethod = "dpo"
+)
+
+func (r FineTuneTrainingMethod) IsKnown() bool {
+	switch r {
+	case FineTuneTrainingMethodSft, FineTuneTrainingMethodDpo:
+		return true
+	}
+	return false
+}
+
 type FineTuneTrainingType struct {
 	Type                 FineTuneTrainingTypeType `json:"type,required"`
 	LoraAlpha            int64                    `json:"lora_alpha"`
@@ -626,6 +645,9 @@ type FineTuneNewParams struct {
 	// Number of training examples processed together (larger batches use more memory
 	// but may train faster)
 	BatchSize param.Field[int64] `json:"batch_size"`
+	// The beta parameter for DPO training. Only applicable when training_method is
+	// 'dpo'.
+	DpoBeta param.Field[float64] `json:"dpo_beta"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format `{$JOB_ID/$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional,
 	// without it the final checkpoint will be used.
@@ -648,7 +670,10 @@ type FineTuneNewParams struct {
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
 	TrainOnInputs param.Field[FineTuneNewParamsTrainOnInputsUnion] `json:"train_on_inputs"`
-	TrainingType  param.Field[FineTuneNewParamsTrainingTypeUnion]  `json:"training_type"`
+	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
+	// Preference Optimization.
+	TrainingMethod param.Field[FineTuneNewParamsTrainingMethod]    `json:"training_method"`
+	TrainingType   param.Field[FineTuneNewParamsTrainingTypeUnion] `json:"training_type"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Field[string] `json:"validation_file"`
 	// Integration key for tracking experiments and model metrics on W&B platform
@@ -712,6 +737,23 @@ func (r FineTuneNewParamsTrainOnInputsString) IsKnown() bool {
 }
 
 func (r FineTuneNewParamsTrainOnInputsString) ImplementsFineTuneNewParamsTrainOnInputsUnion() {}
+
+// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
+// Preference Optimization.
+type FineTuneNewParamsTrainingMethod string
+
+const (
+	FineTuneNewParamsTrainingMethodSft FineTuneNewParamsTrainingMethod = "sft"
+	FineTuneNewParamsTrainingMethodDpo FineTuneNewParamsTrainingMethod = "dpo"
+)
+
+func (r FineTuneNewParamsTrainingMethod) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainingMethodSft, FineTuneNewParamsTrainingMethodDpo:
+		return true
+	}
+	return false
+}
 
 type FineTuneNewParamsTrainingType struct {
 	Type                 param.Field[FineTuneNewParamsTrainingTypeType] `json:"type,required"`
