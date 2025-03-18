@@ -609,12 +609,12 @@ func (r fineTuneListResponseJSON) RawJSON() string {
 }
 
 type FineTuneDownloadResponse struct {
-	ID             string                       `json:"id"`
-	CheckpointStep int64                        `json:"checkpoint_step"`
-	Filename       string                       `json:"filename"`
-	Object         interface{}                  `json:"object"`
-	Size           int64                        `json:"size"`
-	JSON           fineTuneDownloadResponseJSON `json:"-"`
+	ID             string                         `json:"id"`
+	CheckpointStep int64                          `json:"checkpoint_step"`
+	Filename       string                         `json:"filename"`
+	Object         FineTuneDownloadResponseObject `json:"object,nullable"`
+	Size           int64                          `json:"size"`
+	JSON           fineTuneDownloadResponseJSON   `json:"-"`
 }
 
 // fineTuneDownloadResponseJSON contains the JSON metadata for the struct
@@ -635,6 +635,20 @@ func (r *FineTuneDownloadResponse) UnmarshalJSON(data []byte) (err error) {
 
 func (r fineTuneDownloadResponseJSON) RawJSON() string {
 	return r.raw
+}
+
+type FineTuneDownloadResponseObject string
+
+const (
+	FineTuneDownloadResponseObjectLocal FineTuneDownloadResponseObject = "local"
+)
+
+func (r FineTuneDownloadResponseObject) IsKnown() bool {
+	switch r {
+	case FineTuneDownloadResponseObjectLocal:
+		return true
+	}
+	return false
 }
 
 type FineTuneNewParams struct {
