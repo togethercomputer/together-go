@@ -326,7 +326,7 @@ func (r FineTuneEventsLevel) IsKnown() bool {
 }
 
 type FineTuneLrScheduler struct {
-	LrSchedulerType string                             `json:"lr_scheduler_type,required"`
+	LrSchedulerType FineTuneLrSchedulerLrSchedulerType `json:"lr_scheduler_type,required"`
 	LrSchedulerArgs FineTuneLrSchedulerLrSchedulerArgs `json:"lr_scheduler_args"`
 	JSON            fineTuneLrSchedulerJSON            `json:"-"`
 }
@@ -348,26 +348,136 @@ func (r fineTuneLrSchedulerJSON) RawJSON() string {
 	return r.raw
 }
 
+type FineTuneLrSchedulerLrSchedulerType string
+
+const (
+	FineTuneLrSchedulerLrSchedulerTypeLinear FineTuneLrSchedulerLrSchedulerType = "linear"
+	FineTuneLrSchedulerLrSchedulerTypeCosine FineTuneLrSchedulerLrSchedulerType = "cosine"
+)
+
+func (r FineTuneLrSchedulerLrSchedulerType) IsKnown() bool {
+	switch r {
+	case FineTuneLrSchedulerLrSchedulerTypeLinear, FineTuneLrSchedulerLrSchedulerTypeCosine:
+		return true
+	}
+	return false
+}
+
 type FineTuneLrSchedulerLrSchedulerArgs struct {
 	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64                                `json:"min_lr_ratio"`
-	JSON       fineTuneLrSchedulerLrSchedulerArgsJSON `json:"-"`
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                `json:"num_cycles"`
+	JSON      fineTuneLrSchedulerLrSchedulerArgsJSON `json:"-"`
+	union     FineTuneLrSchedulerLrSchedulerArgsUnion
 }
 
 // fineTuneLrSchedulerLrSchedulerArgsJSON contains the JSON metadata for the struct
 // [FineTuneLrSchedulerLrSchedulerArgs]
 type fineTuneLrSchedulerLrSchedulerArgsJSON struct {
 	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
 
+func (r fineTuneLrSchedulerLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
 func (r *FineTuneLrSchedulerLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneLrSchedulerLrSchedulerArgs{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneLrSchedulerLrSchedulerArgsUnion] interface which you
+// can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+func (r FineTuneLrSchedulerLrSchedulerArgs) AsUnion() FineTuneLrSchedulerLrSchedulerArgsUnion {
+	return r.union
+}
+
+// Union satisfied by [FineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs] or
+// [FineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+type FineTuneLrSchedulerLrSchedulerArgsUnion interface {
+	implementsFineTuneLrSchedulerLrSchedulerArgs()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneLrSchedulerLrSchedulerArgsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs{}),
+		},
+	)
+}
+
+type FineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64                                                     `json:"min_lr_ratio"`
+	JSON       fineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON contains the JSON
+// metadata for the struct
+// [FineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs]
+type fineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r fineTuneLrSchedulerLrSchedulerArgsJSON) RawJSON() string {
+func (r fineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON) RawJSON() string {
 	return r.raw
+}
+
+func (r FineTuneLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) implementsFineTuneLrSchedulerLrSchedulerArgs() {
+}
+
+type FineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                                     `json:"num_cycles"`
+	JSON      fineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON contains the JSON
+// metadata for the struct
+// [FineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs]
+type fineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) implementsFineTuneLrSchedulerLrSchedulerArgs() {
 }
 
 // Union satisfied by [shared.UnionBool] or [FineTuneTrainOnInputsString].
@@ -711,21 +821,74 @@ func (r FineTuneNewParams) MarshalJSON() (data []byte, err error) {
 }
 
 type FineTuneNewParamsLrScheduler struct {
-	LrSchedulerType param.Field[string]                                      `json:"lr_scheduler_type,required"`
-	LrSchedulerArgs param.Field[FineTuneNewParamsLrSchedulerLrSchedulerArgs] `json:"lr_scheduler_args"`
+	LrSchedulerType param.Field[FineTuneNewParamsLrSchedulerLrSchedulerType]      `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs param.Field[FineTuneNewParamsLrSchedulerLrSchedulerArgsUnion] `json:"lr_scheduler_args"`
 }
 
 func (r FineTuneNewParamsLrScheduler) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
+type FineTuneNewParamsLrSchedulerLrSchedulerType string
+
+const (
+	FineTuneNewParamsLrSchedulerLrSchedulerTypeLinear FineTuneNewParamsLrSchedulerLrSchedulerType = "linear"
+	FineTuneNewParamsLrSchedulerLrSchedulerTypeCosine FineTuneNewParamsLrSchedulerLrSchedulerType = "cosine"
+)
+
+func (r FineTuneNewParamsLrSchedulerLrSchedulerType) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsLrSchedulerLrSchedulerTypeLinear, FineTuneNewParamsLrSchedulerLrSchedulerTypeCosine:
+		return true
+	}
+	return false
+}
+
 type FineTuneNewParamsLrSchedulerLrSchedulerArgs struct {
 	// The ratio of the final learning rate to the peak learning rate
 	MinLrRatio param.Field[float64] `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles param.Field[float64] `json:"num_cycles"`
 }
 
 func (r FineTuneNewParamsLrSchedulerLrSchedulerArgs) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsLrSchedulerLrSchedulerArgs) implementsFineTuneNewParamsLrSchedulerLrSchedulerArgsUnion() {
+}
+
+// Satisfied by [FineTuneNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuneNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs],
+// [FineTuneNewParamsLrSchedulerLrSchedulerArgs].
+type FineTuneNewParamsLrSchedulerLrSchedulerArgsUnion interface {
+	implementsFineTuneNewParamsLrSchedulerLrSchedulerArgsUnion()
+}
+
+type FineTuneNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio param.Field[float64] `json:"min_lr_ratio"`
+}
+
+func (r FineTuneNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) implementsFineTuneNewParamsLrSchedulerLrSchedulerArgsUnion() {
+}
+
+type FineTuneNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio param.Field[float64] `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles param.Field[float64] `json:"num_cycles"`
+}
+
+func (r FineTuneNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) implementsFineTuneNewParamsLrSchedulerLrSchedulerArgsUnion() {
 }
 
 // Whether to mask the user messages in conversational data or prompts in

@@ -34,8 +34,8 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		FromCheckpoint: together.F("from_checkpoint"),
 		LearningRate:   together.F(0.000000),
 		LrScheduler: together.F(together.FineTuneNewParamsLrScheduler{
-			LrSchedulerType: together.F("lr_scheduler_type"),
-			LrSchedulerArgs: together.F(together.FineTuneNewParamsLrSchedulerLrSchedulerArgs{
+			LrSchedulerType: together.F(together.FineTuneNewParamsLrSchedulerLrSchedulerTypeLinear),
+			LrSchedulerArgs: together.F[together.FineTuneNewParamsLrSchedulerLrSchedulerArgsUnion](together.FineTuneNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs{
 				MinLrRatio: together.F(0.000000),
 			}),
 		}),
