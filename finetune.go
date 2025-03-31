@@ -773,8 +773,8 @@ type FineTuneNewParams struct {
 	// 'dpo'.
 	DpoBeta param.Field[float64] `json:"dpo_beta"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
-	// Format `{$JOB_ID/$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional,
-	// without it the final checkpoint will be used.
+	// Format `{$JOB_ID}:{$STEP}` or `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is
+	// optional, without it the final checkpoint will be used.
 	FromCheckpoint param.Field[string] `json:"from_checkpoint"`
 	// Controls how quickly the model adapts to new information (too high may cause
 	// instability, too low may slow convergence)
