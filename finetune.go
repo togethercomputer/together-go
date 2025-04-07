@@ -101,9 +101,8 @@ func (r *FineTuneService) ListEvents(ctx context.Context, id string, opts ...opt
 type FineTune struct {
 	ID                   string                     `json:"id,required" format:"uuid"`
 	Status               FineTuneStatus             `json:"status,required"`
-	BatchSize            int64                      `json:"batch_size"`
+	BatchSize            FineTuneBatchSizeUnion     `json:"batch_size"`
 	CreatedAt            string                     `json:"created_at"`
-	DpoBeta              float64                    `json:"dpo_beta"`
 	EpochsCompleted      int64                      `json:"epochs_completed"`
 	EvalSteps            int64                      `json:"eval_steps"`
 	Events               []FineTuneEvent            `json:"events"`
@@ -143,7 +142,6 @@ type fineTuneJSON struct {
 	Status               apijson.Field
 	BatchSize            apijson.Field
 	CreatedAt            apijson.Field
-	DpoBeta              apijson.Field
 	EpochsCompleted      apijson.Field
 	EvalSteps            apijson.Field
 	Events               apijson.Field
@@ -207,6 +205,42 @@ func (r FineTuneStatus) IsKnown() bool {
 	}
 	return false
 }
+
+// Union satisfied by [shared.UnionInt] or [FineTuneBatchSizeString].
+type FineTuneBatchSizeUnion interface {
+	ImplementsFineTuneBatchSizeUnion()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneBatchSizeUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.Number,
+			Type:       reflect.TypeOf(shared.UnionInt(0)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.String,
+			Type:       reflect.TypeOf(FineTuneBatchSizeString("")),
+		},
+	)
+}
+
+type FineTuneBatchSizeString string
+
+const (
+	FineTuneBatchSizeStringMax FineTuneBatchSizeString = "max"
+)
+
+func (r FineTuneBatchSizeString) IsKnown() bool {
+	switch r {
+	case FineTuneBatchSizeStringMax:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneBatchSizeString) ImplementsFineTuneBatchSizeUnion() {}
 
 type FineTuneEvent struct {
 	CheckpointPath string               `json:"checkpoint_path,required"`
@@ -520,16 +554,152 @@ func (r FineTuneTrainOnInputsString) IsKnown() bool {
 
 func (r FineTuneTrainOnInputsString) ImplementsFineTuneTrainOnInputsUnion() {}
 
-type FineTuneTrainingMethod string
+type FineTuneTrainingMethod struct {
+	Method  FineTuneTrainingMethodMethod `json:"method,required"`
+	DpoBeta float64                      `json:"dpo_beta"`
+	JSON    fineTuneTrainingMethodJSON   `json:"-"`
+	union   FineTuneTrainingMethodUnion
+}
+
+// fineTuneTrainingMethodJSON contains the JSON metadata for the struct
+// [FineTuneTrainingMethod]
+type fineTuneTrainingMethodJSON struct {
+	Method      apijson.Field
+	DpoBeta     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r fineTuneTrainingMethodJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneTrainingMethod) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneTrainingMethod{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneTrainingMethodUnion] interface which you can cast to
+// the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneTrainingMethodTrainingMethodSft],
+// [FineTuneTrainingMethodTrainingMethodDpo].
+func (r FineTuneTrainingMethod) AsUnion() FineTuneTrainingMethodUnion {
+	return r.union
+}
+
+// Union satisfied by [FineTuneTrainingMethodTrainingMethodSft] or
+// [FineTuneTrainingMethodTrainingMethodDpo].
+type FineTuneTrainingMethodUnion interface {
+	implementsFineTuneTrainingMethod()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneTrainingMethodUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneTrainingMethodTrainingMethodSft{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneTrainingMethodTrainingMethodDpo{}),
+		},
+	)
+}
+
+type FineTuneTrainingMethodTrainingMethodSft struct {
+	Method FineTuneTrainingMethodTrainingMethodSftMethod `json:"method,required"`
+	JSON   fineTuneTrainingMethodTrainingMethodSftJSON   `json:"-"`
+}
+
+// fineTuneTrainingMethodTrainingMethodSftJSON contains the JSON metadata for the
+// struct [FineTuneTrainingMethodTrainingMethodSft]
+type fineTuneTrainingMethodTrainingMethodSftJSON struct {
+	Method      apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneTrainingMethodTrainingMethodSftJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneTrainingMethodTrainingMethodSft) implementsFineTuneTrainingMethod() {}
+
+type FineTuneTrainingMethodTrainingMethodSftMethod string
 
 const (
-	FineTuneTrainingMethodSft FineTuneTrainingMethod = "sft"
-	FineTuneTrainingMethodDpo FineTuneTrainingMethod = "dpo"
+	FineTuneTrainingMethodTrainingMethodSftMethodSft FineTuneTrainingMethodTrainingMethodSftMethod = "sft"
 )
 
-func (r FineTuneTrainingMethod) IsKnown() bool {
+func (r FineTuneTrainingMethodTrainingMethodSftMethod) IsKnown() bool {
 	switch r {
-	case FineTuneTrainingMethodSft, FineTuneTrainingMethodDpo:
+	case FineTuneTrainingMethodTrainingMethodSftMethodSft:
+		return true
+	}
+	return false
+}
+
+type FineTuneTrainingMethodTrainingMethodDpo struct {
+	Method  FineTuneTrainingMethodTrainingMethodDpoMethod `json:"method,required"`
+	DpoBeta float64                                       `json:"dpo_beta"`
+	JSON    fineTuneTrainingMethodTrainingMethodDpoJSON   `json:"-"`
+}
+
+// fineTuneTrainingMethodTrainingMethodDpoJSON contains the JSON metadata for the
+// struct [FineTuneTrainingMethodTrainingMethodDpo]
+type fineTuneTrainingMethodTrainingMethodDpoJSON struct {
+	Method      apijson.Field
+	DpoBeta     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneTrainingMethodTrainingMethodDpoJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneTrainingMethodTrainingMethodDpo) implementsFineTuneTrainingMethod() {}
+
+type FineTuneTrainingMethodTrainingMethodDpoMethod string
+
+const (
+	FineTuneTrainingMethodTrainingMethodDpoMethodDpo FineTuneTrainingMethodTrainingMethodDpoMethod = "dpo"
+)
+
+func (r FineTuneTrainingMethodTrainingMethodDpoMethod) IsKnown() bool {
+	switch r {
+	case FineTuneTrainingMethodTrainingMethodDpoMethodDpo:
+		return true
+	}
+	return false
+}
+
+type FineTuneTrainingMethodMethod string
+
+const (
+	FineTuneTrainingMethodMethodSft FineTuneTrainingMethodMethod = "sft"
+	FineTuneTrainingMethodMethodDpo FineTuneTrainingMethodMethod = "dpo"
+)
+
+func (r FineTuneTrainingMethodMethod) IsKnown() bool {
+	switch r {
+	case FineTuneTrainingMethodMethodSft, FineTuneTrainingMethodMethodDpo:
 		return true
 	}
 	return false
@@ -767,19 +937,20 @@ type FineTuneNewParams struct {
 	// File-ID of a training file uploaded to the Together API
 	TrainingFile param.Field[string] `json:"training_file,required"`
 	// Number of training examples processed together (larger batches use more memory
-	// but may train faster)
-	BatchSize param.Field[int64] `json:"batch_size"`
-	// The beta parameter for DPO training. Only applicable when training_method is
-	// 'dpo'.
-	DpoBeta param.Field[float64] `json:"dpo_beta"`
+	// but may train faster). Defaults to "max". We use training optimizations like
+	// packing, so the effective batch size may be different than the value you set.
+	BatchSize param.Field[FineTuneNewParamsBatchSizeUnion] `json:"batch_size"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
-	// Format `{$JOB_ID}:{$STEP}` or `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is
-	// optional, without it the final checkpoint will be used.
+	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
+	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
+	// final checkpoint will be used.
 	FromCheckpoint param.Field[string] `json:"from_checkpoint"`
 	// Controls how quickly the model adapts to new information (too high may cause
 	// instability, too low may slow convergence)
-	LearningRate param.Field[float64]                      `json:"learning_rate"`
-	LrScheduler  param.Field[FineTuneNewParamsLrScheduler] `json:"lr_scheduler"`
+	LearningRate param.Field[float64] `json:"learning_rate"`
+	// The learning rate scheduler to use. It specifies how the learning rate is
+	// adjusted during training.
+	LrScheduler param.Field[FineTuneNewParamsLrScheduler] `json:"lr_scheduler"`
 	// Max gradient norm to be used for gradient clipping. Set to 0 to disable.
 	MaxGradNorm param.Field[float64] `json:"max_grad_norm"`
 	// Number of intermediate model versions saved during training for evaluation
@@ -796,8 +967,8 @@ type FineTuneNewParams struct {
 	TrainOnInputs param.Field[FineTuneNewParamsTrainOnInputsUnion] `json:"train_on_inputs"`
 	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 	// Preference Optimization.
-	TrainingMethod param.Field[FineTuneNewParamsTrainingMethod]    `json:"training_method"`
-	TrainingType   param.Field[FineTuneNewParamsTrainingTypeUnion] `json:"training_type"`
+	TrainingMethod param.Field[FineTuneNewParamsTrainingMethodUnion] `json:"training_method"`
+	TrainingType   param.Field[FineTuneNewParamsTrainingTypeUnion]   `json:"training_type"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Field[string] `json:"validation_file"`
 	// Integration key for tracking experiments and model metrics on W&B platform
@@ -812,7 +983,7 @@ type FineTuneNewParams struct {
 	// The percent of steps at the start of training to linearly increase the learning
 	// rate.
 	WarmupRatio param.Field[float64] `json:"warmup_ratio"`
-	// Weight decay
+	// Weight decay. Regularization parameter for the optimizer.
 	WeightDecay param.Field[float64] `json:"weight_decay"`
 }
 
@@ -820,6 +991,33 @@ func (r FineTuneNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
+// Number of training examples processed together (larger batches use more memory
+// but may train faster). Defaults to "max". We use training optimizations like
+// packing, so the effective batch size may be different than the value you set.
+//
+// Satisfied by [shared.UnionInt], [FineTuneNewParamsBatchSizeString].
+type FineTuneNewParamsBatchSizeUnion interface {
+	ImplementsFineTuneNewParamsBatchSizeUnion()
+}
+
+type FineTuneNewParamsBatchSizeString string
+
+const (
+	FineTuneNewParamsBatchSizeStringMax FineTuneNewParamsBatchSizeString = "max"
+)
+
+func (r FineTuneNewParamsBatchSizeString) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsBatchSizeStringMax:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneNewParamsBatchSizeString) ImplementsFineTuneNewParamsBatchSizeUnion() {}
+
+// The learning rate scheduler to use. It specifies how the learning rate is
+// adjusted during training.
 type FineTuneNewParamsLrScheduler struct {
 	LrSchedulerType param.Field[FineTuneNewParamsLrSchedulerLrSchedulerType]      `json:"lr_scheduler_type,required"`
 	LrSchedulerArgs param.Field[FineTuneNewParamsLrSchedulerLrSchedulerArgsUnion] `json:"lr_scheduler_args"`
@@ -917,16 +1115,88 @@ func (r FineTuneNewParamsTrainOnInputsString) ImplementsFineTuneNewParamsTrainOn
 
 // The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 // Preference Optimization.
-type FineTuneNewParamsTrainingMethod string
+type FineTuneNewParamsTrainingMethod struct {
+	Method  param.Field[FineTuneNewParamsTrainingMethodMethod] `json:"method,required"`
+	DpoBeta param.Field[float64]                               `json:"dpo_beta"`
+}
+
+func (r FineTuneNewParamsTrainingMethod) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsTrainingMethod) implementsFineTuneNewParamsTrainingMethodUnion() {}
+
+// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
+// Preference Optimization.
+//
+// Satisfied by [FineTuneNewParamsTrainingMethodTrainingMethodSft],
+// [FineTuneNewParamsTrainingMethodTrainingMethodDpo],
+// [FineTuneNewParamsTrainingMethod].
+type FineTuneNewParamsTrainingMethodUnion interface {
+	implementsFineTuneNewParamsTrainingMethodUnion()
+}
+
+type FineTuneNewParamsTrainingMethodTrainingMethodSft struct {
+	Method param.Field[FineTuneNewParamsTrainingMethodTrainingMethodSftMethod] `json:"method,required"`
+}
+
+func (r FineTuneNewParamsTrainingMethodTrainingMethodSft) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsTrainingMethodTrainingMethodSft) implementsFineTuneNewParamsTrainingMethodUnion() {
+}
+
+type FineTuneNewParamsTrainingMethodTrainingMethodSftMethod string
 
 const (
-	FineTuneNewParamsTrainingMethodSft FineTuneNewParamsTrainingMethod = "sft"
-	FineTuneNewParamsTrainingMethodDpo FineTuneNewParamsTrainingMethod = "dpo"
+	FineTuneNewParamsTrainingMethodTrainingMethodSftMethodSft FineTuneNewParamsTrainingMethodTrainingMethodSftMethod = "sft"
 )
 
-func (r FineTuneNewParamsTrainingMethod) IsKnown() bool {
+func (r FineTuneNewParamsTrainingMethodTrainingMethodSftMethod) IsKnown() bool {
 	switch r {
-	case FineTuneNewParamsTrainingMethodSft, FineTuneNewParamsTrainingMethodDpo:
+	case FineTuneNewParamsTrainingMethodTrainingMethodSftMethodSft:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewParamsTrainingMethodTrainingMethodDpo struct {
+	Method  param.Field[FineTuneNewParamsTrainingMethodTrainingMethodDpoMethod] `json:"method,required"`
+	DpoBeta param.Field[float64]                                                `json:"dpo_beta"`
+}
+
+func (r FineTuneNewParamsTrainingMethodTrainingMethodDpo) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r FineTuneNewParamsTrainingMethodTrainingMethodDpo) implementsFineTuneNewParamsTrainingMethodUnion() {
+}
+
+type FineTuneNewParamsTrainingMethodTrainingMethodDpoMethod string
+
+const (
+	FineTuneNewParamsTrainingMethodTrainingMethodDpoMethodDpo FineTuneNewParamsTrainingMethodTrainingMethodDpoMethod = "dpo"
+)
+
+func (r FineTuneNewParamsTrainingMethodTrainingMethodDpoMethod) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainingMethodTrainingMethodDpoMethodDpo:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewParamsTrainingMethodMethod string
+
+const (
+	FineTuneNewParamsTrainingMethodMethodSft FineTuneNewParamsTrainingMethodMethod = "sft"
+	FineTuneNewParamsTrainingMethodMethodDpo FineTuneNewParamsTrainingMethodMethod = "dpo"
+)
+
+func (r FineTuneNewParamsTrainingMethodMethod) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainingMethodMethodSft, FineTuneNewParamsTrainingMethodMethodDpo:
 		return true
 	}
 	return false
