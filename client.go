@@ -15,15 +15,16 @@ import (
 // interacting with the together API. You should not instantiate this client
 // directly, and instead use the [NewClient] method instead.
 type Client struct {
-	Options     []option.RequestOption
-	Chat        *ChatService
-	Completions *CompletionService
-	Embeddings  *EmbeddingService
-	Files       *FileService
-	FineTune    *FineTuneService
-	Images      *ImageService
-	Audio       *AudioService
-	Models      *ModelService
+	Options         []option.RequestOption
+	Chat            *ChatService
+	Completions     *CompletionService
+	Embeddings      *EmbeddingService
+	Files           *FileService
+	FineTune        *FineTuneService
+	CodeInterpreter *CodeInterpreterService
+	Images          *ImageService
+	Audio           *AudioService
+	Models          *ModelService
 }
 
 // DefaultClientOptions read from the environment (TOGETHER_API_KEY). This should
@@ -50,6 +51,7 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 	r.Embeddings = NewEmbeddingService(opts...)
 	r.Files = NewFileService(opts...)
 	r.FineTune = NewFineTuneService(opts...)
+	r.CodeInterpreter = NewCodeInterpreterService(opts...)
 	r.Images = NewImageService(opts...)
 	r.Audio = NewAudioService(opts...)
 	r.Models = NewModelService(opts...)
