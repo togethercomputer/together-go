@@ -584,44 +584,44 @@ func (r ChatCompletionNewParamsMessagesContentArrayItem) implementsChatCompletio
 
 // Satisfied by [ChatCompletionStructuredMessageTextParam],
 // [ChatCompletionStructuredMessageImageURLParam],
-// [ChatCompletionNewParamsMessagesContentArrayObject],
+// [ChatCompletionNewParamsMessagesContentArrayVideo],
 // [ChatCompletionNewParamsMessagesContentArrayItem].
 type ChatCompletionNewParamsMessagesContentArrayItemUnion interface {
 	implementsChatCompletionNewParamsMessagesContentArrayItemUnion()
 }
 
-type ChatCompletionNewParamsMessagesContentArrayObject struct {
-	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayObjectType]     `json:"type,required"`
-	VideoURL param.Field[ChatCompletionNewParamsMessagesContentArrayObjectVideoURL] `json:"video_url,required"`
+type ChatCompletionNewParamsMessagesContentArrayVideo struct {
+	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayVideoType]     `json:"type,required"`
+	VideoURL param.Field[ChatCompletionNewParamsMessagesContentArrayVideoVideoURL] `json:"video_url,required"`
 }
 
-func (r ChatCompletionNewParamsMessagesContentArrayObject) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsMessagesContentArrayVideo) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-func (r ChatCompletionNewParamsMessagesContentArrayObject) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
+func (r ChatCompletionNewParamsMessagesContentArrayVideo) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
 }
 
-type ChatCompletionNewParamsMessagesContentArrayObjectType string
+type ChatCompletionNewParamsMessagesContentArrayVideoType string
 
 const (
-	ChatCompletionNewParamsMessagesContentArrayObjectTypeVideoURL ChatCompletionNewParamsMessagesContentArrayObjectType = "video_url"
+	ChatCompletionNewParamsMessagesContentArrayVideoTypeVideoURL ChatCompletionNewParamsMessagesContentArrayVideoType = "video_url"
 )
 
-func (r ChatCompletionNewParamsMessagesContentArrayObjectType) IsKnown() bool {
+func (r ChatCompletionNewParamsMessagesContentArrayVideoType) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsMessagesContentArrayObjectTypeVideoURL:
+	case ChatCompletionNewParamsMessagesContentArrayVideoTypeVideoURL:
 		return true
 	}
 	return false
 }
 
-type ChatCompletionNewParamsMessagesContentArrayObjectVideoURL struct {
+type ChatCompletionNewParamsMessagesContentArrayVideoVideoURL struct {
 	// The URL of the video
 	URL param.Field[string] `json:"url,required"`
 }
 
-func (r ChatCompletionNewParamsMessagesContentArrayObjectVideoURL) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsMessagesContentArrayVideoVideoURL) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
