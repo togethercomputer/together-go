@@ -47,8 +47,8 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		PresencePenalty:   together.F(0.000000),
 		RepetitionPenalty: together.F(0.000000),
 		ResponseFormat: together.F(together.ChatCompletionNewParamsResponseFormat{
-			Schema: together.F(map[string]string{
-				"foo": "string",
+			Schema: together.F(map[string]interface{}{
+				"foo": "bar",
 			}),
 			Type: together.F("json"),
 		}),

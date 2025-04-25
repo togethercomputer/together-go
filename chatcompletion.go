@@ -546,7 +546,8 @@ type ChatCompletionNewParamsMessage struct {
 	// The content of the message, which can either be a simple string or a structured
 	// format.
 	Content param.Field[ChatCompletionNewParamsMessagesContentUnion] `json:"content,required"`
-	// The role of the messages author. Choice between: system, user, or assistant.
+	// The role of the messages author. Choice between: system, user, assistant, or
+	// tool.
 	Role param.Field[ChatCompletionNewParamsMessagesRole] `json:"role,required"`
 }
 
@@ -641,7 +642,8 @@ func (r ChatCompletionNewParamsMessagesContentArrayType) IsKnown() bool {
 	return false
 }
 
-// The role of the messages author. Choice between: system, user, or assistant.
+// The role of the messages author. Choice between: system, user, assistant, or
+// tool.
 type ChatCompletionNewParamsMessagesRole string
 
 const (
@@ -737,7 +739,7 @@ func (r ChatCompletionNewParamsFunctionCallName) implementsChatCompletionNewPara
 // An object specifying the format that the model must output.
 type ChatCompletionNewParamsResponseFormat struct {
 	// The schema of the response format.
-	Schema param.Field[map[string]string] `json:"schema"`
+	Schema param.Field[map[string]interface{}] `json:"schema"`
 	// The type of the response format.
 	Type param.Field[string] `json:"type"`
 }
