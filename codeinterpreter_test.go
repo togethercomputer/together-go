@@ -27,8 +27,13 @@ func TestCodeInterpreterExecuteWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.CodeInterpreter.Execute(context.TODO(), together.CodeInterpreterExecuteParams{
-		Code:      together.F("print('Hello, world!')"),
-		Language:  together.F(together.CodeInterpreterExecuteParamsLanguagePython),
+		Code:     together.F("print('Hello, world!')"),
+		Language: together.F(together.CodeInterpreterExecuteParamsLanguagePython),
+		Files: together.F([]together.CodeInterpreterExecuteParamsFile{{
+			Content:  together.F("content"),
+			Encoding: together.F(together.CodeInterpreterExecuteParamsFilesEncodingString),
+			Name:     together.F("name"),
+		}}),
 		SessionID: together.F("ses_abcDEF123"),
 	})
 	if err != nil {
