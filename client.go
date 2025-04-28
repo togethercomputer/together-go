@@ -25,6 +25,9 @@ type Client struct {
 	Images          *ImageService
 	Audio           *AudioService
 	Models          *ModelService
+	Jobs            *JobService
+	Endpoints       *EndpointService
+	Hardware        *HardwareService
 }
 
 // DefaultClientOptions read from the environment (TOGETHER_API_KEY,
@@ -58,6 +61,9 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 	r.Images = NewImageService(opts...)
 	r.Audio = NewAudioService(opts...)
 	r.Models = NewModelService(opts...)
+	r.Jobs = NewJobService(opts...)
+	r.Endpoints = NewEndpointService(opts...)
+	r.Hardware = NewHardwareService(opts...)
 
 	return
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
+	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 )
@@ -35,6 +36,14 @@ func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (
 	opts = append(r.Options[:], opts...)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Upload a custom model from Hugging Face or S3
+func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts ...option.RequestOption) (res *ModelUploadResponse, err error) {
+	opts = append(r.Options[:], opts...)
+	path := "models"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
 
@@ -124,4 +133,69 @@ func (r *ModelListResponsePricing) UnmarshalJSON(data []byte) (err error) {
 
 func (r modelListResponsePricingJSON) RawJSON() string {
 	return r.raw
+}
+
+type ModelUploadResponse struct {
+	Data    ModelUploadResponseData `json:"data,required"`
+	Message string                  `json:"message,required"`
+	JSON    modelUploadResponseJSON `json:"-"`
+}
+
+// modelUploadResponseJSON contains the JSON metadata for the struct
+// [ModelUploadResponse]
+type modelUploadResponseJSON struct {
+	Data        apijson.Field
+	Message     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ModelUploadResponse) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r modelUploadResponseJSON) RawJSON() string {
+	return r.raw
+}
+
+type ModelUploadResponseData struct {
+	JobID       string                      `json:"job_id,required"`
+	ModelID     string                      `json:"model_id,required"`
+	ModelName   string                      `json:"model_name,required"`
+	ModelSource string                      `json:"model_source,required"`
+	JSON        modelUploadResponseDataJSON `json:"-"`
+}
+
+// modelUploadResponseDataJSON contains the JSON metadata for the struct
+// [ModelUploadResponseData]
+type modelUploadResponseDataJSON struct {
+	JobID       apijson.Field
+	ModelID     apijson.Field
+	ModelName   apijson.Field
+	ModelSource apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ModelUploadResponseData) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r modelUploadResponseDataJSON) RawJSON() string {
+	return r.raw
+}
+
+type ModelUploadParams struct {
+	// The name to give to your uploaded model
+	ModelName param.Field[string] `json:"model_name,required"`
+	// The source location of the model (Hugging Face repo or S3 path)
+	ModelSource param.Field[string] `json:"model_source,required"`
+	// A description of your model
+	Description param.Field[string] `json:"description"`
+	// Hugging Face token (if uploading from Hugging Face)
+	HfToken param.Field[string] `json:"hf_token"`
+}
+
+func (r ModelUploadParams) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
 }

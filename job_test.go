@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestModelList(t *testing.T) {
+func TestJobGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,7 +25,7 @@ func TestModelList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.List(context.TODO())
+	_, err := client.Jobs.Get(context.TODO(), "job-a15dad11-8d8e-4007-97c5-a211304de284")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -35,7 +35,7 @@ func TestModelList(t *testing.T) {
 	}
 }
 
-func TestModelUploadWithOptionalParams(t *testing.T) {
+func TestJobList(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -47,12 +47,7 @@ func TestModelUploadWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.Upload(context.TODO(), together.ModelUploadParams{
-		ModelName:   together.F("Qwen2.5-72B-Instruct"),
-		ModelSource: together.F("unsloth/Qwen2.5-72B-Instruct"),
-		Description: together.F("Finetuned Qwen2.5-72B-Instruct by Unsloth"),
-		HfToken:     together.F("hf_examplehuggingfacetoken"),
-	})
+	_, err := client.Jobs.List(context.TODO())
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
