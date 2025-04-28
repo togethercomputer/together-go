@@ -496,6 +496,9 @@ type CodeInterpreterExecuteParams struct {
 	// Programming language for the code to execute. Currently only supports Python,
 	// but more will be added.
 	Language param.Field[CodeInterpreterExecuteParamsLanguage] `json:"language,required"`
+	// Files to upload to the session. If present, files will be uploaded before
+	// executing the given code.
+	Files param.Field[[]CodeInterpreterExecuteParamsFile] `json:"files"`
 	// Identifier of the current session. Used to make follow-up calls. Requests will
 	// return an error if the session does not belong to the caller or has expired.
 	SessionID param.Field[string] `json:"session_id"`
@@ -516,6 +519,35 @@ const (
 func (r CodeInterpreterExecuteParamsLanguage) IsKnown() bool {
 	switch r {
 	case CodeInterpreterExecuteParamsLanguagePython:
+		return true
+	}
+	return false
+}
+
+type CodeInterpreterExecuteParamsFile struct {
+	Content param.Field[string] `json:"content,required"`
+	// Encoding of the file content. Use `string` for text files such as code, and
+	// `base64` for binary files, such as images.
+	Encoding param.Field[CodeInterpreterExecuteParamsFilesEncoding] `json:"encoding,required"`
+	Name     param.Field[string]                                    `json:"name,required"`
+}
+
+func (r CodeInterpreterExecuteParamsFile) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// Encoding of the file content. Use `string` for text files such as code, and
+// `base64` for binary files, such as images.
+type CodeInterpreterExecuteParamsFilesEncoding string
+
+const (
+	CodeInterpreterExecuteParamsFilesEncodingString CodeInterpreterExecuteParamsFilesEncoding = "string"
+	CodeInterpreterExecuteParamsFilesEncodingBase64 CodeInterpreterExecuteParamsFilesEncoding = "base64"
+)
+
+func (r CodeInterpreterExecuteParamsFilesEncoding) IsKnown() bool {
+	switch r {
+	case CodeInterpreterExecuteParamsFilesEncodingString, CodeInterpreterExecuteParamsFilesEncodingBase64:
 		return true
 	}
 	return false
