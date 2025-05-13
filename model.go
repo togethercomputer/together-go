@@ -39,7 +39,7 @@ func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (
 	return
 }
 
-// Upload a custom model from Hugging Face or S3
+// Upload a custom model or adapter from Hugging Face or S3
 func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts ...option.RequestOption) (res *ModelUploadResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "models"
@@ -190,12 +190,36 @@ type ModelUploadParams struct {
 	ModelName param.Field[string] `json:"model_name,required"`
 	// The source location of the model (Hugging Face repo or S3 path)
 	ModelSource param.Field[string] `json:"model_source,required"`
+	// The base model to use for an adapter if setting it to run against a serverless
+	// pool. Only used for model_type `adapter`.
+	BaseModel param.Field[string] `json:"base_model"`
 	// A description of your model
 	Description param.Field[string] `json:"description"`
 	// Hugging Face token (if uploading from Hugging Face)
 	HfToken param.Field[string] `json:"hf_token"`
+	// The lora pool to use for an adapter if setting it to run against, say, a
+	// dedicated pool. Only used for model_type `adapter`.
+	LoraModel param.Field[string] `json:"lora_model"`
+	// Whether the model is a full model or an adapter
+	ModelType param.Field[ModelUploadParamsModelType] `json:"model_type"`
 }
 
 func (r ModelUploadParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
+}
+
+// Whether the model is a full model or an adapter
+type ModelUploadParamsModelType string
+
+const (
+	ModelUploadParamsModelTypeModel   ModelUploadParamsModelType = "model"
+	ModelUploadParamsModelTypeAdapter ModelUploadParamsModelType = "adapter"
+)
+
+func (r ModelUploadParamsModelType) IsKnown() bool {
+	switch r {
+	case ModelUploadParamsModelTypeModel, ModelUploadParamsModelTypeAdapter:
+		return true
+	}
+	return false
 }
