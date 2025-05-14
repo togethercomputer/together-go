@@ -46,7 +46,8 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		Suffix:        together.F("suffix"),
 		TrainOnInputs: together.F[together.FineTuneNewParamsTrainOnInputsUnion](shared.UnionBool(true)),
 		TrainingMethod: together.F[together.FineTuneNewParamsTrainingMethodUnion](together.FineTuneNewParamsTrainingMethodTrainingMethodSft{
-			Method: together.F(together.FineTuneNewParamsTrainingMethodTrainingMethodSftMethodSft),
+			Method:        together.F(together.FineTuneNewParamsTrainingMethodTrainingMethodSftMethodSft),
+			TrainOnInputs: together.F[together.FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion](shared.UnionBool(true)),
 		}),
 		TrainingType: together.F[together.FineTuneNewParamsTrainingTypeUnion](together.FineTuneNewParamsTrainingTypeFullTrainingType{
 			Type: together.F(together.FineTuneNewParamsTrainingTypeFullTrainingTypeTypeFull),

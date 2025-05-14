@@ -557,17 +557,21 @@ func (r FineTuneTrainOnInputsString) ImplementsFineTuneTrainOnInputsUnion() {}
 type FineTuneTrainingMethod struct {
 	Method  FineTuneTrainingMethodMethod `json:"method,required"`
 	DpoBeta float64                      `json:"dpo_beta"`
-	JSON    fineTuneTrainingMethodJSON   `json:"-"`
-	union   FineTuneTrainingMethodUnion
+	// This field can have the runtime type of
+	// [FineTuneTrainingMethodTrainingMethodSftTrainOnInputsUnion].
+	TrainOnInputs interface{}                `json:"train_on_inputs"`
+	JSON          fineTuneTrainingMethodJSON `json:"-"`
+	union         FineTuneTrainingMethodUnion
 }
 
 // fineTuneTrainingMethodJSON contains the JSON metadata for the struct
 // [FineTuneTrainingMethod]
 type fineTuneTrainingMethodJSON struct {
-	Method      apijson.Field
-	DpoBeta     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Method        apijson.Field
+	DpoBeta       apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
 }
 
 func (r fineTuneTrainingMethodJSON) RawJSON() string {
@@ -616,15 +620,19 @@ func init() {
 
 type FineTuneTrainingMethodTrainingMethodSft struct {
 	Method FineTuneTrainingMethodTrainingMethodSftMethod `json:"method,required"`
-	JSON   fineTuneTrainingMethodTrainingMethodSftJSON   `json:"-"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuneTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	JSON          fineTuneTrainingMethodTrainingMethodSftJSON               `json:"-"`
 }
 
 // fineTuneTrainingMethodTrainingMethodSftJSON contains the JSON metadata for the
 // struct [FineTuneTrainingMethodTrainingMethodSft]
 type fineTuneTrainingMethodTrainingMethodSftJSON struct {
-	Method      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Method        apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
 }
 
 func (r *FineTuneTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) (err error) {
@@ -649,6 +657,51 @@ func (r FineTuneTrainingMethodTrainingMethodSftMethod) IsKnown() bool {
 		return true
 	}
 	return false
+}
+
+// Whether to mask the user messages in conversational data or prompts in
+// instruction data.
+//
+// Union satisfied by [shared.UnionBool] or
+// [FineTuneTrainingMethodTrainingMethodSftTrainOnInputsString].
+type FineTuneTrainingMethodTrainingMethodSftTrainOnInputsUnion interface {
+	ImplementsFineTuneTrainingMethodTrainingMethodSftTrainOnInputsUnion()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneTrainingMethodTrainingMethodSftTrainOnInputsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.True,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.False,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.String,
+			Type:       reflect.TypeOf(FineTuneTrainingMethodTrainingMethodSftTrainOnInputsString("")),
+		},
+	)
+}
+
+type FineTuneTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuneTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuneTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+func (r FineTuneTrainingMethodTrainingMethodSftTrainOnInputsString) IsKnown() bool {
+	switch r {
+	case FineTuneTrainingMethodTrainingMethodSftTrainOnInputsStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneTrainingMethodTrainingMethodSftTrainOnInputsString) ImplementsFineTuneTrainingMethodTrainingMethodSftTrainOnInputsUnion() {
 }
 
 type FineTuneTrainingMethodTrainingMethodDpo struct {
@@ -1093,6 +1146,8 @@ func (r FineTuneNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) implem
 // instruction data.
 //
 // Satisfied by [shared.UnionBool], [FineTuneNewParamsTrainOnInputsString].
+//
+// Deprecated: deprecated
 type FineTuneNewParamsTrainOnInputsUnion interface {
 	ImplementsFineTuneNewParamsTrainOnInputsUnion()
 }
@@ -1116,8 +1171,9 @@ func (r FineTuneNewParamsTrainOnInputsString) ImplementsFineTuneNewParamsTrainOn
 // The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 // Preference Optimization.
 type FineTuneNewParamsTrainingMethod struct {
-	Method  param.Field[FineTuneNewParamsTrainingMethodMethod] `json:"method,required"`
-	DpoBeta param.Field[float64]                               `json:"dpo_beta"`
+	Method        param.Field[FineTuneNewParamsTrainingMethodMethod] `json:"method,required"`
+	DpoBeta       param.Field[float64]                               `json:"dpo_beta"`
+	TrainOnInputs param.Field[interface{}]                           `json:"train_on_inputs"`
 }
 
 func (r FineTuneNewParamsTrainingMethod) MarshalJSON() (data []byte, err error) {
@@ -1138,6 +1194,9 @@ type FineTuneNewParamsTrainingMethodUnion interface {
 
 type FineTuneNewParamsTrainingMethodTrainingMethodSft struct {
 	Method param.Field[FineTuneNewParamsTrainingMethodTrainingMethodSftMethod] `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs param.Field[FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion] `json:"train_on_inputs,required"`
 }
 
 func (r FineTuneNewParamsTrainingMethodTrainingMethodSft) MarshalJSON() (data []byte, err error) {
@@ -1159,6 +1218,32 @@ func (r FineTuneNewParamsTrainingMethodTrainingMethodSftMethod) IsKnown() bool {
 		return true
 	}
 	return false
+}
+
+// Whether to mask the user messages in conversational data or prompts in
+// instruction data.
+//
+// Satisfied by [shared.UnionBool],
+// [FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsString].
+type FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion interface {
+	ImplementsFineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion()
+}
+
+type FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+func (r FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsString) IsKnown() bool {
+	switch r {
+	case FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsString) ImplementsFineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion() {
 }
 
 type FineTuneNewParamsTrainingMethodTrainingMethodDpo struct {
