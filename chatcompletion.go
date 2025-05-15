@@ -378,67 +378,6 @@ func (r ChatCompletionChunkObject) IsKnown() bool {
 	return false
 }
 
-type ChatCompletionStructuredMessageImageURLParam struct {
-	ImageURL param.Field[ChatCompletionStructuredMessageImageURLImageURLParam] `json:"image_url"`
-	Type     param.Field[ChatCompletionStructuredMessageImageURLType]          `json:"type"`
-}
-
-func (r ChatCompletionStructuredMessageImageURLParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionStructuredMessageImageURLParam) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
-}
-
-type ChatCompletionStructuredMessageImageURLImageURLParam struct {
-	// The URL of the image
-	URL param.Field[string] `json:"url,required"`
-}
-
-func (r ChatCompletionStructuredMessageImageURLImageURLParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-type ChatCompletionStructuredMessageImageURLType string
-
-const (
-	ChatCompletionStructuredMessageImageURLTypeImageURL ChatCompletionStructuredMessageImageURLType = "image_url"
-)
-
-func (r ChatCompletionStructuredMessageImageURLType) IsKnown() bool {
-	switch r {
-	case ChatCompletionStructuredMessageImageURLTypeImageURL:
-		return true
-	}
-	return false
-}
-
-type ChatCompletionStructuredMessageTextParam struct {
-	Text param.Field[string]                                  `json:"text,required"`
-	Type param.Field[ChatCompletionStructuredMessageTextType] `json:"type,required"`
-}
-
-func (r ChatCompletionStructuredMessageTextParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionStructuredMessageTextParam) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
-}
-
-type ChatCompletionStructuredMessageTextType string
-
-const (
-	ChatCompletionStructuredMessageTextTypeText ChatCompletionStructuredMessageTextType = "text"
-)
-
-func (r ChatCompletionStructuredMessageTextType) IsKnown() bool {
-	switch r {
-	case ChatCompletionStructuredMessageTextTypeText:
-		return true
-	}
-	return false
-}
-
 type ChatCompletionUsage struct {
 	CompletionTokens int64                   `json:"completion_tokens,required"`
 	PromptTokens     int64                   `json:"prompt_tokens,required"`
@@ -466,7 +405,7 @@ func (r chatCompletionUsageJSON) RawJSON() string {
 
 type ChatCompletionNewParams struct {
 	// A list of messages comprising the conversation so far.
-	Messages param.Field[[]ChatCompletionNewParamsMessage] `json:"messages,required"`
+	Messages param.Field[[]ChatCompletionNewParamsMessageUnion] `json:"messages,required"`
 	// The name of the model to query.
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
@@ -543,107 +482,179 @@ func (r ChatCompletionNewParams) MarshalJSON() (data []byte, err error) {
 }
 
 type ChatCompletionNewParamsMessage struct {
-	// The content of the message, which can either be a simple string or a structured
-	// format.
-	Content param.Field[ChatCompletionNewParamsMessagesContentUnion] `json:"content,required"`
-	// The role of the messages author. Choice between: system, user, assistant, or
-	// tool.
-	Role param.Field[ChatCompletionNewParamsMessagesRole] `json:"role,required"`
+	Role         param.Field[ChatCompletionNewParamsMessagesRole] `json:"role,required"`
+	Content      param.Field[string]                              `json:"content"`
+	FunctionCall param.Field[interface{}]                         `json:"function_call"`
+	Name         param.Field[string]                              `json:"name"`
+	ToolCallID   param.Field[string]                              `json:"tool_call_id"`
+	ToolCalls    param.Field[interface{}]                         `json:"tool_calls"`
 }
 
 func (r ChatCompletionNewParamsMessage) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-// The content of the message, which can either be a simple string or a structured
-// format.
-//
-// Satisfied by [shared.UnionString],
-// [ChatCompletionNewParamsMessagesContentArray].
-type ChatCompletionNewParamsMessagesContentUnion interface {
-	ImplementsChatCompletionNewParamsMessagesContentUnion()
+func (r ChatCompletionNewParamsMessage) implementsChatCompletionNewParamsMessageUnion() {}
+
+// Satisfied by [ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam],
+// [ChatCompletionNewParamsMessagesChatCompletionUserMessageParam],
+// [ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParam],
+// [ChatCompletionNewParamsMessagesChatCompletionToolMessageParam],
+// [ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParam],
+// [ChatCompletionNewParamsMessage].
+type ChatCompletionNewParamsMessageUnion interface {
+	implementsChatCompletionNewParamsMessageUnion()
 }
 
-type ChatCompletionNewParamsMessagesContentArray []ChatCompletionNewParamsMessagesContentArrayItemUnion
-
-func (r ChatCompletionNewParamsMessagesContentArray) ImplementsChatCompletionNewParamsMessagesContentUnion() {
+type ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam struct {
+	Content param.Field[string]                                                              `json:"content,required"`
+	Role    param.Field[ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRole] `json:"role,required"`
+	Name    param.Field[string]                                                              `json:"name"`
 }
 
-type ChatCompletionNewParamsMessagesContentArrayItem struct {
-	ImageURL param.Field[interface{}]                                     `json:"image_url"`
-	Text     param.Field[string]                                          `json:"text"`
-	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayType] `json:"type"`
-	VideoURL param.Field[interface{}]                                     `json:"video_url"`
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayItem) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-func (r ChatCompletionNewParamsMessagesContentArrayItem) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
+func (r ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam) implementsChatCompletionNewParamsMessageUnion() {
 }
 
-// Satisfied by [ChatCompletionStructuredMessageTextParam],
-// [ChatCompletionStructuredMessageImageURLParam],
-// [ChatCompletionNewParamsMessagesContentArrayVideo],
-// [ChatCompletionNewParamsMessagesContentArrayItem].
-type ChatCompletionNewParamsMessagesContentArrayItemUnion interface {
-	implementsChatCompletionNewParamsMessagesContentArrayItemUnion()
-}
-
-type ChatCompletionNewParamsMessagesContentArrayVideo struct {
-	Type     param.Field[ChatCompletionNewParamsMessagesContentArrayVideoType]     `json:"type,required"`
-	VideoURL param.Field[ChatCompletionNewParamsMessagesContentArrayVideoVideoURL] `json:"video_url,required"`
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayVideo) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsMessagesContentArrayVideo) implementsChatCompletionNewParamsMessagesContentArrayItemUnion() {
-}
-
-type ChatCompletionNewParamsMessagesContentArrayVideoType string
+type ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRole string
 
 const (
-	ChatCompletionNewParamsMessagesContentArrayVideoTypeVideoURL ChatCompletionNewParamsMessagesContentArrayVideoType = "video_url"
+	ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRoleSystem ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRole = "system"
 )
 
-func (r ChatCompletionNewParamsMessagesContentArrayVideoType) IsKnown() bool {
+func (r ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRole) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsMessagesContentArrayVideoTypeVideoURL:
+	case ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRoleSystem:
 		return true
 	}
 	return false
 }
 
-type ChatCompletionNewParamsMessagesContentArrayVideoVideoURL struct {
-	// The URL of the video
-	URL param.Field[string] `json:"url,required"`
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParam struct {
+	Content param.Field[string]                                                            `json:"content,required"`
+	Role    param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRole] `json:"role,required"`
+	Name    param.Field[string]                                                            `json:"name"`
 }
 
-func (r ChatCompletionNewParamsMessagesContentArrayVideoVideoURL) MarshalJSON() (data []byte, err error) {
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParam) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-type ChatCompletionNewParamsMessagesContentArrayType string
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParam) implementsChatCompletionNewParamsMessageUnion() {
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRole string
 
 const (
-	ChatCompletionNewParamsMessagesContentArrayTypeText     ChatCompletionNewParamsMessagesContentArrayType = "text"
-	ChatCompletionNewParamsMessagesContentArrayTypeImageURL ChatCompletionNewParamsMessagesContentArrayType = "image_url"
-	ChatCompletionNewParamsMessagesContentArrayTypeVideoURL ChatCompletionNewParamsMessagesContentArrayType = "video_url"
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRole = "user"
 )
 
-func (r ChatCompletionNewParamsMessagesContentArrayType) IsKnown() bool {
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRole) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsMessagesContentArrayTypeText, ChatCompletionNewParamsMessagesContentArrayTypeImageURL, ChatCompletionNewParamsMessagesContentArrayTypeVideoURL:
+	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser:
 		return true
 	}
 	return false
 }
 
-// The role of the messages author. Choice between: system, user, assistant, or
-// tool.
+type ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParam struct {
+	Role    param.Field[ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamRole] `json:"role,required"`
+	Content param.Field[string]                                                                 `json:"content"`
+	// Deprecated: deprecated
+	FunctionCall param.Field[ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamFunctionCall] `json:"function_call"`
+	Name         param.Field[string]                                                                         `json:"name"`
+	ToolCalls    param.Field[[]ToolChoiceParam]                                                              `json:"tool_calls"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParam) implementsChatCompletionNewParamsMessageUnion() {
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamRole string
+
+const (
+	ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamRoleAssistant ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamRole = "assistant"
+)
+
+func (r ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamRole) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamRoleAssistant:
+		return true
+	}
+	return false
+}
+
+// Deprecated: deprecated
+type ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamFunctionCall struct {
+	Arguments param.Field[string] `json:"arguments,required"`
+	Name      param.Field[string] `json:"name,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionAssistantMessageParamFunctionCall) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionToolMessageParam struct {
+	Content    param.Field[string]                                                            `json:"content,required"`
+	Role       param.Field[ChatCompletionNewParamsMessagesChatCompletionToolMessageParamRole] `json:"role,required"`
+	ToolCallID param.Field[string]                                                            `json:"tool_call_id,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionToolMessageParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionToolMessageParam) implementsChatCompletionNewParamsMessageUnion() {
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionToolMessageParamRole string
+
+const (
+	ChatCompletionNewParamsMessagesChatCompletionToolMessageParamRoleTool ChatCompletionNewParamsMessagesChatCompletionToolMessageParamRole = "tool"
+)
+
+func (r ChatCompletionNewParamsMessagesChatCompletionToolMessageParamRole) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsMessagesChatCompletionToolMessageParamRoleTool:
+		return true
+	}
+	return false
+}
+
+// Deprecated: deprecated
+type ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParam struct {
+	Content param.Field[string]                                                                `json:"content,required"`
+	Name    param.Field[string]                                                                `json:"name,required"`
+	Role    param.Field[ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParamRole] `json:"role,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParam) implementsChatCompletionNewParamsMessageUnion() {
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParamRole string
+
+const (
+	ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParamRoleFunction ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParamRole = "function"
+)
+
+func (r ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParamRole) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsMessagesChatCompletionFunctionMessageParamRoleFunction:
+		return true
+	}
+	return false
+}
+
 type ChatCompletionNewParamsMessagesRole string
 
 const (
@@ -651,11 +662,12 @@ const (
 	ChatCompletionNewParamsMessagesRoleUser      ChatCompletionNewParamsMessagesRole = "user"
 	ChatCompletionNewParamsMessagesRoleAssistant ChatCompletionNewParamsMessagesRole = "assistant"
 	ChatCompletionNewParamsMessagesRoleTool      ChatCompletionNewParamsMessagesRole = "tool"
+	ChatCompletionNewParamsMessagesRoleFunction  ChatCompletionNewParamsMessagesRole = "function"
 )
 
 func (r ChatCompletionNewParamsMessagesRole) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsMessagesRoleSystem, ChatCompletionNewParamsMessagesRoleUser, ChatCompletionNewParamsMessagesRoleAssistant, ChatCompletionNewParamsMessagesRoleTool:
+	case ChatCompletionNewParamsMessagesRoleSystem, ChatCompletionNewParamsMessagesRoleUser, ChatCompletionNewParamsMessagesRoleAssistant, ChatCompletionNewParamsMessagesRoleTool, ChatCompletionNewParamsMessagesRoleFunction:
 		return true
 	}
 	return false

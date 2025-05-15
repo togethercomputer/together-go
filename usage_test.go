@@ -10,7 +10,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 func TestUsage(t *testing.T) {
@@ -26,9 +25,9 @@ func TestUsage(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test!")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test!"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})

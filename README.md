@@ -46,7 +46,6 @@ import (
 
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 func main() {
@@ -54,9 +53,9 @@ func main() {
 		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("TOGETHER_API_KEY")
 	)
 	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test!")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test!"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -182,9 +181,9 @@ To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
 _, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-	Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-		Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-		Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+	Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+		Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+		Content: together.F("Say this is a test"),
 	}}),
 	Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 })
@@ -215,9 +214,9 @@ defer cancel()
 client.Chat.Completions.New(
 	ctx,
 	together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	},
@@ -257,9 +256,9 @@ client := together.NewClient(
 client.Chat.Completions.New(
 	context.TODO(),
 	together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	},
@@ -278,9 +277,9 @@ var response *http.Response
 chatCompletion, err := client.Chat.Completions.New(
 	context.TODO(),
 	together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	},

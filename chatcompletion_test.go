@@ -27,9 +27,10 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("string")),
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam{
+			Content: together.F("content"),
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRoleSystem),
+			Name:    together.F("name"),
 		}}),
 		Model:                         together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 		ContextLengthExceededBehavior: together.F(together.ChatCompletionNewParamsContextLengthExceededBehaviorTruncate),
