@@ -4,11 +4,10 @@ package shared
 
 type UnionString string
 
-func (UnionString) ImplementsChatCompletionNewParamsMessagesContentUnion() {}
-func (UnionString) ImplementsChatCompletionNewParamsToolChoiceUnion()      {}
-func (UnionString) ImplementsEmbeddingNewParamsInputUnion()                {}
-func (UnionString) ImplementsExecuteResponseFailedExecutionErrorsUnion()   {}
-func (UnionString) ImplementsSessionListResponseErrorsUnion()              {}
+func (UnionString) ImplementsChatCompletionNewParamsToolChoiceUnion()    {}
+func (UnionString) ImplementsEmbeddingNewParamsInputUnion()              {}
+func (UnionString) ImplementsExecuteResponseFailedExecutionErrorsUnion() {}
+func (UnionString) ImplementsSessionListResponseErrorsUnion()            {}
 
 type UnionBool bool
 

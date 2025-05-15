@@ -14,7 +14,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 type closureTransport struct {
@@ -41,9 +40,9 @@ func TestUserAgentHeader(t *testing.T) {
 		}),
 	)
 	client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -71,9 +70,9 @@ func TestRetryAfter(t *testing.T) {
 		}),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -112,9 +111,9 @@ func TestDeleteRetryCountHeader(t *testing.T) {
 		option.WithHeaderDel("X-Stainless-Retry-Count"),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -148,9 +147,9 @@ func TestOverwriteRetryCountHeader(t *testing.T) {
 		option.WithHeader("X-Stainless-Retry-Count", "42"),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -183,9 +182,9 @@ func TestRetryAfterMs(t *testing.T) {
 		}),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -212,9 +211,9 @@ func TestContextCancel(t *testing.T) {
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	cancel()
 	_, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -238,9 +237,9 @@ func TestContextCancelDelay(t *testing.T) {
 	cancelCtx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
 	defer cancel()
 	_, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+			Content: together.F("Say this is a test"),
 		}}),
 		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 	})
@@ -270,9 +269,9 @@ func TestContextDeadline(t *testing.T) {
 			}),
 		)
 		_, err := client.Chat.Completions.New(deadlineCtx, together.ChatCompletionNewParams{
-			Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-				Role:    together.F(together.ChatCompletionNewParamsMessagesRoleUser),
-				Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("Say this is a test")),
+			Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
+				Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
+				Content: together.F("Say this is a test"),
 			}}),
 			Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 		})
@@ -321,9 +320,9 @@ func TestContextDeadlineStreaming(t *testing.T) {
 			}),
 		)
 		stream := client.Chat.Completions.NewStreaming(deadlineCtx, together.ChatCompletionNewParams{
-			Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-				Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("string")),
-				Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
+			Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam{
+				Content: together.F("content"),
+				Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRoleSystem),
 			}}),
 			Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 		})
@@ -374,9 +373,9 @@ func TestContextDeadlineStreamingWithRequestTimeout(t *testing.T) {
 		stream := client.Chat.Completions.NewStreaming(
 			context.Background(),
 			together.ChatCompletionNewParams{
-				Messages: together.F([]together.ChatCompletionNewParamsMessage{{
-					Content: together.F[together.ChatCompletionNewParamsMessagesContentUnion](shared.UnionString("string")),
-					Role:    together.F(together.ChatCompletionNewParamsMessagesRoleSystem),
+				Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam{
+					Content: together.F("content"),
+					Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRoleSystem),
 				}}),
 				Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
 			},
