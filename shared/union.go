@@ -4,6 +4,8 @@ package shared
 
 type UnionString string
 
+func (UnionString) ImplementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentUnion() {
+}
 func (UnionString) ImplementsChatCompletionNewParamsToolChoiceUnion()    {}
 func (UnionString) ImplementsEmbeddingNewParamsInputUnion()              {}
 func (UnionString) ImplementsExecuteResponseFailedExecutionErrorsUnion() {}

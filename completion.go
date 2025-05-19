@@ -41,7 +41,7 @@ func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, o
 }
 
 // Query a language, code, or image model.
-func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[Completion]) {
+func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[CompletionChunk]) {
 	var (
 		raw *http.Response
 		err error
@@ -50,7 +50,7 @@ func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNew
 	opts = append([]option.RequestOption{option.WithJSONSet("stream", true)}, opts...)
 	path := "completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
-	return ssestream.NewStream[Completion](ssestream.NewDecoder(raw), err)
+	return ssestream.NewStream[CompletionChunk](ssestream.NewDecoder(raw), err)
 }
 
 type Completion struct {
@@ -165,6 +165,196 @@ func (r *CompletionPrompt) UnmarshalJSON(data []byte) (err error) {
 
 func (r completionPromptJSON) RawJSON() string {
 	return r.raw
+}
+
+type CompletionChunk struct {
+	ID           string                      `json:"id,required"`
+	Token        CompletionChunkToken        `json:"token,required"`
+	Choices      []CompletionChunkChoice     `json:"choices,required"`
+	FinishReason CompletionChunkFinishReason `json:"finish_reason,required,nullable"`
+	Usage        ChatCompletionUsage         `json:"usage,required,nullable"`
+	Created      int64                       `json:"created"`
+	Object       CompletionChunkObject       `json:"object"`
+	Seed         int64                       `json:"seed"`
+	JSON         completionChunkJSON         `json:"-"`
+}
+
+// completionChunkJSON contains the JSON metadata for the struct [CompletionChunk]
+type completionChunkJSON struct {
+	ID           apijson.Field
+	Token        apijson.Field
+	Choices      apijson.Field
+	FinishReason apijson.Field
+	Usage        apijson.Field
+	Created      apijson.Field
+	Object       apijson.Field
+	Seed         apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
+}
+
+func (r *CompletionChunk) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r completionChunkJSON) RawJSON() string {
+	return r.raw
+}
+
+type CompletionChunkToken struct {
+	ID      int64                    `json:"id,required"`
+	Logprob float64                  `json:"logprob,required"`
+	Special bool                     `json:"special,required"`
+	Text    string                   `json:"text,required"`
+	JSON    completionChunkTokenJSON `json:"-"`
+}
+
+// completionChunkTokenJSON contains the JSON metadata for the struct
+// [CompletionChunkToken]
+type completionChunkTokenJSON struct {
+	ID          apijson.Field
+	Logprob     apijson.Field
+	Special     apijson.Field
+	Text        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *CompletionChunkToken) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r completionChunkTokenJSON) RawJSON() string {
+	return r.raw
+}
+
+type CompletionChunkChoice struct {
+	Index int64                       `json:"index,required"`
+	Delta CompletionChunkChoicesDelta `json:"delta"`
+	Text  string                      `json:"text"`
+	JSON  completionChunkChoiceJSON   `json:"-"`
+}
+
+// completionChunkChoiceJSON contains the JSON metadata for the struct
+// [CompletionChunkChoice]
+type completionChunkChoiceJSON struct {
+	Index       apijson.Field
+	Delta       apijson.Field
+	Text        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *CompletionChunkChoice) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r completionChunkChoiceJSON) RawJSON() string {
+	return r.raw
+}
+
+type CompletionChunkChoicesDelta struct {
+	Role    CompletionChunkChoicesDeltaRole `json:"role,required"`
+	Content string                          `json:"content,nullable"`
+	// Deprecated: deprecated
+	FunctionCall CompletionChunkChoicesDeltaFunctionCall `json:"function_call,nullable"`
+	TokenID      int64                                   `json:"token_id"`
+	ToolCalls    []ToolChoice                            `json:"tool_calls"`
+	JSON         completionChunkChoicesDeltaJSON         `json:"-"`
+}
+
+// completionChunkChoicesDeltaJSON contains the JSON metadata for the struct
+// [CompletionChunkChoicesDelta]
+type completionChunkChoicesDeltaJSON struct {
+	Role         apijson.Field
+	Content      apijson.Field
+	FunctionCall apijson.Field
+	TokenID      apijson.Field
+	ToolCalls    apijson.Field
+	raw          string
+	ExtraFields  map[string]apijson.Field
+}
+
+func (r *CompletionChunkChoicesDelta) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r completionChunkChoicesDeltaJSON) RawJSON() string {
+	return r.raw
+}
+
+type CompletionChunkChoicesDeltaRole string
+
+const (
+	CompletionChunkChoicesDeltaRoleSystem    CompletionChunkChoicesDeltaRole = "system"
+	CompletionChunkChoicesDeltaRoleUser      CompletionChunkChoicesDeltaRole = "user"
+	CompletionChunkChoicesDeltaRoleAssistant CompletionChunkChoicesDeltaRole = "assistant"
+	CompletionChunkChoicesDeltaRoleFunction  CompletionChunkChoicesDeltaRole = "function"
+	CompletionChunkChoicesDeltaRoleTool      CompletionChunkChoicesDeltaRole = "tool"
+)
+
+func (r CompletionChunkChoicesDeltaRole) IsKnown() bool {
+	switch r {
+	case CompletionChunkChoicesDeltaRoleSystem, CompletionChunkChoicesDeltaRoleUser, CompletionChunkChoicesDeltaRoleAssistant, CompletionChunkChoicesDeltaRoleFunction, CompletionChunkChoicesDeltaRoleTool:
+		return true
+	}
+	return false
+}
+
+// Deprecated: deprecated
+type CompletionChunkChoicesDeltaFunctionCall struct {
+	Arguments string                                      `json:"arguments,required"`
+	Name      string                                      `json:"name,required"`
+	JSON      completionChunkChoicesDeltaFunctionCallJSON `json:"-"`
+}
+
+// completionChunkChoicesDeltaFunctionCallJSON contains the JSON metadata for the
+// struct [CompletionChunkChoicesDeltaFunctionCall]
+type completionChunkChoicesDeltaFunctionCallJSON struct {
+	Arguments   apijson.Field
+	Name        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *CompletionChunkChoicesDeltaFunctionCall) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r completionChunkChoicesDeltaFunctionCallJSON) RawJSON() string {
+	return r.raw
+}
+
+type CompletionChunkFinishReason string
+
+const (
+	CompletionChunkFinishReasonStop         CompletionChunkFinishReason = "stop"
+	CompletionChunkFinishReasonEos          CompletionChunkFinishReason = "eos"
+	CompletionChunkFinishReasonLength       CompletionChunkFinishReason = "length"
+	CompletionChunkFinishReasonToolCalls    CompletionChunkFinishReason = "tool_calls"
+	CompletionChunkFinishReasonFunctionCall CompletionChunkFinishReason = "function_call"
+)
+
+func (r CompletionChunkFinishReason) IsKnown() bool {
+	switch r {
+	case CompletionChunkFinishReasonStop, CompletionChunkFinishReasonEos, CompletionChunkFinishReasonLength, CompletionChunkFinishReasonToolCalls, CompletionChunkFinishReasonFunctionCall:
+		return true
+	}
+	return false
+}
+
+type CompletionChunkObject string
+
+const (
+	CompletionChunkObjectCompletionChunk CompletionChunkObject = "completion.chunk"
+)
+
+func (r CompletionChunkObject) IsKnown() bool {
+	switch r {
+	case CompletionChunkObjectCompletionChunk:
+		return true
+	}
+	return false
 }
 
 type LogProbs struct {

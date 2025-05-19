@@ -12,6 +12,12 @@ Methods:
 
 ## Completions
 
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionStructuredMessageImageURLParam">ChatCompletionStructuredMessageImageURLParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionStructuredMessageTextParam">ChatCompletionStructuredMessageTextParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionStructuredMessageVideoURLParam">ChatCompletionStructuredMessageVideoURLParam</a>
+
 Response Types:
 
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletion">ChatCompletion</a>
@@ -32,6 +38,7 @@ Params Types:
 Response Types:
 
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#Completion">Completion</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#CompletionChunk">CompletionChunk</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#LogProbs">LogProbs</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ToolChoice">ToolChoice</a>
 
