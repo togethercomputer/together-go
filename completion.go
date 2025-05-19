@@ -133,7 +133,7 @@ func (r CompletionChoicesFinishReason) IsKnown() bool {
 type CompletionObject string
 
 const (
-	CompletionObjectTextCompletion CompletionObject = "text_completion"
+	CompletionObjectTextCompletion CompletionObject = "text.completion"
 )
 
 func (r CompletionObject) IsKnown() bool {
