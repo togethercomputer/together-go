@@ -946,7 +946,8 @@ type FineTuneNewResponse struct {
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
 	// Base model used for fine-tuning
-	Model string `json:"model"`
+	Model           string `json:"model"`
+	ModelOutputName string `json:"model_output_name"`
 	// Number of checkpoints saved during training
 	NCheckpoints int64 `json:"n_checkpoints"`
 	// Number of training epochs
@@ -996,6 +997,7 @@ type fineTuneNewResponseJSON struct {
 	LrScheduler      apijson.Field
 	MaxGradNorm      apijson.Field
 	Model            apijson.Field
+	ModelOutputName  apijson.Field
 	NCheckpoints     apijson.Field
 	NEpochs          apijson.Field
 	NEvals           apijson.Field
@@ -1742,7 +1744,8 @@ type FineTuneListResponseData struct {
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
 	// Base model used for fine-tuning
-	Model string `json:"model"`
+	Model           string `json:"model"`
+	ModelOutputName string `json:"model_output_name"`
 	// Number of checkpoints saved during training
 	NCheckpoints int64 `json:"n_checkpoints"`
 	// Number of training epochs
@@ -1792,6 +1795,7 @@ type fineTuneListResponseDataJSON struct {
 	LrScheduler      apijson.Field
 	MaxGradNorm      apijson.Field
 	Model            apijson.Field
+	ModelOutputName  apijson.Field
 	NCheckpoints     apijson.Field
 	NEpochs          apijson.Field
 	NEvals           apijson.Field
@@ -2519,7 +2523,8 @@ type FineTuneCancelResponse struct {
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
 	// Base model used for fine-tuning
-	Model string `json:"model"`
+	Model           string `json:"model"`
+	ModelOutputName string `json:"model_output_name"`
 	// Number of checkpoints saved during training
 	NCheckpoints int64 `json:"n_checkpoints"`
 	// Number of training epochs
@@ -2569,6 +2574,7 @@ type fineTuneCancelResponseJSON struct {
 	LrScheduler      apijson.Field
 	MaxGradNorm      apijson.Field
 	Model            apijson.Field
+	ModelOutputName  apijson.Field
 	NCheckpoints     apijson.Field
 	NEpochs          apijson.Field
 	NEvals           apijson.Field
