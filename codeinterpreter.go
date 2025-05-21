@@ -145,8 +145,10 @@ func (r ExecuteResponseSuccessfulExecution) implementsExecuteResponse() {}
 type ExecuteResponseSuccessfulExecutionData struct {
 	Outputs []ExecuteResponseSuccessfulExecutionDataOutput `json:"outputs,required"`
 	// Identifier of the current session. Used to make follow-up calls.
-	SessionID string                                     `json:"session_id,required"`
-	JSON      executeResponseSuccessfulExecutionDataJSON `json:"-"`
+	SessionID string `json:"session_id,required"`
+	// Status of the execution. Currently only supports success.
+	Status ExecuteResponseSuccessfulExecutionDataStatus `json:"status"`
+	JSON   executeResponseSuccessfulExecutionDataJSON   `json:"-"`
 }
 
 // executeResponseSuccessfulExecutionDataJSON contains the JSON metadata for the
@@ -154,6 +156,7 @@ type ExecuteResponseSuccessfulExecutionData struct {
 type executeResponseSuccessfulExecutionDataJSON struct {
 	Outputs     apijson.Field
 	SessionID   apijson.Field
+	Status      apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
@@ -438,6 +441,21 @@ const (
 func (r ExecuteResponseSuccessfulExecutionDataOutputsType) IsKnown() bool {
 	switch r {
 	case ExecuteResponseSuccessfulExecutionDataOutputsTypeStdout, ExecuteResponseSuccessfulExecutionDataOutputsTypeStderr, ExecuteResponseSuccessfulExecutionDataOutputsTypeError, ExecuteResponseSuccessfulExecutionDataOutputsTypeDisplayData, ExecuteResponseSuccessfulExecutionDataOutputsTypeExecuteResult:
+		return true
+	}
+	return false
+}
+
+// Status of the execution. Currently only supports success.
+type ExecuteResponseSuccessfulExecutionDataStatus string
+
+const (
+	ExecuteResponseSuccessfulExecutionDataStatusSuccess ExecuteResponseSuccessfulExecutionDataStatus = "success"
+)
+
+func (r ExecuteResponseSuccessfulExecutionDataStatus) IsKnown() bool {
+	switch r {
+	case ExecuteResponseSuccessfulExecutionDataStatusSuccess:
 		return true
 	}
 	return false
