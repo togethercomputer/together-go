@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"time"
 
 	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -38,8 +39,8 @@ func NewFineTuneService(opts ...option.RequestOption) (r *FineTuneService) {
 	return
 }
 
-// Use a model to create a fine-tuning job.
-func (r *FineTuneService) New(ctx context.Context, body FineTuneNewParams, opts ...option.RequestOption) (res *FineTune, err error) {
+// Create a fine-tuning job with the provided model and training data.
+func (r *FineTuneService) New(ctx context.Context, body FineTuneNewParams, opts ...option.RequestOption) (res *FineTuneNewResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "fine-tunes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -58,7 +59,8 @@ func (r *FineTuneService) Get(ctx context.Context, id string, opts ...option.Req
 	return
 }
 
-// List the metadata for all fine-tuning jobs.
+// List the metadata for all fine-tuning jobs. Returns a list of
+// FinetuneResponseTruncated objects.
 func (r *FineTuneService) List(ctx context.Context, opts ...option.RequestOption) (res *FineTuneListResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "fine-tunes"
@@ -66,8 +68,9 @@ func (r *FineTuneService) List(ctx context.Context, opts ...option.RequestOption
 	return
 }
 
-// Cancel a currently running fine-tuning job.
-func (r *FineTuneService) Cancel(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTune, err error) {
+// Cancel a currently running fine-tuning job. Returns a FinetuneResponseTruncated
+// object.
+func (r *FineTuneService) Cancel(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneCancelResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -920,9 +923,784 @@ func (r FineTuneTrainingTypeType) IsKnown() bool {
 	return false
 }
 
+// A truncated version of the fine-tune response, used for POST /fine-tunes, GET
+// /fine-tunes and POST /fine-tunes/{id}/cancel endpoints
+type FineTuneNewResponse struct {
+	// Unique identifier for the fine-tune job
+	ID string `json:"id,required"`
+	// Creation timestamp of the fine-tune job
+	CreatedAt time.Time                 `json:"created_at,required" format:"date-time"`
+	Status    FineTuneNewResponseStatus `json:"status,required"`
+	// Last update timestamp of the fine-tune job
+	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	// Batch size used for training
+	BatchSize int64 `json:"batch_size"`
+	// Events related to this fine-tune job
+	Events []FineTuneNewResponseEvent `json:"events"`
+	// Checkpoint used to continue training
+	FromCheckpoint string `json:"from_checkpoint"`
+	// Learning rate used for training
+	LearningRate float64 `json:"learning_rate"`
+	// Learning rate scheduler configuration
+	LrScheduler FineTuneNewResponseLrScheduler `json:"lr_scheduler"`
+	// Maximum gradient norm for clipping
+	MaxGradNorm float64 `json:"max_grad_norm"`
+	// Base model used for fine-tuning
+	Model string `json:"model"`
+	// Number of checkpoints saved during training
+	NCheckpoints int64 `json:"n_checkpoints"`
+	// Number of training epochs
+	NEpochs int64 `json:"n_epochs"`
+	// Number of evaluations during training
+	NEvals int64 `json:"n_evals"`
+	// Owner address information
+	OwnerAddress string `json:"owner_address"`
+	// Suffix added to the fine-tuned model name
+	Suffix string `json:"suffix"`
+	// Count of tokens processed
+	TokenCount int64 `json:"token_count"`
+	// Total price for the fine-tuning job
+	TotalPrice int64 `json:"total_price"`
+	// File-ID of the training file
+	TrainingFile string `json:"training_file"`
+	// Method of training used
+	TrainingMethod FineTuneNewResponseTrainingMethod `json:"training_method"`
+	// Type of training used (full or LoRA)
+	TrainingType FineTuneNewResponseTrainingType `json:"training_type"`
+	// Identifier for the user who created the job
+	UserID string `json:"user_id"`
+	// File-ID of the validation file
+	ValidationFile string `json:"validation_file"`
+	// Weights & Biases run name
+	WandbName string `json:"wandb_name"`
+	// Weights & Biases project name
+	WandbProjectName string `json:"wandb_project_name"`
+	// Ratio of warmup steps
+	WarmupRatio float64 `json:"warmup_ratio"`
+	// Weight decay value used
+	WeightDecay float64                 `json:"weight_decay"`
+	JSON        fineTuneNewResponseJSON `json:"-"`
+}
+
+// fineTuneNewResponseJSON contains the JSON metadata for the struct
+// [FineTuneNewResponse]
+type fineTuneNewResponseJSON struct {
+	ID               apijson.Field
+	CreatedAt        apijson.Field
+	Status           apijson.Field
+	UpdatedAt        apijson.Field
+	BatchSize        apijson.Field
+	Events           apijson.Field
+	FromCheckpoint   apijson.Field
+	LearningRate     apijson.Field
+	LrScheduler      apijson.Field
+	MaxGradNorm      apijson.Field
+	Model            apijson.Field
+	NCheckpoints     apijson.Field
+	NEpochs          apijson.Field
+	NEvals           apijson.Field
+	OwnerAddress     apijson.Field
+	Suffix           apijson.Field
+	TokenCount       apijson.Field
+	TotalPrice       apijson.Field
+	TrainingFile     apijson.Field
+	TrainingMethod   apijson.Field
+	TrainingType     apijson.Field
+	UserID           apijson.Field
+	ValidationFile   apijson.Field
+	WandbName        apijson.Field
+	WandbProjectName apijson.Field
+	WarmupRatio      apijson.Field
+	WeightDecay      apijson.Field
+	raw              string
+	ExtraFields      map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponse) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneNewResponseStatus string
+
+const (
+	FineTuneNewResponseStatusPending         FineTuneNewResponseStatus = "pending"
+	FineTuneNewResponseStatusQueued          FineTuneNewResponseStatus = "queued"
+	FineTuneNewResponseStatusRunning         FineTuneNewResponseStatus = "running"
+	FineTuneNewResponseStatusCompressing     FineTuneNewResponseStatus = "compressing"
+	FineTuneNewResponseStatusUploading       FineTuneNewResponseStatus = "uploading"
+	FineTuneNewResponseStatusCancelRequested FineTuneNewResponseStatus = "cancel_requested"
+	FineTuneNewResponseStatusCancelled       FineTuneNewResponseStatus = "cancelled"
+	FineTuneNewResponseStatusError           FineTuneNewResponseStatus = "error"
+	FineTuneNewResponseStatusCompleted       FineTuneNewResponseStatus = "completed"
+)
+
+func (r FineTuneNewResponseStatus) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseStatusPending, FineTuneNewResponseStatusQueued, FineTuneNewResponseStatusRunning, FineTuneNewResponseStatusCompressing, FineTuneNewResponseStatusUploading, FineTuneNewResponseStatusCancelRequested, FineTuneNewResponseStatusCancelled, FineTuneNewResponseStatusError, FineTuneNewResponseStatusCompleted:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewResponseEvent struct {
+	CheckpointPath string                          `json:"checkpoint_path,required"`
+	CreatedAt      string                          `json:"created_at,required"`
+	Hash           string                          `json:"hash,required"`
+	Message        string                          `json:"message,required"`
+	ModelPath      string                          `json:"model_path,required"`
+	Object         FineTuneNewResponseEventsObject `json:"object,required"`
+	ParamCount     int64                           `json:"param_count,required"`
+	Step           int64                           `json:"step,required"`
+	TokenCount     int64                           `json:"token_count,required"`
+	TotalSteps     int64                           `json:"total_steps,required"`
+	TrainingOffset int64                           `json:"training_offset,required"`
+	Type           FineTuneNewResponseEventsType   `json:"type,required"`
+	WandbURL       string                          `json:"wandb_url,required"`
+	Level          FineTuneNewResponseEventsLevel  `json:"level,nullable"`
+	JSON           fineTuneNewResponseEventJSON    `json:"-"`
+}
+
+// fineTuneNewResponseEventJSON contains the JSON metadata for the struct
+// [FineTuneNewResponseEvent]
+type fineTuneNewResponseEventJSON struct {
+	CheckpointPath apijson.Field
+	CreatedAt      apijson.Field
+	Hash           apijson.Field
+	Message        apijson.Field
+	ModelPath      apijson.Field
+	Object         apijson.Field
+	ParamCount     apijson.Field
+	Step           apijson.Field
+	TokenCount     apijson.Field
+	TotalSteps     apijson.Field
+	TrainingOffset apijson.Field
+	Type           apijson.Field
+	WandbURL       apijson.Field
+	Level          apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseEvent) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseEventJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneNewResponseEventsObject string
+
+const (
+	FineTuneNewResponseEventsObjectFineTuneEvent FineTuneNewResponseEventsObject = "fine-tune-event"
+)
+
+func (r FineTuneNewResponseEventsObject) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseEventsObjectFineTuneEvent:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewResponseEventsType string
+
+const (
+	FineTuneNewResponseEventsTypeJobPending                     FineTuneNewResponseEventsType = "job_pending"
+	FineTuneNewResponseEventsTypeJobStart                       FineTuneNewResponseEventsType = "job_start"
+	FineTuneNewResponseEventsTypeJobStopped                     FineTuneNewResponseEventsType = "job_stopped"
+	FineTuneNewResponseEventsTypeModelDownloading               FineTuneNewResponseEventsType = "model_downloading"
+	FineTuneNewResponseEventsTypeModelDownloadComplete          FineTuneNewResponseEventsType = "model_download_complete"
+	FineTuneNewResponseEventsTypeTrainingDataDownloading        FineTuneNewResponseEventsType = "training_data_downloading"
+	FineTuneNewResponseEventsTypeTrainingDataDownloadComplete   FineTuneNewResponseEventsType = "training_data_download_complete"
+	FineTuneNewResponseEventsTypeValidationDataDownloading      FineTuneNewResponseEventsType = "validation_data_downloading"
+	FineTuneNewResponseEventsTypeValidationDataDownloadComplete FineTuneNewResponseEventsType = "validation_data_download_complete"
+	FineTuneNewResponseEventsTypeWandbInit                      FineTuneNewResponseEventsType = "wandb_init"
+	FineTuneNewResponseEventsTypeTrainingStart                  FineTuneNewResponseEventsType = "training_start"
+	FineTuneNewResponseEventsTypeCheckpointSave                 FineTuneNewResponseEventsType = "checkpoint_save"
+	FineTuneNewResponseEventsTypeBillingLimit                   FineTuneNewResponseEventsType = "billing_limit"
+	FineTuneNewResponseEventsTypeEpochComplete                  FineTuneNewResponseEventsType = "epoch_complete"
+	FineTuneNewResponseEventsTypeTrainingComplete               FineTuneNewResponseEventsType = "training_complete"
+	FineTuneNewResponseEventsTypeModelCompressing               FineTuneNewResponseEventsType = "model_compressing"
+	FineTuneNewResponseEventsTypeModelCompressionComplete       FineTuneNewResponseEventsType = "model_compression_complete"
+	FineTuneNewResponseEventsTypeModelUploading                 FineTuneNewResponseEventsType = "model_uploading"
+	FineTuneNewResponseEventsTypeModelUploadComplete            FineTuneNewResponseEventsType = "model_upload_complete"
+	FineTuneNewResponseEventsTypeJobComplete                    FineTuneNewResponseEventsType = "job_complete"
+	FineTuneNewResponseEventsTypeJobError                       FineTuneNewResponseEventsType = "job_error"
+	FineTuneNewResponseEventsTypeCancelRequested                FineTuneNewResponseEventsType = "cancel_requested"
+	FineTuneNewResponseEventsTypeJobRestarted                   FineTuneNewResponseEventsType = "job_restarted"
+	FineTuneNewResponseEventsTypeRefund                         FineTuneNewResponseEventsType = "refund"
+	FineTuneNewResponseEventsTypeWarning                        FineTuneNewResponseEventsType = "warning"
+)
+
+func (r FineTuneNewResponseEventsType) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseEventsTypeJobPending, FineTuneNewResponseEventsTypeJobStart, FineTuneNewResponseEventsTypeJobStopped, FineTuneNewResponseEventsTypeModelDownloading, FineTuneNewResponseEventsTypeModelDownloadComplete, FineTuneNewResponseEventsTypeTrainingDataDownloading, FineTuneNewResponseEventsTypeTrainingDataDownloadComplete, FineTuneNewResponseEventsTypeValidationDataDownloading, FineTuneNewResponseEventsTypeValidationDataDownloadComplete, FineTuneNewResponseEventsTypeWandbInit, FineTuneNewResponseEventsTypeTrainingStart, FineTuneNewResponseEventsTypeCheckpointSave, FineTuneNewResponseEventsTypeBillingLimit, FineTuneNewResponseEventsTypeEpochComplete, FineTuneNewResponseEventsTypeTrainingComplete, FineTuneNewResponseEventsTypeModelCompressing, FineTuneNewResponseEventsTypeModelCompressionComplete, FineTuneNewResponseEventsTypeModelUploading, FineTuneNewResponseEventsTypeModelUploadComplete, FineTuneNewResponseEventsTypeJobComplete, FineTuneNewResponseEventsTypeJobError, FineTuneNewResponseEventsTypeCancelRequested, FineTuneNewResponseEventsTypeJobRestarted, FineTuneNewResponseEventsTypeRefund, FineTuneNewResponseEventsTypeWarning:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewResponseEventsLevel string
+
+const (
+	FineTuneNewResponseEventsLevelInfo           FineTuneNewResponseEventsLevel = "info"
+	FineTuneNewResponseEventsLevelWarning        FineTuneNewResponseEventsLevel = "warning"
+	FineTuneNewResponseEventsLevelError          FineTuneNewResponseEventsLevel = "error"
+	FineTuneNewResponseEventsLevelLegacyInfo     FineTuneNewResponseEventsLevel = "legacy_info"
+	FineTuneNewResponseEventsLevelLegacyIwarning FineTuneNewResponseEventsLevel = "legacy_iwarning"
+	FineTuneNewResponseEventsLevelLegacyIerror   FineTuneNewResponseEventsLevel = "legacy_ierror"
+)
+
+func (r FineTuneNewResponseEventsLevel) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseEventsLevelInfo, FineTuneNewResponseEventsLevelWarning, FineTuneNewResponseEventsLevelError, FineTuneNewResponseEventsLevelLegacyInfo, FineTuneNewResponseEventsLevelLegacyIwarning, FineTuneNewResponseEventsLevelLegacyIerror:
+		return true
+	}
+	return false
+}
+
+// Learning rate scheduler configuration
+type FineTuneNewResponseLrScheduler struct {
+	LrSchedulerType FineTuneNewResponseLrSchedulerLrSchedulerType `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FineTuneNewResponseLrSchedulerLrSchedulerArgs `json:"lr_scheduler_args"`
+	JSON            fineTuneNewResponseLrSchedulerJSON            `json:"-"`
+}
+
+// fineTuneNewResponseLrSchedulerJSON contains the JSON metadata for the struct
+// [FineTuneNewResponseLrScheduler]
+type fineTuneNewResponseLrSchedulerJSON struct {
+	LrSchedulerType apijson.Field
+	LrSchedulerArgs apijson.Field
+	raw             string
+	ExtraFields     map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseLrScheduler) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseLrSchedulerJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneNewResponseLrSchedulerLrSchedulerType string
+
+const (
+	FineTuneNewResponseLrSchedulerLrSchedulerTypeLinear FineTuneNewResponseLrSchedulerLrSchedulerType = "linear"
+	FineTuneNewResponseLrSchedulerLrSchedulerTypeCosine FineTuneNewResponseLrSchedulerLrSchedulerType = "cosine"
+)
+
+func (r FineTuneNewResponseLrSchedulerLrSchedulerType) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseLrSchedulerLrSchedulerTypeLinear, FineTuneNewResponseLrSchedulerLrSchedulerTypeCosine:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewResponseLrSchedulerLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                           `json:"num_cycles"`
+	JSON      fineTuneNewResponseLrSchedulerLrSchedulerArgsJSON `json:"-"`
+	union     FineTuneNewResponseLrSchedulerLrSchedulerArgsUnion
+}
+
+// fineTuneNewResponseLrSchedulerLrSchedulerArgsJSON contains the JSON metadata for
+// the struct [FineTuneNewResponseLrSchedulerLrSchedulerArgs]
+type fineTuneNewResponseLrSchedulerLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r fineTuneNewResponseLrSchedulerLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneNewResponseLrSchedulerLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneNewResponseLrSchedulerLrSchedulerArgs{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneNewResponseLrSchedulerLrSchedulerArgsUnion] interface
+// which you can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+func (r FineTuneNewResponseLrSchedulerLrSchedulerArgs) AsUnion() FineTuneNewResponseLrSchedulerLrSchedulerArgsUnion {
+	return r.union
+}
+
+// Union satisfied by
+// [FineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs] or
+// [FineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+type FineTuneNewResponseLrSchedulerLrSchedulerArgsUnion interface {
+	implementsFineTuneNewResponseLrSchedulerLrSchedulerArgs()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneNewResponseLrSchedulerLrSchedulerArgsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs{}),
+		},
+	)
+}
+
+type FineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64                                                                `json:"min_lr_ratio"`
+	JSON       fineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON contains
+// the JSON metadata for the struct
+// [FineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs]
+type fineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) implementsFineTuneNewResponseLrSchedulerLrSchedulerArgs() {
+}
+
+type FineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                                                `json:"num_cycles"`
+	JSON      fineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON contains
+// the JSON metadata for the struct
+// [FineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs]
+type fineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) implementsFineTuneNewResponseLrSchedulerLrSchedulerArgs() {
+}
+
+// Method of training used
+type FineTuneNewResponseTrainingMethod struct {
+	Method  FineTuneNewResponseTrainingMethodMethod `json:"method,required"`
+	DpoBeta float64                                 `json:"dpo_beta"`
+	// This field can have the runtime type of
+	// [FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion].
+	TrainOnInputs interface{}                           `json:"train_on_inputs"`
+	JSON          fineTuneNewResponseTrainingMethodJSON `json:"-"`
+	union         FineTuneNewResponseTrainingMethodUnion
+}
+
+// fineTuneNewResponseTrainingMethodJSON contains the JSON metadata for the struct
+// [FineTuneNewResponseTrainingMethod]
+type fineTuneNewResponseTrainingMethodJSON struct {
+	Method        apijson.Field
+	DpoBeta       apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
+}
+
+func (r fineTuneNewResponseTrainingMethodJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneNewResponseTrainingMethod) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneNewResponseTrainingMethod{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneNewResponseTrainingMethodUnion] interface which you
+// can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneNewResponseTrainingMethodTrainingMethodSft],
+// [FineTuneNewResponseTrainingMethodTrainingMethodDpo].
+func (r FineTuneNewResponseTrainingMethod) AsUnion() FineTuneNewResponseTrainingMethodUnion {
+	return r.union
+}
+
+// Method of training used
+//
+// Union satisfied by [FineTuneNewResponseTrainingMethodTrainingMethodSft] or
+// [FineTuneNewResponseTrainingMethodTrainingMethodDpo].
+type FineTuneNewResponseTrainingMethodUnion interface {
+	implementsFineTuneNewResponseTrainingMethod()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneNewResponseTrainingMethodUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneNewResponseTrainingMethodTrainingMethodSft{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneNewResponseTrainingMethodTrainingMethodDpo{}),
+		},
+	)
+}
+
+type FineTuneNewResponseTrainingMethodTrainingMethodSft struct {
+	Method FineTuneNewResponseTrainingMethodTrainingMethodSftMethod `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	JSON          fineTuneNewResponseTrainingMethodTrainingMethodSftJSON               `json:"-"`
+}
+
+// fineTuneNewResponseTrainingMethodTrainingMethodSftJSON contains the JSON
+// metadata for the struct [FineTuneNewResponseTrainingMethodTrainingMethodSft]
+type fineTuneNewResponseTrainingMethodTrainingMethodSftJSON struct {
+	Method        apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseTrainingMethodTrainingMethodSftJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneNewResponseTrainingMethodTrainingMethodSft) implementsFineTuneNewResponseTrainingMethod() {
+}
+
+type FineTuneNewResponseTrainingMethodTrainingMethodSftMethod string
+
+const (
+	FineTuneNewResponseTrainingMethodTrainingMethodSftMethodSft FineTuneNewResponseTrainingMethodTrainingMethodSftMethod = "sft"
+)
+
+func (r FineTuneNewResponseTrainingMethodTrainingMethodSftMethod) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseTrainingMethodTrainingMethodSftMethodSft:
+		return true
+	}
+	return false
+}
+
+// Whether to mask the user messages in conversational data or prompts in
+// instruction data.
+//
+// Union satisfied by [shared.UnionBool] or
+// [FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString].
+type FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion interface {
+	ImplementsFineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.True,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.False,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.String,
+			Type:       reflect.TypeOf(FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString("")),
+		},
+	)
+}
+
+type FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+func (r FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString) ImplementsFineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion() {
+}
+
+type FineTuneNewResponseTrainingMethodTrainingMethodDpo struct {
+	Method  FineTuneNewResponseTrainingMethodTrainingMethodDpoMethod `json:"method,required"`
+	DpoBeta float64                                                  `json:"dpo_beta"`
+	JSON    fineTuneNewResponseTrainingMethodTrainingMethodDpoJSON   `json:"-"`
+}
+
+// fineTuneNewResponseTrainingMethodTrainingMethodDpoJSON contains the JSON
+// metadata for the struct [FineTuneNewResponseTrainingMethodTrainingMethodDpo]
+type fineTuneNewResponseTrainingMethodTrainingMethodDpoJSON struct {
+	Method      apijson.Field
+	DpoBeta     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseTrainingMethodTrainingMethodDpoJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneNewResponseTrainingMethodTrainingMethodDpo) implementsFineTuneNewResponseTrainingMethod() {
+}
+
+type FineTuneNewResponseTrainingMethodTrainingMethodDpoMethod string
+
+const (
+	FineTuneNewResponseTrainingMethodTrainingMethodDpoMethodDpo FineTuneNewResponseTrainingMethodTrainingMethodDpoMethod = "dpo"
+)
+
+func (r FineTuneNewResponseTrainingMethodTrainingMethodDpoMethod) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseTrainingMethodTrainingMethodDpoMethodDpo:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewResponseTrainingMethodMethod string
+
+const (
+	FineTuneNewResponseTrainingMethodMethodSft FineTuneNewResponseTrainingMethodMethod = "sft"
+	FineTuneNewResponseTrainingMethodMethodDpo FineTuneNewResponseTrainingMethodMethod = "dpo"
+)
+
+func (r FineTuneNewResponseTrainingMethodMethod) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseTrainingMethodMethodSft, FineTuneNewResponseTrainingMethodMethodDpo:
+		return true
+	}
+	return false
+}
+
+// Type of training used (full or LoRA)
+type FineTuneNewResponseTrainingType struct {
+	Type                 FineTuneNewResponseTrainingTypeType `json:"type,required"`
+	LoraAlpha            int64                               `json:"lora_alpha"`
+	LoraDropout          float64                             `json:"lora_dropout"`
+	LoraR                int64                               `json:"lora_r"`
+	LoraTrainableModules string                              `json:"lora_trainable_modules"`
+	JSON                 fineTuneNewResponseTrainingTypeJSON `json:"-"`
+	union                FineTuneNewResponseTrainingTypeUnion
+}
+
+// fineTuneNewResponseTrainingTypeJSON contains the JSON metadata for the struct
+// [FineTuneNewResponseTrainingType]
+type fineTuneNewResponseTrainingTypeJSON struct {
+	Type                 apijson.Field
+	LoraAlpha            apijson.Field
+	LoraDropout          apijson.Field
+	LoraR                apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r fineTuneNewResponseTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneNewResponseTrainingType) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneNewResponseTrainingType{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneNewResponseTrainingTypeUnion] interface which you can
+// cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneNewResponseTrainingTypeFullTrainingType],
+// [FineTuneNewResponseTrainingTypeLoRaTrainingType].
+func (r FineTuneNewResponseTrainingType) AsUnion() FineTuneNewResponseTrainingTypeUnion {
+	return r.union
+}
+
+// Type of training used (full or LoRA)
+//
+// Union satisfied by [FineTuneNewResponseTrainingTypeFullTrainingType] or
+// [FineTuneNewResponseTrainingTypeLoRaTrainingType].
+type FineTuneNewResponseTrainingTypeUnion interface {
+	implementsFineTuneNewResponseTrainingType()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneNewResponseTrainingTypeUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneNewResponseTrainingTypeFullTrainingType{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneNewResponseTrainingTypeLoRaTrainingType{}),
+		},
+	)
+}
+
+type FineTuneNewResponseTrainingTypeFullTrainingType struct {
+	Type FineTuneNewResponseTrainingTypeFullTrainingTypeType `json:"type,required"`
+	JSON fineTuneNewResponseTrainingTypeFullTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneNewResponseTrainingTypeFullTrainingTypeJSON contains the JSON metadata
+// for the struct [FineTuneNewResponseTrainingTypeFullTrainingType]
+type fineTuneNewResponseTrainingTypeFullTrainingTypeJSON struct {
+	Type        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseTrainingTypeFullTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneNewResponseTrainingTypeFullTrainingType) implementsFineTuneNewResponseTrainingType() {
+}
+
+type FineTuneNewResponseTrainingTypeFullTrainingTypeType string
+
+const (
+	FineTuneNewResponseTrainingTypeFullTrainingTypeTypeFull FineTuneNewResponseTrainingTypeFullTrainingTypeType = "Full"
+)
+
+func (r FineTuneNewResponseTrainingTypeFullTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseTrainingTypeFullTrainingTypeTypeFull:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewResponseTrainingTypeLoRaTrainingType struct {
+	LoraAlpha            int64                                               `json:"lora_alpha,required"`
+	LoraR                int64                                               `json:"lora_r,required"`
+	Type                 FineTuneNewResponseTrainingTypeLoRaTrainingTypeType `json:"type,required"`
+	LoraDropout          float64                                             `json:"lora_dropout"`
+	LoraTrainableModules string                                              `json:"lora_trainable_modules"`
+	JSON                 fineTuneNewResponseTrainingTypeLoRaTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneNewResponseTrainingTypeLoRaTrainingTypeJSON contains the JSON metadata
+// for the struct [FineTuneNewResponseTrainingTypeLoRaTrainingType]
+type fineTuneNewResponseTrainingTypeLoRaTrainingTypeJSON struct {
+	LoraAlpha            apijson.Field
+	LoraR                apijson.Field
+	Type                 apijson.Field
+	LoraDropout          apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r *FineTuneNewResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneNewResponseTrainingTypeLoRaTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneNewResponseTrainingTypeLoRaTrainingType) implementsFineTuneNewResponseTrainingType() {
+}
+
+type FineTuneNewResponseTrainingTypeLoRaTrainingTypeType string
+
+const (
+	FineTuneNewResponseTrainingTypeLoRaTrainingTypeTypeLora FineTuneNewResponseTrainingTypeLoRaTrainingTypeType = "Lora"
+)
+
+func (r FineTuneNewResponseTrainingTypeLoRaTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseTrainingTypeLoRaTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
+type FineTuneNewResponseTrainingTypeType string
+
+const (
+	FineTuneNewResponseTrainingTypeTypeFull FineTuneNewResponseTrainingTypeType = "Full"
+	FineTuneNewResponseTrainingTypeTypeLora FineTuneNewResponseTrainingTypeType = "Lora"
+)
+
+func (r FineTuneNewResponseTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneNewResponseTrainingTypeTypeFull, FineTuneNewResponseTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
 type FineTuneListResponse struct {
-	Data []FineTune               `json:"data,required"`
-	JSON fineTuneListResponseJSON `json:"-"`
+	Data []FineTuneListResponseData `json:"data,required"`
+	JSON fineTuneListResponseJSON   `json:"-"`
 }
 
 // fineTuneListResponseJSON contains the JSON metadata for the struct
@@ -939,6 +1717,1558 @@ func (r *FineTuneListResponse) UnmarshalJSON(data []byte) (err error) {
 
 func (r fineTuneListResponseJSON) RawJSON() string {
 	return r.raw
+}
+
+// A truncated version of the fine-tune response, used for POST /fine-tunes, GET
+// /fine-tunes and POST /fine-tunes/{id}/cancel endpoints
+type FineTuneListResponseData struct {
+	// Unique identifier for the fine-tune job
+	ID string `json:"id,required"`
+	// Creation timestamp of the fine-tune job
+	CreatedAt time.Time                      `json:"created_at,required" format:"date-time"`
+	Status    FineTuneListResponseDataStatus `json:"status,required"`
+	// Last update timestamp of the fine-tune job
+	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	// Batch size used for training
+	BatchSize int64 `json:"batch_size"`
+	// Events related to this fine-tune job
+	Events []FineTuneListResponseDataEvent `json:"events"`
+	// Checkpoint used to continue training
+	FromCheckpoint string `json:"from_checkpoint"`
+	// Learning rate used for training
+	LearningRate float64 `json:"learning_rate"`
+	// Learning rate scheduler configuration
+	LrScheduler FineTuneListResponseDataLrScheduler `json:"lr_scheduler"`
+	// Maximum gradient norm for clipping
+	MaxGradNorm float64 `json:"max_grad_norm"`
+	// Base model used for fine-tuning
+	Model string `json:"model"`
+	// Number of checkpoints saved during training
+	NCheckpoints int64 `json:"n_checkpoints"`
+	// Number of training epochs
+	NEpochs int64 `json:"n_epochs"`
+	// Number of evaluations during training
+	NEvals int64 `json:"n_evals"`
+	// Owner address information
+	OwnerAddress string `json:"owner_address"`
+	// Suffix added to the fine-tuned model name
+	Suffix string `json:"suffix"`
+	// Count of tokens processed
+	TokenCount int64 `json:"token_count"`
+	// Total price for the fine-tuning job
+	TotalPrice int64 `json:"total_price"`
+	// File-ID of the training file
+	TrainingFile string `json:"training_file"`
+	// Method of training used
+	TrainingMethod FineTuneListResponseDataTrainingMethod `json:"training_method"`
+	// Type of training used (full or LoRA)
+	TrainingType FineTuneListResponseDataTrainingType `json:"training_type"`
+	// Identifier for the user who created the job
+	UserID string `json:"user_id"`
+	// File-ID of the validation file
+	ValidationFile string `json:"validation_file"`
+	// Weights & Biases run name
+	WandbName string `json:"wandb_name"`
+	// Weights & Biases project name
+	WandbProjectName string `json:"wandb_project_name"`
+	// Ratio of warmup steps
+	WarmupRatio float64 `json:"warmup_ratio"`
+	// Weight decay value used
+	WeightDecay float64                      `json:"weight_decay"`
+	JSON        fineTuneListResponseDataJSON `json:"-"`
+}
+
+// fineTuneListResponseDataJSON contains the JSON metadata for the struct
+// [FineTuneListResponseData]
+type fineTuneListResponseDataJSON struct {
+	ID               apijson.Field
+	CreatedAt        apijson.Field
+	Status           apijson.Field
+	UpdatedAt        apijson.Field
+	BatchSize        apijson.Field
+	Events           apijson.Field
+	FromCheckpoint   apijson.Field
+	LearningRate     apijson.Field
+	LrScheduler      apijson.Field
+	MaxGradNorm      apijson.Field
+	Model            apijson.Field
+	NCheckpoints     apijson.Field
+	NEpochs          apijson.Field
+	NEvals           apijson.Field
+	OwnerAddress     apijson.Field
+	Suffix           apijson.Field
+	TokenCount       apijson.Field
+	TotalPrice       apijson.Field
+	TrainingFile     apijson.Field
+	TrainingMethod   apijson.Field
+	TrainingType     apijson.Field
+	UserID           apijson.Field
+	ValidationFile   apijson.Field
+	WandbName        apijson.Field
+	WandbProjectName apijson.Field
+	WarmupRatio      apijson.Field
+	WeightDecay      apijson.Field
+	raw              string
+	ExtraFields      map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseData) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneListResponseDataStatus string
+
+const (
+	FineTuneListResponseDataStatusPending         FineTuneListResponseDataStatus = "pending"
+	FineTuneListResponseDataStatusQueued          FineTuneListResponseDataStatus = "queued"
+	FineTuneListResponseDataStatusRunning         FineTuneListResponseDataStatus = "running"
+	FineTuneListResponseDataStatusCompressing     FineTuneListResponseDataStatus = "compressing"
+	FineTuneListResponseDataStatusUploading       FineTuneListResponseDataStatus = "uploading"
+	FineTuneListResponseDataStatusCancelRequested FineTuneListResponseDataStatus = "cancel_requested"
+	FineTuneListResponseDataStatusCancelled       FineTuneListResponseDataStatus = "cancelled"
+	FineTuneListResponseDataStatusError           FineTuneListResponseDataStatus = "error"
+	FineTuneListResponseDataStatusCompleted       FineTuneListResponseDataStatus = "completed"
+)
+
+func (r FineTuneListResponseDataStatus) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataStatusPending, FineTuneListResponseDataStatusQueued, FineTuneListResponseDataStatusRunning, FineTuneListResponseDataStatusCompressing, FineTuneListResponseDataStatusUploading, FineTuneListResponseDataStatusCancelRequested, FineTuneListResponseDataStatusCancelled, FineTuneListResponseDataStatusError, FineTuneListResponseDataStatusCompleted:
+		return true
+	}
+	return false
+}
+
+type FineTuneListResponseDataEvent struct {
+	CheckpointPath string                               `json:"checkpoint_path,required"`
+	CreatedAt      string                               `json:"created_at,required"`
+	Hash           string                               `json:"hash,required"`
+	Message        string                               `json:"message,required"`
+	ModelPath      string                               `json:"model_path,required"`
+	Object         FineTuneListResponseDataEventsObject `json:"object,required"`
+	ParamCount     int64                                `json:"param_count,required"`
+	Step           int64                                `json:"step,required"`
+	TokenCount     int64                                `json:"token_count,required"`
+	TotalSteps     int64                                `json:"total_steps,required"`
+	TrainingOffset int64                                `json:"training_offset,required"`
+	Type           FineTuneListResponseDataEventsType   `json:"type,required"`
+	WandbURL       string                               `json:"wandb_url,required"`
+	Level          FineTuneListResponseDataEventsLevel  `json:"level,nullable"`
+	JSON           fineTuneListResponseDataEventJSON    `json:"-"`
+}
+
+// fineTuneListResponseDataEventJSON contains the JSON metadata for the struct
+// [FineTuneListResponseDataEvent]
+type fineTuneListResponseDataEventJSON struct {
+	CheckpointPath apijson.Field
+	CreatedAt      apijson.Field
+	Hash           apijson.Field
+	Message        apijson.Field
+	ModelPath      apijson.Field
+	Object         apijson.Field
+	ParamCount     apijson.Field
+	Step           apijson.Field
+	TokenCount     apijson.Field
+	TotalSteps     apijson.Field
+	TrainingOffset apijson.Field
+	Type           apijson.Field
+	WandbURL       apijson.Field
+	Level          apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataEvent) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataEventJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneListResponseDataEventsObject string
+
+const (
+	FineTuneListResponseDataEventsObjectFineTuneEvent FineTuneListResponseDataEventsObject = "fine-tune-event"
+)
+
+func (r FineTuneListResponseDataEventsObject) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataEventsObjectFineTuneEvent:
+		return true
+	}
+	return false
+}
+
+type FineTuneListResponseDataEventsType string
+
+const (
+	FineTuneListResponseDataEventsTypeJobPending                     FineTuneListResponseDataEventsType = "job_pending"
+	FineTuneListResponseDataEventsTypeJobStart                       FineTuneListResponseDataEventsType = "job_start"
+	FineTuneListResponseDataEventsTypeJobStopped                     FineTuneListResponseDataEventsType = "job_stopped"
+	FineTuneListResponseDataEventsTypeModelDownloading               FineTuneListResponseDataEventsType = "model_downloading"
+	FineTuneListResponseDataEventsTypeModelDownloadComplete          FineTuneListResponseDataEventsType = "model_download_complete"
+	FineTuneListResponseDataEventsTypeTrainingDataDownloading        FineTuneListResponseDataEventsType = "training_data_downloading"
+	FineTuneListResponseDataEventsTypeTrainingDataDownloadComplete   FineTuneListResponseDataEventsType = "training_data_download_complete"
+	FineTuneListResponseDataEventsTypeValidationDataDownloading      FineTuneListResponseDataEventsType = "validation_data_downloading"
+	FineTuneListResponseDataEventsTypeValidationDataDownloadComplete FineTuneListResponseDataEventsType = "validation_data_download_complete"
+	FineTuneListResponseDataEventsTypeWandbInit                      FineTuneListResponseDataEventsType = "wandb_init"
+	FineTuneListResponseDataEventsTypeTrainingStart                  FineTuneListResponseDataEventsType = "training_start"
+	FineTuneListResponseDataEventsTypeCheckpointSave                 FineTuneListResponseDataEventsType = "checkpoint_save"
+	FineTuneListResponseDataEventsTypeBillingLimit                   FineTuneListResponseDataEventsType = "billing_limit"
+	FineTuneListResponseDataEventsTypeEpochComplete                  FineTuneListResponseDataEventsType = "epoch_complete"
+	FineTuneListResponseDataEventsTypeTrainingComplete               FineTuneListResponseDataEventsType = "training_complete"
+	FineTuneListResponseDataEventsTypeModelCompressing               FineTuneListResponseDataEventsType = "model_compressing"
+	FineTuneListResponseDataEventsTypeModelCompressionComplete       FineTuneListResponseDataEventsType = "model_compression_complete"
+	FineTuneListResponseDataEventsTypeModelUploading                 FineTuneListResponseDataEventsType = "model_uploading"
+	FineTuneListResponseDataEventsTypeModelUploadComplete            FineTuneListResponseDataEventsType = "model_upload_complete"
+	FineTuneListResponseDataEventsTypeJobComplete                    FineTuneListResponseDataEventsType = "job_complete"
+	FineTuneListResponseDataEventsTypeJobError                       FineTuneListResponseDataEventsType = "job_error"
+	FineTuneListResponseDataEventsTypeCancelRequested                FineTuneListResponseDataEventsType = "cancel_requested"
+	FineTuneListResponseDataEventsTypeJobRestarted                   FineTuneListResponseDataEventsType = "job_restarted"
+	FineTuneListResponseDataEventsTypeRefund                         FineTuneListResponseDataEventsType = "refund"
+	FineTuneListResponseDataEventsTypeWarning                        FineTuneListResponseDataEventsType = "warning"
+)
+
+func (r FineTuneListResponseDataEventsType) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataEventsTypeJobPending, FineTuneListResponseDataEventsTypeJobStart, FineTuneListResponseDataEventsTypeJobStopped, FineTuneListResponseDataEventsTypeModelDownloading, FineTuneListResponseDataEventsTypeModelDownloadComplete, FineTuneListResponseDataEventsTypeTrainingDataDownloading, FineTuneListResponseDataEventsTypeTrainingDataDownloadComplete, FineTuneListResponseDataEventsTypeValidationDataDownloading, FineTuneListResponseDataEventsTypeValidationDataDownloadComplete, FineTuneListResponseDataEventsTypeWandbInit, FineTuneListResponseDataEventsTypeTrainingStart, FineTuneListResponseDataEventsTypeCheckpointSave, FineTuneListResponseDataEventsTypeBillingLimit, FineTuneListResponseDataEventsTypeEpochComplete, FineTuneListResponseDataEventsTypeTrainingComplete, FineTuneListResponseDataEventsTypeModelCompressing, FineTuneListResponseDataEventsTypeModelCompressionComplete, FineTuneListResponseDataEventsTypeModelUploading, FineTuneListResponseDataEventsTypeModelUploadComplete, FineTuneListResponseDataEventsTypeJobComplete, FineTuneListResponseDataEventsTypeJobError, FineTuneListResponseDataEventsTypeCancelRequested, FineTuneListResponseDataEventsTypeJobRestarted, FineTuneListResponseDataEventsTypeRefund, FineTuneListResponseDataEventsTypeWarning:
+		return true
+	}
+	return false
+}
+
+type FineTuneListResponseDataEventsLevel string
+
+const (
+	FineTuneListResponseDataEventsLevelInfo           FineTuneListResponseDataEventsLevel = "info"
+	FineTuneListResponseDataEventsLevelWarning        FineTuneListResponseDataEventsLevel = "warning"
+	FineTuneListResponseDataEventsLevelError          FineTuneListResponseDataEventsLevel = "error"
+	FineTuneListResponseDataEventsLevelLegacyInfo     FineTuneListResponseDataEventsLevel = "legacy_info"
+	FineTuneListResponseDataEventsLevelLegacyIwarning FineTuneListResponseDataEventsLevel = "legacy_iwarning"
+	FineTuneListResponseDataEventsLevelLegacyIerror   FineTuneListResponseDataEventsLevel = "legacy_ierror"
+)
+
+func (r FineTuneListResponseDataEventsLevel) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataEventsLevelInfo, FineTuneListResponseDataEventsLevelWarning, FineTuneListResponseDataEventsLevelError, FineTuneListResponseDataEventsLevelLegacyInfo, FineTuneListResponseDataEventsLevelLegacyIwarning, FineTuneListResponseDataEventsLevelLegacyIerror:
+		return true
+	}
+	return false
+}
+
+// Learning rate scheduler configuration
+type FineTuneListResponseDataLrScheduler struct {
+	LrSchedulerType FineTuneListResponseDataLrSchedulerLrSchedulerType `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FineTuneListResponseDataLrSchedulerLrSchedulerArgs `json:"lr_scheduler_args"`
+	JSON            fineTuneListResponseDataLrSchedulerJSON            `json:"-"`
+}
+
+// fineTuneListResponseDataLrSchedulerJSON contains the JSON metadata for the
+// struct [FineTuneListResponseDataLrScheduler]
+type fineTuneListResponseDataLrSchedulerJSON struct {
+	LrSchedulerType apijson.Field
+	LrSchedulerArgs apijson.Field
+	raw             string
+	ExtraFields     map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataLrScheduler) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataLrSchedulerJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneListResponseDataLrSchedulerLrSchedulerType string
+
+const (
+	FineTuneListResponseDataLrSchedulerLrSchedulerTypeLinear FineTuneListResponseDataLrSchedulerLrSchedulerType = "linear"
+	FineTuneListResponseDataLrSchedulerLrSchedulerTypeCosine FineTuneListResponseDataLrSchedulerLrSchedulerType = "cosine"
+)
+
+func (r FineTuneListResponseDataLrSchedulerLrSchedulerType) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataLrSchedulerLrSchedulerTypeLinear, FineTuneListResponseDataLrSchedulerLrSchedulerTypeCosine:
+		return true
+	}
+	return false
+}
+
+type FineTuneListResponseDataLrSchedulerLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                                `json:"num_cycles"`
+	JSON      fineTuneListResponseDataLrSchedulerLrSchedulerArgsJSON `json:"-"`
+	union     FineTuneListResponseDataLrSchedulerLrSchedulerArgsUnion
+}
+
+// fineTuneListResponseDataLrSchedulerLrSchedulerArgsJSON contains the JSON
+// metadata for the struct [FineTuneListResponseDataLrSchedulerLrSchedulerArgs]
+type fineTuneListResponseDataLrSchedulerLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r fineTuneListResponseDataLrSchedulerLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneListResponseDataLrSchedulerLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneListResponseDataLrSchedulerLrSchedulerArgs{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneListResponseDataLrSchedulerLrSchedulerArgsUnion]
+// interface which you can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+func (r FineTuneListResponseDataLrSchedulerLrSchedulerArgs) AsUnion() FineTuneListResponseDataLrSchedulerLrSchedulerArgsUnion {
+	return r.union
+}
+
+// Union satisfied by
+// [FineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs] or
+// [FineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+type FineTuneListResponseDataLrSchedulerLrSchedulerArgsUnion interface {
+	implementsFineTuneListResponseDataLrSchedulerLrSchedulerArgs()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneListResponseDataLrSchedulerLrSchedulerArgsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs{}),
+		},
+	)
+}
+
+type FineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64                                                                     `json:"min_lr_ratio"`
+	JSON       fineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON
+// contains the JSON metadata for the struct
+// [FineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs]
+type fineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) implementsFineTuneListResponseDataLrSchedulerLrSchedulerArgs() {
+}
+
+type FineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                                                     `json:"num_cycles"`
+	JSON      fineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON
+// contains the JSON metadata for the struct
+// [FineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs]
+type fineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) implementsFineTuneListResponseDataLrSchedulerLrSchedulerArgs() {
+}
+
+// Method of training used
+type FineTuneListResponseDataTrainingMethod struct {
+	Method  FineTuneListResponseDataTrainingMethodMethod `json:"method,required"`
+	DpoBeta float64                                      `json:"dpo_beta"`
+	// This field can have the runtime type of
+	// [FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion].
+	TrainOnInputs interface{}                                `json:"train_on_inputs"`
+	JSON          fineTuneListResponseDataTrainingMethodJSON `json:"-"`
+	union         FineTuneListResponseDataTrainingMethodUnion
+}
+
+// fineTuneListResponseDataTrainingMethodJSON contains the JSON metadata for the
+// struct [FineTuneListResponseDataTrainingMethod]
+type fineTuneListResponseDataTrainingMethodJSON struct {
+	Method        apijson.Field
+	DpoBeta       apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
+}
+
+func (r fineTuneListResponseDataTrainingMethodJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneListResponseDataTrainingMethod) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneListResponseDataTrainingMethod{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneListResponseDataTrainingMethodUnion] interface which
+// you can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneListResponseDataTrainingMethodTrainingMethodSft],
+// [FineTuneListResponseDataTrainingMethodTrainingMethodDpo].
+func (r FineTuneListResponseDataTrainingMethod) AsUnion() FineTuneListResponseDataTrainingMethodUnion {
+	return r.union
+}
+
+// Method of training used
+//
+// Union satisfied by [FineTuneListResponseDataTrainingMethodTrainingMethodSft] or
+// [FineTuneListResponseDataTrainingMethodTrainingMethodDpo].
+type FineTuneListResponseDataTrainingMethodUnion interface {
+	implementsFineTuneListResponseDataTrainingMethod()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneListResponseDataTrainingMethodUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneListResponseDataTrainingMethodTrainingMethodSft{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneListResponseDataTrainingMethodTrainingMethodDpo{}),
+		},
+	)
+}
+
+type FineTuneListResponseDataTrainingMethodTrainingMethodSft struct {
+	Method FineTuneListResponseDataTrainingMethodTrainingMethodSftMethod `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	JSON          fineTuneListResponseDataTrainingMethodTrainingMethodSftJSON               `json:"-"`
+}
+
+// fineTuneListResponseDataTrainingMethodTrainingMethodSftJSON contains the JSON
+// metadata for the struct
+// [FineTuneListResponseDataTrainingMethodTrainingMethodSft]
+type fineTuneListResponseDataTrainingMethodTrainingMethodSftJSON struct {
+	Method        apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataTrainingMethodTrainingMethodSftJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneListResponseDataTrainingMethodTrainingMethodSft) implementsFineTuneListResponseDataTrainingMethod() {
+}
+
+type FineTuneListResponseDataTrainingMethodTrainingMethodSftMethod string
+
+const (
+	FineTuneListResponseDataTrainingMethodTrainingMethodSftMethodSft FineTuneListResponseDataTrainingMethodTrainingMethodSftMethod = "sft"
+)
+
+func (r FineTuneListResponseDataTrainingMethodTrainingMethodSftMethod) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataTrainingMethodTrainingMethodSftMethodSft:
+		return true
+	}
+	return false
+}
+
+// Whether to mask the user messages in conversational data or prompts in
+// instruction data.
+//
+// Union satisfied by [shared.UnionBool] or
+// [FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString].
+type FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion interface {
+	ImplementsFineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.True,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.False,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.String,
+			Type:       reflect.TypeOf(FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString("")),
+		},
+	)
+}
+
+type FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+func (r FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString) ImplementsFineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion() {
+}
+
+type FineTuneListResponseDataTrainingMethodTrainingMethodDpo struct {
+	Method  FineTuneListResponseDataTrainingMethodTrainingMethodDpoMethod `json:"method,required"`
+	DpoBeta float64                                                       `json:"dpo_beta"`
+	JSON    fineTuneListResponseDataTrainingMethodTrainingMethodDpoJSON   `json:"-"`
+}
+
+// fineTuneListResponseDataTrainingMethodTrainingMethodDpoJSON contains the JSON
+// metadata for the struct
+// [FineTuneListResponseDataTrainingMethodTrainingMethodDpo]
+type fineTuneListResponseDataTrainingMethodTrainingMethodDpoJSON struct {
+	Method      apijson.Field
+	DpoBeta     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataTrainingMethodTrainingMethodDpoJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneListResponseDataTrainingMethodTrainingMethodDpo) implementsFineTuneListResponseDataTrainingMethod() {
+}
+
+type FineTuneListResponseDataTrainingMethodTrainingMethodDpoMethod string
+
+const (
+	FineTuneListResponseDataTrainingMethodTrainingMethodDpoMethodDpo FineTuneListResponseDataTrainingMethodTrainingMethodDpoMethod = "dpo"
+)
+
+func (r FineTuneListResponseDataTrainingMethodTrainingMethodDpoMethod) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataTrainingMethodTrainingMethodDpoMethodDpo:
+		return true
+	}
+	return false
+}
+
+type FineTuneListResponseDataTrainingMethodMethod string
+
+const (
+	FineTuneListResponseDataTrainingMethodMethodSft FineTuneListResponseDataTrainingMethodMethod = "sft"
+	FineTuneListResponseDataTrainingMethodMethodDpo FineTuneListResponseDataTrainingMethodMethod = "dpo"
+)
+
+func (r FineTuneListResponseDataTrainingMethodMethod) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataTrainingMethodMethodSft, FineTuneListResponseDataTrainingMethodMethodDpo:
+		return true
+	}
+	return false
+}
+
+// Type of training used (full or LoRA)
+type FineTuneListResponseDataTrainingType struct {
+	Type                 FineTuneListResponseDataTrainingTypeType `json:"type,required"`
+	LoraAlpha            int64                                    `json:"lora_alpha"`
+	LoraDropout          float64                                  `json:"lora_dropout"`
+	LoraR                int64                                    `json:"lora_r"`
+	LoraTrainableModules string                                   `json:"lora_trainable_modules"`
+	JSON                 fineTuneListResponseDataTrainingTypeJSON `json:"-"`
+	union                FineTuneListResponseDataTrainingTypeUnion
+}
+
+// fineTuneListResponseDataTrainingTypeJSON contains the JSON metadata for the
+// struct [FineTuneListResponseDataTrainingType]
+type fineTuneListResponseDataTrainingTypeJSON struct {
+	Type                 apijson.Field
+	LoraAlpha            apijson.Field
+	LoraDropout          apijson.Field
+	LoraR                apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r fineTuneListResponseDataTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneListResponseDataTrainingType) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneListResponseDataTrainingType{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneListResponseDataTrainingTypeUnion] interface which
+// you can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneListResponseDataTrainingTypeFullTrainingType],
+// [FineTuneListResponseDataTrainingTypeLoRaTrainingType].
+func (r FineTuneListResponseDataTrainingType) AsUnion() FineTuneListResponseDataTrainingTypeUnion {
+	return r.union
+}
+
+// Type of training used (full or LoRA)
+//
+// Union satisfied by [FineTuneListResponseDataTrainingTypeFullTrainingType] or
+// [FineTuneListResponseDataTrainingTypeLoRaTrainingType].
+type FineTuneListResponseDataTrainingTypeUnion interface {
+	implementsFineTuneListResponseDataTrainingType()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneListResponseDataTrainingTypeUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneListResponseDataTrainingTypeFullTrainingType{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneListResponseDataTrainingTypeLoRaTrainingType{}),
+		},
+	)
+}
+
+type FineTuneListResponseDataTrainingTypeFullTrainingType struct {
+	Type FineTuneListResponseDataTrainingTypeFullTrainingTypeType `json:"type,required"`
+	JSON fineTuneListResponseDataTrainingTypeFullTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneListResponseDataTrainingTypeFullTrainingTypeJSON contains the JSON
+// metadata for the struct [FineTuneListResponseDataTrainingTypeFullTrainingType]
+type fineTuneListResponseDataTrainingTypeFullTrainingTypeJSON struct {
+	Type        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataTrainingTypeFullTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneListResponseDataTrainingTypeFullTrainingType) implementsFineTuneListResponseDataTrainingType() {
+}
+
+type FineTuneListResponseDataTrainingTypeFullTrainingTypeType string
+
+const (
+	FineTuneListResponseDataTrainingTypeFullTrainingTypeTypeFull FineTuneListResponseDataTrainingTypeFullTrainingTypeType = "Full"
+)
+
+func (r FineTuneListResponseDataTrainingTypeFullTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataTrainingTypeFullTrainingTypeTypeFull:
+		return true
+	}
+	return false
+}
+
+type FineTuneListResponseDataTrainingTypeLoRaTrainingType struct {
+	LoraAlpha            int64                                                    `json:"lora_alpha,required"`
+	LoraR                int64                                                    `json:"lora_r,required"`
+	Type                 FineTuneListResponseDataTrainingTypeLoRaTrainingTypeType `json:"type,required"`
+	LoraDropout          float64                                                  `json:"lora_dropout"`
+	LoraTrainableModules string                                                   `json:"lora_trainable_modules"`
+	JSON                 fineTuneListResponseDataTrainingTypeLoRaTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneListResponseDataTrainingTypeLoRaTrainingTypeJSON contains the JSON
+// metadata for the struct [FineTuneListResponseDataTrainingTypeLoRaTrainingType]
+type fineTuneListResponseDataTrainingTypeLoRaTrainingTypeJSON struct {
+	LoraAlpha            apijson.Field
+	LoraR                apijson.Field
+	Type                 apijson.Field
+	LoraDropout          apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r *FineTuneListResponseDataTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneListResponseDataTrainingTypeLoRaTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneListResponseDataTrainingTypeLoRaTrainingType) implementsFineTuneListResponseDataTrainingType() {
+}
+
+type FineTuneListResponseDataTrainingTypeLoRaTrainingTypeType string
+
+const (
+	FineTuneListResponseDataTrainingTypeLoRaTrainingTypeTypeLora FineTuneListResponseDataTrainingTypeLoRaTrainingTypeType = "Lora"
+)
+
+func (r FineTuneListResponseDataTrainingTypeLoRaTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataTrainingTypeLoRaTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
+type FineTuneListResponseDataTrainingTypeType string
+
+const (
+	FineTuneListResponseDataTrainingTypeTypeFull FineTuneListResponseDataTrainingTypeType = "Full"
+	FineTuneListResponseDataTrainingTypeTypeLora FineTuneListResponseDataTrainingTypeType = "Lora"
+)
+
+func (r FineTuneListResponseDataTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneListResponseDataTrainingTypeTypeFull, FineTuneListResponseDataTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
+// A truncated version of the fine-tune response, used for POST /fine-tunes, GET
+// /fine-tunes and POST /fine-tunes/{id}/cancel endpoints
+type FineTuneCancelResponse struct {
+	// Unique identifier for the fine-tune job
+	ID string `json:"id,required"`
+	// Creation timestamp of the fine-tune job
+	CreatedAt time.Time                    `json:"created_at,required" format:"date-time"`
+	Status    FineTuneCancelResponseStatus `json:"status,required"`
+	// Last update timestamp of the fine-tune job
+	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	// Batch size used for training
+	BatchSize int64 `json:"batch_size"`
+	// Events related to this fine-tune job
+	Events []FineTuneCancelResponseEvent `json:"events"`
+	// Checkpoint used to continue training
+	FromCheckpoint string `json:"from_checkpoint"`
+	// Learning rate used for training
+	LearningRate float64 `json:"learning_rate"`
+	// Learning rate scheduler configuration
+	LrScheduler FineTuneCancelResponseLrScheduler `json:"lr_scheduler"`
+	// Maximum gradient norm for clipping
+	MaxGradNorm float64 `json:"max_grad_norm"`
+	// Base model used for fine-tuning
+	Model string `json:"model"`
+	// Number of checkpoints saved during training
+	NCheckpoints int64 `json:"n_checkpoints"`
+	// Number of training epochs
+	NEpochs int64 `json:"n_epochs"`
+	// Number of evaluations during training
+	NEvals int64 `json:"n_evals"`
+	// Owner address information
+	OwnerAddress string `json:"owner_address"`
+	// Suffix added to the fine-tuned model name
+	Suffix string `json:"suffix"`
+	// Count of tokens processed
+	TokenCount int64 `json:"token_count"`
+	// Total price for the fine-tuning job
+	TotalPrice int64 `json:"total_price"`
+	// File-ID of the training file
+	TrainingFile string `json:"training_file"`
+	// Method of training used
+	TrainingMethod FineTuneCancelResponseTrainingMethod `json:"training_method"`
+	// Type of training used (full or LoRA)
+	TrainingType FineTuneCancelResponseTrainingType `json:"training_type"`
+	// Identifier for the user who created the job
+	UserID string `json:"user_id"`
+	// File-ID of the validation file
+	ValidationFile string `json:"validation_file"`
+	// Weights & Biases run name
+	WandbName string `json:"wandb_name"`
+	// Weights & Biases project name
+	WandbProjectName string `json:"wandb_project_name"`
+	// Ratio of warmup steps
+	WarmupRatio float64 `json:"warmup_ratio"`
+	// Weight decay value used
+	WeightDecay float64                    `json:"weight_decay"`
+	JSON        fineTuneCancelResponseJSON `json:"-"`
+}
+
+// fineTuneCancelResponseJSON contains the JSON metadata for the struct
+// [FineTuneCancelResponse]
+type fineTuneCancelResponseJSON struct {
+	ID               apijson.Field
+	CreatedAt        apijson.Field
+	Status           apijson.Field
+	UpdatedAt        apijson.Field
+	BatchSize        apijson.Field
+	Events           apijson.Field
+	FromCheckpoint   apijson.Field
+	LearningRate     apijson.Field
+	LrScheduler      apijson.Field
+	MaxGradNorm      apijson.Field
+	Model            apijson.Field
+	NCheckpoints     apijson.Field
+	NEpochs          apijson.Field
+	NEvals           apijson.Field
+	OwnerAddress     apijson.Field
+	Suffix           apijson.Field
+	TokenCount       apijson.Field
+	TotalPrice       apijson.Field
+	TrainingFile     apijson.Field
+	TrainingMethod   apijson.Field
+	TrainingType     apijson.Field
+	UserID           apijson.Field
+	ValidationFile   apijson.Field
+	WandbName        apijson.Field
+	WandbProjectName apijson.Field
+	WarmupRatio      apijson.Field
+	WeightDecay      apijson.Field
+	raw              string
+	ExtraFields      map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponse) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneCancelResponseStatus string
+
+const (
+	FineTuneCancelResponseStatusPending         FineTuneCancelResponseStatus = "pending"
+	FineTuneCancelResponseStatusQueued          FineTuneCancelResponseStatus = "queued"
+	FineTuneCancelResponseStatusRunning         FineTuneCancelResponseStatus = "running"
+	FineTuneCancelResponseStatusCompressing     FineTuneCancelResponseStatus = "compressing"
+	FineTuneCancelResponseStatusUploading       FineTuneCancelResponseStatus = "uploading"
+	FineTuneCancelResponseStatusCancelRequested FineTuneCancelResponseStatus = "cancel_requested"
+	FineTuneCancelResponseStatusCancelled       FineTuneCancelResponseStatus = "cancelled"
+	FineTuneCancelResponseStatusError           FineTuneCancelResponseStatus = "error"
+	FineTuneCancelResponseStatusCompleted       FineTuneCancelResponseStatus = "completed"
+)
+
+func (r FineTuneCancelResponseStatus) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseStatusPending, FineTuneCancelResponseStatusQueued, FineTuneCancelResponseStatusRunning, FineTuneCancelResponseStatusCompressing, FineTuneCancelResponseStatusUploading, FineTuneCancelResponseStatusCancelRequested, FineTuneCancelResponseStatusCancelled, FineTuneCancelResponseStatusError, FineTuneCancelResponseStatusCompleted:
+		return true
+	}
+	return false
+}
+
+type FineTuneCancelResponseEvent struct {
+	CheckpointPath string                             `json:"checkpoint_path,required"`
+	CreatedAt      string                             `json:"created_at,required"`
+	Hash           string                             `json:"hash,required"`
+	Message        string                             `json:"message,required"`
+	ModelPath      string                             `json:"model_path,required"`
+	Object         FineTuneCancelResponseEventsObject `json:"object,required"`
+	ParamCount     int64                              `json:"param_count,required"`
+	Step           int64                              `json:"step,required"`
+	TokenCount     int64                              `json:"token_count,required"`
+	TotalSteps     int64                              `json:"total_steps,required"`
+	TrainingOffset int64                              `json:"training_offset,required"`
+	Type           FineTuneCancelResponseEventsType   `json:"type,required"`
+	WandbURL       string                             `json:"wandb_url,required"`
+	Level          FineTuneCancelResponseEventsLevel  `json:"level,nullable"`
+	JSON           fineTuneCancelResponseEventJSON    `json:"-"`
+}
+
+// fineTuneCancelResponseEventJSON contains the JSON metadata for the struct
+// [FineTuneCancelResponseEvent]
+type fineTuneCancelResponseEventJSON struct {
+	CheckpointPath apijson.Field
+	CreatedAt      apijson.Field
+	Hash           apijson.Field
+	Message        apijson.Field
+	ModelPath      apijson.Field
+	Object         apijson.Field
+	ParamCount     apijson.Field
+	Step           apijson.Field
+	TokenCount     apijson.Field
+	TotalSteps     apijson.Field
+	TrainingOffset apijson.Field
+	Type           apijson.Field
+	WandbURL       apijson.Field
+	Level          apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseEvent) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseEventJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneCancelResponseEventsObject string
+
+const (
+	FineTuneCancelResponseEventsObjectFineTuneEvent FineTuneCancelResponseEventsObject = "fine-tune-event"
+)
+
+func (r FineTuneCancelResponseEventsObject) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseEventsObjectFineTuneEvent:
+		return true
+	}
+	return false
+}
+
+type FineTuneCancelResponseEventsType string
+
+const (
+	FineTuneCancelResponseEventsTypeJobPending                     FineTuneCancelResponseEventsType = "job_pending"
+	FineTuneCancelResponseEventsTypeJobStart                       FineTuneCancelResponseEventsType = "job_start"
+	FineTuneCancelResponseEventsTypeJobStopped                     FineTuneCancelResponseEventsType = "job_stopped"
+	FineTuneCancelResponseEventsTypeModelDownloading               FineTuneCancelResponseEventsType = "model_downloading"
+	FineTuneCancelResponseEventsTypeModelDownloadComplete          FineTuneCancelResponseEventsType = "model_download_complete"
+	FineTuneCancelResponseEventsTypeTrainingDataDownloading        FineTuneCancelResponseEventsType = "training_data_downloading"
+	FineTuneCancelResponseEventsTypeTrainingDataDownloadComplete   FineTuneCancelResponseEventsType = "training_data_download_complete"
+	FineTuneCancelResponseEventsTypeValidationDataDownloading      FineTuneCancelResponseEventsType = "validation_data_downloading"
+	FineTuneCancelResponseEventsTypeValidationDataDownloadComplete FineTuneCancelResponseEventsType = "validation_data_download_complete"
+	FineTuneCancelResponseEventsTypeWandbInit                      FineTuneCancelResponseEventsType = "wandb_init"
+	FineTuneCancelResponseEventsTypeTrainingStart                  FineTuneCancelResponseEventsType = "training_start"
+	FineTuneCancelResponseEventsTypeCheckpointSave                 FineTuneCancelResponseEventsType = "checkpoint_save"
+	FineTuneCancelResponseEventsTypeBillingLimit                   FineTuneCancelResponseEventsType = "billing_limit"
+	FineTuneCancelResponseEventsTypeEpochComplete                  FineTuneCancelResponseEventsType = "epoch_complete"
+	FineTuneCancelResponseEventsTypeTrainingComplete               FineTuneCancelResponseEventsType = "training_complete"
+	FineTuneCancelResponseEventsTypeModelCompressing               FineTuneCancelResponseEventsType = "model_compressing"
+	FineTuneCancelResponseEventsTypeModelCompressionComplete       FineTuneCancelResponseEventsType = "model_compression_complete"
+	FineTuneCancelResponseEventsTypeModelUploading                 FineTuneCancelResponseEventsType = "model_uploading"
+	FineTuneCancelResponseEventsTypeModelUploadComplete            FineTuneCancelResponseEventsType = "model_upload_complete"
+	FineTuneCancelResponseEventsTypeJobComplete                    FineTuneCancelResponseEventsType = "job_complete"
+	FineTuneCancelResponseEventsTypeJobError                       FineTuneCancelResponseEventsType = "job_error"
+	FineTuneCancelResponseEventsTypeCancelRequested                FineTuneCancelResponseEventsType = "cancel_requested"
+	FineTuneCancelResponseEventsTypeJobRestarted                   FineTuneCancelResponseEventsType = "job_restarted"
+	FineTuneCancelResponseEventsTypeRefund                         FineTuneCancelResponseEventsType = "refund"
+	FineTuneCancelResponseEventsTypeWarning                        FineTuneCancelResponseEventsType = "warning"
+)
+
+func (r FineTuneCancelResponseEventsType) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseEventsTypeJobPending, FineTuneCancelResponseEventsTypeJobStart, FineTuneCancelResponseEventsTypeJobStopped, FineTuneCancelResponseEventsTypeModelDownloading, FineTuneCancelResponseEventsTypeModelDownloadComplete, FineTuneCancelResponseEventsTypeTrainingDataDownloading, FineTuneCancelResponseEventsTypeTrainingDataDownloadComplete, FineTuneCancelResponseEventsTypeValidationDataDownloading, FineTuneCancelResponseEventsTypeValidationDataDownloadComplete, FineTuneCancelResponseEventsTypeWandbInit, FineTuneCancelResponseEventsTypeTrainingStart, FineTuneCancelResponseEventsTypeCheckpointSave, FineTuneCancelResponseEventsTypeBillingLimit, FineTuneCancelResponseEventsTypeEpochComplete, FineTuneCancelResponseEventsTypeTrainingComplete, FineTuneCancelResponseEventsTypeModelCompressing, FineTuneCancelResponseEventsTypeModelCompressionComplete, FineTuneCancelResponseEventsTypeModelUploading, FineTuneCancelResponseEventsTypeModelUploadComplete, FineTuneCancelResponseEventsTypeJobComplete, FineTuneCancelResponseEventsTypeJobError, FineTuneCancelResponseEventsTypeCancelRequested, FineTuneCancelResponseEventsTypeJobRestarted, FineTuneCancelResponseEventsTypeRefund, FineTuneCancelResponseEventsTypeWarning:
+		return true
+	}
+	return false
+}
+
+type FineTuneCancelResponseEventsLevel string
+
+const (
+	FineTuneCancelResponseEventsLevelInfo           FineTuneCancelResponseEventsLevel = "info"
+	FineTuneCancelResponseEventsLevelWarning        FineTuneCancelResponseEventsLevel = "warning"
+	FineTuneCancelResponseEventsLevelError          FineTuneCancelResponseEventsLevel = "error"
+	FineTuneCancelResponseEventsLevelLegacyInfo     FineTuneCancelResponseEventsLevel = "legacy_info"
+	FineTuneCancelResponseEventsLevelLegacyIwarning FineTuneCancelResponseEventsLevel = "legacy_iwarning"
+	FineTuneCancelResponseEventsLevelLegacyIerror   FineTuneCancelResponseEventsLevel = "legacy_ierror"
+)
+
+func (r FineTuneCancelResponseEventsLevel) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseEventsLevelInfo, FineTuneCancelResponseEventsLevelWarning, FineTuneCancelResponseEventsLevelError, FineTuneCancelResponseEventsLevelLegacyInfo, FineTuneCancelResponseEventsLevelLegacyIwarning, FineTuneCancelResponseEventsLevelLegacyIerror:
+		return true
+	}
+	return false
+}
+
+// Learning rate scheduler configuration
+type FineTuneCancelResponseLrScheduler struct {
+	LrSchedulerType FineTuneCancelResponseLrSchedulerLrSchedulerType `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FineTuneCancelResponseLrSchedulerLrSchedulerArgs `json:"lr_scheduler_args"`
+	JSON            fineTuneCancelResponseLrSchedulerJSON            `json:"-"`
+}
+
+// fineTuneCancelResponseLrSchedulerJSON contains the JSON metadata for the struct
+// [FineTuneCancelResponseLrScheduler]
+type fineTuneCancelResponseLrSchedulerJSON struct {
+	LrSchedulerType apijson.Field
+	LrSchedulerArgs apijson.Field
+	raw             string
+	ExtraFields     map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseLrScheduler) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseLrSchedulerJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneCancelResponseLrSchedulerLrSchedulerType string
+
+const (
+	FineTuneCancelResponseLrSchedulerLrSchedulerTypeLinear FineTuneCancelResponseLrSchedulerLrSchedulerType = "linear"
+	FineTuneCancelResponseLrSchedulerLrSchedulerTypeCosine FineTuneCancelResponseLrSchedulerLrSchedulerType = "cosine"
+)
+
+func (r FineTuneCancelResponseLrSchedulerLrSchedulerType) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseLrSchedulerLrSchedulerTypeLinear, FineTuneCancelResponseLrSchedulerLrSchedulerTypeCosine:
+		return true
+	}
+	return false
+}
+
+type FineTuneCancelResponseLrSchedulerLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                              `json:"num_cycles"`
+	JSON      fineTuneCancelResponseLrSchedulerLrSchedulerArgsJSON `json:"-"`
+	union     FineTuneCancelResponseLrSchedulerLrSchedulerArgsUnion
+}
+
+// fineTuneCancelResponseLrSchedulerLrSchedulerArgsJSON contains the JSON metadata
+// for the struct [FineTuneCancelResponseLrSchedulerLrSchedulerArgs]
+type fineTuneCancelResponseLrSchedulerLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r fineTuneCancelResponseLrSchedulerLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneCancelResponseLrSchedulerLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneCancelResponseLrSchedulerLrSchedulerArgs{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneCancelResponseLrSchedulerLrSchedulerArgsUnion]
+// interface which you can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+func (r FineTuneCancelResponseLrSchedulerLrSchedulerArgs) AsUnion() FineTuneCancelResponseLrSchedulerLrSchedulerArgsUnion {
+	return r.union
+}
+
+// Union satisfied by
+// [FineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs] or
+// [FineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+type FineTuneCancelResponseLrSchedulerLrSchedulerArgsUnion interface {
+	implementsFineTuneCancelResponseLrSchedulerLrSchedulerArgs()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneCancelResponseLrSchedulerLrSchedulerArgsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs{}),
+		},
+	)
+}
+
+type FineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64                                                                   `json:"min_lr_ratio"`
+	JSON       fineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON
+// contains the JSON metadata for the struct
+// [FineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs]
+type fineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) implementsFineTuneCancelResponseLrSchedulerLrSchedulerArgs() {
+}
+
+type FineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64                                                                   `json:"num_cycles"`
+	JSON      fineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON `json:"-"`
+}
+
+// fineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON
+// contains the JSON metadata for the struct
+// [FineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs]
+type fineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON struct {
+	MinLrRatio  apijson.Field
+	NumCycles   apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgsJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) implementsFineTuneCancelResponseLrSchedulerLrSchedulerArgs() {
+}
+
+// Method of training used
+type FineTuneCancelResponseTrainingMethod struct {
+	Method  FineTuneCancelResponseTrainingMethodMethod `json:"method,required"`
+	DpoBeta float64                                    `json:"dpo_beta"`
+	// This field can have the runtime type of
+	// [FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion].
+	TrainOnInputs interface{}                              `json:"train_on_inputs"`
+	JSON          fineTuneCancelResponseTrainingMethodJSON `json:"-"`
+	union         FineTuneCancelResponseTrainingMethodUnion
+}
+
+// fineTuneCancelResponseTrainingMethodJSON contains the JSON metadata for the
+// struct [FineTuneCancelResponseTrainingMethod]
+type fineTuneCancelResponseTrainingMethodJSON struct {
+	Method        apijson.Field
+	DpoBeta       apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
+}
+
+func (r fineTuneCancelResponseTrainingMethodJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneCancelResponseTrainingMethod) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneCancelResponseTrainingMethod{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneCancelResponseTrainingMethodUnion] interface which
+// you can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneCancelResponseTrainingMethodTrainingMethodSft],
+// [FineTuneCancelResponseTrainingMethodTrainingMethodDpo].
+func (r FineTuneCancelResponseTrainingMethod) AsUnion() FineTuneCancelResponseTrainingMethodUnion {
+	return r.union
+}
+
+// Method of training used
+//
+// Union satisfied by [FineTuneCancelResponseTrainingMethodTrainingMethodSft] or
+// [FineTuneCancelResponseTrainingMethodTrainingMethodDpo].
+type FineTuneCancelResponseTrainingMethodUnion interface {
+	implementsFineTuneCancelResponseTrainingMethod()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneCancelResponseTrainingMethodUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneCancelResponseTrainingMethodTrainingMethodSft{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneCancelResponseTrainingMethodTrainingMethodDpo{}),
+		},
+	)
+}
+
+type FineTuneCancelResponseTrainingMethodTrainingMethodSft struct {
+	Method FineTuneCancelResponseTrainingMethodTrainingMethodSftMethod `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	JSON          fineTuneCancelResponseTrainingMethodTrainingMethodSftJSON               `json:"-"`
+}
+
+// fineTuneCancelResponseTrainingMethodTrainingMethodSftJSON contains the JSON
+// metadata for the struct [FineTuneCancelResponseTrainingMethodTrainingMethodSft]
+type fineTuneCancelResponseTrainingMethodTrainingMethodSftJSON struct {
+	Method        apijson.Field
+	TrainOnInputs apijson.Field
+	raw           string
+	ExtraFields   map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseTrainingMethodTrainingMethodSftJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneCancelResponseTrainingMethodTrainingMethodSft) implementsFineTuneCancelResponseTrainingMethod() {
+}
+
+type FineTuneCancelResponseTrainingMethodTrainingMethodSftMethod string
+
+const (
+	FineTuneCancelResponseTrainingMethodTrainingMethodSftMethodSft FineTuneCancelResponseTrainingMethodTrainingMethodSftMethod = "sft"
+)
+
+func (r FineTuneCancelResponseTrainingMethodTrainingMethodSftMethod) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseTrainingMethodTrainingMethodSftMethodSft:
+		return true
+	}
+	return false
+}
+
+// Whether to mask the user messages in conversational data or prompts in
+// instruction data.
+//
+// Union satisfied by [shared.UnionBool] or
+// [FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString].
+type FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion interface {
+	ImplementsFineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.True,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.False,
+			Type:       reflect.TypeOf(shared.UnionBool(false)),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.String,
+			Type:       reflect.TypeOf(FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString("")),
+		},
+	)
+}
+
+type FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+func (r FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsStringAuto:
+		return true
+	}
+	return false
+}
+
+func (r FineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString) ImplementsFineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion() {
+}
+
+type FineTuneCancelResponseTrainingMethodTrainingMethodDpo struct {
+	Method  FineTuneCancelResponseTrainingMethodTrainingMethodDpoMethod `json:"method,required"`
+	DpoBeta float64                                                     `json:"dpo_beta"`
+	JSON    fineTuneCancelResponseTrainingMethodTrainingMethodDpoJSON   `json:"-"`
+}
+
+// fineTuneCancelResponseTrainingMethodTrainingMethodDpoJSON contains the JSON
+// metadata for the struct [FineTuneCancelResponseTrainingMethodTrainingMethodDpo]
+type fineTuneCancelResponseTrainingMethodTrainingMethodDpoJSON struct {
+	Method      apijson.Field
+	DpoBeta     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseTrainingMethodTrainingMethodDpoJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneCancelResponseTrainingMethodTrainingMethodDpo) implementsFineTuneCancelResponseTrainingMethod() {
+}
+
+type FineTuneCancelResponseTrainingMethodTrainingMethodDpoMethod string
+
+const (
+	FineTuneCancelResponseTrainingMethodTrainingMethodDpoMethodDpo FineTuneCancelResponseTrainingMethodTrainingMethodDpoMethod = "dpo"
+)
+
+func (r FineTuneCancelResponseTrainingMethodTrainingMethodDpoMethod) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseTrainingMethodTrainingMethodDpoMethodDpo:
+		return true
+	}
+	return false
+}
+
+type FineTuneCancelResponseTrainingMethodMethod string
+
+const (
+	FineTuneCancelResponseTrainingMethodMethodSft FineTuneCancelResponseTrainingMethodMethod = "sft"
+	FineTuneCancelResponseTrainingMethodMethodDpo FineTuneCancelResponseTrainingMethodMethod = "dpo"
+)
+
+func (r FineTuneCancelResponseTrainingMethodMethod) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseTrainingMethodMethodSft, FineTuneCancelResponseTrainingMethodMethodDpo:
+		return true
+	}
+	return false
+}
+
+// Type of training used (full or LoRA)
+type FineTuneCancelResponseTrainingType struct {
+	Type                 FineTuneCancelResponseTrainingTypeType `json:"type,required"`
+	LoraAlpha            int64                                  `json:"lora_alpha"`
+	LoraDropout          float64                                `json:"lora_dropout"`
+	LoraR                int64                                  `json:"lora_r"`
+	LoraTrainableModules string                                 `json:"lora_trainable_modules"`
+	JSON                 fineTuneCancelResponseTrainingTypeJSON `json:"-"`
+	union                FineTuneCancelResponseTrainingTypeUnion
+}
+
+// fineTuneCancelResponseTrainingTypeJSON contains the JSON metadata for the struct
+// [FineTuneCancelResponseTrainingType]
+type fineTuneCancelResponseTrainingTypeJSON struct {
+	Type                 apijson.Field
+	LoraAlpha            apijson.Field
+	LoraDropout          apijson.Field
+	LoraR                apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r fineTuneCancelResponseTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r *FineTuneCancelResponseTrainingType) UnmarshalJSON(data []byte) (err error) {
+	*r = FineTuneCancelResponseTrainingType{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [FineTuneCancelResponseTrainingTypeUnion] interface which you
+// can cast to the specific types for more type safety.
+//
+// Possible runtime types of the union are
+// [FineTuneCancelResponseTrainingTypeFullTrainingType],
+// [FineTuneCancelResponseTrainingTypeLoRaTrainingType].
+func (r FineTuneCancelResponseTrainingType) AsUnion() FineTuneCancelResponseTrainingTypeUnion {
+	return r.union
+}
+
+// Type of training used (full or LoRA)
+//
+// Union satisfied by [FineTuneCancelResponseTrainingTypeFullTrainingType] or
+// [FineTuneCancelResponseTrainingTypeLoRaTrainingType].
+type FineTuneCancelResponseTrainingTypeUnion interface {
+	implementsFineTuneCancelResponseTrainingType()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*FineTuneCancelResponseTrainingTypeUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneCancelResponseTrainingTypeFullTrainingType{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(FineTuneCancelResponseTrainingTypeLoRaTrainingType{}),
+		},
+	)
+}
+
+type FineTuneCancelResponseTrainingTypeFullTrainingType struct {
+	Type FineTuneCancelResponseTrainingTypeFullTrainingTypeType `json:"type,required"`
+	JSON fineTuneCancelResponseTrainingTypeFullTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneCancelResponseTrainingTypeFullTrainingTypeJSON contains the JSON
+// metadata for the struct [FineTuneCancelResponseTrainingTypeFullTrainingType]
+type fineTuneCancelResponseTrainingTypeFullTrainingTypeJSON struct {
+	Type        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseTrainingTypeFullTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneCancelResponseTrainingTypeFullTrainingType) implementsFineTuneCancelResponseTrainingType() {
+}
+
+type FineTuneCancelResponseTrainingTypeFullTrainingTypeType string
+
+const (
+	FineTuneCancelResponseTrainingTypeFullTrainingTypeTypeFull FineTuneCancelResponseTrainingTypeFullTrainingTypeType = "Full"
+)
+
+func (r FineTuneCancelResponseTrainingTypeFullTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseTrainingTypeFullTrainingTypeTypeFull:
+		return true
+	}
+	return false
+}
+
+type FineTuneCancelResponseTrainingTypeLoRaTrainingType struct {
+	LoraAlpha            int64                                                  `json:"lora_alpha,required"`
+	LoraR                int64                                                  `json:"lora_r,required"`
+	Type                 FineTuneCancelResponseTrainingTypeLoRaTrainingTypeType `json:"type,required"`
+	LoraDropout          float64                                                `json:"lora_dropout"`
+	LoraTrainableModules string                                                 `json:"lora_trainable_modules"`
+	JSON                 fineTuneCancelResponseTrainingTypeLoRaTrainingTypeJSON `json:"-"`
+}
+
+// fineTuneCancelResponseTrainingTypeLoRaTrainingTypeJSON contains the JSON
+// metadata for the struct [FineTuneCancelResponseTrainingTypeLoRaTrainingType]
+type fineTuneCancelResponseTrainingTypeLoRaTrainingTypeJSON struct {
+	LoraAlpha            apijson.Field
+	LoraR                apijson.Field
+	Type                 apijson.Field
+	LoraDropout          apijson.Field
+	LoraTrainableModules apijson.Field
+	raw                  string
+	ExtraFields          map[string]apijson.Field
+}
+
+func (r *FineTuneCancelResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneCancelResponseTrainingTypeLoRaTrainingTypeJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r FineTuneCancelResponseTrainingTypeLoRaTrainingType) implementsFineTuneCancelResponseTrainingType() {
+}
+
+type FineTuneCancelResponseTrainingTypeLoRaTrainingTypeType string
+
+const (
+	FineTuneCancelResponseTrainingTypeLoRaTrainingTypeTypeLora FineTuneCancelResponseTrainingTypeLoRaTrainingTypeType = "Lora"
+)
+
+func (r FineTuneCancelResponseTrainingTypeLoRaTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseTrainingTypeLoRaTrainingTypeTypeLora:
+		return true
+	}
+	return false
+}
+
+type FineTuneCancelResponseTrainingTypeType string
+
+const (
+	FineTuneCancelResponseTrainingTypeTypeFull FineTuneCancelResponseTrainingTypeType = "Full"
+	FineTuneCancelResponseTrainingTypeTypeLora FineTuneCancelResponseTrainingTypeType = "Lora"
+)
+
+func (r FineTuneCancelResponseTrainingTypeType) IsKnown() bool {
+	switch r {
+	case FineTuneCancelResponseTrainingTypeTypeFull, FineTuneCancelResponseTrainingTypeTypeLora:
+		return true
+	}
+	return false
 }
 
 type FineTuneDownloadResponse struct {
