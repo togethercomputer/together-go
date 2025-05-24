@@ -77,17 +77,46 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 	return
 }
 
+type FilePurpose string
+
+const (
+	FilePurposeFineTune FilePurpose = "fine-tune"
+)
+
+func (r FilePurpose) IsKnown() bool {
+	switch r {
+	case FilePurposeFineTune:
+		return true
+	}
+	return false
+}
+
+type FileType string
+
+const (
+	FileTypeJSONL   FileType = "jsonl"
+	FileTypeParquet FileType = "parquet"
+)
+
+func (r FileType) IsKnown() bool {
+	switch r {
+	case FileTypeJSONL, FileTypeParquet:
+		return true
+	}
+	return false
+}
+
 type FileGetResponse struct {
-	ID        string                  `json:"id,required"`
-	Bytes     int64                   `json:"bytes,required"`
-	CreatedAt int64                   `json:"created_at,required"`
-	Filename  string                  `json:"filename,required"`
-	FileType  FileGetResponseFileType `json:"FileType,required"`
-	LineCount int64                   `json:"LineCount,required"`
-	Object    string                  `json:"object,required"`
-	Processed bool                    `json:"Processed,required"`
-	Purpose   FileGetResponsePurpose  `json:"purpose,required"`
-	JSON      fileGetResponseJSON     `json:"-"`
+	ID        string              `json:"id,required"`
+	Bytes     int64               `json:"bytes,required"`
+	CreatedAt int64               `json:"created_at,required"`
+	Filename  string              `json:"filename,required"`
+	FileType  FileType            `json:"FileType,required"`
+	LineCount int64               `json:"LineCount,required"`
+	Object    string              `json:"object,required"`
+	Processed bool                `json:"Processed,required"`
+	Purpose   FilePurpose         `json:"purpose,required"`
+	JSON      fileGetResponseJSON `json:"-"`
 }
 
 // fileGetResponseJSON contains the JSON metadata for the struct [FileGetResponse]
@@ -113,35 +142,6 @@ func (r fileGetResponseJSON) RawJSON() string {
 	return r.raw
 }
 
-type FileGetResponseFileType string
-
-const (
-	FileGetResponseFileTypeJSONL   FileGetResponseFileType = "jsonl"
-	FileGetResponseFileTypeParquet FileGetResponseFileType = "parquet"
-)
-
-func (r FileGetResponseFileType) IsKnown() bool {
-	switch r {
-	case FileGetResponseFileTypeJSONL, FileGetResponseFileTypeParquet:
-		return true
-	}
-	return false
-}
-
-type FileGetResponsePurpose string
-
-const (
-	FileGetResponsePurposeFineTune FileGetResponsePurpose = "fine-tune"
-)
-
-func (r FileGetResponsePurpose) IsKnown() bool {
-	switch r {
-	case FileGetResponsePurposeFineTune:
-		return true
-	}
-	return false
-}
-
 type FileListResponse struct {
 	Data []FileListResponseData `json:"data,required"`
 	JSON fileListResponseJSON   `json:"-"`
@@ -164,16 +164,16 @@ func (r fileListResponseJSON) RawJSON() string {
 }
 
 type FileListResponseData struct {
-	ID        string                       `json:"id,required"`
-	Bytes     int64                        `json:"bytes,required"`
-	CreatedAt int64                        `json:"created_at,required"`
-	Filename  string                       `json:"filename,required"`
-	FileType  FileListResponseDataFileType `json:"FileType,required"`
-	LineCount int64                        `json:"LineCount,required"`
-	Object    string                       `json:"object,required"`
-	Processed bool                         `json:"Processed,required"`
-	Purpose   FileListResponseDataPurpose  `json:"purpose,required"`
-	JSON      fileListResponseDataJSON     `json:"-"`
+	ID        string                   `json:"id,required"`
+	Bytes     int64                    `json:"bytes,required"`
+	CreatedAt int64                    `json:"created_at,required"`
+	Filename  string                   `json:"filename,required"`
+	FileType  FileType                 `json:"FileType,required"`
+	LineCount int64                    `json:"LineCount,required"`
+	Object    string                   `json:"object,required"`
+	Processed bool                     `json:"Processed,required"`
+	Purpose   FilePurpose              `json:"purpose,required"`
+	JSON      fileListResponseDataJSON `json:"-"`
 }
 
 // fileListResponseDataJSON contains the JSON metadata for the struct
@@ -198,35 +198,6 @@ func (r *FileListResponseData) UnmarshalJSON(data []byte) (err error) {
 
 func (r fileListResponseDataJSON) RawJSON() string {
 	return r.raw
-}
-
-type FileListResponseDataFileType string
-
-const (
-	FileListResponseDataFileTypeJSONL   FileListResponseDataFileType = "jsonl"
-	FileListResponseDataFileTypeParquet FileListResponseDataFileType = "parquet"
-)
-
-func (r FileListResponseDataFileType) IsKnown() bool {
-	switch r {
-	case FileListResponseDataFileTypeJSONL, FileListResponseDataFileTypeParquet:
-		return true
-	}
-	return false
-}
-
-type FileListResponseDataPurpose string
-
-const (
-	FileListResponseDataPurposeFineTune FileListResponseDataPurpose = "fine-tune"
-)
-
-func (r FileListResponseDataPurpose) IsKnown() bool {
-	switch r {
-	case FileListResponseDataPurposeFineTune:
-		return true
-	}
-	return false
 }
 
 type FileDeleteResponse struct {
