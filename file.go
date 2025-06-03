@@ -77,46 +77,57 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 	return
 }
 
+// The purpose of the file
 type FilePurpose string
 
 const (
-	FilePurposeFineTune FilePurpose = "fine-tune"
+	FilePurposeFineTune       FilePurpose = "fine-tune"
+	FilePurposeEval           FilePurpose = "eval"
+	FilePurposeEvalSample     FilePurpose = "eval-sample"
+	FilePurposeEvalOutput     FilePurpose = "eval-output"
+	FilePurposeEvalSummary    FilePurpose = "eval-summary"
+	FilePurposeBatchGenerated FilePurpose = "batch-generated"
+	FilePurposeBatchAPI       FilePurpose = "batch-api"
 )
 
 func (r FilePurpose) IsKnown() bool {
 	switch r {
-	case FilePurposeFineTune:
+	case FilePurposeFineTune, FilePurposeEval, FilePurposeEvalSample, FilePurposeEvalOutput, FilePurposeEvalSummary, FilePurposeBatchGenerated, FilePurposeBatchAPI:
 		return true
 	}
 	return false
 }
 
+// The type of the file
 type FileType string
 
 const (
+	FileTypeCsv     FileType = "csv"
 	FileTypeJSONL   FileType = "jsonl"
 	FileTypeParquet FileType = "parquet"
 )
 
 func (r FileType) IsKnown() bool {
 	switch r {
-	case FileTypeJSONL, FileTypeParquet:
+	case FileTypeCsv, FileTypeJSONL, FileTypeParquet:
 		return true
 	}
 	return false
 }
 
 type FileGetResponse struct {
-	ID        string              `json:"id,required"`
-	Bytes     int64               `json:"bytes,required"`
-	CreatedAt int64               `json:"created_at,required"`
-	Filename  string              `json:"filename,required"`
-	FileType  FileType            `json:"FileType,required"`
-	LineCount int64               `json:"LineCount,required"`
-	Object    string              `json:"object,required"`
-	Processed bool                `json:"Processed,required"`
-	Purpose   FilePurpose         `json:"purpose,required"`
-	JSON      fileGetResponseJSON `json:"-"`
+	ID        string `json:"id,required"`
+	Bytes     int64  `json:"bytes,required"`
+	CreatedAt int64  `json:"created_at,required"`
+	Filename  string `json:"filename,required"`
+	// The type of the file
+	FileType  FileType `json:"FileType,required"`
+	LineCount int64    `json:"LineCount,required"`
+	Object    string   `json:"object,required"`
+	Processed bool     `json:"Processed,required"`
+	// The purpose of the file
+	Purpose FilePurpose         `json:"purpose,required"`
+	JSON    fileGetResponseJSON `json:"-"`
 }
 
 // fileGetResponseJSON contains the JSON metadata for the struct [FileGetResponse]
@@ -164,16 +175,18 @@ func (r fileListResponseJSON) RawJSON() string {
 }
 
 type FileListResponseData struct {
-	ID        string                   `json:"id,required"`
-	Bytes     int64                    `json:"bytes,required"`
-	CreatedAt int64                    `json:"created_at,required"`
-	Filename  string                   `json:"filename,required"`
-	FileType  FileType                 `json:"FileType,required"`
-	LineCount int64                    `json:"LineCount,required"`
-	Object    string                   `json:"object,required"`
-	Processed bool                     `json:"Processed,required"`
-	Purpose   FilePurpose              `json:"purpose,required"`
-	JSON      fileListResponseDataJSON `json:"-"`
+	ID        string `json:"id,required"`
+	Bytes     int64  `json:"bytes,required"`
+	CreatedAt int64  `json:"created_at,required"`
+	Filename  string `json:"filename,required"`
+	// The type of the file
+	FileType  FileType `json:"FileType,required"`
+	LineCount int64    `json:"LineCount,required"`
+	Object    string   `json:"object,required"`
+	Processed bool     `json:"Processed,required"`
+	// The purpose of the file
+	Purpose FilePurpose              `json:"purpose,required"`
+	JSON    fileListResponseDataJSON `json:"-"`
 }
 
 // fileListResponseDataJSON contains the JSON metadata for the struct
