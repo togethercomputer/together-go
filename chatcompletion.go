@@ -378,6 +378,102 @@ func (r ChatCompletionChunkObject) IsKnown() bool {
 	return false
 }
 
+type ChatCompletionStructuredMessageImageURLParam struct {
+	ImageURL param.Field[ChatCompletionStructuredMessageImageURLImageURLParam] `json:"image_url"`
+	Type     param.Field[ChatCompletionStructuredMessageImageURLType]          `json:"type"`
+}
+
+func (r ChatCompletionStructuredMessageImageURLParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionStructuredMessageImageURLParam) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
+}
+
+type ChatCompletionStructuredMessageImageURLImageURLParam struct {
+	// The URL of the image
+	URL param.Field[string] `json:"url,required"`
+}
+
+func (r ChatCompletionStructuredMessageImageURLImageURLParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type ChatCompletionStructuredMessageImageURLType string
+
+const (
+	ChatCompletionStructuredMessageImageURLTypeImageURL ChatCompletionStructuredMessageImageURLType = "image_url"
+)
+
+func (r ChatCompletionStructuredMessageImageURLType) IsKnown() bool {
+	switch r {
+	case ChatCompletionStructuredMessageImageURLTypeImageURL:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionStructuredMessageTextParam struct {
+	Text param.Field[string]                                  `json:"text,required"`
+	Type param.Field[ChatCompletionStructuredMessageTextType] `json:"type,required"`
+}
+
+func (r ChatCompletionStructuredMessageTextParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionStructuredMessageTextParam) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
+}
+
+type ChatCompletionStructuredMessageTextType string
+
+const (
+	ChatCompletionStructuredMessageTextTypeText ChatCompletionStructuredMessageTextType = "text"
+)
+
+func (r ChatCompletionStructuredMessageTextType) IsKnown() bool {
+	switch r {
+	case ChatCompletionStructuredMessageTextTypeText:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionStructuredMessageVideoURLParam struct {
+	Type     param.Field[ChatCompletionStructuredMessageVideoURLType]          `json:"type,required"`
+	VideoURL param.Field[ChatCompletionStructuredMessageVideoURLVideoURLParam] `json:"video_url,required"`
+}
+
+func (r ChatCompletionStructuredMessageVideoURLParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionStructuredMessageVideoURLParam) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
+}
+
+type ChatCompletionStructuredMessageVideoURLType string
+
+const (
+	ChatCompletionStructuredMessageVideoURLTypeVideoURL ChatCompletionStructuredMessageVideoURLType = "video_url"
+)
+
+func (r ChatCompletionStructuredMessageVideoURLType) IsKnown() bool {
+	switch r {
+	case ChatCompletionStructuredMessageVideoURLTypeVideoURL:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionStructuredMessageVideoURLVideoURLParam struct {
+	// The URL of the video
+	URL param.Field[string] `json:"url,required"`
+}
+
+func (r ChatCompletionStructuredMessageVideoURLVideoURLParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
 type ChatCompletionUsage struct {
 	CompletionTokens int64                   `json:"completion_tokens,required"`
 	PromptTokens     int64                   `json:"prompt_tokens,required"`
@@ -576,74 +672,12 @@ func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChat
 func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItem) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
 }
 
-// Satisfied by
-// [ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObject],
-// [ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObject],
-// [ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideo],
+// Satisfied by [ChatCompletionStructuredMessageTextParam],
+// [ChatCompletionStructuredMessageImageURLParam],
+// [ChatCompletionStructuredMessageVideoURLParam],
 // [ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItem].
 type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion interface {
 	implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion()
-}
-
-type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObject struct {
-	Text param.Field[string]                                                                                                                   `json:"text,required"`
-	Type param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObjectType] `json:"type,required"`
-}
-
-func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObject) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObject) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
-}
-
-type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObjectType string
-
-const (
-	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObjectTypeText ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObjectType = "text"
-)
-
-func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObjectType) IsKnown() bool {
-	switch r {
-	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalObjectTypeText:
-		return true
-	}
-	return false
-}
-
-type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideo struct {
-	Type     param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoType]     `json:"type,required"`
-	VideoURL param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoVideoURL] `json:"video_url,required"`
-}
-
-func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideo) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideo) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
-}
-
-type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoType string
-
-const (
-	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoTypeVideoURL ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoType = "video_url"
-)
-
-func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoType) IsKnown() bool {
-	switch r {
-	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoTypeVideoURL:
-		return true
-	}
-	return false
-}
-
-type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoVideoURL struct {
-	// The URL of the video
-	URL param.Field[string] `json:"url,required"`
-}
-
-func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalVideoVideoURL) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
 }
 
 type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType string

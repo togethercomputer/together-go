@@ -12,6 +12,12 @@ Methods:
 
 ## Completions
 
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionStructuredMessageImageURLParam">ChatCompletionStructuredMessageImageURLParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionStructuredMessageTextParam">ChatCompletionStructuredMessageTextParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionStructuredMessageVideoURLParam">ChatCompletionStructuredMessageVideoURLParam</a>
+
 Response Types:
 
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletion">ChatCompletion</a>
@@ -84,6 +90,7 @@ Response Types:
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneListResponse">FineTuneListResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneCancelResponse">FineTuneCancelResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneDownloadResponse">FineTuneDownloadResponse</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneGetCheckpointsResponse">FineTuneGetCheckpointsResponse</a>
 
 Methods:
 
@@ -93,6 +100,7 @@ Methods:
 - <code title="post /fine-tunes/{id}/cancel">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.Cancel">Cancel</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneCancelResponse">FineTuneCancelResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /finetune/download">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.Download">Download</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneDownloadParams">FineTuneDownloadParams</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneDownloadResponse">FineTuneDownloadResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /fine-tunes/{id}/events">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.ListEvents">ListEvents</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneEvent">FineTuneEvent</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /fine-tunes/{id}/checkpoints">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.GetCheckpoints">GetCheckpoints</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneGetCheckpointsResponse">FineTuneGetCheckpointsResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # CodeInterpreter
 

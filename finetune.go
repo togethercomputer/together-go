@@ -101,6 +101,18 @@ func (r *FineTuneService) ListEvents(ctx context.Context, id string, opts ...opt
 	return
 }
 
+// List the checkpoints for a single fine-tuning job.
+func (r *FineTuneService) GetCheckpoints(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneGetCheckpointsResponse, err error) {
+	opts = append(r.Options[:], opts...)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return
+	}
+	path := fmt.Sprintf("fine-tunes/%s/checkpoints", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
 type FineTune struct {
 	ID                   string                     `json:"id,required" format:"uuid"`
 	Status               FineTuneStatus             `json:"status,required"`
@@ -3318,6 +3330,54 @@ func (r FineTuneDownloadResponseObject) IsKnown() bool {
 		return true
 	}
 	return false
+}
+
+type FineTuneGetCheckpointsResponse struct {
+	Data []FineTuneGetCheckpointsResponseData `json:"data,required"`
+	JSON fineTuneGetCheckpointsResponseJSON   `json:"-"`
+}
+
+// fineTuneGetCheckpointsResponseJSON contains the JSON metadata for the struct
+// [FineTuneGetCheckpointsResponse]
+type fineTuneGetCheckpointsResponseJSON struct {
+	Data        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FineTuneGetCheckpointsResponse) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneGetCheckpointsResponseJSON) RawJSON() string {
+	return r.raw
+}
+
+type FineTuneGetCheckpointsResponseData struct {
+	CheckpointType string                                 `json:"checkpoint_type,required"`
+	CreatedAt      string                                 `json:"created_at,required"`
+	Path           string                                 `json:"path,required"`
+	Step           int64                                  `json:"step,required"`
+	JSON           fineTuneGetCheckpointsResponseDataJSON `json:"-"`
+}
+
+// fineTuneGetCheckpointsResponseDataJSON contains the JSON metadata for the struct
+// [FineTuneGetCheckpointsResponseData]
+type fineTuneGetCheckpointsResponseDataJSON struct {
+	CheckpointType apijson.Field
+	CreatedAt      apijson.Field
+	Path           apijson.Field
+	Step           apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *FineTuneGetCheckpointsResponseData) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fineTuneGetCheckpointsResponseDataJSON) RawJSON() string {
+	return r.raw
 }
 
 type FineTuneNewParams struct {
