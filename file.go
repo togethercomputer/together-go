@@ -3,12 +3,17 @@
 package together
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
 
+	"github.com/togethercomputer/together-go/internal/apiform"
 	"github.com/togethercomputer/together-go/internal/apijson"
+	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 )
@@ -74,6 +79,14 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 	}
 	path := fmt.Sprintf("files/%s/content", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Upload a file with specified purpose, file name, and file type.
+func (r *FileService) Upload(ctx context.Context, body FileUploadParams, opts ...option.RequestOption) (res *FileUploadResponse, err error) {
+	opts = append(r.Options[:], opts...)
+	path := "files/upload"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
 
@@ -234,4 +247,69 @@ func (r *FileDeleteResponse) UnmarshalJSON(data []byte) (err error) {
 
 func (r fileDeleteResponseJSON) RawJSON() string {
 	return r.raw
+}
+
+type FileUploadResponse struct {
+	ID        string `json:"id,required"`
+	Bytes     int64  `json:"bytes,required"`
+	CreatedAt int64  `json:"created_at,required"`
+	Filename  string `json:"filename,required"`
+	// The type of the file
+	FileType  FileType `json:"FileType,required"`
+	LineCount int64    `json:"LineCount,required"`
+	Object    string   `json:"object,required"`
+	Processed bool     `json:"Processed,required"`
+	// The purpose of the file
+	Purpose FilePurpose            `json:"purpose,required"`
+	JSON    fileUploadResponseJSON `json:"-"`
+}
+
+// fileUploadResponseJSON contains the JSON metadata for the struct
+// [FileUploadResponse]
+type fileUploadResponseJSON struct {
+	ID          apijson.Field
+	Bytes       apijson.Field
+	CreatedAt   apijson.Field
+	Filename    apijson.Field
+	FileType    apijson.Field
+	LineCount   apijson.Field
+	Object      apijson.Field
+	Processed   apijson.Field
+	Purpose     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *FileUploadResponse) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r fileUploadResponseJSON) RawJSON() string {
+	return r.raw
+}
+
+type FileUploadParams struct {
+	// The content of the file being uploaded
+	File param.Field[io.Reader] `json:"file,required" format:"binary"`
+	// The name of the file being uploaded
+	FileName param.Field[string] `json:"file_name,required"`
+	// The purpose of the file
+	Purpose param.Field[FilePurpose] `json:"purpose,required"`
+	// The type of the file
+	FileType param.Field[FileType] `json:"file_type"`
+}
+
+func (r FileUploadParams) MarshalMultipart() (data []byte, contentType string, err error) {
+	buf := bytes.NewBuffer(nil)
+	writer := multipart.NewWriter(buf)
+	err = apiform.MarshalRoot(r, writer)
+	if err != nil {
+		writer.Close()
+		return nil, "", err
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, "", err
+	}
+	return buf.Bytes(), writer.FormDataContentType(), nil
 }
