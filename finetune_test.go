@@ -15,7 +15,6 @@ import (
 )
 
 func TestFineTuneNewWithOptionalParams(t *testing.T) {
-	t.Skip("invalid oneOf in required props")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -33,9 +32,9 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		BatchSize:      together.F[together.FineTuneNewParamsBatchSizeUnion](shared.UnionInt(int64(0))),
 		FromCheckpoint: together.F("from_checkpoint"),
 		LearningRate:   together.F(0.000000),
-		LrScheduler: together.F(together.FineTuneNewParamsLrScheduler{
-			LrSchedulerType: together.F(together.FineTuneNewParamsLrSchedulerLrSchedulerTypeLinear),
-			LrSchedulerArgs: together.F[together.FineTuneNewParamsLrSchedulerLrSchedulerArgsUnion](together.FineTuneNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs{
+		LrScheduler: together.F(together.LrSchedulerParam{
+			LrSchedulerType: together.F(together.LrSchedulerLrSchedulerTypeLinear),
+			LrSchedulerArgs: together.F[together.LrSchedulerLrSchedulerArgsUnionParam](together.LinearLrSchedulerArgsParam{
 				MinLrRatio: together.F(0.000000),
 			}),
 		}),
@@ -45,12 +44,12 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		NEvals:        together.F(int64(0)),
 		Suffix:        together.F("suffix"),
 		TrainOnInputs: together.F[together.FineTuneNewParamsTrainOnInputsUnion](shared.UnionBool(true)),
-		TrainingMethod: together.F[together.FineTuneNewParamsTrainingMethodUnion](together.FineTuneNewParamsTrainingMethodTrainingMethodSft{
-			Method:        together.F(together.FineTuneNewParamsTrainingMethodTrainingMethodSftMethodSft),
-			TrainOnInputs: together.F[together.FineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion](shared.UnionBool(true)),
+		TrainingMethod: together.F[together.FineTuneNewParamsTrainingMethodUnion](together.TrainingMethodSftParam{
+			Method:        together.F(together.TrainingMethodSftMethodSft),
+			TrainOnInputs: together.F[together.TrainingMethodSftTrainOnInputsUnionParam](shared.UnionBool(true)),
 		}),
-		TrainingType: together.F[together.FineTuneNewParamsTrainingTypeUnion](together.FineTuneNewParamsTrainingTypeFullTrainingType{
-			Type: together.F(together.FineTuneNewParamsTrainingTypeFullTrainingTypeTypeFull),
+		TrainingType: together.F[together.FineTuneNewParamsTrainingTypeUnion](together.FullTrainingTypeParam{
+			Type: together.F(together.FullTrainingTypeTypeFull),
 		}),
 		ValidationFile:   together.F("validation_file"),
 		WandbAPIKey:      together.F("wandb_api_key"),

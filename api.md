@@ -82,14 +82,32 @@ Methods:
 
 # FineTune
 
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#CosineLrSchedulerArgsParam">CosineLrSchedulerArgsParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FullTrainingTypeParam">FullTrainingTypeParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#LinearLrSchedulerArgsParam">LinearLrSchedulerArgsParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#LoRaTrainingTypeParam">LoRaTrainingTypeParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#LrSchedulerParam">LrSchedulerParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#TrainingMethodDpoParam">TrainingMethodDpoParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#TrainingMethodSftParam">TrainingMethodSftParam</a>
+
 Response Types:
 
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#CosineLrSchedulerArgs">CosineLrSchedulerArgs</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTune">FineTune</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneEvent">FineTuneEvent</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FullTrainingType">FullTrainingType</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#LinearLrSchedulerArgs">LinearLrSchedulerArgs</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#LoRaTrainingType">LoRaTrainingType</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#LrScheduler">LrScheduler</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#TrainingMethodDpo">TrainingMethodDpo</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#TrainingMethodSft">TrainingMethodSft</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneNewResponse">FineTuneNewResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneListResponse">FineTuneListResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneCancelResponse">FineTuneCancelResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneDownloadResponse">FineTuneDownloadResponse</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneListEventsResponse">FineTuneListEventsResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneGetCheckpointsResponse">FineTuneGetCheckpointsResponse</a>
 
 Methods:
@@ -99,7 +117,7 @@ Methods:
 - <code title="get /fine-tunes">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneListResponse">FineTuneListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="post /fine-tunes/{id}/cancel">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.Cancel">Cancel</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneCancelResponse">FineTuneCancelResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /finetune/download">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.Download">Download</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneDownloadParams">FineTuneDownloadParams</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneDownloadResponse">FineTuneDownloadResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-- <code title="get /fine-tunes/{id}/events">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.ListEvents">ListEvents</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneEvent">FineTuneEvent</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /fine-tunes/{id}/events">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.ListEvents">ListEvents</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneListEventsResponse">FineTuneListEventsResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /fine-tunes/{id}/checkpoints">client.FineTune.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneService.GetCheckpoints">GetCheckpoints</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneGetCheckpointsResponse">FineTuneGetCheckpointsResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # CodeInterpreter
@@ -126,6 +144,8 @@ Methods:
 
 Response Types:
 
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ImageDataB64">ImageDataB64</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ImageDataURL">ImageDataURL</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ImageFile">ImageFile</a>
 
 Methods:
@@ -133,6 +153,10 @@ Methods:
 - <code title="post /images/generations">client.Images.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ImageService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ImageNewParams">ImageNewParams</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ImageFile">ImageFile</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # Audio
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#AudioSpeechStreamChunk">AudioSpeechStreamChunk</a>
 
 Methods:
 
@@ -164,8 +188,13 @@ Methods:
 
 # Endpoints
 
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#AutoscalingParam">AutoscalingParam</a>
+
 Response Types:
 
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#Autoscaling">Autoscaling</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointNewResponse">EndpointNewResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointGetResponse">EndpointGetResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointUpdateResponse">EndpointUpdateResponse</a>

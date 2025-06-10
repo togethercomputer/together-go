@@ -14,7 +14,6 @@ import (
 )
 
 func TestImageNewWithOptionalParams(t *testing.T) {
-	t.Skip("invalid oneOf in required props")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL

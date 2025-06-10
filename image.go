@@ -5,7 +5,9 @@ package together
 import (
 	"context"
 	"net/http"
+	"reflect"
 
+	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
@@ -39,6 +41,54 @@ func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...opt
 	return
 }
 
+type ImageDataB64 struct {
+	B64Json string           `json:"b64_json,required"`
+	Index   int64            `json:"index,required"`
+	JSON    imageDataB64JSON `json:"-"`
+}
+
+// imageDataB64JSON contains the JSON metadata for the struct [ImageDataB64]
+type imageDataB64JSON struct {
+	B64Json     apijson.Field
+	Index       apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ImageDataB64) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r imageDataB64JSON) RawJSON() string {
+	return r.raw
+}
+
+func (r ImageDataB64) implementsImageFileData() {}
+
+type ImageDataURL struct {
+	Index int64            `json:"index,required"`
+	URL   string           `json:"url,required"`
+	JSON  imageDataURLJSON `json:"-"`
+}
+
+// imageDataURLJSON contains the JSON metadata for the struct [ImageDataURL]
+type imageDataURLJSON struct {
+	Index       apijson.Field
+	URL         apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ImageDataURL) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r imageDataURLJSON) RawJSON() string {
+	return r.raw
+}
+
+func (r ImageDataURL) implementsImageFileData() {}
+
 type ImageFile struct {
 	ID     string          `json:"id,required"`
 	Data   []ImageFileData `json:"data,required"`
@@ -70,6 +120,7 @@ type ImageFileData struct {
 	B64Json string            `json:"b64_json"`
 	URL     string            `json:"url"`
 	JSON    imageFileDataJSON `json:"-"`
+	union   ImageFileDataUnion
 }
 
 // imageFileDataJSON contains the JSON metadata for the struct [ImageFileData]
@@ -81,12 +132,45 @@ type imageFileDataJSON struct {
 	ExtraFields map[string]apijson.Field
 }
 
-func (r *ImageFileData) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 func (r imageFileDataJSON) RawJSON() string {
 	return r.raw
+}
+
+func (r *ImageFileData) UnmarshalJSON(data []byte) (err error) {
+	*r = ImageFileData{}
+	err = apijson.UnmarshalRoot(data, &r.union)
+	if err != nil {
+		return err
+	}
+	return apijson.Port(r.union, &r)
+}
+
+// AsUnion returns a [ImageFileDataUnion] interface which you can cast to the
+// specific types for more type safety.
+//
+// Possible runtime types of the union are [ImageDataB64], [ImageDataURL].
+func (r ImageFileData) AsUnion() ImageFileDataUnion {
+	return r.union
+}
+
+// Union satisfied by [ImageDataB64] or [ImageDataURL].
+type ImageFileDataUnion interface {
+	implementsImageFileData()
+}
+
+func init() {
+	apijson.RegisterUnion(
+		reflect.TypeOf((*ImageFileDataUnion)(nil)).Elem(),
+		"",
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(ImageDataB64{}),
+		},
+		apijson.UnionVariant{
+			TypeFilter: gjson.JSON,
+			Type:       reflect.TypeOf(ImageDataURL{}),
+		},
+	)
 }
 
 type ImageFileObject string

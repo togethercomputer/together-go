@@ -26,7 +26,7 @@ func TestEndpointNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Endpoints.New(context.TODO(), together.EndpointNewParams{
-		Autoscaling: together.F(together.EndpointNewParamsAutoscaling{
+		Autoscaling: together.F(together.AutoscalingParam{
 			MaxReplicas: together.F(int64(5)),
 			MinReplicas: together.F(int64(2)),
 		}),
@@ -85,7 +85,7 @@ func TestEndpointUpdateWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"endpoint-d23901de-ef8f-44bf-b3e7-de9c1ca8f2d7",
 		together.EndpointUpdateParams{
-			Autoscaling: together.F(together.EndpointUpdateParamsAutoscaling{
+			Autoscaling: together.F(together.AutoscalingParam{
 				MaxReplicas: together.F(int64(5)),
 				MinReplicas: together.F(int64(2)),
 			}),
