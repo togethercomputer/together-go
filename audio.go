@@ -10,6 +10,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/ssestream"
 )
 
 // AudioService contains methods and other services that help with interacting with
@@ -40,6 +41,59 @@ func (r *AudioService) New(ctx context.Context, body AudioNewParams, opts ...opt
 	return
 }
 
+// Generate audio from input text
+func (r *AudioService) NewStreaming(ctx context.Context, body AudioNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[AudioSpeechStreamChunk]) {
+	var (
+		raw *http.Response
+		err error
+	)
+	opts = append(r.Options[:], opts...)
+	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream"), option.WithJSONSet("stream", true)}, opts...)
+	path := "audio/speech"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
+	return ssestream.NewStream[AudioSpeechStreamChunk](ssestream.NewDecoder(raw), err)
+}
+
+type AudioSpeechStreamChunk struct {
+	// base64 encoded audio stream
+	B64    string                       `json:"b64,required"`
+	Model  string                       `json:"model,required"`
+	Object AudioSpeechStreamChunkObject `json:"object,required"`
+	JSON   audioSpeechStreamChunkJSON   `json:"-"`
+}
+
+// audioSpeechStreamChunkJSON contains the JSON metadata for the struct
+// [AudioSpeechStreamChunk]
+type audioSpeechStreamChunkJSON struct {
+	B64         apijson.Field
+	Model       apijson.Field
+	Object      apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *AudioSpeechStreamChunk) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r audioSpeechStreamChunkJSON) RawJSON() string {
+	return r.raw
+}
+
+type AudioSpeechStreamChunkObject string
+
+const (
+	AudioSpeechStreamChunkObjectAudioTtsChunk AudioSpeechStreamChunkObject = "audio.tts.chunk"
+)
+
+func (r AudioSpeechStreamChunkObject) IsKnown() bool {
+	switch r {
+	case AudioSpeechStreamChunkObjectAudioTtsChunk:
+		return true
+	}
+	return false
+}
+
 type AudioNewParams struct {
 	// Input text to generate the audio for
 	Input param.Field[string] `json:"input,required"`
@@ -58,10 +112,6 @@ type AudioNewParams struct {
 	ResponseFormat param.Field[AudioNewParamsResponseFormat] `json:"response_format"`
 	// Sampling rate to use for the output audio
 	SampleRate param.Field[float64] `json:"sample_rate"`
-	// If true, output is streamed for several characters at a time instead of waiting
-	// for the full response. The stream terminates with `data: [DONE]`. If false,
-	// return the encoded audio as octet stream
-	Stream param.Field[bool] `json:"stream"`
 }
 
 func (r AudioNewParams) MarshalJSON() (data []byte, err error) {

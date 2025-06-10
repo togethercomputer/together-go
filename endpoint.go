@@ -94,12 +94,49 @@ func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ..
 	return
 }
 
+// Configuration for automatic scaling of replicas based on demand.
+type Autoscaling struct {
+	// The maximum number of replicas to scale up to under load
+	MaxReplicas int64 `json:"max_replicas,required"`
+	// The minimum number of replicas to maintain, even when there is no load
+	MinReplicas int64           `json:"min_replicas,required"`
+	JSON        autoscalingJSON `json:"-"`
+}
+
+// autoscalingJSON contains the JSON metadata for the struct [Autoscaling]
+type autoscalingJSON struct {
+	MaxReplicas apijson.Field
+	MinReplicas apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *Autoscaling) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r autoscalingJSON) RawJSON() string {
+	return r.raw
+}
+
+// Configuration for automatic scaling of replicas based on demand.
+type AutoscalingParam struct {
+	// The maximum number of replicas to scale up to under load
+	MaxReplicas param.Field[int64] `json:"max_replicas,required"`
+	// The minimum number of replicas to maintain, even when there is no load
+	MinReplicas param.Field[int64] `json:"min_replicas,required"`
+}
+
+func (r AutoscalingParam) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
 // Details about a dedicated endpoint deployment
 type EndpointNewResponse struct {
 	// Unique identifier for the endpoint
 	ID string `json:"id,required"`
 	// Configuration for automatic scaling of the endpoint
-	Autoscaling EndpointNewResponseAutoscaling `json:"autoscaling,required"`
+	Autoscaling Autoscaling `json:"autoscaling,required"`
 	// Timestamp when the endpoint was created
 	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
 	// Human-readable name for the endpoint
@@ -144,32 +181,6 @@ func (r *EndpointNewResponse) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (r endpointNewResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-// Configuration for automatic scaling of the endpoint
-type EndpointNewResponseAutoscaling struct {
-	// The maximum number of replicas to scale up to under load
-	MaxReplicas int64 `json:"max_replicas,required"`
-	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas int64                              `json:"min_replicas,required"`
-	JSON        endpointNewResponseAutoscalingJSON `json:"-"`
-}
-
-// endpointNewResponseAutoscalingJSON contains the JSON metadata for the struct
-// [EndpointNewResponseAutoscaling]
-type endpointNewResponseAutoscalingJSON struct {
-	MaxReplicas apijson.Field
-	MinReplicas apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointNewResponseAutoscaling) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointNewResponseAutoscalingJSON) RawJSON() string {
 	return r.raw
 }
 
@@ -228,7 +239,7 @@ type EndpointGetResponse struct {
 	// Unique identifier for the endpoint
 	ID string `json:"id,required"`
 	// Configuration for automatic scaling of the endpoint
-	Autoscaling EndpointGetResponseAutoscaling `json:"autoscaling,required"`
+	Autoscaling Autoscaling `json:"autoscaling,required"`
 	// Timestamp when the endpoint was created
 	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
 	// Human-readable name for the endpoint
@@ -273,32 +284,6 @@ func (r *EndpointGetResponse) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (r endpointGetResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-// Configuration for automatic scaling of the endpoint
-type EndpointGetResponseAutoscaling struct {
-	// The maximum number of replicas to scale up to under load
-	MaxReplicas int64 `json:"max_replicas,required"`
-	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas int64                              `json:"min_replicas,required"`
-	JSON        endpointGetResponseAutoscalingJSON `json:"-"`
-}
-
-// endpointGetResponseAutoscalingJSON contains the JSON metadata for the struct
-// [EndpointGetResponseAutoscaling]
-type endpointGetResponseAutoscalingJSON struct {
-	MaxReplicas apijson.Field
-	MinReplicas apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointGetResponseAutoscaling) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointGetResponseAutoscalingJSON) RawJSON() string {
 	return r.raw
 }
 
@@ -357,7 +342,7 @@ type EndpointUpdateResponse struct {
 	// Unique identifier for the endpoint
 	ID string `json:"id,required"`
 	// Configuration for automatic scaling of the endpoint
-	Autoscaling EndpointUpdateResponseAutoscaling `json:"autoscaling,required"`
+	Autoscaling Autoscaling `json:"autoscaling,required"`
 	// Timestamp when the endpoint was created
 	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
 	// Human-readable name for the endpoint
@@ -402,32 +387,6 @@ func (r *EndpointUpdateResponse) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (r endpointUpdateResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-// Configuration for automatic scaling of the endpoint
-type EndpointUpdateResponseAutoscaling struct {
-	// The maximum number of replicas to scale up to under load
-	MaxReplicas int64 `json:"max_replicas,required"`
-	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas int64                                 `json:"min_replicas,required"`
-	JSON        endpointUpdateResponseAutoscalingJSON `json:"-"`
-}
-
-// endpointUpdateResponseAutoscalingJSON contains the JSON metadata for the struct
-// [EndpointUpdateResponseAutoscaling]
-type endpointUpdateResponseAutoscalingJSON struct {
-	MaxReplicas apijson.Field
-	MinReplicas apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointUpdateResponseAutoscaling) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointUpdateResponseAutoscalingJSON) RawJSON() string {
 	return r.raw
 }
 
@@ -615,7 +574,7 @@ func (r EndpointListResponseObject) IsKnown() bool {
 
 type EndpointNewParams struct {
 	// Configuration for automatic scaling of the endpoint
-	Autoscaling param.Field[EndpointNewParamsAutoscaling] `json:"autoscaling,required"`
+	Autoscaling param.Field[AutoscalingParam] `json:"autoscaling,required"`
 	// The hardware configuration to use for this endpoint
 	Hardware param.Field[string] `json:"hardware,required"`
 	// The model to deploy on this endpoint
@@ -638,18 +597,6 @@ func (r EndpointNewParams) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
-// Configuration for automatic scaling of the endpoint
-type EndpointNewParamsAutoscaling struct {
-	// The maximum number of replicas to scale up to under load
-	MaxReplicas param.Field[int64] `json:"max_replicas,required"`
-	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas param.Field[int64] `json:"min_replicas,required"`
-}
-
-func (r EndpointNewParamsAutoscaling) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
 // The desired state of the endpoint
 type EndpointNewParamsState string
 
@@ -668,7 +615,7 @@ func (r EndpointNewParamsState) IsKnown() bool {
 
 type EndpointUpdateParams struct {
 	// New autoscaling configuration for the endpoint
-	Autoscaling param.Field[EndpointUpdateParamsAutoscaling] `json:"autoscaling"`
+	Autoscaling param.Field[AutoscalingParam] `json:"autoscaling"`
 	// A human-readable name for the endpoint
 	DisplayName param.Field[string] `json:"display_name"`
 	// The number of minutes of inactivity after which the endpoint will be
@@ -679,18 +626,6 @@ type EndpointUpdateParams struct {
 }
 
 func (r EndpointUpdateParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
-}
-
-// New autoscaling configuration for the endpoint
-type EndpointUpdateParamsAutoscaling struct {
-	// The maximum number of replicas to scale up to under load
-	MaxReplicas param.Field[int64] `json:"max_replicas,required"`
-	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas param.Field[int64] `json:"min_replicas,required"`
-}
-
-func (r EndpointUpdateParamsAutoscaling) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 

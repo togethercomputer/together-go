@@ -13,15 +13,10 @@ func (UnionString) ImplementsSessionListResponseErrorsUnion()            {}
 
 type UnionBool bool
 
-func (UnionBool) ImplementsFineTuneTrainOnInputsUnion()                                           {}
-func (UnionBool) ImplementsFineTuneTrainingMethodTrainingMethodSftTrainOnInputsUnion()            {}
-func (UnionBool) ImplementsFineTuneNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion() {}
-func (UnionBool) ImplementsFineTuneListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion() {
-}
-func (UnionBool) ImplementsFineTuneCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion() {
-}
-func (UnionBool) ImplementsFineTuneNewParamsTrainOnInputsUnion()                                {}
-func (UnionBool) ImplementsFineTuneNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion() {}
+func (UnionBool) ImplementsFineTuneTrainOnInputsUnion()               {}
+func (UnionBool) ImplementsTrainingMethodSftTrainOnInputsUnionParam() {}
+func (UnionBool) ImplementsTrainingMethodSftTrainOnInputsUnion()      {}
+func (UnionBool) ImplementsFineTuneNewParamsTrainOnInputsUnion()      {}
 
 type UnionInt int64
 

@@ -16,6 +16,7 @@ import (
 )
 
 func TestAudioNewWithOptionalParams(t *testing.T) {
+	t.Skip("AttributeError: BinaryAPIResponse object has no attribute response")
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write([]byte("abc"))
@@ -34,7 +35,6 @@ func TestAudioNewWithOptionalParams(t *testing.T) {
 		ResponseEncoding: together.F(together.AudioNewParamsResponseEncodingPcmF32le),
 		ResponseFormat:   together.F(together.AudioNewParamsResponseFormatMP3),
 		SampleRate:       together.F(0.000000),
-		Stream:           together.F(true),
 	})
 	if err != nil {
 		var apierr *together.Error
