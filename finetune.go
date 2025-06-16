@@ -338,8 +338,12 @@ func (r FineTuneTrainOnInputsString) IsKnown() bool {
 func (r FineTuneTrainOnInputsString) ImplementsFineTuneTrainOnInputsUnion() {}
 
 type FineTuneTrainingMethod struct {
-	Method  FineTuneTrainingMethodMethod `json:"method,required"`
-	DpoBeta float64                      `json:"dpo_beta"`
+	Method                        FineTuneTrainingMethodMethod `json:"method,required"`
+	DpoBeta                       float64                      `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool                         `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool                         `json:"dpo_reference_free"`
+	RpoAlpha                      float64                      `json:"rpo_alpha"`
+	SimpoGamma                    float64                      `json:"simpo_gamma"`
 	// This field can have the runtime type of [TrainingMethodSftTrainOnInputsUnion].
 	TrainOnInputs interface{}                `json:"train_on_inputs"`
 	JSON          fineTuneTrainingMethodJSON `json:"-"`
@@ -349,11 +353,15 @@ type FineTuneTrainingMethod struct {
 // fineTuneTrainingMethodJSON contains the JSON metadata for the struct
 // [FineTuneTrainingMethod]
 type fineTuneTrainingMethodJSON struct {
-	Method        apijson.Field
-	DpoBeta       apijson.Field
-	TrainOnInputs apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
+	Method                        apijson.Field
+	DpoBeta                       apijson.Field
+	DpoNormalizeLogratiosByLength apijson.Field
+	DpoReferenceFree              apijson.Field
+	RpoAlpha                      apijson.Field
+	SimpoGamma                    apijson.Field
+	TrainOnInputs                 apijson.Field
+	raw                           string
+	ExtraFields                   map[string]apijson.Field
 }
 
 func (r fineTuneTrainingMethodJSON) RawJSON() string {
@@ -887,18 +895,26 @@ type LrSchedulerLrSchedulerArgsUnionParam interface {
 }
 
 type TrainingMethodDpo struct {
-	Method  TrainingMethodDpoMethod `json:"method,required"`
-	DpoBeta float64                 `json:"dpo_beta"`
-	JSON    trainingMethodDpoJSON   `json:"-"`
+	Method                        TrainingMethodDpoMethod `json:"method,required"`
+	DpoBeta                       float64                 `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool                    `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool                    `json:"dpo_reference_free"`
+	RpoAlpha                      float64                 `json:"rpo_alpha"`
+	SimpoGamma                    float64                 `json:"simpo_gamma"`
+	JSON                          trainingMethodDpoJSON   `json:"-"`
 }
 
 // trainingMethodDpoJSON contains the JSON metadata for the struct
 // [TrainingMethodDpo]
 type trainingMethodDpoJSON struct {
-	Method      apijson.Field
-	DpoBeta     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+	Method                        apijson.Field
+	DpoBeta                       apijson.Field
+	DpoNormalizeLogratiosByLength apijson.Field
+	DpoReferenceFree              apijson.Field
+	RpoAlpha                      apijson.Field
+	SimpoGamma                    apijson.Field
+	raw                           string
+	ExtraFields                   map[string]apijson.Field
 }
 
 func (r *TrainingMethodDpo) UnmarshalJSON(data []byte) (err error) {
@@ -932,8 +948,12 @@ func (r TrainingMethodDpoMethod) IsKnown() bool {
 }
 
 type TrainingMethodDpoParam struct {
-	Method  param.Field[TrainingMethodDpoMethod] `json:"method,required"`
-	DpoBeta param.Field[float64]                 `json:"dpo_beta"`
+	Method                        param.Field[TrainingMethodDpoMethod] `json:"method,required"`
+	DpoBeta                       param.Field[float64]                 `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength param.Field[bool]                    `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              param.Field[bool]                    `json:"dpo_reference_free"`
+	RpoAlpha                      param.Field[float64]                 `json:"rpo_alpha"`
+	SimpoGamma                    param.Field[float64]                 `json:"simpo_gamma"`
 }
 
 func (r TrainingMethodDpoParam) MarshalJSON() (data []byte, err error) {
@@ -1182,8 +1202,12 @@ func (r FineTuneNewResponseStatus) IsKnown() bool {
 
 // Method of training used
 type FineTuneNewResponseTrainingMethod struct {
-	Method  FineTuneNewResponseTrainingMethodMethod `json:"method,required"`
-	DpoBeta float64                                 `json:"dpo_beta"`
+	Method                        FineTuneNewResponseTrainingMethodMethod `json:"method,required"`
+	DpoBeta                       float64                                 `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool                                    `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool                                    `json:"dpo_reference_free"`
+	RpoAlpha                      float64                                 `json:"rpo_alpha"`
+	SimpoGamma                    float64                                 `json:"simpo_gamma"`
 	// This field can have the runtime type of [TrainingMethodSftTrainOnInputsUnion].
 	TrainOnInputs interface{}                           `json:"train_on_inputs"`
 	JSON          fineTuneNewResponseTrainingMethodJSON `json:"-"`
@@ -1193,11 +1217,15 @@ type FineTuneNewResponseTrainingMethod struct {
 // fineTuneNewResponseTrainingMethodJSON contains the JSON metadata for the struct
 // [FineTuneNewResponseTrainingMethod]
 type fineTuneNewResponseTrainingMethodJSON struct {
-	Method        apijson.Field
-	DpoBeta       apijson.Field
-	TrainOnInputs apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
+	Method                        apijson.Field
+	DpoBeta                       apijson.Field
+	DpoNormalizeLogratiosByLength apijson.Field
+	DpoReferenceFree              apijson.Field
+	RpoAlpha                      apijson.Field
+	SimpoGamma                    apijson.Field
+	TrainOnInputs                 apijson.Field
+	raw                           string
+	ExtraFields                   map[string]apijson.Field
 }
 
 func (r fineTuneNewResponseTrainingMethodJSON) RawJSON() string {
@@ -1488,8 +1516,12 @@ func (r FineTuneListResponseDataStatus) IsKnown() bool {
 
 // Method of training used
 type FineTuneListResponseDataTrainingMethod struct {
-	Method  FineTuneListResponseDataTrainingMethodMethod `json:"method,required"`
-	DpoBeta float64                                      `json:"dpo_beta"`
+	Method                        FineTuneListResponseDataTrainingMethodMethod `json:"method,required"`
+	DpoBeta                       float64                                      `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool                                         `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool                                         `json:"dpo_reference_free"`
+	RpoAlpha                      float64                                      `json:"rpo_alpha"`
+	SimpoGamma                    float64                                      `json:"simpo_gamma"`
 	// This field can have the runtime type of [TrainingMethodSftTrainOnInputsUnion].
 	TrainOnInputs interface{}                                `json:"train_on_inputs"`
 	JSON          fineTuneListResponseDataTrainingMethodJSON `json:"-"`
@@ -1499,11 +1531,15 @@ type FineTuneListResponseDataTrainingMethod struct {
 // fineTuneListResponseDataTrainingMethodJSON contains the JSON metadata for the
 // struct [FineTuneListResponseDataTrainingMethod]
 type fineTuneListResponseDataTrainingMethodJSON struct {
-	Method        apijson.Field
-	DpoBeta       apijson.Field
-	TrainOnInputs apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
+	Method                        apijson.Field
+	DpoBeta                       apijson.Field
+	DpoNormalizeLogratiosByLength apijson.Field
+	DpoReferenceFree              apijson.Field
+	RpoAlpha                      apijson.Field
+	SimpoGamma                    apijson.Field
+	TrainOnInputs                 apijson.Field
+	raw                           string
+	ExtraFields                   map[string]apijson.Field
 }
 
 func (r fineTuneListResponseDataTrainingMethodJSON) RawJSON() string {
@@ -1773,8 +1809,12 @@ func (r FineTuneCancelResponseStatus) IsKnown() bool {
 
 // Method of training used
 type FineTuneCancelResponseTrainingMethod struct {
-	Method  FineTuneCancelResponseTrainingMethodMethod `json:"method,required"`
-	DpoBeta float64                                    `json:"dpo_beta"`
+	Method                        FineTuneCancelResponseTrainingMethodMethod `json:"method,required"`
+	DpoBeta                       float64                                    `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool                                       `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool                                       `json:"dpo_reference_free"`
+	RpoAlpha                      float64                                    `json:"rpo_alpha"`
+	SimpoGamma                    float64                                    `json:"simpo_gamma"`
 	// This field can have the runtime type of [TrainingMethodSftTrainOnInputsUnion].
 	TrainOnInputs interface{}                              `json:"train_on_inputs"`
 	JSON          fineTuneCancelResponseTrainingMethodJSON `json:"-"`
@@ -1784,11 +1824,15 @@ type FineTuneCancelResponseTrainingMethod struct {
 // fineTuneCancelResponseTrainingMethodJSON contains the JSON metadata for the
 // struct [FineTuneCancelResponseTrainingMethod]
 type fineTuneCancelResponseTrainingMethodJSON struct {
-	Method        apijson.Field
-	DpoBeta       apijson.Field
-	TrainOnInputs apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
+	Method                        apijson.Field
+	DpoBeta                       apijson.Field
+	DpoNormalizeLogratiosByLength apijson.Field
+	DpoReferenceFree              apijson.Field
+	RpoAlpha                      apijson.Field
+	SimpoGamma                    apijson.Field
+	TrainOnInputs                 apijson.Field
+	raw                           string
+	ExtraFields                   map[string]apijson.Field
 }
 
 func (r fineTuneCancelResponseTrainingMethodJSON) RawJSON() string {
@@ -2157,9 +2201,13 @@ func (r FineTuneNewParamsTrainOnInputsString) ImplementsFineTuneNewParamsTrainOn
 // The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 // Preference Optimization.
 type FineTuneNewParamsTrainingMethod struct {
-	Method        param.Field[FineTuneNewParamsTrainingMethodMethod] `json:"method,required"`
-	DpoBeta       param.Field[float64]                               `json:"dpo_beta"`
-	TrainOnInputs param.Field[interface{}]                           `json:"train_on_inputs"`
+	Method                        param.Field[FineTuneNewParamsTrainingMethodMethod] `json:"method,required"`
+	DpoBeta                       param.Field[float64]                               `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength param.Field[bool]                                  `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              param.Field[bool]                                  `json:"dpo_reference_free"`
+	RpoAlpha                      param.Field[float64]                               `json:"rpo_alpha"`
+	SimpoGamma                    param.Field[float64]                               `json:"simpo_gamma"`
+	TrainOnInputs                 param.Field[interface{}]                           `json:"train_on_inputs"`
 }
 
 func (r FineTuneNewParamsTrainingMethod) MarshalJSON() (data []byte, err error) {
