@@ -660,10 +660,12 @@ func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChat
 }
 
 type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItem struct {
-	ImageURL param.Field[interface{}]                                                                                                        `json:"image_url"`
-	Text     param.Field[string]                                                                                                             `json:"text"`
-	Type     param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType] `json:"type"`
-	VideoURL param.Field[interface{}]                                                                                                        `json:"video_url"`
+	AudioURL   param.Field[interface{}]                                                                                                        `json:"audio_url"`
+	ImageURL   param.Field[interface{}]                                                                                                        `json:"image_url"`
+	InputAudio param.Field[interface{}]                                                                                                        `json:"input_audio"`
+	Text       param.Field[string]                                                                                                             `json:"text"`
+	Type       param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType] `json:"type"`
+	VideoURL   param.Field[interface{}]                                                                                                        `json:"video_url"`
 }
 
 func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItem) MarshalJSON() (data []byte, err error) {
@@ -676,22 +678,113 @@ func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChat
 // Satisfied by [ChatCompletionStructuredMessageTextParam],
 // [ChatCompletionStructuredMessageImageURLParam],
 // [ChatCompletionStructuredMessageVideoURLParam],
+// [ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudio],
+// [ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudio],
 // [ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItem].
 type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion interface {
 	implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion()
 }
 
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudio struct {
+	AudioURL param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioAudioURL] `json:"audio_url,required"`
+	Type     param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioType]     `json:"type,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudio) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudio) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioAudioURL struct {
+	// The URL of the audio
+	URL param.Field[string] `json:"url,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioAudioURL) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioType string
+
+const (
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioTypeAudioURL ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioType = "audio_url"
+)
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioType) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalAudioTypeAudioURL:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudio struct {
+	InputAudio param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudio] `json:"input_audio,required"`
+	Type       param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioType]       `json:"type,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudio) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudio) implementsChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion() {
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudio struct {
+	// The base64 encoded audio data
+	Data param.Field[string] `json:"data,required"`
+	// The format of the audio data
+	Format param.Field[ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudioFormat] `json:"format,required"`
+}
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudio) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+// The format of the audio data
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudioFormat string
+
+const (
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudioFormatWav ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudioFormat = "wav"
+)
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudioFormat) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioInputAudioFormatWav:
+		return true
+	}
+	return false
+}
+
+type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioType string
+
+const (
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioTypeInputAudio ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioType = "input_audio"
+)
+
+func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioType) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalInputAudioTypeInputAudio:
+		return true
+	}
+	return false
+}
+
 type ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType string
 
 const (
-	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeText     ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "text"
-	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeImageURL ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "image_url"
-	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeVideoURL ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "video_url"
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeText       ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "text"
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeImageURL   ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "image_url"
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeVideoURL   ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "video_url"
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeAudioURL   ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "audio_url"
+	ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeInputAudio ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType = "input_audio"
 )
 
 func (r ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalType) IsKnown() bool {
 	switch r {
-	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeText, ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeImageURL, ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeVideoURL:
+	case ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeText, ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeImageURL, ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeVideoURL, ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeAudioURL, ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalTypeInputAudio:
 		return true
 	}
 	return false
