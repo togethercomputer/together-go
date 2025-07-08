@@ -20,7 +20,9 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewAudioService] method instead.
 type AudioService struct {
-	Options []option.RequestOption
+	Options        []option.RequestOption
+	Transcriptions *AudioTranscriptionService
+	Translations   *AudioTranslationService
 }
 
 // NewAudioService generates a new service that applies the given options to each
@@ -29,6 +31,8 @@ type AudioService struct {
 func NewAudioService(opts ...option.RequestOption) (r *AudioService) {
 	r = &AudioService{}
 	r.Options = opts
+	r.Transcriptions = NewAudioTranscriptionService(opts...)
+	r.Translations = NewAudioTranslationService(opts...)
 	return
 }
 
