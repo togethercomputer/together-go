@@ -44,6 +44,7 @@ func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...opt
 type ImageDataB64 struct {
 	B64Json string           `json:"b64_json,required"`
 	Index   int64            `json:"index,required"`
+	Type    ImageDataB64Type `json:"type,required"`
 	JSON    imageDataB64JSON `json:"-"`
 }
 
@@ -51,6 +52,7 @@ type ImageDataB64 struct {
 type imageDataB64JSON struct {
 	B64Json     apijson.Field
 	Index       apijson.Field
+	Type        apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
@@ -65,8 +67,23 @@ func (r imageDataB64JSON) RawJSON() string {
 
 func (r ImageDataB64) implementsImageFileData() {}
 
+type ImageDataB64Type string
+
+const (
+	ImageDataB64TypeB64Json ImageDataB64Type = "b64_json"
+)
+
+func (r ImageDataB64Type) IsKnown() bool {
+	switch r {
+	case ImageDataB64TypeB64Json:
+		return true
+	}
+	return false
+}
+
 type ImageDataURL struct {
 	Index int64            `json:"index,required"`
+	Type  ImageDataURLType `json:"type,required"`
 	URL   string           `json:"url,required"`
 	JSON  imageDataURLJSON `json:"-"`
 }
@@ -74,6 +91,7 @@ type ImageDataURL struct {
 // imageDataURLJSON contains the JSON metadata for the struct [ImageDataURL]
 type imageDataURLJSON struct {
 	Index       apijson.Field
+	Type        apijson.Field
 	URL         apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
@@ -88,6 +106,20 @@ func (r imageDataURLJSON) RawJSON() string {
 }
 
 func (r ImageDataURL) implementsImageFileData() {}
+
+type ImageDataURLType string
+
+const (
+	ImageDataURLTypeURL ImageDataURLType = "url"
+)
+
+func (r ImageDataURLType) IsKnown() bool {
+	switch r {
+	case ImageDataURLTypeURL:
+		return true
+	}
+	return false
+}
 
 type ImageFile struct {
 	ID     string          `json:"id,required"`
@@ -117,6 +149,7 @@ func (r imageFileJSON) RawJSON() string {
 
 type ImageFileData struct {
 	Index   int64             `json:"index,required"`
+	Type    ImageFileDataType `json:"type,required"`
 	B64Json string            `json:"b64_json"`
 	URL     string            `json:"url"`
 	JSON    imageFileDataJSON `json:"-"`
@@ -126,6 +159,7 @@ type ImageFileData struct {
 // imageFileDataJSON contains the JSON metadata for the struct [ImageFileData]
 type imageFileDataJSON struct {
 	Index       apijson.Field
+	Type        apijson.Field
 	B64Json     apijson.Field
 	URL         apijson.Field
 	raw         string
@@ -161,16 +195,33 @@ type ImageFileDataUnion interface {
 func init() {
 	apijson.RegisterUnion(
 		reflect.TypeOf((*ImageFileDataUnion)(nil)).Elem(),
-		"",
+		"type",
 		apijson.UnionVariant{
-			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(ImageDataB64{}),
+			TypeFilter:         gjson.JSON,
+			Type:               reflect.TypeOf(ImageDataB64{}),
+			DiscriminatorValue: "b64_json",
 		},
 		apijson.UnionVariant{
-			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(ImageDataURL{}),
+			TypeFilter:         gjson.JSON,
+			Type:               reflect.TypeOf(ImageDataURL{}),
+			DiscriminatorValue: "url",
 		},
 	)
+}
+
+type ImageFileDataType string
+
+const (
+	ImageFileDataTypeB64Json ImageFileDataType = "b64_json"
+	ImageFileDataTypeURL     ImageFileDataType = "url"
+)
+
+func (r ImageFileDataType) IsKnown() bool {
+	switch r {
+	case ImageFileDataTypeB64Json, ImageFileDataTypeURL:
+		return true
+	}
+	return false
 }
 
 type ImageFileObject string
@@ -194,10 +245,12 @@ type ImageNewParams struct {
 	Model param.Field[ImageNewParamsModel] `json:"model,required"`
 	// A description of the desired images. Maximum length varies by model.
 	Prompt param.Field[string] `json:"prompt,required"`
+	// If true, disables the safety checker for image generation.
+	DisableSafetyChecker param.Field[bool] `json:"disable_safety_checker"`
 	// Adjusts the alignment of the generated image with the input prompt. Higher
 	// values (e.g., 8-10) make the output more faithful to the prompt, while lower
 	// values (e.g., 1-5) encourage more creative freedom.
-	Guidance param.Field[float64] `json:"guidance"`
+	GuidanceScale param.Field[float64] `json:"guidance_scale"`
 	// Height of the image to generate in number of pixels.
 	Height param.Field[int64] `json:"height"`
 	// An array of objects that define LoRAs (Low-Rank Adaptations) to influence the

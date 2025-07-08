@@ -2101,6 +2101,10 @@ type FineTuneNewParams struct {
 	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
 	// final checkpoint will be used.
 	FromCheckpoint param.Field[string] `json:"from_checkpoint"`
+	// The API token for the Hugging Face Hub.
+	HfAPIToken param.Field[string] `json:"hf_api_token"`
+	// The name of the Hugging Face repository to upload the fine-tuned model to.
+	HfOutputRepoName param.Field[string] `json:"hf_output_repo_name"`
 	// Controls how quickly the model adapts to new information (too high may cause
 	// instability, too low may slow convergence)
 	LearningRate param.Field[float64] `json:"learning_rate"`
