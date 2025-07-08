@@ -16,7 +16,6 @@ import (
 	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/packages/ssestream"
 )
 
 // AudioTranslationService contains methods and other services that help with
@@ -39,15 +38,11 @@ func NewAudioTranslationService(opts ...option.RequestOption) (r *AudioTranslati
 }
 
 // Translates audio into English
-func (r *AudioTranslationService) NewStreaming(ctx context.Context, body AudioTranslationNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[AudioSpeechStreamChunk]) {
-	var (
-		raw *http.Response
-		err error
-	)
+func (r *AudioTranslationService) New(ctx context.Context, body AudioTranslationNewParams, opts ...option.RequestOption) (res *AudioTranslationNewResponse, err error) {
 	opts = append(r.Options[:], opts...)
 	path := "audio/translations"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
-	return ssestream.NewStream[AudioSpeechStreamChunk](ssestream.NewDecoder(raw), err)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
 }
 
 type AudioTranslationNewResponse struct {
