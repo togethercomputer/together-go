@@ -196,10 +196,8 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment s
 	// Start time of the segment in seconds
 	Start float64 `json:"start,required"`
 	// The text content of the segment
-	Text string `json:"text,required"`
-	// Array of token IDs for the segment
-	Tokens []int64                                                                       `json:"tokens,required"`
-	JSON   audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJSON `json:"-"`
+	Text string                                                                        `json:"text,required"`
+	JSON audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJSON `json:"-"`
 }
 
 // audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJSON
@@ -210,7 +208,6 @@ type audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJS
 	End         apijson.Field
 	Start       apijson.Field
 	Text        apijson.Field
-	Tokens      apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
