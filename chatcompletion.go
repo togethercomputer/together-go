@@ -54,13 +54,14 @@ func (r *ChatCompletionService) NewStreaming(ctx context.Context, body ChatCompl
 }
 
 type ChatCompletion struct {
-	ID      string                 `json:"id,required"`
-	Choices []ChatCompletionChoice `json:"choices,required"`
-	Created int64                  `json:"created,required"`
-	Model   string                 `json:"model,required"`
-	Object  ChatCompletionObject   `json:"object,required"`
-	Usage   ChatCompletionUsage    `json:"usage,nullable"`
-	JSON    chatCompletionJSON     `json:"-"`
+	ID       string                  `json:"id,required"`
+	Choices  []ChatCompletionChoice  `json:"choices,required"`
+	Created  int64                   `json:"created,required"`
+	Model    string                  `json:"model,required"`
+	Object   ChatCompletionObject    `json:"object,required"`
+	Usage    ChatCompletionUsage     `json:"usage,nullable"`
+	Warnings []ChatCompletionWarning `json:"warnings"`
+	JSON     chatCompletionJSON      `json:"-"`
 }
 
 // chatCompletionJSON contains the JSON metadata for the struct [ChatCompletion]
@@ -71,6 +72,7 @@ type chatCompletionJSON struct {
 	Model       apijson.Field
 	Object      apijson.Field
 	Usage       apijson.Field
+	Warnings    apijson.Field
 	raw         string
 	ExtraFields map[string]apijson.Field
 }
@@ -212,15 +214,37 @@ func (r ChatCompletionObject) IsKnown() bool {
 	return false
 }
 
+type ChatCompletionWarning struct {
+	Message string                    `json:"message"`
+	JSON    chatCompletionWarningJSON `json:"-"`
+}
+
+// chatCompletionWarningJSON contains the JSON metadata for the struct
+// [ChatCompletionWarning]
+type chatCompletionWarningJSON struct {
+	Message     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ChatCompletionWarning) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r chatCompletionWarningJSON) RawJSON() string {
+	return r.raw
+}
+
 type ChatCompletionChunk struct {
-	ID                string                      `json:"id,required"`
-	Choices           []ChatCompletionChunkChoice `json:"choices,required"`
-	Created           int64                       `json:"created,required"`
-	Model             string                      `json:"model,required"`
-	Object            ChatCompletionChunkObject   `json:"object,required"`
-	SystemFingerprint string                      `json:"system_fingerprint"`
-	Usage             ChatCompletionUsage         `json:"usage,nullable"`
-	JSON              chatCompletionChunkJSON     `json:"-"`
+	ID                string                       `json:"id,required"`
+	Choices           []ChatCompletionChunkChoice  `json:"choices,required"`
+	Created           int64                        `json:"created,required"`
+	Model             string                       `json:"model,required"`
+	Object            ChatCompletionChunkObject    `json:"object,required"`
+	SystemFingerprint string                       `json:"system_fingerprint"`
+	Usage             ChatCompletionUsage          `json:"usage,nullable"`
+	Warnings          []ChatCompletionChunkWarning `json:"warnings"`
+	JSON              chatCompletionChunkJSON      `json:"-"`
 }
 
 // chatCompletionChunkJSON contains the JSON metadata for the struct
@@ -233,6 +257,7 @@ type chatCompletionChunkJSON struct {
 	Object            apijson.Field
 	SystemFingerprint apijson.Field
 	Usage             apijson.Field
+	Warnings          apijson.Field
 	raw               string
 	ExtraFields       map[string]apijson.Field
 }
@@ -376,6 +401,27 @@ func (r ChatCompletionChunkObject) IsKnown() bool {
 		return true
 	}
 	return false
+}
+
+type ChatCompletionChunkWarning struct {
+	Message string                         `json:"message"`
+	JSON    chatCompletionChunkWarningJSON `json:"-"`
+}
+
+// chatCompletionChunkWarningJSON contains the JSON metadata for the struct
+// [ChatCompletionChunkWarning]
+type chatCompletionChunkWarningJSON struct {
+	Message     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *ChatCompletionChunkWarning) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r chatCompletionChunkWarningJSON) RawJSON() string {
+	return r.raw
 }
 
 type ChatCompletionStructuredMessageImageURLParam struct {
