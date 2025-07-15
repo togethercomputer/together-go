@@ -296,8 +296,9 @@ type AudioTranslationNewParams struct {
 	// Sampling temperature between 0.0 and 1.0
 	Temperature param.Field[float64] `json:"temperature"`
 	// Controls level of timestamp detail in verbose_json. Only used when
-	// response_format is verbose_json.
-	TimestampGranularities param.Field[AudioTranslationNewParamsTimestampGranularities] `json:"timestamp_granularities"`
+	// response_format is verbose_json. Can be a single granularity or an array to get
+	// multiple levels.
+	TimestampGranularities param.Field[AudioTranslationNewParamsTimestampGranularitiesUnion] `json:"timestamp_granularities"`
 }
 
 func (r AudioTranslationNewParams) MarshalMultipart() (data []byte, contentType string, err error) {
@@ -347,17 +348,48 @@ func (r AudioTranslationNewParamsResponseFormat) IsKnown() bool {
 }
 
 // Controls level of timestamp detail in verbose_json. Only used when
-// response_format is verbose_json.
-type AudioTranslationNewParamsTimestampGranularities string
+// response_format is verbose_json. Can be a single granularity or an array to get
+// multiple levels.
+//
+// Satisfied by [AudioTranslationNewParamsTimestampGranularitiesString],
+// [AudioTranslationNewParamsTimestampGranularitiesArray].
+type AudioTranslationNewParamsTimestampGranularitiesUnion interface {
+	implementsAudioTranslationNewParamsTimestampGranularitiesUnion()
+}
+
+type AudioTranslationNewParamsTimestampGranularitiesString string
 
 const (
-	AudioTranslationNewParamsTimestampGranularitiesSegment AudioTranslationNewParamsTimestampGranularities = "segment"
-	AudioTranslationNewParamsTimestampGranularitiesWord    AudioTranslationNewParamsTimestampGranularities = "word"
+	AudioTranslationNewParamsTimestampGranularitiesStringSegment AudioTranslationNewParamsTimestampGranularitiesString = "segment"
+	AudioTranslationNewParamsTimestampGranularitiesStringWord    AudioTranslationNewParamsTimestampGranularitiesString = "word"
 )
 
-func (r AudioTranslationNewParamsTimestampGranularities) IsKnown() bool {
+func (r AudioTranslationNewParamsTimestampGranularitiesString) IsKnown() bool {
 	switch r {
-	case AudioTranslationNewParamsTimestampGranularitiesSegment, AudioTranslationNewParamsTimestampGranularitiesWord:
+	case AudioTranslationNewParamsTimestampGranularitiesStringSegment, AudioTranslationNewParamsTimestampGranularitiesStringWord:
+		return true
+	}
+	return false
+}
+
+func (r AudioTranslationNewParamsTimestampGranularitiesString) implementsAudioTranslationNewParamsTimestampGranularitiesUnion() {
+}
+
+type AudioTranslationNewParamsTimestampGranularitiesArray []AudioTranslationNewParamsTimestampGranularitiesArrayItem
+
+func (r AudioTranslationNewParamsTimestampGranularitiesArray) implementsAudioTranslationNewParamsTimestampGranularitiesUnion() {
+}
+
+type AudioTranslationNewParamsTimestampGranularitiesArrayItem string
+
+const (
+	AudioTranslationNewParamsTimestampGranularitiesArrayItemSegment AudioTranslationNewParamsTimestampGranularitiesArrayItem = "segment"
+	AudioTranslationNewParamsTimestampGranularitiesArrayItemWord    AudioTranslationNewParamsTimestampGranularitiesArrayItem = "word"
+)
+
+func (r AudioTranslationNewParamsTimestampGranularitiesArrayItem) IsKnown() bool {
+	switch r {
+	case AudioTranslationNewParamsTimestampGranularitiesArrayItemSegment, AudioTranslationNewParamsTimestampGranularitiesArrayItemWord:
 		return true
 	}
 	return false
