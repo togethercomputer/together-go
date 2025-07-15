@@ -34,7 +34,7 @@ func TestAudioTranslationNewWithOptionalParams(t *testing.T) {
 		Prompt:                 together.F("prompt"),
 		ResponseFormat:         together.F(together.AudioTranslationNewParamsResponseFormatJson),
 		Temperature:            together.F(0.000000),
-		TimestampGranularities: together.F(together.AudioTranslationNewParamsTimestampGranularitiesSegment),
+		TimestampGranularities: together.F[together.AudioTranslationNewParamsTimestampGranularitiesUnion](together.AudioTranslationNewParamsTimestampGranularitiesArray([]together.AudioTranslationNewParamsTimestampGranularitiesArrayItem{together.AudioTranslationNewParamsTimestampGranularitiesArrayItemWord, together.AudioTranslationNewParamsTimestampGranularitiesArrayItemSegment})),
 	})
 	if err != nil {
 		var apierr *together.Error
