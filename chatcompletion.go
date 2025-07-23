@@ -215,7 +215,7 @@ func (r ChatCompletionObject) IsKnown() bool {
 }
 
 type ChatCompletionWarning struct {
-	Message string                    `json:"message"`
+	Message string                    `json:"message,required"`
 	JSON    chatCompletionWarningJSON `json:"-"`
 }
 
@@ -404,7 +404,7 @@ func (r ChatCompletionChunkObject) IsKnown() bool {
 }
 
 type ChatCompletionChunkWarning struct {
-	Message string                         `json:"message"`
+	Message string                         `json:"message,required"`
 	JSON    chatCompletionChunkWarningJSON `json:"-"`
 }
 
