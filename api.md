@@ -23,7 +23,6 @@ Response Types:
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletion">ChatCompletion</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionChunk">ChatCompletionChunk</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionUsage">ChatCompletionUsage</a>
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ChatCompletionWarnings">ChatCompletionWarnings</a>
 
 Methods:
 
