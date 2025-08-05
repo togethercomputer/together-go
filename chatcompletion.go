@@ -558,6 +558,10 @@ type ChatCompletionNewParams struct {
 	// A number between -2.0 and 2.0 where a positive value increases the likelihood of
 	// a model talking about new topics.
 	PresencePenalty param.Field[float64] `json:"presence_penalty"`
+	// Controls the level of reasoning effort the model should apply when generating
+	// responses. Higher values may result in more thoughtful and detailed responses
+	// but may take longer to generate.
+	ReasoningEffort param.Field[ChatCompletionNewParamsReasoningEffort] `json:"reasoning_effort"`
 	// A number that controls the diversity of generated text by reducing the
 	// likelihood of repeated sequences. Higher values decrease repetition.
 	RepetitionPenalty param.Field[float64] `json:"repetition_penalty"`
@@ -1015,6 +1019,25 @@ func (r ChatCompletionNewParamsFunctionCallName) MarshalJSON() (data []byte, err
 }
 
 func (r ChatCompletionNewParamsFunctionCallName) implementsChatCompletionNewParamsFunctionCallUnion() {
+}
+
+// Controls the level of reasoning effort the model should apply when generating
+// responses. Higher values may result in more thoughtful and detailed responses
+// but may take longer to generate.
+type ChatCompletionNewParamsReasoningEffort string
+
+const (
+	ChatCompletionNewParamsReasoningEffortLow    ChatCompletionNewParamsReasoningEffort = "low"
+	ChatCompletionNewParamsReasoningEffortMedium ChatCompletionNewParamsReasoningEffort = "medium"
+	ChatCompletionNewParamsReasoningEffortHigh   ChatCompletionNewParamsReasoningEffort = "high"
+)
+
+func (r ChatCompletionNewParamsReasoningEffort) IsKnown() bool {
+	switch r {
+	case ChatCompletionNewParamsReasoningEffortLow, ChatCompletionNewParamsReasoningEffortMedium, ChatCompletionNewParamsReasoningEffortHigh:
+		return true
+	}
+	return false
 }
 
 // An object specifying the format that the model must output.

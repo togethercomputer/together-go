@@ -46,6 +46,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		MinP:              together.F(0.000000),
 		N:                 together.F(int64(1)),
 		PresencePenalty:   together.F(0.000000),
+		ReasoningEffort:   together.F(together.ChatCompletionNewParamsReasoningEffortMedium),
 		RepetitionPenalty: together.F(0.000000),
 		ResponseFormat: together.F(together.ChatCompletionNewParamsResponseFormat{
 			Schema: together.F(map[string]interface{}{
