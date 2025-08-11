@@ -282,8 +282,9 @@ func (r AudioTranscriptionNewResponseTask) IsKnown() bool {
 }
 
 type AudioTranscriptionNewParams struct {
-	// Audio file to transcribe
-	File param.Field[io.Reader] `json:"file,required" format:"binary"`
+	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
+	// .webm, .flac.
+	File param.Field[AudioTranscriptionNewParamsFileUnion] `json:"file,required"`
 	// Optional ISO 639-1 language code. If `auto` is provided, language is
 	// auto-detected.
 	Language param.Field[string] `json:"language"`
@@ -314,6 +315,98 @@ func (r AudioTranscriptionNewParams) MarshalMultipart() (data []byte, contentTyp
 		return nil, "", err
 	}
 	return buf.Bytes(), writer.FormDataContentType(), nil
+}
+
+// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
+// .webm, .flac.
+type AudioTranscriptionNewParamsFile struct {
+	Type param.Field[AudioTranscriptionNewParamsFileType] `json:"type,required"`
+	// Audio file to transcribe
+	Data param.Field[io.Reader] `json:"data" format:"binary"`
+	// Public HTTPS URL to audio file
+	URL param.Field[string] `json:"url" format:"uri"`
+}
+
+func (r AudioTranscriptionNewParamsFile) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r AudioTranscriptionNewParamsFile) implementsAudioTranscriptionNewParamsFileUnion() {}
+
+// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
+// .webm, .flac.
+//
+// Satisfied by [AudioTranscriptionNewParamsFileBinary],
+// [AudioTranscriptionNewParamsFileURL], [AudioTranscriptionNewParamsFile].
+type AudioTranscriptionNewParamsFileUnion interface {
+	implementsAudioTranscriptionNewParamsFileUnion()
+}
+
+type AudioTranscriptionNewParamsFileBinary struct {
+	// Audio file to transcribe
+	Data param.Field[io.Reader]                                 `json:"data,required" format:"binary"`
+	Type param.Field[AudioTranscriptionNewParamsFileBinaryType] `json:"type,required"`
+}
+
+func (r AudioTranscriptionNewParamsFileBinary) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r AudioTranscriptionNewParamsFileBinary) implementsAudioTranscriptionNewParamsFileUnion() {}
+
+type AudioTranscriptionNewParamsFileBinaryType string
+
+const (
+	AudioTranscriptionNewParamsFileBinaryTypeBinary AudioTranscriptionNewParamsFileBinaryType = "binary"
+)
+
+func (r AudioTranscriptionNewParamsFileBinaryType) IsKnown() bool {
+	switch r {
+	case AudioTranscriptionNewParamsFileBinaryTypeBinary:
+		return true
+	}
+	return false
+}
+
+type AudioTranscriptionNewParamsFileURL struct {
+	Type param.Field[AudioTranscriptionNewParamsFileURLType] `json:"type,required"`
+	// Public HTTPS URL to audio file
+	URL param.Field[string] `json:"url,required" format:"uri"`
+}
+
+func (r AudioTranscriptionNewParamsFileURL) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r AudioTranscriptionNewParamsFileURL) implementsAudioTranscriptionNewParamsFileUnion() {}
+
+type AudioTranscriptionNewParamsFileURLType string
+
+const (
+	AudioTranscriptionNewParamsFileURLTypeURL AudioTranscriptionNewParamsFileURLType = "url"
+)
+
+func (r AudioTranscriptionNewParamsFileURLType) IsKnown() bool {
+	switch r {
+	case AudioTranscriptionNewParamsFileURLTypeURL:
+		return true
+	}
+	return false
+}
+
+type AudioTranscriptionNewParamsFileType string
+
+const (
+	AudioTranscriptionNewParamsFileTypeBinary AudioTranscriptionNewParamsFileType = "binary"
+	AudioTranscriptionNewParamsFileTypeURL    AudioTranscriptionNewParamsFileType = "url"
+)
+
+func (r AudioTranscriptionNewParamsFileType) IsKnown() bool {
+	switch r {
+	case AudioTranscriptionNewParamsFileTypeBinary, AudioTranscriptionNewParamsFileTypeURL:
+		return true
+	}
+	return false
 }
 
 // Model to use for transcription
