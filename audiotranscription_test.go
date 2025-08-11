@@ -28,7 +28,10 @@ func TestAudioTranscriptionNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Audio.Transcriptions.New(context.TODO(), together.AudioTranscriptionNewParams{
-		File:                   together.F(io.Reader(bytes.NewBuffer([]byte("some file contents")))),
+		File: together.F[together.AudioTranscriptionNewParamsFileUnion](together.AudioTranscriptionNewParamsFileBinary{
+			Data: together.F(io.Reader(bytes.NewBuffer([]byte("some file contents")))),
+			Type: together.F(together.AudioTranscriptionNewParamsFileBinaryTypeBinary),
+		}),
 		Language:               together.F("en"),
 		Model:                  together.F(together.AudioTranscriptionNewParamsModelOpenAIWhisperLargeV3),
 		Prompt:                 together.F("prompt"),
