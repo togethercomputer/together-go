@@ -162,6 +162,8 @@ type FineTune struct {
 	EvalSteps            int64                      `json:"eval_steps"`
 	Events               []FineTuneEvent            `json:"events"`
 	FromCheckpoint       string                     `json:"from_checkpoint"`
+	FromHfModel          string                     `json:"from_hf_model"`
+	HfModelRevision      string                     `json:"hf_model_revision"`
 	JobID                string                     `json:"job_id"`
 	LearningRate         float64                    `json:"learning_rate"`
 	LrScheduler          LrScheduler                `json:"lr_scheduler"`
@@ -201,6 +203,8 @@ type fineTuneJSON struct {
 	EvalSteps            apijson.Field
 	Events               apijson.Field
 	FromCheckpoint       apijson.Field
+	FromHfModel          apijson.Field
+	HfModelRevision      apijson.Field
 	JobID                apijson.Field
 	LearningRate         apijson.Field
 	LrScheduler          apijson.Field
@@ -1091,6 +1095,10 @@ type FineTuneNewResponse struct {
 	Events []FineTuneEvent `json:"events"`
 	// Checkpoint used to continue training
 	FromCheckpoint string `json:"from_checkpoint"`
+	// Hugging Face Hub repo to start training from
+	FromHfModel string `json:"from_hf_model"`
+	// The revision of the Hugging Face Hub model to continue training from
+	HfModelRevision string `json:"hf_model_revision"`
 	// Learning rate used for training
 	LearningRate float64 `json:"learning_rate"`
 	// Learning rate scheduler configuration
@@ -1145,6 +1153,8 @@ type fineTuneNewResponseJSON struct {
 	BatchSize        apijson.Field
 	Events           apijson.Field
 	FromCheckpoint   apijson.Field
+	FromHfModel      apijson.Field
+	HfModelRevision  apijson.Field
 	LearningRate     apijson.Field
 	LrScheduler      apijson.Field
 	MaxGradNorm      apijson.Field
@@ -1405,6 +1415,10 @@ type FineTuneListResponseData struct {
 	Events []FineTuneEvent `json:"events"`
 	// Checkpoint used to continue training
 	FromCheckpoint string `json:"from_checkpoint"`
+	// Hugging Face Hub repo to start training from
+	FromHfModel string `json:"from_hf_model"`
+	// The revision of the Hugging Face Hub model to continue training from
+	HfModelRevision string `json:"hf_model_revision"`
 	// Learning rate used for training
 	LearningRate float64 `json:"learning_rate"`
 	// Learning rate scheduler configuration
@@ -1459,6 +1473,8 @@ type fineTuneListResponseDataJSON struct {
 	BatchSize        apijson.Field
 	Events           apijson.Field
 	FromCheckpoint   apijson.Field
+	FromHfModel      apijson.Field
+	HfModelRevision  apijson.Field
 	LearningRate     apijson.Field
 	LrScheduler      apijson.Field
 	MaxGradNorm      apijson.Field
@@ -1698,6 +1714,10 @@ type FineTuneCancelResponse struct {
 	Events []FineTuneEvent `json:"events"`
 	// Checkpoint used to continue training
 	FromCheckpoint string `json:"from_checkpoint"`
+	// Hugging Face Hub repo to start training from
+	FromHfModel string `json:"from_hf_model"`
+	// The revision of the Hugging Face Hub model to continue training from
+	HfModelRevision string `json:"hf_model_revision"`
 	// Learning rate used for training
 	LearningRate float64 `json:"learning_rate"`
 	// Learning rate scheduler configuration
@@ -1752,6 +1772,8 @@ type fineTuneCancelResponseJSON struct {
 	BatchSize        apijson.Field
 	Events           apijson.Field
 	FromCheckpoint   apijson.Field
+	FromHfModel      apijson.Field
+	HfModelRevision  apijson.Field
 	LearningRate     apijson.Field
 	LrScheduler      apijson.Field
 	MaxGradNorm      apijson.Field
@@ -2101,8 +2123,16 @@ type FineTuneNewParams struct {
 	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
 	// final checkpoint will be used.
 	FromCheckpoint param.Field[string] `json:"from_checkpoint"`
+	// The Hugging Face Hub repo to start training from. Should be as close as possible
+	// to the base model (specified by the `model` argument) in terms of architecture
+	// and size.
+	FromHfModel param.Field[string] `json:"from_hf_model"`
 	// The API token for the Hugging Face Hub.
 	HfAPIToken param.Field[string] `json:"hf_api_token"`
+	// The revision of the Hugging Face Hub model to continue training from. E.g.,
+	// hf_model_revision=main (default, used if the argument is not provided) or
+	// hf_model_revision='607a30d783dfa663caf39e06633721c8d4cfcd7e' (specific commit).
+	HfModelRevision param.Field[string] `json:"hf_model_revision"`
 	// The name of the Hugging Face repository to upload the fine-tuned model to.
 	HfOutputRepoName param.Field[string] `json:"hf_output_repo_name"`
 	// Controls how quickly the model adapts to new information (too high may cause
