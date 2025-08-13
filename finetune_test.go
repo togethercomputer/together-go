@@ -31,7 +31,9 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		TrainingFile:     together.F("training_file"),
 		BatchSize:        together.F[together.FineTuneNewParamsBatchSizeUnion](shared.UnionInt(int64(0))),
 		FromCheckpoint:   together.F("from_checkpoint"),
+		FromHfModel:      together.F("from_hf_model"),
 		HfAPIToken:       together.F("hf_api_token"),
+		HfModelRevision:  together.F("hf_model_revision"),
 		HfOutputRepoName: together.F("hf_output_repo_name"),
 		LearningRate:     together.F(0.000000),
 		LrScheduler: together.F(together.LrSchedulerParam{
