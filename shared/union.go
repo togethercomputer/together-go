@@ -10,6 +10,12 @@ func (UnionString) ImplementsChatCompletionNewParamsToolChoiceUnion()    {}
 func (UnionString) ImplementsEmbeddingNewParamsInputUnion()              {}
 func (UnionString) ImplementsExecuteResponseFailedExecutionErrorsUnion() {}
 func (UnionString) ImplementsSessionListResponseErrorsUnion()            {}
+func (UnionString) ImplementsEvaluationNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion() {
+}
+func (UnionString) ImplementsEvaluationNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion() {
+}
+func (UnionString) ImplementsEvaluationNewParamsParametersEvaluationCompareParametersModelAUnion() {}
+func (UnionString) ImplementsEvaluationNewParamsParametersEvaluationCompareParametersModelBUnion() {}
 
 type UnionBool bool
 

@@ -29,6 +29,8 @@ type Client struct {
 	Endpoints       *EndpointService
 	Hardware        *HardwareService
 	Batches         *BatchService
+	Evaluation      *EvaluationService
+	Evaluations     *EvaluationService
 }
 
 // DefaultClientOptions read from the environment (TOGETHER_API_KEY,
@@ -66,6 +68,8 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 	r.Endpoints = NewEndpointService(opts...)
 	r.Hardware = NewHardwareService(opts...)
 	r.Batches = NewBatchService(opts...)
+	r.Evaluation = NewEvaluationService(opts...)
+	r.Evaluations = NewEvaluationService(opts...)
 
 	return
 }
