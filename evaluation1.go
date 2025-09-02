@@ -58,7 +58,7 @@ type EvaluationListResponse struct {
 	// ID of the job owner (admin only)
 	OwnerID string `json:"owner_id"`
 	// The parameters used for this evaluation
-	Parameters interface{} `json:"parameters"`
+	Parameters map[string]interface{} `json:"parameters"`
 	// Results of the evaluation (when completed)
 	Results EvaluationListResponseResults `json:"results,nullable"`
 	// Current status of the job
@@ -102,7 +102,8 @@ func (r evaluationListResponseJSON) RawJSON() string {
 type EvaluationListResponseResults struct {
 	// Number of times model A won
 	AWins int64 `json:"A_wins"`
-	// This field can have the runtime type of [interface{}].
+	// This field can have the runtime type of
+	// [EvaluationListResponseResultsEvaluationScoreResultsAggregatedScores].
 	AggregatedScores interface{} `json:"aggregated_scores"`
 	// Number of times model B won
 	BWins int64  `json:"B_wins"`
@@ -251,8 +252,7 @@ func (r EvaluationListResponseResultsEvaluationClassifyResults) implementsEvalua
 }
 
 type EvaluationListResponseResultsEvaluationScoreResults struct {
-	// Aggregated score statistics
-	AggregatedScores interface{} `json:"aggregated_scores"`
+	AggregatedScores EvaluationListResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
 	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
@@ -288,6 +288,32 @@ func (r evaluationListResponseResultsEvaluationScoreResultsJSON) RawJSON() strin
 }
 
 func (r EvaluationListResponseResultsEvaluationScoreResults) implementsEvaluationListResponseResults() {
+}
+
+type EvaluationListResponseResultsEvaluationScoreResultsAggregatedScores struct {
+	MeanScore      float64                                                                 `json:"mean_score"`
+	PassPercentage float64                                                                 `json:"pass_percentage"`
+	StdScore       float64                                                                 `json:"std_score"`
+	JSON           evaluationListResponseResultsEvaluationScoreResultsAggregatedScoresJSON `json:"-"`
+}
+
+// evaluationListResponseResultsEvaluationScoreResultsAggregatedScoresJSON contains
+// the JSON metadata for the struct
+// [EvaluationListResponseResultsEvaluationScoreResultsAggregatedScores]
+type evaluationListResponseResultsEvaluationScoreResultsAggregatedScoresJSON struct {
+	MeanScore      apijson.Field
+	PassPercentage apijson.Field
+	StdScore       apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *EvaluationListResponseResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r evaluationListResponseResultsEvaluationScoreResultsAggregatedScoresJSON) RawJSON() string {
+	return r.raw
 }
 
 type EvaluationListResponseResultsEvaluationCompareResults struct {
