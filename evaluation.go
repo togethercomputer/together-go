@@ -166,7 +166,7 @@ type EvaluationGetResponse struct {
 	// ID of the job owner (admin only)
 	OwnerID string `json:"owner_id"`
 	// The parameters used for this evaluation
-	Parameters interface{} `json:"parameters"`
+	Parameters map[string]interface{} `json:"parameters"`
 	// Results of the evaluation (when completed)
 	Results EvaluationGetResponseResults `json:"results,nullable"`
 	// Current status of the job
@@ -210,7 +210,8 @@ func (r evaluationGetResponseJSON) RawJSON() string {
 type EvaluationGetResponseResults struct {
 	// Number of times model A won
 	AWins int64 `json:"A_wins"`
-	// This field can have the runtime type of [interface{}].
+	// This field can have the runtime type of
+	// [EvaluationGetResponseResultsEvaluationScoreResultsAggregatedScores].
 	AggregatedScores interface{} `json:"aggregated_scores"`
 	// Number of times model B won
 	BWins int64  `json:"B_wins"`
@@ -359,8 +360,7 @@ func (r EvaluationGetResponseResultsEvaluationClassifyResults) implementsEvaluat
 }
 
 type EvaluationGetResponseResultsEvaluationScoreResults struct {
-	// Aggregated score statistics
-	AggregatedScores interface{} `json:"aggregated_scores"`
+	AggregatedScores EvaluationGetResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
 	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
@@ -396,6 +396,32 @@ func (r evaluationGetResponseResultsEvaluationScoreResultsJSON) RawJSON() string
 }
 
 func (r EvaluationGetResponseResultsEvaluationScoreResults) implementsEvaluationGetResponseResults() {
+}
+
+type EvaluationGetResponseResultsEvaluationScoreResultsAggregatedScores struct {
+	MeanScore      float64                                                                `json:"mean_score"`
+	PassPercentage float64                                                                `json:"pass_percentage"`
+	StdScore       float64                                                                `json:"std_score"`
+	JSON           evaluationGetResponseResultsEvaluationScoreResultsAggregatedScoresJSON `json:"-"`
+}
+
+// evaluationGetResponseResultsEvaluationScoreResultsAggregatedScoresJSON contains
+// the JSON metadata for the struct
+// [EvaluationGetResponseResultsEvaluationScoreResultsAggregatedScores]
+type evaluationGetResponseResultsEvaluationScoreResultsAggregatedScoresJSON struct {
+	MeanScore      apijson.Field
+	PassPercentage apijson.Field
+	StdScore       apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *EvaluationGetResponseResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r evaluationGetResponseResultsEvaluationScoreResultsAggregatedScoresJSON) RawJSON() string {
+	return r.raw
 }
 
 type EvaluationGetResponseResultsEvaluationCompareResults struct {
@@ -555,7 +581,8 @@ func (r evaluationGetStatusResponseJSON) RawJSON() string {
 type EvaluationGetStatusResponseResults struct {
 	// Number of times model A won
 	AWins int64 `json:"A_wins"`
-	// This field can have the runtime type of [interface{}].
+	// This field can have the runtime type of
+	// [EvaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScores].
 	AggregatedScores interface{} `json:"aggregated_scores"`
 	// Number of times model B won
 	BWins int64  `json:"B_wins"`
@@ -704,8 +731,7 @@ func (r EvaluationGetStatusResponseResultsEvaluationClassifyResults) implementsE
 }
 
 type EvaluationGetStatusResponseResultsEvaluationScoreResults struct {
-	// Aggregated score statistics
-	AggregatedScores interface{} `json:"aggregated_scores"`
+	AggregatedScores EvaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
 	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
@@ -742,6 +768,32 @@ func (r evaluationGetStatusResponseResultsEvaluationScoreResultsJSON) RawJSON() 
 }
 
 func (r EvaluationGetStatusResponseResultsEvaluationScoreResults) implementsEvaluationGetStatusResponseResults() {
+}
+
+type EvaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScores struct {
+	MeanScore      float64                                                                      `json:"mean_score"`
+	PassPercentage float64                                                                      `json:"pass_percentage"`
+	StdScore       float64                                                                      `json:"std_score"`
+	JSON           evaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScoresJSON `json:"-"`
+}
+
+// evaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScoresJSON
+// contains the JSON metadata for the struct
+// [EvaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScores]
+type evaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScoresJSON struct {
+	MeanScore      apijson.Field
+	PassPercentage apijson.Field
+	StdScore       apijson.Field
+	raw            string
+	ExtraFields    map[string]apijson.Field
+}
+
+func (r *EvaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r evaluationGetStatusResponseResultsEvaluationScoreResultsAggregatedScoresJSON) RawJSON() string {
+	return r.raw
 }
 
 type EvaluationGetStatusResponseResultsEvaluationCompareResults struct {
@@ -1004,9 +1056,8 @@ type EvaluationUpdateStatusParams struct {
 	// The new status for the job
 	Status param.Field[EvaluationUpdateStatusParamsStatus] `json:"status,required"`
 	// Error message
-	Error param.Field[string] `json:"error"`
-	// Job results (required when status is 'completed')
-	Results param.Field[interface{}] `json:"results"`
+	Error   param.Field[string]                                   `json:"error"`
+	Results param.Field[EvaluationUpdateStatusParamsResultsUnion] `json:"results"`
 }
 
 func (r EvaluationUpdateStatusParams) MarshalJSON() (data []byte, err error) {
@@ -1031,4 +1082,123 @@ func (r EvaluationUpdateStatusParamsStatus) IsKnown() bool {
 		return true
 	}
 	return false
+}
+
+type EvaluationUpdateStatusParamsResults struct {
+	// Number of times model A won
+	AWins            param.Field[int64]       `json:"A_wins"`
+	AggregatedScores param.Field[interface{}] `json:"aggregated_scores"`
+	// Number of times model B won
+	BWins param.Field[int64] `json:"B_wins"`
+	// number of failed samples generated from model
+	FailedSamples param.Field[float64] `json:"failed_samples"`
+	// Number of failed generations.
+	GenerationFailCount param.Field[float64] `json:"generation_fail_count"`
+	// Number of invalid labels
+	InvalidLabelCount param.Field[float64] `json:"invalid_label_count"`
+	// number of invalid scores generated from model
+	InvalidScoreCount param.Field[float64] `json:"invalid_score_count"`
+	// Number of failed judge generations
+	JudgeFailCount param.Field[float64] `json:"judge_fail_count"`
+	// JSON string representing label counts
+	LabelCounts param.Field[string] `json:"label_counts"`
+	// Total number of samples compared
+	NumSamples param.Field[int64] `json:"num_samples"`
+	// Pecentage of pass labels.
+	PassPercentage param.Field[float64] `json:"pass_percentage"`
+	// Data File ID
+	ResultFileID param.Field[string] `json:"result_file_id"`
+	// Number of ties
+	Ties param.Field[int64] `json:"Ties"`
+}
+
+func (r EvaluationUpdateStatusParamsResults) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r EvaluationUpdateStatusParamsResults) implementsEvaluationUpdateStatusParamsResultsUnion() {}
+
+// Satisfied by [EvaluationUpdateStatusParamsResultsEvaluationClassifyResults],
+// [EvaluationUpdateStatusParamsResultsEvaluationScoreResults],
+// [EvaluationUpdateStatusParamsResultsEvaluationCompareResults],
+// [EvaluationUpdateStatusParamsResults].
+type EvaluationUpdateStatusParamsResultsUnion interface {
+	implementsEvaluationUpdateStatusParamsResultsUnion()
+}
+
+type EvaluationUpdateStatusParamsResultsEvaluationClassifyResults struct {
+	// Number of failed generations.
+	GenerationFailCount param.Field[float64] `json:"generation_fail_count"`
+	// Number of invalid labels
+	InvalidLabelCount param.Field[float64] `json:"invalid_label_count"`
+	// Number of failed judge generations
+	JudgeFailCount param.Field[float64] `json:"judge_fail_count"`
+	// JSON string representing label counts
+	LabelCounts param.Field[string] `json:"label_counts"`
+	// Pecentage of pass labels.
+	PassPercentage param.Field[float64] `json:"pass_percentage"`
+	// Data File ID
+	ResultFileID param.Field[string] `json:"result_file_id"`
+}
+
+func (r EvaluationUpdateStatusParamsResultsEvaluationClassifyResults) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r EvaluationUpdateStatusParamsResultsEvaluationClassifyResults) implementsEvaluationUpdateStatusParamsResultsUnion() {
+}
+
+type EvaluationUpdateStatusParamsResultsEvaluationScoreResults struct {
+	AggregatedScores param.Field[EvaluationUpdateStatusParamsResultsEvaluationScoreResultsAggregatedScores] `json:"aggregated_scores"`
+	// number of failed samples generated from model
+	FailedSamples param.Field[float64] `json:"failed_samples"`
+	// Number of failed generations.
+	GenerationFailCount param.Field[float64] `json:"generation_fail_count"`
+	// number of invalid scores generated from model
+	InvalidScoreCount param.Field[float64] `json:"invalid_score_count"`
+	// Number of failed judge generations
+	JudgeFailCount param.Field[float64] `json:"judge_fail_count"`
+	// Data File ID
+	ResultFileID param.Field[string] `json:"result_file_id"`
+}
+
+func (r EvaluationUpdateStatusParamsResultsEvaluationScoreResults) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r EvaluationUpdateStatusParamsResultsEvaluationScoreResults) implementsEvaluationUpdateStatusParamsResultsUnion() {
+}
+
+type EvaluationUpdateStatusParamsResultsEvaluationScoreResultsAggregatedScores struct {
+	MeanScore      param.Field[float64] `json:"mean_score"`
+	PassPercentage param.Field[float64] `json:"pass_percentage"`
+	StdScore       param.Field[float64] `json:"std_score"`
+}
+
+func (r EvaluationUpdateStatusParamsResultsEvaluationScoreResultsAggregatedScores) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+type EvaluationUpdateStatusParamsResultsEvaluationCompareResults struct {
+	// Number of times model A won
+	AWins param.Field[int64] `json:"A_wins"`
+	// Number of times model B won
+	BWins param.Field[int64] `json:"B_wins"`
+	// Number of failed generations.
+	GenerationFailCount param.Field[float64] `json:"generation_fail_count"`
+	// Number of failed judge generations
+	JudgeFailCount param.Field[float64] `json:"judge_fail_count"`
+	// Total number of samples compared
+	NumSamples param.Field[int64] `json:"num_samples"`
+	// Data File ID
+	ResultFileID param.Field[string] `json:"result_file_id"`
+	// Number of ties
+	Ties param.Field[int64] `json:"Ties"`
+}
+
+func (r EvaluationUpdateStatusParamsResultsEvaluationCompareResults) MarshalJSON() (data []byte, err error) {
+	return apijson.MarshalRoot(r)
+}
+
+func (r EvaluationUpdateStatusParamsResultsEvaluationCompareResults) implementsEvaluationUpdateStatusParamsResultsUnion() {
 }

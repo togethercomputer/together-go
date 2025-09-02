@@ -108,9 +108,16 @@ func TestEvaluationUpdateStatusWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"id",
 		together.EvaluationUpdateStatusParams{
-			Status:  together.F(together.EvaluationUpdateStatusParamsStatusCompleted),
-			Error:   together.F("error"),
-			Results: together.F[any](map[string]interface{}{}),
+			Status: together.F(together.EvaluationUpdateStatusParamsStatusCompleted),
+			Error:  together.F("error"),
+			Results: together.F[together.EvaluationUpdateStatusParamsResultsUnion](together.EvaluationUpdateStatusParamsResultsEvaluationClassifyResults{
+				GenerationFailCount: together.F(0.000000),
+				InvalidLabelCount:   together.F(0.000000),
+				JudgeFailCount:      together.F(0.000000),
+				LabelCounts:         together.F(`{"yes": 10, "no": 0}`),
+				PassPercentage:      together.F(10.000000),
+				ResultFileID:        together.F("file-1234-aefd"),
+			}),
 		},
 	)
 	if err != nil {
