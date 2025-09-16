@@ -139,6 +139,7 @@ type ChatCompletionChoicesMessage struct {
 	Role    ChatCompletionChoicesMessageRole `json:"role,required"`
 	// Deprecated: deprecated
 	FunctionCall ChatCompletionChoicesMessageFunctionCall `json:"function_call"`
+	Reasoning    string                                   `json:"reasoning,nullable"`
 	ToolCalls    []ToolChoice                             `json:"tool_calls"`
 	JSON         chatCompletionChoicesMessageJSON         `json:"-"`
 }
@@ -149,6 +150,7 @@ type chatCompletionChoicesMessageJSON struct {
 	Content      apijson.Field
 	Role         apijson.Field
 	FunctionCall apijson.Field
+	Reasoning    apijson.Field
 	ToolCalls    apijson.Field
 	raw          string
 	ExtraFields  map[string]apijson.Field
