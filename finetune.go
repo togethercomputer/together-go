@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -41,7 +42,7 @@ func NewFineTuneService(opts ...option.RequestOption) (r *FineTuneService) {
 
 // Create a fine-tuning job with the provided model and training data.
 func (r *FineTuneService) New(ctx context.Context, body FineTuneNewParams, opts ...option.RequestOption) (res *FineTuneNewResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "fine-tunes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
@@ -49,7 +50,7 @@ func (r *FineTuneService) New(ctx context.Context, body FineTuneNewParams, opts 
 
 // List the metadata for a single fine-tuning job.
 func (r *FineTuneService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTune, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -62,7 +63,7 @@ func (r *FineTuneService) Get(ctx context.Context, id string, opts ...option.Req
 // List the metadata for all fine-tuning jobs. Returns a list of
 // FinetuneResponseTruncated objects.
 func (r *FineTuneService) List(ctx context.Context, opts ...option.RequestOption) (res *FineTuneListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "fine-tunes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
@@ -71,7 +72,7 @@ func (r *FineTuneService) List(ctx context.Context, opts ...option.RequestOption
 // Cancel a currently running fine-tuning job. Returns a FinetuneResponseTruncated
 // object.
 func (r *FineTuneService) Cancel(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneCancelResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -83,7 +84,7 @@ func (r *FineTuneService) Cancel(ctx context.Context, id string, opts ...option.
 
 // Download a compressed fine-tuned model or checkpoint to local disk.
 func (r *FineTuneService) Download(ctx context.Context, query FineTuneDownloadParams, opts ...option.RequestOption) (res *FineTuneDownloadResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "finetune/download"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
@@ -91,7 +92,7 @@ func (r *FineTuneService) Download(ctx context.Context, query FineTuneDownloadPa
 
 // List the events for a single fine-tuning job.
 func (r *FineTuneService) ListEvents(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneListEventsResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -103,7 +104,7 @@ func (r *FineTuneService) ListEvents(ctx context.Context, id string, opts ...opt
 
 // List the checkpoints for a single fine-tuning job.
 func (r *FineTuneService) GetCheckpoints(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneGetCheckpointsResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return

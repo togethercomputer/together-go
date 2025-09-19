@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -38,7 +39,7 @@ func NewEvaluationService(opts ...option.RequestOption) (r *EvaluationService) {
 
 // Get a list of evaluation jobs with optional filtering
 func (r *EvaluationService) List(ctx context.Context, query EvaluationListParams, opts ...option.RequestOption) (res *[]EvaluationListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "evaluations"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
@@ -46,7 +47,7 @@ func (r *EvaluationService) List(ctx context.Context, query EvaluationListParams
 
 // Get the list of models that are allowed for evaluation
 func (r *EvaluationService) GetAllowedModels(ctx context.Context, opts ...option.RequestOption) (res *EvaluationGetAllowedModelsResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "evaluations/model-list"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return

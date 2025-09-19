@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -36,7 +37,7 @@ func NewCodeInterpreterSessionService(opts ...option.RequestOption) (r *CodeInte
 
 // Lists all your currently active sessions.
 func (r *CodeInterpreterSessionService) List(ctx context.Context, opts ...option.RequestOption) (res *SessionListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "tci/sessions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return

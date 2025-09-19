@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -38,7 +39,7 @@ func NewEvaluationService(opts ...option.RequestOption) (r *EvaluationService) {
 
 // Creates a new evaluation job for classify, score, or compare tasks
 func (r *EvaluationService) New(ctx context.Context, body EvaluationNewParams, opts ...option.RequestOption) (res *EvaluationNewResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
@@ -46,7 +47,7 @@ func (r *EvaluationService) New(ctx context.Context, body EvaluationNewParams, o
 
 // Get details of a specific evaluation job
 func (r *EvaluationService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *EvaluationGetResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -58,7 +59,7 @@ func (r *EvaluationService) Get(ctx context.Context, id string, opts ...option.R
 
 // Get the status and results of a specific evaluation job
 func (r *EvaluationService) GetStatus(ctx context.Context, id string, opts ...option.RequestOption) (res *EvaluationGetStatusResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -70,7 +71,7 @@ func (r *EvaluationService) GetStatus(ctx context.Context, id string, opts ...op
 
 // Internal callback endpoint for workflows to update job status and results
 func (r *EvaluationService) UpdateStatus(ctx context.Context, id string, body EvaluationUpdateStatusParams, opts ...option.RequestOption) (res *EvaluationUpdateStatusResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return

@@ -5,6 +5,7 @@ package together
 import (
 	"context"
 	"net/http"
+	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/param"
@@ -34,7 +35,7 @@ func NewCompletionService(opts ...option.RequestOption) (r *CompletionService) {
 
 // Query a language, code, or image model.
 func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (res *Completion, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
@@ -46,7 +47,7 @@ func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNew
 		raw *http.Response
 		err error
 	)
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithJSONSet("stream", true)}, opts...)
 	path := "completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)

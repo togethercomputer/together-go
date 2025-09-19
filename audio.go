@@ -5,6 +5,7 @@ package together
 import (
 	"context"
 	"net/http"
+	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/param"
@@ -38,7 +39,7 @@ func NewAudioService(opts ...option.RequestOption) (r *AudioService) {
 
 // Generate audio from input text
 func (r *AudioService) New(ctx context.Context, body AudioNewParams, opts ...option.RequestOption) (res *http.Response, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
 	path := "audio/speech"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -51,7 +52,7 @@ func (r *AudioService) NewStreaming(ctx context.Context, body AudioNewParams, op
 		raw *http.Response
 		err error
 	)
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream"), option.WithJSONSet("stream", true)}, opts...)
 	path := "audio/speech"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)

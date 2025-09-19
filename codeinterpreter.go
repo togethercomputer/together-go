@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"reflect"
+	"slices"
 
 	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -42,7 +43,7 @@ func NewCodeInterpreterService(opts ...option.RequestOption) (r *CodeInterpreter
 // multiple code snippets in the same environment, because dependencies and similar
 // things are persisted between calls to the same session.
 func (r *CodeInterpreterService) Execute(ctx context.Context, body CodeInterpreterExecuteParams, opts ...option.RequestOption) (res *ExecuteResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "tci/execute"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return

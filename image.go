@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"reflect"
+	"slices"
 
 	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -35,7 +36,7 @@ func NewImageService(opts ...option.RequestOption) (r *ImageService) {
 
 // Use an image model to generate an image for a given prompt.
 func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...option.RequestOption) (res *ImageFile, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "images/generations"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return

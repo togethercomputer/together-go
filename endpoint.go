@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -40,7 +41,7 @@ func NewEndpointService(opts ...option.RequestOption) (r *EndpointService) {
 // automatically start after creation. You can deploy any supported model on
 // hardware configurations that meet the model's requirements.
 func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts ...option.RequestOption) (res *EndpointNewResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "endpoints"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
@@ -49,7 +50,7 @@ func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts 
 // Retrieves details about a specific endpoint, including its current state,
 // configuration, and scaling settings.
 func (r *EndpointService) Get(ctx context.Context, endpointID string, opts ...option.RequestOption) (res *EndpointGetResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
 		return
@@ -62,7 +63,7 @@ func (r *EndpointService) Get(ctx context.Context, endpointID string, opts ...op
 // Updates an existing endpoint's configuration. You can modify the display name,
 // autoscaling settings, or change the endpoint's state (start/stop).
 func (r *EndpointService) Update(ctx context.Context, endpointID string, body EndpointUpdateParams, opts ...option.RequestOption) (res *EndpointUpdateResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
 		return
@@ -75,7 +76,7 @@ func (r *EndpointService) Update(ctx context.Context, endpointID string, body En
 // Returns a list of all endpoints associated with your account. You can filter the
 // results by type (dedicated or serverless).
 func (r *EndpointService) List(ctx context.Context, query EndpointListParams, opts ...option.RequestOption) (res *EndpointListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "endpoints"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
@@ -83,7 +84,7 @@ func (r *EndpointService) List(ctx context.Context, query EndpointListParams, op
 
 // Permanently deletes an endpoint. This action cannot be undone.
 func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ...option.RequestOption) (err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "")}, opts...)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
