@@ -10,6 +10,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apiform"
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -39,7 +40,7 @@ func NewFileService(opts ...option.RequestOption) (r *FileService) {
 
 // List the metadata for a single uploaded data file.
 func (r *FileService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FileGetResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -51,7 +52,7 @@ func (r *FileService) Get(ctx context.Context, id string, opts ...option.Request
 
 // List the metadata for all uploaded data files.
 func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (res *FileListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "files"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
@@ -59,7 +60,7 @@ func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (r
 
 // Delete a previously uploaded data file.
 func (r *FileService) Delete(ctx context.Context, id string, opts ...option.RequestOption) (res *FileDeleteResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -71,7 +72,7 @@ func (r *FileService) Delete(ctx context.Context, id string, opts ...option.Requ
 
 // Get the contents of a single uploaded data file.
 func (r *FileService) Content(ctx context.Context, id string, opts ...option.RequestOption) (res *http.Response, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/binary")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -84,7 +85,7 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 
 // Upload a file with specified purpose, file name, and file type.
 func (r *FileService) Upload(ctx context.Context, body FileUploadParams, opts ...option.RequestOption) (res *FileUploadResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "files/upload"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return

@@ -5,6 +5,7 @@ package together
 import (
 	"context"
 	"net/http"
+	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/param"
@@ -33,7 +34,7 @@ func NewEmbeddingService(opts ...option.RequestOption) (r *EmbeddingService) {
 
 // Query an embedding model for a given string of text.
 func (r *EmbeddingService) New(ctx context.Context, body EmbeddingNewParams, opts ...option.RequestOption) (res *Embedding, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "embeddings"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return

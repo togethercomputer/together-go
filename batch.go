@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -36,7 +37,7 @@ func NewBatchService(opts ...option.RequestOption) (r *BatchService) {
 
 // Create a new batch job with the given input file and endpoint
 func (r *BatchService) New(ctx context.Context, body BatchNewParams, opts ...option.RequestOption) (res *BatchNewResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "batches"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
@@ -44,7 +45,7 @@ func (r *BatchService) New(ctx context.Context, body BatchNewParams, opts ...opt
 
 // Get details of a batch job by ID
 func (r *BatchService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *BatchGetResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -56,7 +57,7 @@ func (r *BatchService) Get(ctx context.Context, id string, opts ...option.Reques
 
 // List all batch jobs for the authenticated user
 func (r *BatchService) List(ctx context.Context, opts ...option.RequestOption) (res *[]BatchListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "batches"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return

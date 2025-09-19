@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"reflect"
+	"slices"
 
 	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apiform"
@@ -39,7 +40,7 @@ func NewAudioTranscriptionService(opts ...option.RequestOption) (r *AudioTranscr
 
 // Transcribes audio into text
 func (r *AudioTranscriptionService) New(ctx context.Context, body AudioTranscriptionNewParams, opts ...option.RequestOption) (res *AudioTranscriptionNewResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "audio/transcriptions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return

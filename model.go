@@ -5,6 +5,7 @@ package together
 import (
 	"context"
 	"net/http"
+	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/param"
@@ -33,7 +34,7 @@ func NewModelService(opts ...option.RequestOption) (r *ModelService) {
 
 // Lists all of Together's open-source models
 func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (res *[]ModelListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
@@ -41,7 +42,7 @@ func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (
 
 // Upload a custom model or adapter from Hugging Face or S3
 func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts ...option.RequestOption) (res *ModelUploadResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -35,7 +36,7 @@ func NewJobService(opts ...option.RequestOption) (r *JobService) {
 
 // Get the status of a specific job
 func (r *JobService) Get(ctx context.Context, jobID string, opts ...option.RequestOption) (res *JobGetResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
 		return
@@ -47,7 +48,7 @@ func (r *JobService) Get(ctx context.Context, jobID string, opts ...option.Reque
 
 // List all jobs and their statuses
 func (r *JobService) List(ctx context.Context, opts ...option.RequestOption) (res *JobListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "jobs"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return

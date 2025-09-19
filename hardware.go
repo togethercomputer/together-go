@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"slices"
 	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -38,7 +39,7 @@ func NewHardwareService(opts ...option.RequestOption) (r *HardwareService) {
 // model parameter is provided, it returns only hardware configurations compatible
 // with that model, including their current availability status.
 func (r *HardwareService) List(ctx context.Context, query HardwareListParams, opts ...option.RequestOption) (res *HardwareListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "hardware"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
