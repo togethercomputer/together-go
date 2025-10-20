@@ -22,3 +22,7 @@ type UnionInt int64
 
 func (UnionInt) ImplementsFineTuneBatchSizeUnion()          {}
 func (UnionInt) ImplementsFineTuneNewParamsBatchSizeUnion() {}
+
+type UnionFloat float64
+
+func (UnionFloat) ImplementsVideoNewParamsFrameImagesFrameUnion() {}
