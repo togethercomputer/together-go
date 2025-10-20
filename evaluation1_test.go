@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestEvaluationGet(t *testing.T) {
+func TestEvaluationListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,7 +25,10 @@ func TestEvaluationGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Evaluation.Get(context.TODO(), "id")
+	_, err := client.Evaluations.List(context.TODO(), together.EvaluationListParams{
+		Limit:  together.F(int64(1)),
+		Status: together.F(together.EvaluationListParamsStatusPending),
+	})
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -35,7 +38,7 @@ func TestEvaluationGet(t *testing.T) {
 	}
 }
 
-func TestEvaluationGetStatus(t *testing.T) {
+func TestEvaluationGetAllowedModels(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -47,7 +50,7 @@ func TestEvaluationGetStatus(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Evaluation.GetStatus(context.TODO(), "id")
+	_, err := client.Evaluations.GetAllowedModels(context.TODO())
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
