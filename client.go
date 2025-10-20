@@ -17,7 +17,6 @@ import (
 // directly, and instead use the [NewClient] method instead.
 type Client struct {
 	Options         []option.RequestOption
-	Videos          *VideoService
 	Chat            *ChatService
 	Completions     *CompletionService
 	Embeddings      *EmbeddingService
@@ -25,6 +24,7 @@ type Client struct {
 	FineTune        *FineTuneService
 	CodeInterpreter *CodeInterpreterService
 	Images          *ImageService
+	Videos          *VideoService
 	Audio           *AudioService
 	Models          *ModelService
 	Jobs            *JobService
@@ -56,7 +56,6 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 
 	r = &Client{Options: opts}
 
-	r.Videos = NewVideoService(opts...)
 	r.Chat = NewChatService(opts...)
 	r.Completions = NewCompletionService(opts...)
 	r.Embeddings = NewEmbeddingService(opts...)
@@ -64,6 +63,7 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 	r.FineTune = NewFineTuneService(opts...)
 	r.CodeInterpreter = NewCodeInterpreterService(opts...)
 	r.Images = NewImageService(opts...)
+	r.Videos = NewVideoService(opts...)
 	r.Audio = NewAudioService(opts...)
 	r.Models = NewModelService(opts...)
 	r.Jobs = NewJobService(opts...)
