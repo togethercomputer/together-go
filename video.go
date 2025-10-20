@@ -44,7 +44,7 @@ func (r *VideoService) New(ctx context.Context, body VideoNewParams, opts ...opt
 }
 
 // Fetch video metadata
-func (r *VideoService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *VideoGetResponse, err error) {
+func (r *VideoService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *VideoJob, err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.xyz/v2/")}, opts...)
 	if id == "" {
@@ -54,6 +54,137 @@ func (r *VideoService) Get(ctx context.Context, id string, opts ...option.Reques
 	path := fmt.Sprintf("videos/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
+}
+
+// Structured information describing a generated video job.
+type VideoJob struct {
+	// Unique identifier for the video job.
+	ID string `json:"id,required"`
+	// Unix timestamp (seconds) for when the job was created.
+	CreatedAt float64 `json:"created_at,required"`
+	// The video generation model that produced the job.
+	Model string `json:"model,required"`
+	// Duration of the generated clip in seconds.
+	Seconds string `json:"seconds,required"`
+	// The resolution of the generated video.
+	Size string `json:"size,required"`
+	// Current lifecycle status of the video job.
+	Status VideoJobStatus `json:"status,required"`
+	// Unix timestamp (seconds) for when the job completed, if finished.
+	CompletedAt float64 `json:"completed_at"`
+	// Error payload that explains why generation failed, if applicable.
+	Error VideoJobError `json:"error"`
+	// The object type, which is always video.
+	Object VideoJobObject `json:"object"`
+	// Available upon completion, the outputs provides the cost charged and the hosted
+	// url to access the video
+	Outputs VideoJobOutputs `json:"outputs"`
+	JSON    videoJobJSON    `json:"-"`
+}
+
+// videoJobJSON contains the JSON metadata for the struct [VideoJob]
+type videoJobJSON struct {
+	ID          apijson.Field
+	CreatedAt   apijson.Field
+	Model       apijson.Field
+	Seconds     apijson.Field
+	Size        apijson.Field
+	Status      apijson.Field
+	CompletedAt apijson.Field
+	Error       apijson.Field
+	Object      apijson.Field
+	Outputs     apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *VideoJob) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r videoJobJSON) RawJSON() string {
+	return r.raw
+}
+
+// Current lifecycle status of the video job.
+type VideoJobStatus string
+
+const (
+	VideoJobStatusInProgress VideoJobStatus = "in_progress"
+	VideoJobStatusCompleted  VideoJobStatus = "completed"
+	VideoJobStatusFailed     VideoJobStatus = "failed"
+)
+
+func (r VideoJobStatus) IsKnown() bool {
+	switch r {
+	case VideoJobStatusInProgress, VideoJobStatusCompleted, VideoJobStatusFailed:
+		return true
+	}
+	return false
+}
+
+// Error payload that explains why generation failed, if applicable.
+type VideoJobError struct {
+	Message string            `json:"message,required"`
+	Code    string            `json:"code"`
+	JSON    videoJobErrorJSON `json:"-"`
+}
+
+// videoJobErrorJSON contains the JSON metadata for the struct [VideoJobError]
+type videoJobErrorJSON struct {
+	Message     apijson.Field
+	Code        apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *VideoJobError) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r videoJobErrorJSON) RawJSON() string {
+	return r.raw
+}
+
+// The object type, which is always video.
+type VideoJobObject string
+
+const (
+	VideoJobObjectVideo VideoJobObject = "video"
+)
+
+func (r VideoJobObject) IsKnown() bool {
+	switch r {
+	case VideoJobObjectVideo:
+		return true
+	}
+	return false
+}
+
+// Available upon completion, the outputs provides the cost charged and the hosted
+// url to access the video
+type VideoJobOutputs struct {
+	// The cost of generated video charged to the owners account.
+	Cost int64 `json:"cost,required"`
+	// URL hosting the generated video
+	VideoURL string              `json:"video_url,required"`
+	JSON     videoJobOutputsJSON `json:"-"`
+}
+
+// videoJobOutputsJSON contains the JSON metadata for the struct [VideoJobOutputs]
+type videoJobOutputsJSON struct {
+	Cost        apijson.Field
+	VideoURL    apijson.Field
+	raw         string
+	ExtraFields map[string]apijson.Field
+}
+
+func (r *VideoJobOutputs) UnmarshalJSON(data []byte) (err error) {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func (r videoJobOutputsJSON) RawJSON() string {
+	return r.raw
 }
 
 type VideoNewResponse struct {
@@ -75,140 +206,6 @@ func (r *VideoNewResponse) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (r videoNewResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-// Structured information describing a generated video job.
-type VideoGetResponse struct {
-	// Unique identifier for the video job.
-	ID string `json:"id,required"`
-	// Unix timestamp (seconds) for when the job was created.
-	CreatedAt float64 `json:"created_at,required"`
-	// The video generation model that produced the job.
-	Model string `json:"model,required"`
-	// Duration of the generated clip in seconds.
-	Seconds string `json:"seconds,required"`
-	// The resolution of the generated video.
-	Size string `json:"size,required"`
-	// Current lifecycle status of the video job.
-	Status VideoGetResponseStatus `json:"status,required"`
-	// Unix timestamp (seconds) for when the job completed, if finished.
-	CompletedAt float64 `json:"completed_at"`
-	// Error payload that explains why generation failed, if applicable.
-	Error VideoGetResponseError `json:"error"`
-	// The object type, which is always video.
-	Object VideoGetResponseObject `json:"object"`
-	// Available upon completion, the outputs provides the cost charged and the hosted
-	// url to access the video
-	Outputs VideoGetResponseOutputs `json:"outputs"`
-	JSON    videoGetResponseJSON    `json:"-"`
-}
-
-// videoGetResponseJSON contains the JSON metadata for the struct
-// [VideoGetResponse]
-type videoGetResponseJSON struct {
-	ID          apijson.Field
-	CreatedAt   apijson.Field
-	Model       apijson.Field
-	Seconds     apijson.Field
-	Size        apijson.Field
-	Status      apijson.Field
-	CompletedAt apijson.Field
-	Error       apijson.Field
-	Object      apijson.Field
-	Outputs     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *VideoGetResponse) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r videoGetResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-// Current lifecycle status of the video job.
-type VideoGetResponseStatus string
-
-const (
-	VideoGetResponseStatusInProgress VideoGetResponseStatus = "in_progress"
-	VideoGetResponseStatusCompleted  VideoGetResponseStatus = "completed"
-	VideoGetResponseStatusFailed     VideoGetResponseStatus = "failed"
-)
-
-func (r VideoGetResponseStatus) IsKnown() bool {
-	switch r {
-	case VideoGetResponseStatusInProgress, VideoGetResponseStatusCompleted, VideoGetResponseStatusFailed:
-		return true
-	}
-	return false
-}
-
-// Error payload that explains why generation failed, if applicable.
-type VideoGetResponseError struct {
-	Message string                    `json:"message,required"`
-	Code    string                    `json:"code"`
-	JSON    videoGetResponseErrorJSON `json:"-"`
-}
-
-// videoGetResponseErrorJSON contains the JSON metadata for the struct
-// [VideoGetResponseError]
-type videoGetResponseErrorJSON struct {
-	Message     apijson.Field
-	Code        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *VideoGetResponseError) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r videoGetResponseErrorJSON) RawJSON() string {
-	return r.raw
-}
-
-// The object type, which is always video.
-type VideoGetResponseObject string
-
-const (
-	VideoGetResponseObjectVideo VideoGetResponseObject = "video"
-)
-
-func (r VideoGetResponseObject) IsKnown() bool {
-	switch r {
-	case VideoGetResponseObjectVideo:
-		return true
-	}
-	return false
-}
-
-// Available upon completion, the outputs provides the cost charged and the hosted
-// url to access the video
-type VideoGetResponseOutputs struct {
-	// The cost of generated video charged to the owners account.
-	Cost int64 `json:"cost,required"`
-	// URL hosting the generated video
-	VideoURL string                      `json:"video_url,required"`
-	JSON     videoGetResponseOutputsJSON `json:"-"`
-}
-
-// videoGetResponseOutputsJSON contains the JSON metadata for the struct
-// [VideoGetResponseOutputs]
-type videoGetResponseOutputsJSON struct {
-	Cost        apijson.Field
-	VideoURL    apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *VideoGetResponseOutputs) UnmarshalJSON(data []byte) (err error) {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r videoGetResponseOutputsJSON) RawJSON() string {
 	return r.raw
 }
 
