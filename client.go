@@ -31,7 +31,6 @@ type Client struct {
 	Endpoints       *EndpointService
 	Hardware        *HardwareService
 	Batches         *BatchService
-	Evaluation      *EvaluationService
 	Evaluations     *EvaluationService
 }
 
@@ -71,7 +70,6 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 	r.Endpoints = NewEndpointService(opts...)
 	r.Hardware = NewHardwareService(opts...)
 	r.Batches = NewBatchService(opts...)
-	r.Evaluation = NewEvaluationService(opts...)
 	r.Evaluations = NewEvaluationService(opts...)
 
 	return
