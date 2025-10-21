@@ -13,6 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 // JobService contains methods and other services that help with interacting with
@@ -28,8 +29,8 @@ type JobService struct {
 // NewJobService generates a new service that applies the given options to each
 // request. These options are applied after the parent client's options (if there
 // is one), and before any request-specific options.
-func NewJobService(opts ...option.RequestOption) (r *JobService) {
-	r = &JobService{}
+func NewJobService(opts ...option.RequestOption) (r JobService) {
+	r = JobService{}
 	r.Options = opts
 	return
 }
@@ -55,60 +56,52 @@ func (r *JobService) List(ctx context.Context, opts ...option.RequestOption) (re
 }
 
 type JobGetResponse struct {
-	Args          JobGetResponseArgs           `json:"args,required"`
-	CreatedAt     time.Time                    `json:"created_at,required" format:"date-time"`
-	JobID         string                       `json:"job_id,required"`
+	Args      JobGetResponseArgs `json:"args,required"`
+	CreatedAt time.Time          `json:"created_at,required" format:"date-time"`
+	JobID     string             `json:"job_id,required"`
+	// Any of "Queued", "Running", "Complete", "Failed".
 	Status        JobGetResponseStatus         `json:"status,required"`
 	StatusUpdates []JobGetResponseStatusUpdate `json:"status_updates,required"`
 	Type          string                       `json:"type,required"`
 	UpdatedAt     time.Time                    `json:"updated_at,required" format:"date-time"`
-	JSON          jobGetResponseJSON           `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Args          respjson.Field
+		CreatedAt     respjson.Field
+		JobID         respjson.Field
+		Status        respjson.Field
+		StatusUpdates respjson.Field
+		Type          respjson.Field
+		UpdatedAt     respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
 }
 
-// jobGetResponseJSON contains the JSON metadata for the struct [JobGetResponse]
-type jobGetResponseJSON struct {
-	Args          apijson.Field
-	CreatedAt     apijson.Field
-	JobID         apijson.Field
-	Status        apijson.Field
-	StatusUpdates apijson.Field
-	Type          apijson.Field
-	UpdatedAt     apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
-}
-
-func (r *JobGetResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r JobGetResponse) RawJSON() string { return r.JSON.raw }
+func (r *JobGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r jobGetResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 type JobGetResponseArgs struct {
-	Description string                 `json:"description"`
-	ModelName   string                 `json:"modelName"`
-	ModelSource string                 `json:"modelSource"`
-	JSON        jobGetResponseArgsJSON `json:"-"`
+	Description string `json:"description"`
+	ModelName   string `json:"modelName"`
+	ModelSource string `json:"modelSource"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Description respjson.Field
+		ModelName   respjson.Field
+		ModelSource respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// jobGetResponseArgsJSON contains the JSON metadata for the struct
-// [JobGetResponseArgs]
-type jobGetResponseArgsJSON struct {
-	Description apijson.Field
-	ModelName   apijson.Field
-	ModelSource apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *JobGetResponseArgs) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r JobGetResponseArgs) RawJSON() string { return r.JSON.raw }
+func (r *JobGetResponseArgs) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r jobGetResponseArgsJSON) RawJSON() string {
-	return r.raw
 }
 
 type JobGetResponseStatus string
@@ -120,155 +113,107 @@ const (
 	JobGetResponseStatusFailed   JobGetResponseStatus = "Failed"
 )
 
-func (r JobGetResponseStatus) IsKnown() bool {
-	switch r {
-	case JobGetResponseStatusQueued, JobGetResponseStatusRunning, JobGetResponseStatusComplete, JobGetResponseStatusFailed:
-		return true
-	}
-	return false
-}
-
 type JobGetResponseStatusUpdate struct {
-	Message   string                         `json:"message,required"`
-	Status    string                         `json:"status,required"`
-	Timestamp time.Time                      `json:"timestamp,required" format:"date-time"`
-	JSON      jobGetResponseStatusUpdateJSON `json:"-"`
+	Message   string    `json:"message,required"`
+	Status    string    `json:"status,required"`
+	Timestamp time.Time `json:"timestamp,required" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		Status      respjson.Field
+		Timestamp   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// jobGetResponseStatusUpdateJSON contains the JSON metadata for the struct
-// [JobGetResponseStatusUpdate]
-type jobGetResponseStatusUpdateJSON struct {
-	Message     apijson.Field
-	Status      apijson.Field
-	Timestamp   apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *JobGetResponseStatusUpdate) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r JobGetResponseStatusUpdate) RawJSON() string { return r.JSON.raw }
+func (r *JobGetResponseStatusUpdate) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r jobGetResponseStatusUpdateJSON) RawJSON() string {
-	return r.raw
 }
 
 type JobListResponse struct {
 	Data []JobListResponseData `json:"data,required"`
-	JSON jobListResponseJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// jobListResponseJSON contains the JSON metadata for the struct [JobListResponse]
-type jobListResponseJSON struct {
-	Data        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *JobListResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r JobListResponse) RawJSON() string { return r.JSON.raw }
+func (r *JobListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r jobListResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 type JobListResponseData struct {
-	Args          JobListResponseDataArgs           `json:"args,required"`
-	CreatedAt     time.Time                         `json:"created_at,required" format:"date-time"`
-	JobID         string                            `json:"job_id,required"`
-	Status        JobListResponseDataStatus         `json:"status,required"`
+	Args      JobListResponseDataArgs `json:"args,required"`
+	CreatedAt time.Time               `json:"created_at,required" format:"date-time"`
+	JobID     string                  `json:"job_id,required"`
+	// Any of "Queued", "Running", "Complete", "Failed".
+	Status        string                            `json:"status,required"`
 	StatusUpdates []JobListResponseDataStatusUpdate `json:"status_updates,required"`
 	Type          string                            `json:"type,required"`
 	UpdatedAt     time.Time                         `json:"updated_at,required" format:"date-time"`
-	JSON          jobListResponseDataJSON           `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Args          respjson.Field
+		CreatedAt     respjson.Field
+		JobID         respjson.Field
+		Status        respjson.Field
+		StatusUpdates respjson.Field
+		Type          respjson.Field
+		UpdatedAt     respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
 }
 
-// jobListResponseDataJSON contains the JSON metadata for the struct
-// [JobListResponseData]
-type jobListResponseDataJSON struct {
-	Args          apijson.Field
-	CreatedAt     apijson.Field
-	JobID         apijson.Field
-	Status        apijson.Field
-	StatusUpdates apijson.Field
-	Type          apijson.Field
-	UpdatedAt     apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
-}
-
-func (r *JobListResponseData) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r JobListResponseData) RawJSON() string { return r.JSON.raw }
+func (r *JobListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r jobListResponseDataJSON) RawJSON() string {
-	return r.raw
 }
 
 type JobListResponseDataArgs struct {
-	Description string                      `json:"description"`
-	ModelName   string                      `json:"modelName"`
-	ModelSource string                      `json:"modelSource"`
-	JSON        jobListResponseDataArgsJSON `json:"-"`
+	Description string `json:"description"`
+	ModelName   string `json:"modelName"`
+	ModelSource string `json:"modelSource"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Description respjson.Field
+		ModelName   respjson.Field
+		ModelSource respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// jobListResponseDataArgsJSON contains the JSON metadata for the struct
-// [JobListResponseDataArgs]
-type jobListResponseDataArgsJSON struct {
-	Description apijson.Field
-	ModelName   apijson.Field
-	ModelSource apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *JobListResponseDataArgs) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r JobListResponseDataArgs) RawJSON() string { return r.JSON.raw }
+func (r *JobListResponseDataArgs) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r jobListResponseDataArgsJSON) RawJSON() string {
-	return r.raw
-}
-
-type JobListResponseDataStatus string
-
-const (
-	JobListResponseDataStatusQueued   JobListResponseDataStatus = "Queued"
-	JobListResponseDataStatusRunning  JobListResponseDataStatus = "Running"
-	JobListResponseDataStatusComplete JobListResponseDataStatus = "Complete"
-	JobListResponseDataStatusFailed   JobListResponseDataStatus = "Failed"
-)
-
-func (r JobListResponseDataStatus) IsKnown() bool {
-	switch r {
-	case JobListResponseDataStatusQueued, JobListResponseDataStatusRunning, JobListResponseDataStatusComplete, JobListResponseDataStatusFailed:
-		return true
-	}
-	return false
 }
 
 type JobListResponseDataStatusUpdate struct {
-	Message   string                              `json:"message,required"`
-	Status    string                              `json:"status,required"`
-	Timestamp time.Time                           `json:"timestamp,required" format:"date-time"`
-	JSON      jobListResponseDataStatusUpdateJSON `json:"-"`
+	Message   string    `json:"message,required"`
+	Status    string    `json:"status,required"`
+	Timestamp time.Time `json:"timestamp,required" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		Status      respjson.Field
+		Timestamp   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// jobListResponseDataStatusUpdateJSON contains the JSON metadata for the struct
-// [JobListResponseDataStatusUpdate]
-type jobListResponseDataStatusUpdateJSON struct {
-	Message     apijson.Field
-	Status      apijson.Field
-	Timestamp   apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *JobListResponseDataStatusUpdate) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r JobListResponseDataStatusUpdate) RawJSON() string { return r.JSON.raw }
+func (r *JobListResponseDataStatusUpdate) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r jobListResponseDataStatusUpdateJSON) RawJSON() string {
-	return r.raw
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 func TestUsage(t *testing.T) {
@@ -26,15 +25,18 @@ func TestUsage(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParam{
-			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamRoleUser),
-			Content: together.F[together.ChatCompletionNewParamsMessagesChatCompletionUserMessageParamContentUnion](shared.UnionString("Say this is a test!")),
-		}}),
-		Model: together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test!"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 	})
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatalf("err should be nil: %s", err.Error())
 	}
 	t.Logf("%+v\n", chatCompletion.Choices)
 }

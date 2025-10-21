@@ -130,10 +130,10 @@ func TestFileUploadWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Files.Upload(context.TODO(), together.FileUploadParams{
-		File:     together.F(io.Reader(bytes.NewBuffer([]byte("some file contents")))),
-		FileName: together.F("dataset.csv"),
-		Purpose:  together.F(together.FilePurposeFineTune),
-		FileType: together.F(together.FileTypeJSONL),
+		File:     io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		FileName: "dataset.csv",
+		Purpose:  together.FilePurposeFineTune,
+		FileType: together.FileTypeJSONL,
 	})
 	if err != nil {
 		var apierr *together.Error

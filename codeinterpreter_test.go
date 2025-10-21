@@ -27,14 +27,14 @@ func TestCodeInterpreterExecuteWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.CodeInterpreter.Execute(context.TODO(), together.CodeInterpreterExecuteParams{
-		Code:     together.F("print('Hello, world!')"),
-		Language: together.F(together.CodeInterpreterExecuteParamsLanguagePython),
-		Files: together.F([]together.CodeInterpreterExecuteParamsFile{{
-			Content:  together.F("content"),
-			Encoding: together.F(together.CodeInterpreterExecuteParamsFilesEncodingString),
-			Name:     together.F("name"),
-		}}),
-		SessionID: together.F("ses_abcDEF123"),
+		Code:     "print('Hello, world!')",
+		Language: together.CodeInterpreterExecuteParamsLanguagePython,
+		Files: []together.CodeInterpreterExecuteParamsFile{{
+			Content:  "content",
+			Encoding: "string",
+			Name:     "name",
+		}},
+		SessionID: together.String("ses_abcDEF123"),
 	})
 	if err != nil {
 		var apierr *together.Error

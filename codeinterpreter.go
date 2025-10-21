@@ -4,16 +4,16 @@ package together
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
-	"reflect"
 	"slices"
 
-	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apijson"
-	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // CodeInterpreterService contains methods and other services that help with
@@ -24,14 +24,14 @@ import (
 // the [NewCodeInterpreterService] method instead.
 type CodeInterpreterService struct {
 	Options  []option.RequestOption
-	Sessions *CodeInterpreterSessionService
+	Sessions CodeInterpreterSessionService
 }
 
 // NewCodeInterpreterService generates a new service that applies the given options
 // to each request. These options are applied after the parent client's options (if
 // there is one), and before any request-specific options.
-func NewCodeInterpreterService(opts ...option.RequestOption) (r *CodeInterpreterService) {
-	r = &CodeInterpreterService{}
+func NewCodeInterpreterService(opts ...option.RequestOption) (r CodeInterpreterService) {
+	r = CodeInterpreterService{}
 	r.Options = opts
 	r.Sessions = NewCodeInterpreterSessionService(opts...)
 	return
@@ -42,493 +42,452 @@ func NewCodeInterpreterService(opts ...option.RequestOption) (r *CodeInterpreter
 // session_id, the code will be run in that session. This is useful for running
 // multiple code snippets in the same environment, because dependencies and similar
 // things are persisted between calls to the same session.
-func (r *CodeInterpreterService) Execute(ctx context.Context, body CodeInterpreterExecuteParams, opts ...option.RequestOption) (res *ExecuteResponse, err error) {
+func (r *CodeInterpreterService) Execute(ctx context.Context, body CodeInterpreterExecuteParams, opts ...option.RequestOption) (res *ExecuteResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "tci/execute"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
 
-// The result of the execution. If successful, `data` contains the result and
-// `errors` will be null. If unsuccessful, `data` will be null and `errors` will
-// contain the errors.
-type ExecuteResponse struct {
-	// This field can have the runtime type of
-	// [ExecuteResponseSuccessfulExecutionData], [interface{}].
-	Data interface{} `json:"data,required"`
-	// This field can have the runtime type of [interface{}],
-	// [[]ExecuteResponseFailedExecutionErrorsUnion].
-	Errors interface{}         `json:"errors,required"`
-	JSON   executeResponseJSON `json:"-"`
-	union  ExecuteResponseUnion
-}
-
-// executeResponseJSON contains the JSON metadata for the struct [ExecuteResponse]
-type executeResponseJSON struct {
-	Data        apijson.Field
-	Errors      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r executeResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-func (r *ExecuteResponse) UnmarshalJSON(data []byte) (err error) {
-	*r = ExecuteResponse{}
-	err = apijson.UnmarshalRoot(data, &r.union)
-	if err != nil {
-		return err
-	}
-	return apijson.Port(r.union, &r)
-}
-
-// AsUnion returns a [ExecuteResponseUnion] interface which you can cast to the
-// specific types for more type safety.
+// ExecuteResponseUnion contains all possible properties and values from
+// [ExecuteResponseSuccessfulExecution], [ExecuteResponseFailedExecution].
 //
-// Possible runtime types of the union are [ExecuteResponseSuccessfulExecution],
-// [ExecuteResponseFailedExecution].
-func (r ExecuteResponse) AsUnion() ExecuteResponseUnion {
-	return r.union
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type ExecuteResponseUnion struct {
+	// This field is a union of [ExecuteResponseSuccessfulExecutionData], [any]
+	Data ExecuteResponseUnionData `json:"data"`
+	// This field is a union of [any], [[]ExecuteResponseFailedExecutionErrorUnion]
+	Errors ExecuteResponseUnionErrors `json:"errors"`
+	JSON   struct {
+		Data   respjson.Field
+		Errors respjson.Field
+		raw    string
+	} `json:"-"`
 }
 
-// The result of the execution. If successful, `data` contains the result and
-// `errors` will be null. If unsuccessful, `data` will be null and `errors` will
-// contain the errors.
+func (u ExecuteResponseUnion) AsSuccessfulExecution() (v ExecuteResponseSuccessfulExecution) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u ExecuteResponseUnion) AsFailedExecution() (v ExecuteResponseFailedExecution) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u ExecuteResponseUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *ExecuteResponseUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ExecuteResponseUnionData is an implicit subunion of [ExecuteResponseUnion].
+// ExecuteResponseUnionData provides convenient access to the sub-properties of the
+// union.
 //
-// Union satisfied by [ExecuteResponseSuccessfulExecution] or
-// [ExecuteResponseFailedExecution].
-type ExecuteResponseUnion interface {
-	implementsExecuteResponse()
+// For type safety it is recommended to directly use a variant of the
+// [ExecuteResponseUnion].
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfExecuteResponseFailedExecutionData]
+type ExecuteResponseUnionData struct {
+	// This field will be present if the value is a [any] instead of an object.
+	OfExecuteResponseFailedExecutionData any `json:",inline"`
+	// This field is from variant [ExecuteResponseSuccessfulExecutionData].
+	Outputs []ExecuteResponseSuccessfulExecutionDataOutputUnion `json:"outputs"`
+	// This field is from variant [ExecuteResponseSuccessfulExecutionData].
+	SessionID string `json:"session_id"`
+	// This field is from variant [ExecuteResponseSuccessfulExecutionData].
+	Status string `json:"status"`
+	JSON   struct {
+		OfExecuteResponseFailedExecutionData respjson.Field
+		Outputs                              respjson.Field
+		SessionID                            respjson.Field
+		Status                               respjson.Field
+		raw                                  string
+	} `json:"-"`
 }
 
-func init() {
-	apijson.RegisterUnion(
-		reflect.TypeOf((*ExecuteResponseUnion)(nil)).Elem(),
-		"",
-		apijson.UnionVariant{
-			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(ExecuteResponseSuccessfulExecution{}),
-		},
-		apijson.UnionVariant{
-			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(ExecuteResponseFailedExecution{}),
-		},
-	)
+func (r *ExecuteResponseUnionData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ExecuteResponseUnionErrors is an implicit subunion of [ExecuteResponseUnion].
+// ExecuteResponseUnionErrors provides convenient access to the sub-properties of
+// the union.
+//
+// For type safety it is recommended to directly use a variant of the
+// [ExecuteResponseUnion].
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfExecuteResponseSuccessfulExecutionErrors
+// OfExecuteResponseFailedExecutionErrors]
+type ExecuteResponseUnionErrors struct {
+	// This field will be present if the value is a [any] instead of an object.
+	OfExecuteResponseSuccessfulExecutionErrors any `json:",inline"`
+	// This field will be present if the value is a
+	// [[]ExecuteResponseFailedExecutionErrorUnion] instead of an object.
+	OfExecuteResponseFailedExecutionErrors []ExecuteResponseFailedExecutionErrorUnion `json:",inline"`
+	JSON                                   struct {
+		OfExecuteResponseSuccessfulExecutionErrors respjson.Field
+		OfExecuteResponseFailedExecutionErrors     respjson.Field
+		raw                                        string
+	} `json:"-"`
+}
+
+func (r *ExecuteResponseUnionErrors) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type ExecuteResponseSuccessfulExecution struct {
 	Data   ExecuteResponseSuccessfulExecutionData `json:"data,required"`
-	Errors interface{}                            `json:"errors,required,nullable"`
-	JSON   executeResponseSuccessfulExecutionJSON `json:"-"`
+	Errors any                                    `json:"errors,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Errors      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// executeResponseSuccessfulExecutionJSON contains the JSON metadata for the struct
-// [ExecuteResponseSuccessfulExecution]
-type executeResponseSuccessfulExecutionJSON struct {
-	Data        apijson.Field
-	Errors      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ExecuteResponseSuccessfulExecution) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ExecuteResponseSuccessfulExecution) RawJSON() string { return r.JSON.raw }
+func (r *ExecuteResponseSuccessfulExecution) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r executeResponseSuccessfulExecutionJSON) RawJSON() string {
-	return r.raw
-}
-
-func (r ExecuteResponseSuccessfulExecution) implementsExecuteResponse() {}
-
 type ExecuteResponseSuccessfulExecutionData struct {
-	Outputs []ExecuteResponseSuccessfulExecutionDataOutput `json:"outputs,required"`
+	Outputs []ExecuteResponseSuccessfulExecutionDataOutputUnion `json:"outputs,required"`
 	// Identifier of the current session. Used to make follow-up calls.
 	SessionID string `json:"session_id,required"`
 	// Status of the execution. Currently only supports success.
-	Status ExecuteResponseSuccessfulExecutionDataStatus `json:"status"`
-	JSON   executeResponseSuccessfulExecutionDataJSON   `json:"-"`
+	//
+	// Any of "success".
+	Status string `json:"status"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Outputs     respjson.Field
+		SessionID   respjson.Field
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// executeResponseSuccessfulExecutionDataJSON contains the JSON metadata for the
-// struct [ExecuteResponseSuccessfulExecutionData]
-type executeResponseSuccessfulExecutionDataJSON struct {
-	Outputs     apijson.Field
-	SessionID   apijson.Field
-	Status      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ExecuteResponseSuccessfulExecutionData) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ExecuteResponseSuccessfulExecutionData) RawJSON() string { return r.JSON.raw }
+func (r *ExecuteResponseSuccessfulExecutionData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r executeResponseSuccessfulExecutionDataJSON) RawJSON() string {
-	return r.raw
-}
-
-// Outputs that were printed to stdout or stderr
-type ExecuteResponseSuccessfulExecutionDataOutput struct {
-	// This field can have the runtime type of [string],
-	// [ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputData].
-	Data  interface{}                                       `json:"data,required"`
-	Type  ExecuteResponseSuccessfulExecutionDataOutputsType `json:"type,required"`
-	JSON  executeResponseSuccessfulExecutionDataOutputJSON  `json:"-"`
-	union ExecuteResponseSuccessfulExecutionDataOutputsUnion
-}
-
-// executeResponseSuccessfulExecutionDataOutputJSON contains the JSON metadata for
-// the struct [ExecuteResponseSuccessfulExecutionDataOutput]
-type executeResponseSuccessfulExecutionDataOutputJSON struct {
-	Data        apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r executeResponseSuccessfulExecutionDataOutputJSON) RawJSON() string {
-	return r.raw
-}
-
-func (r *ExecuteResponseSuccessfulExecutionDataOutput) UnmarshalJSON(data []byte) (err error) {
-	*r = ExecuteResponseSuccessfulExecutionDataOutput{}
-	err = apijson.UnmarshalRoot(data, &r.union)
-	if err != nil {
-		return err
-	}
-	return apijson.Port(r.union, &r)
-}
-
-// AsUnion returns a [ExecuteResponseSuccessfulExecutionDataOutputsUnion] interface
-// which you can cast to the specific types for more type safety.
+// ExecuteResponseSuccessfulExecutionDataOutputUnion contains all possible
+// properties and values from
+// [ExecuteResponseSuccessfulExecutionDataOutputStreamOutput],
+// [ExecuteResponseSuccessfulExecutionDataOutputError],
+// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutput].
 //
-// Possible runtime types of the union are
-// [ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput],
-// [ExecuteResponseSuccessfulExecutionDataOutputsError],
-// [ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput].
-func (r ExecuteResponseSuccessfulExecutionDataOutput) AsUnion() ExecuteResponseSuccessfulExecutionDataOutputsUnion {
-	return r.union
-}
-
-// Outputs that were printed to stdout or stderr
+// Use the [ExecuteResponseSuccessfulExecutionDataOutputUnion.AsAny] method to
+// switch on the variant.
 //
-// Union satisfied by [ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput],
-// [ExecuteResponseSuccessfulExecutionDataOutputsError] or
-// [ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput].
-type ExecuteResponseSuccessfulExecutionDataOutputsUnion interface {
-	implementsExecuteResponseSuccessfulExecutionDataOutput()
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type ExecuteResponseSuccessfulExecutionDataOutputUnion struct {
+	// This field is a union of [string], [string],
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData]
+	Data ExecuteResponseSuccessfulExecutionDataOutputUnionData `json:"data"`
+	// Any of nil, "error", nil.
+	Type string `json:"type"`
+	JSON struct {
+		Data respjson.Field
+		Type respjson.Field
+		raw  string
+	} `json:"-"`
 }
 
-func init() {
-	apijson.RegisterUnion(
-		reflect.TypeOf((*ExecuteResponseSuccessfulExecutionDataOutputsUnion)(nil)).Elem(),
-		"type",
-		apijson.UnionVariant{
-			TypeFilter:         gjson.JSON,
-			Type:               reflect.TypeOf(ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput{}),
-			DiscriminatorValue: "stdout",
-		},
-		apijson.UnionVariant{
-			TypeFilter:         gjson.JSON,
-			Type:               reflect.TypeOf(ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput{}),
-			DiscriminatorValue: "stderr",
-		},
-		apijson.UnionVariant{
-			TypeFilter:         gjson.JSON,
-			Type:               reflect.TypeOf(ExecuteResponseSuccessfulExecutionDataOutputsError{}),
-			DiscriminatorValue: "error",
-		},
-		apijson.UnionVariant{
-			TypeFilter:         gjson.JSON,
-			Type:               reflect.TypeOf(ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput{}),
-			DiscriminatorValue: "display_data",
-		},
-		apijson.UnionVariant{
-			TypeFilter:         gjson.JSON,
-			Type:               reflect.TypeOf(ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput{}),
-			DiscriminatorValue: "execute_result",
-		},
-	)
+func (u ExecuteResponseSuccessfulExecutionDataOutputUnion) AsStreamOutput() (v ExecuteResponseSuccessfulExecutionDataOutputStreamOutput) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
 }
 
-// Outputs that were printed to stdout or stderr
-type ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput struct {
-	Data string                                                        `json:"data,required"`
-	Type ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputType `json:"type,required"`
-	JSON executeResponseSuccessfulExecutionDataOutputsStreamOutputJSON `json:"-"`
+func (u ExecuteResponseSuccessfulExecutionDataOutputUnion) AsError() (v ExecuteResponseSuccessfulExecutionDataOutputError) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
 }
 
-// executeResponseSuccessfulExecutionDataOutputsStreamOutputJSON contains the JSON
-// metadata for the struct
-// [ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput]
-type executeResponseSuccessfulExecutionDataOutputsStreamOutputJSON struct {
-	Data        apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+func (u ExecuteResponseSuccessfulExecutionDataOutputUnion) AsDisplayorExecuteOutput() (v ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutput) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
 }
 
-func (r *ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (u ExecuteResponseSuccessfulExecutionDataOutputUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *ExecuteResponseSuccessfulExecutionDataOutputUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r executeResponseSuccessfulExecutionDataOutputsStreamOutputJSON) RawJSON() string {
-	return r.raw
+// ExecuteResponseSuccessfulExecutionDataOutputUnionData is an implicit subunion of
+// [ExecuteResponseSuccessfulExecutionDataOutputUnion].
+// ExecuteResponseSuccessfulExecutionDataOutputUnionData provides convenient access
+// to the sub-properties of the union.
+//
+// For type safety it is recommended to directly use a variant of the
+// [ExecuteResponseSuccessfulExecutionDataOutputUnion].
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfString]
+type ExecuteResponseSuccessfulExecutionDataOutputUnionData struct {
+	// This field will be present if the value is a [string] instead of an object.
+	OfString string `json:",inline"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ApplicationGeoJson map[string]any `json:"application/geo+json"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ApplicationJavascript string `json:"application/javascript"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ApplicationJson map[string]any `json:"application/json"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ApplicationPdf string `json:"application/pdf"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ApplicationVndVegaV5Json map[string]any `json:"application/vnd.vega.v5+json"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ApplicationVndVegaliteV4Json map[string]any `json:"application/vnd.vegalite.v4+json"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ImageGif string `json:"image/gif"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ImageJpeg string `json:"image/jpeg"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ImagePng string `json:"image/png"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	ImageSvgXml string `json:"image/svg+xml"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	TextHTML string `json:"text/html"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	TextLatex string `json:"text/latex"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	TextMarkdown string `json:"text/markdown"`
+	// This field is from variant
+	// [ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData].
+	TextPlain string `json:"text/plain"`
+	JSON      struct {
+		OfString                     respjson.Field
+		ApplicationGeoJson           respjson.Field
+		ApplicationJavascript        respjson.Field
+		ApplicationJson              respjson.Field
+		ApplicationPdf               respjson.Field
+		ApplicationVndVegaV5Json     respjson.Field
+		ApplicationVndVegaliteV4Json respjson.Field
+		ImageGif                     respjson.Field
+		ImageJpeg                    respjson.Field
+		ImagePng                     respjson.Field
+		ImageSvgXml                  respjson.Field
+		TextHTML                     respjson.Field
+		TextLatex                    respjson.Field
+		TextMarkdown                 respjson.Field
+		TextPlain                    respjson.Field
+		raw                          string
+	} `json:"-"`
 }
 
-func (r ExecuteResponseSuccessfulExecutionDataOutputsStreamOutput) implementsExecuteResponseSuccessfulExecutionDataOutput() {
+func (r *ExecuteResponseSuccessfulExecutionDataOutputUnionData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
-type ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputType string
+// Outputs that were printed to stdout or stderr
+type ExecuteResponseSuccessfulExecutionDataOutputStreamOutput struct {
+	Data string `json:"data,required"`
+	// Any of "stdout", "stderr".
+	Type string `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
 
-const (
-	ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputTypeStdout ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputType = "stdout"
-	ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputTypeStderr ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputType = "stderr"
-)
-
-func (r ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputType) IsKnown() bool {
-	switch r {
-	case ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputTypeStdout, ExecuteResponseSuccessfulExecutionDataOutputsStreamOutputTypeStderr:
-		return true
-	}
-	return false
+// Returns the unmodified JSON received from the API
+func (r ExecuteResponseSuccessfulExecutionDataOutputStreamOutput) RawJSON() string { return r.JSON.raw }
+func (r *ExecuteResponseSuccessfulExecutionDataOutputStreamOutput) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Errors and exceptions that occurred. If this output type is present, your code
 // did not execute successfully.
-type ExecuteResponseSuccessfulExecutionDataOutputsError struct {
-	Data string                                                 `json:"data,required"`
-	Type ExecuteResponseSuccessfulExecutionDataOutputsErrorType `json:"type,required"`
-	JSON executeResponseSuccessfulExecutionDataOutputsErrorJSON `json:"-"`
+type ExecuteResponseSuccessfulExecutionDataOutputError struct {
+	Data string         `json:"data,required"`
+	Type constant.Error `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// executeResponseSuccessfulExecutionDataOutputsErrorJSON contains the JSON
-// metadata for the struct [ExecuteResponseSuccessfulExecutionDataOutputsError]
-type executeResponseSuccessfulExecutionDataOutputsErrorJSON struct {
-	Data        apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ExecuteResponseSuccessfulExecutionDataOutputsError) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ExecuteResponseSuccessfulExecutionDataOutputError) RawJSON() string { return r.JSON.raw }
+func (r *ExecuteResponseSuccessfulExecutionDataOutputError) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r executeResponseSuccessfulExecutionDataOutputsErrorJSON) RawJSON() string {
-	return r.raw
+type ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutput struct {
+	Data ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData `json:"data,required"`
+	// Any of "display_data", "execute_result".
+	Type string `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-func (r ExecuteResponseSuccessfulExecutionDataOutputsError) implementsExecuteResponseSuccessfulExecutionDataOutput() {
+// Returns the unmodified JSON received from the API
+func (r ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutput) RawJSON() string {
+	return r.JSON.raw
 }
-
-type ExecuteResponseSuccessfulExecutionDataOutputsErrorType string
-
-const (
-	ExecuteResponseSuccessfulExecutionDataOutputsErrorTypeError ExecuteResponseSuccessfulExecutionDataOutputsErrorType = "error"
-)
-
-func (r ExecuteResponseSuccessfulExecutionDataOutputsErrorType) IsKnown() bool {
-	switch r {
-	case ExecuteResponseSuccessfulExecutionDataOutputsErrorTypeError:
-		return true
-	}
-	return false
-}
-
-type ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput struct {
-	Data ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputData `json:"data,required"`
-	Type ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputType `json:"type,required"`
-	JSON executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputJSON `json:"-"`
-}
-
-// executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputJSON contains
-// the JSON metadata for the struct
-// [ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput]
-type executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputJSON struct {
-	Data        apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput) UnmarshalJSON(data []byte) (err error) {
+func (r *ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutput) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputJSON) RawJSON() string {
-	return r.raw
+type ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData struct {
+	ApplicationGeoJson           map[string]any `json:"application/geo+json"`
+	ApplicationJavascript        string         `json:"application/javascript"`
+	ApplicationJson              map[string]any `json:"application/json"`
+	ApplicationPdf               string         `json:"application/pdf" format:"byte"`
+	ApplicationVndVegaV5Json     map[string]any `json:"application/vnd.vega.v5+json"`
+	ApplicationVndVegaliteV4Json map[string]any `json:"application/vnd.vegalite.v4+json"`
+	ImageGif                     string         `json:"image/gif" format:"byte"`
+	ImageJpeg                    string         `json:"image/jpeg" format:"byte"`
+	ImagePng                     string         `json:"image/png" format:"byte"`
+	ImageSvgXml                  string         `json:"image/svg+xml"`
+	TextHTML                     string         `json:"text/html"`
+	TextLatex                    string         `json:"text/latex"`
+	TextMarkdown                 string         `json:"text/markdown"`
+	TextPlain                    string         `json:"text/plain"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ApplicationGeoJson           respjson.Field
+		ApplicationJavascript        respjson.Field
+		ApplicationJson              respjson.Field
+		ApplicationPdf               respjson.Field
+		ApplicationVndVegaV5Json     respjson.Field
+		ApplicationVndVegaliteV4Json respjson.Field
+		ImageGif                     respjson.Field
+		ImageJpeg                    respjson.Field
+		ImagePng                     respjson.Field
+		ImageSvgXml                  respjson.Field
+		TextHTML                     respjson.Field
+		TextLatex                    respjson.Field
+		TextMarkdown                 respjson.Field
+		TextPlain                    respjson.Field
+		ExtraFields                  map[string]respjson.Field
+		raw                          string
+	} `json:"-"`
 }
 
-func (r ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutput) implementsExecuteResponseSuccessfulExecutionDataOutput() {
+// Returns the unmodified JSON received from the API
+func (r ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData) RawJSON() string {
+	return r.JSON.raw
 }
-
-type ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputData struct {
-	ApplicationGeoJson           map[string]interface{}                                                      `json:"application/geo+json"`
-	ApplicationJavascript        string                                                                      `json:"application/javascript"`
-	ApplicationJson              map[string]interface{}                                                      `json:"application/json"`
-	ApplicationPdf               string                                                                      `json:"application/pdf" format:"byte"`
-	ApplicationVndVegaV5Json     map[string]interface{}                                                      `json:"application/vnd.vega.v5+json"`
-	ApplicationVndVegaliteV4Json map[string]interface{}                                                      `json:"application/vnd.vegalite.v4+json"`
-	ImageGif                     string                                                                      `json:"image/gif" format:"byte"`
-	ImageJpeg                    string                                                                      `json:"image/jpeg" format:"byte"`
-	ImagePng                     string                                                                      `json:"image/png" format:"byte"`
-	ImageSvgXml                  string                                                                      `json:"image/svg+xml"`
-	TextHTML                     string                                                                      `json:"text/html"`
-	TextLatex                    string                                                                      `json:"text/latex"`
-	TextMarkdown                 string                                                                      `json:"text/markdown"`
-	TextPlain                    string                                                                      `json:"text/plain"`
-	JSON                         executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputDataJSON `json:"-"`
-}
-
-// executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputDataJSON
-// contains the JSON metadata for the struct
-// [ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputData]
-type executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputDataJSON struct {
-	ApplicationGeoJson           apijson.Field
-	ApplicationJavascript        apijson.Field
-	ApplicationJson              apijson.Field
-	ApplicationPdf               apijson.Field
-	ApplicationVndVegaV5Json     apijson.Field
-	ApplicationVndVegaliteV4Json apijson.Field
-	ImageGif                     apijson.Field
-	ImageJpeg                    apijson.Field
-	ImagePng                     apijson.Field
-	ImageSvgXml                  apijson.Field
-	TextHTML                     apijson.Field
-	TextLatex                    apijson.Field
-	TextMarkdown                 apijson.Field
-	TextPlain                    apijson.Field
-	raw                          string
-	ExtraFields                  map[string]apijson.Field
-}
-
-func (r *ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputData) UnmarshalJSON(data []byte) (err error) {
+func (r *ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r executeResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputDataJSON) RawJSON() string {
-	return r.raw
-}
-
-type ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputType string
-
-const (
-	ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputTypeDisplayData   ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputType = "display_data"
-	ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputTypeExecuteResult ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputType = "execute_result"
-)
-
-func (r ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputType) IsKnown() bool {
-	switch r {
-	case ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputTypeDisplayData, ExecuteResponseSuccessfulExecutionDataOutputsDisplayorExecuteOutputTypeExecuteResult:
-		return true
-	}
-	return false
-}
-
-type ExecuteResponseSuccessfulExecutionDataOutputsType string
-
-const (
-	ExecuteResponseSuccessfulExecutionDataOutputsTypeStdout        ExecuteResponseSuccessfulExecutionDataOutputsType = "stdout"
-	ExecuteResponseSuccessfulExecutionDataOutputsTypeStderr        ExecuteResponseSuccessfulExecutionDataOutputsType = "stderr"
-	ExecuteResponseSuccessfulExecutionDataOutputsTypeError         ExecuteResponseSuccessfulExecutionDataOutputsType = "error"
-	ExecuteResponseSuccessfulExecutionDataOutputsTypeDisplayData   ExecuteResponseSuccessfulExecutionDataOutputsType = "display_data"
-	ExecuteResponseSuccessfulExecutionDataOutputsTypeExecuteResult ExecuteResponseSuccessfulExecutionDataOutputsType = "execute_result"
-)
-
-func (r ExecuteResponseSuccessfulExecutionDataOutputsType) IsKnown() bool {
-	switch r {
-	case ExecuteResponseSuccessfulExecutionDataOutputsTypeStdout, ExecuteResponseSuccessfulExecutionDataOutputsTypeStderr, ExecuteResponseSuccessfulExecutionDataOutputsTypeError, ExecuteResponseSuccessfulExecutionDataOutputsTypeDisplayData, ExecuteResponseSuccessfulExecutionDataOutputsTypeExecuteResult:
-		return true
-	}
-	return false
-}
-
-// Status of the execution. Currently only supports success.
-type ExecuteResponseSuccessfulExecutionDataStatus string
-
-const (
-	ExecuteResponseSuccessfulExecutionDataStatusSuccess ExecuteResponseSuccessfulExecutionDataStatus = "success"
-)
-
-func (r ExecuteResponseSuccessfulExecutionDataStatus) IsKnown() bool {
-	switch r {
-	case ExecuteResponseSuccessfulExecutionDataStatusSuccess:
-		return true
-	}
-	return false
 }
 
 type ExecuteResponseFailedExecution struct {
-	Data   interface{}                                 `json:"data,required,nullable"`
-	Errors []ExecuteResponseFailedExecutionErrorsUnion `json:"errors,required"`
-	JSON   executeResponseFailedExecutionJSON          `json:"-"`
+	Data   any                                        `json:"data,required"`
+	Errors []ExecuteResponseFailedExecutionErrorUnion `json:"errors,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Errors      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// executeResponseFailedExecutionJSON contains the JSON metadata for the struct
-// [ExecuteResponseFailedExecution]
-type executeResponseFailedExecutionJSON struct {
-	Data        apijson.Field
-	Errors      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ExecuteResponseFailedExecution) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ExecuteResponseFailedExecution) RawJSON() string { return r.JSON.raw }
+func (r *ExecuteResponseFailedExecution) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r executeResponseFailedExecutionJSON) RawJSON() string {
-	return r.raw
+// ExecuteResponseFailedExecutionErrorUnion contains all possible properties and
+// values from [string], [map[string]any].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfString OfExecuteResponseFailedExecutionErrorMapItem]
+type ExecuteResponseFailedExecutionErrorUnion struct {
+	// This field will be present if the value is a [string] instead of an object.
+	OfString string `json:",inline"`
+	// This field will be present if the value is a [any] instead of an object.
+	OfExecuteResponseFailedExecutionErrorMapItem any `json:",inline"`
+	JSON                                         struct {
+		OfString                                     respjson.Field
+		OfExecuteResponseFailedExecutionErrorMapItem respjson.Field
+		raw                                          string
+	} `json:"-"`
 }
 
-func (r ExecuteResponseFailedExecution) implementsExecuteResponse() {}
-
-// Union satisfied by [shared.UnionString] or
-// [ExecuteResponseFailedExecutionErrorsMap].
-type ExecuteResponseFailedExecutionErrorsUnion interface {
-	ImplementsExecuteResponseFailedExecutionErrorsUnion()
+func (u ExecuteResponseFailedExecutionErrorUnion) AsString() (v string) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
 }
 
-func init() {
-	apijson.RegisterUnion(
-		reflect.TypeOf((*ExecuteResponseFailedExecutionErrorsUnion)(nil)).Elem(),
-		"",
-		apijson.UnionVariant{
-			TypeFilter: gjson.String,
-			Type:       reflect.TypeOf(shared.UnionString("")),
-		},
-		apijson.UnionVariant{
-			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(ExecuteResponseFailedExecutionErrorsMap{}),
-		},
-	)
+func (u ExecuteResponseFailedExecutionErrorUnion) AsAnyMap() (v map[string]any) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
 }
 
-type ExecuteResponseFailedExecutionErrorsMap map[string]interface{}
+// Returns the unmodified JSON received from the API
+func (u ExecuteResponseFailedExecutionErrorUnion) RawJSON() string { return u.JSON.raw }
 
-func (r ExecuteResponseFailedExecutionErrorsMap) ImplementsExecuteResponseFailedExecutionErrorsUnion() {
+func (r *ExecuteResponseFailedExecutionErrorUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type CodeInterpreterExecuteParams struct {
 	// Code snippet to execute.
-	Code param.Field[string] `json:"code,required"`
+	Code string `json:"code,required"`
 	// Programming language for the code to execute. Currently only supports Python,
 	// but more will be added.
-	Language param.Field[CodeInterpreterExecuteParamsLanguage] `json:"language,required"`
-	// Files to upload to the session. If present, files will be uploaded before
-	// executing the given code.
-	Files param.Field[[]CodeInterpreterExecuteParamsFile] `json:"files"`
+	//
+	// Any of "python".
+	Language CodeInterpreterExecuteParamsLanguage `json:"language,omitzero,required"`
 	// Identifier of the current session. Used to make follow-up calls. Requests will
 	// return an error if the session does not belong to the caller or has expired.
-	SessionID param.Field[string] `json:"session_id"`
+	SessionID param.Opt[string] `json:"session_id,omitzero"`
+	// Files to upload to the session. If present, files will be uploaded before
+	// executing the given code.
+	Files []CodeInterpreterExecuteParamsFile `json:"files,omitzero"`
+	paramObj
 }
 
 func (r CodeInterpreterExecuteParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow CodeInterpreterExecuteParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *CodeInterpreterExecuteParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Programming language for the code to execute. Currently only supports Python,
@@ -539,39 +498,28 @@ const (
 	CodeInterpreterExecuteParamsLanguagePython CodeInterpreterExecuteParamsLanguage = "python"
 )
 
-func (r CodeInterpreterExecuteParamsLanguage) IsKnown() bool {
-	switch r {
-	case CodeInterpreterExecuteParamsLanguagePython:
-		return true
-	}
-	return false
-}
-
+// The properties Content, Encoding, Name are required.
 type CodeInterpreterExecuteParamsFile struct {
-	Content param.Field[string] `json:"content,required"`
+	Content string `json:"content,required"`
 	// Encoding of the file content. Use `string` for text files such as code, and
 	// `base64` for binary files, such as images.
-	Encoding param.Field[CodeInterpreterExecuteParamsFilesEncoding] `json:"encoding,required"`
-	Name     param.Field[string]                                    `json:"name,required"`
+	//
+	// Any of "string", "base64".
+	Encoding string `json:"encoding,omitzero,required"`
+	Name     string `json:"name,required"`
+	paramObj
 }
 
 func (r CodeInterpreterExecuteParamsFile) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow CodeInterpreterExecuteParamsFile
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *CodeInterpreterExecuteParamsFile) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
-// Encoding of the file content. Use `string` for text files such as code, and
-// `base64` for binary files, such as images.
-type CodeInterpreterExecuteParamsFilesEncoding string
-
-const (
-	CodeInterpreterExecuteParamsFilesEncodingString CodeInterpreterExecuteParamsFilesEncoding = "string"
-	CodeInterpreterExecuteParamsFilesEncodingBase64 CodeInterpreterExecuteParamsFilesEncoding = "base64"
-)
-
-func (r CodeInterpreterExecuteParamsFilesEncoding) IsKnown() bool {
-	switch r {
-	case CodeInterpreterExecuteParamsFilesEncodingString, CodeInterpreterExecuteParamsFilesEncodingBase64:
-		return true
-	}
-	return false
+func init() {
+	apijson.RegisterFieldValidator[CodeInterpreterExecuteParamsFile](
+		"encoding", "string", "base64",
+	)
 }

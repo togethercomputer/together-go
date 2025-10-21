@@ -26,7 +26,7 @@ func TestHardwareListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Hardware.List(context.TODO(), together.HardwareListParams{
-		Model: together.F("model"),
+		Model: together.String("model"),
 	})
 	if err != nil {
 		var apierr *together.Error

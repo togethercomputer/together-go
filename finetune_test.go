@@ -11,7 +11,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 func TestFineTuneNewWithOptionalParams(t *testing.T) {
@@ -27,41 +26,53 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.New(context.TODO(), together.FineTuneNewParams{
-		Model:            together.F("model"),
-		TrainingFile:     together.F("training_file"),
-		BatchSize:        together.F[together.FineTuneNewParamsBatchSizeUnion](shared.UnionInt(int64(0))),
-		FromCheckpoint:   together.F("from_checkpoint"),
-		FromHfModel:      together.F("from_hf_model"),
-		HfAPIToken:       together.F("hf_api_token"),
-		HfModelRevision:  together.F("hf_model_revision"),
-		HfOutputRepoName: together.F("hf_output_repo_name"),
-		LearningRate:     together.F(0.000000),
-		LrScheduler: together.F(together.LrSchedulerParam{
-			LrSchedulerType: together.F(together.LrSchedulerLrSchedulerTypeLinear),
-			LrSchedulerArgs: together.F[together.LrSchedulerLrSchedulerArgsUnionParam](together.LinearLrSchedulerArgsParam{
-				MinLrRatio: together.F(0.000000),
-			}),
-		}),
-		MaxGradNorm:   together.F(0.000000),
-		NCheckpoints:  together.F(int64(0)),
-		NEpochs:       together.F(int64(0)),
-		NEvals:        together.F(int64(0)),
-		Suffix:        together.F("suffix"),
-		TrainOnInputs: together.F[together.FineTuneNewParamsTrainOnInputsUnion](shared.UnionBool(true)),
-		TrainingMethod: together.F[together.FineTuneNewParamsTrainingMethodUnion](together.TrainingMethodSftParam{
-			Method:        together.F(together.TrainingMethodSftMethodSft),
-			TrainOnInputs: together.F[together.TrainingMethodSftTrainOnInputsUnionParam](shared.UnionBool(true)),
-		}),
-		TrainingType: together.F[together.FineTuneNewParamsTrainingTypeUnion](together.FullTrainingTypeParam{
-			Type: together.F(together.FullTrainingTypeTypeFull),
-		}),
-		ValidationFile:   together.F("validation_file"),
-		WandbAPIKey:      together.F("wandb_api_key"),
-		WandbBaseURL:     together.F("wandb_base_url"),
-		WandbName:        together.F("wandb_name"),
-		WandbProjectName: together.F("wandb_project_name"),
-		WarmupRatio:      together.F(0.000000),
-		WeightDecay:      together.F(0.000000),
+		Model:        "model",
+		TrainingFile: "training_file",
+		BatchSize: together.FineTuneNewParamsBatchSizeUnion{
+			OfInt: together.Int(0),
+		},
+		FromCheckpoint:   together.String("from_checkpoint"),
+		FromHfModel:      together.String("from_hf_model"),
+		HfAPIToken:       together.String("hf_api_token"),
+		HfModelRevision:  together.String("hf_model_revision"),
+		HfOutputRepoName: together.String("hf_output_repo_name"),
+		LearningRate:     together.Float(0),
+		LrScheduler: together.LrSchedulerParam{
+			LrSchedulerType: together.LrSchedulerLrSchedulerTypeLinear,
+			LrSchedulerArgs: together.LrSchedulerLrSchedulerArgsUnionParam{
+				OfLinearLrSchedulerArgs: &together.LinearLrSchedulerArgsParam{
+					MinLrRatio: together.Float(0),
+				},
+			},
+		},
+		MaxGradNorm:  together.Float(0),
+		NCheckpoints: together.Int(0),
+		NEpochs:      together.Int(0),
+		NEvals:       together.Int(0),
+		Suffix:       together.String("suffix"),
+		TrainOnInputs: together.FineTuneNewParamsTrainOnInputsUnion{
+			OfBool: together.Bool(true),
+		},
+		TrainingMethod: together.FineTuneNewParamsTrainingMethodUnion{
+			OfTrainingMethodSft: &together.TrainingMethodSftParam{
+				Method: together.TrainingMethodSftMethodSft,
+				TrainOnInputs: together.TrainingMethodSftTrainOnInputsUnionParam{
+					OfBool: together.Bool(true),
+				},
+			},
+		},
+		TrainingType: together.FineTuneNewParamsTrainingTypeUnion{
+			OfFullTrainingType: &together.FullTrainingTypeParam{
+				Type: together.FullTrainingTypeTypeFull,
+			},
+		},
+		ValidationFile:   together.String("validation_file"),
+		WandbAPIKey:      together.String("wandb_api_key"),
+		WandbBaseURL:     together.String("wandb_base_url"),
+		WandbName:        together.String("wandb_name"),
+		WandbProjectName: together.String("wandb_project_name"),
+		WarmupRatio:      together.Float(0),
+		WeightDecay:      together.Float(0),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -151,10 +162,10 @@ func TestFineTuneDownloadWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTune.Download(context.TODO(), together.FineTuneDownloadParams{
-		FtID:           together.F("ft_id"),
-		Checkpoint:     together.F(together.FineTuneDownloadParamsCheckpointMerged),
-		CheckpointStep: together.F(int64(0)),
-		Output:         together.F("output"),
+		FtID:           "ft_id",
+		Checkpoint:     together.FineTuneDownloadParamsCheckpointMerged,
+		CheckpointStep: together.Int(0),
+		Output:         together.String("output"),
 	})
 	if err != nil {
 		var apierr *together.Error

@@ -8,9 +8,10 @@ import (
 	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
-	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 // ModelService contains methods and other services that help with interacting with
@@ -26,8 +27,8 @@ type ModelService struct {
 // NewModelService generates a new service that applies the given options to each
 // request. These options are applied after the parent client's options (if there
 // is one), and before any request-specific options.
-func NewModelService(opts ...option.RequestOption) (r *ModelService) {
-	r = &ModelService{}
+func NewModelService(opts ...option.RequestOption) (r ModelService) {
+	r = ModelService{}
 	r.Options = opts
 	return
 }
@@ -49,9 +50,10 @@ func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts 
 }
 
 type ModelListResponse struct {
-	ID            string                   `json:"id,required"`
-	Created       int64                    `json:"created,required"`
-	Object        string                   `json:"object,required"`
+	ID      string `json:"id,required"`
+	Created int64  `json:"created,required"`
+	Object  string `json:"object,required"`
+	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank".
 	Type          ModelListResponseType    `json:"type,required"`
 	ContextLength int64                    `json:"context_length"`
 	DisplayName   string                   `json:"display_name"`
@@ -59,32 +61,27 @@ type ModelListResponse struct {
 	Link          string                   `json:"link"`
 	Organization  string                   `json:"organization"`
 	Pricing       ModelListResponsePricing `json:"pricing"`
-	JSON          modelListResponseJSON    `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID            respjson.Field
+		Created       respjson.Field
+		Object        respjson.Field
+		Type          respjson.Field
+		ContextLength respjson.Field
+		DisplayName   respjson.Field
+		License       respjson.Field
+		Link          respjson.Field
+		Organization  respjson.Field
+		Pricing       respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
 }
 
-// modelListResponseJSON contains the JSON metadata for the struct
-// [ModelListResponse]
-type modelListResponseJSON struct {
-	ID            apijson.Field
-	Created       apijson.Field
-	Object        apijson.Field
-	Type          apijson.Field
-	ContextLength apijson.Field
-	DisplayName   apijson.Field
-	License       apijson.Field
-	Link          apijson.Field
-	Organization  apijson.Field
-	Pricing       apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
-}
-
-func (r *ModelListResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ModelListResponse) RawJSON() string { return r.JSON.raw }
+func (r *ModelListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r modelListResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 type ModelListResponseType string
@@ -99,114 +96,98 @@ const (
 	ModelListResponseTypeRerank     ModelListResponseType = "rerank"
 )
 
-func (r ModelListResponseType) IsKnown() bool {
-	switch r {
-	case ModelListResponseTypeChat, ModelListResponseTypeLanguage, ModelListResponseTypeCode, ModelListResponseTypeImage, ModelListResponseTypeEmbedding, ModelListResponseTypeModeration, ModelListResponseTypeRerank:
-		return true
-	}
-	return false
-}
-
 type ModelListResponsePricing struct {
-	Base     float64                      `json:"base,required"`
-	Finetune float64                      `json:"finetune,required"`
-	Hourly   float64                      `json:"hourly,required"`
-	Input    float64                      `json:"input,required"`
-	Output   float64                      `json:"output,required"`
-	JSON     modelListResponsePricingJSON `json:"-"`
+	Base     float64 `json:"base,required"`
+	Finetune float64 `json:"finetune,required"`
+	Hourly   float64 `json:"hourly,required"`
+	Input    float64 `json:"input,required"`
+	Output   float64 `json:"output,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Base        respjson.Field
+		Finetune    respjson.Field
+		Hourly      respjson.Field
+		Input       respjson.Field
+		Output      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// modelListResponsePricingJSON contains the JSON metadata for the struct
-// [ModelListResponsePricing]
-type modelListResponsePricingJSON struct {
-	Base        apijson.Field
-	Finetune    apijson.Field
-	Hourly      apijson.Field
-	Input       apijson.Field
-	Output      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ModelListResponsePricing) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ModelListResponsePricing) RawJSON() string { return r.JSON.raw }
+func (r *ModelListResponsePricing) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r modelListResponsePricingJSON) RawJSON() string {
-	return r.raw
 }
 
 type ModelUploadResponse struct {
 	Data    ModelUploadResponseData `json:"data,required"`
 	Message string                  `json:"message,required"`
-	JSON    modelUploadResponseJSON `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Message     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// modelUploadResponseJSON contains the JSON metadata for the struct
-// [ModelUploadResponse]
-type modelUploadResponseJSON struct {
-	Data        apijson.Field
-	Message     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ModelUploadResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ModelUploadResponse) RawJSON() string { return r.JSON.raw }
+func (r *ModelUploadResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r modelUploadResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 type ModelUploadResponseData struct {
-	JobID       string                      `json:"job_id,required"`
-	ModelID     string                      `json:"model_id,required"`
-	ModelName   string                      `json:"model_name,required"`
-	ModelSource string                      `json:"model_source,required"`
-	JSON        modelUploadResponseDataJSON `json:"-"`
+	JobID       string `json:"job_id,required"`
+	ModelID     string `json:"model_id,required"`
+	ModelName   string `json:"model_name,required"`
+	ModelSource string `json:"model_source,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		JobID       respjson.Field
+		ModelID     respjson.Field
+		ModelName   respjson.Field
+		ModelSource respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// modelUploadResponseDataJSON contains the JSON metadata for the struct
-// [ModelUploadResponseData]
-type modelUploadResponseDataJSON struct {
-	JobID       apijson.Field
-	ModelID     apijson.Field
-	ModelName   apijson.Field
-	ModelSource apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *ModelUploadResponseData) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r ModelUploadResponseData) RawJSON() string { return r.JSON.raw }
+func (r *ModelUploadResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r modelUploadResponseDataJSON) RawJSON() string {
-	return r.raw
 }
 
 type ModelUploadParams struct {
 	// The name to give to your uploaded model
-	ModelName param.Field[string] `json:"model_name,required"`
+	ModelName string `json:"model_name,required"`
 	// The source location of the model (Hugging Face repo or S3 path)
-	ModelSource param.Field[string] `json:"model_source,required"`
+	ModelSource string `json:"model_source,required"`
 	// The base model to use for an adapter if setting it to run against a serverless
 	// pool. Only used for model_type `adapter`.
-	BaseModel param.Field[string] `json:"base_model"`
+	BaseModel param.Opt[string] `json:"base_model,omitzero"`
 	// A description of your model
-	Description param.Field[string] `json:"description"`
+	Description param.Opt[string] `json:"description,omitzero"`
 	// Hugging Face token (if uploading from Hugging Face)
-	HfToken param.Field[string] `json:"hf_token"`
+	HfToken param.Opt[string] `json:"hf_token,omitzero"`
 	// The lora pool to use for an adapter if setting it to run against, say, a
 	// dedicated pool. Only used for model_type `adapter`.
-	LoraModel param.Field[string] `json:"lora_model"`
+	LoraModel param.Opt[string] `json:"lora_model,omitzero"`
 	// Whether the model is a full model or an adapter
-	ModelType param.Field[ModelUploadParamsModelType] `json:"model_type"`
+	//
+	// Any of "model", "adapter".
+	ModelType ModelUploadParamsModelType `json:"model_type,omitzero"`
+	paramObj
 }
 
 func (r ModelUploadParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow ModelUploadParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ModelUploadParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Whether the model is a full model or an adapter
@@ -216,11 +197,3 @@ const (
 	ModelUploadParamsModelTypeModel   ModelUploadParamsModelType = "model"
 	ModelUploadParamsModelTypeAdapter ModelUploadParamsModelType = "adapter"
 )
-
-func (r ModelUploadParamsModelType) IsKnown() bool {
-	switch r {
-	case ModelUploadParamsModelTypeModel, ModelUploadParamsModelTypeAdapter:
-		return true
-	}
-	return false
-}

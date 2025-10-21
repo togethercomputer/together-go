@@ -28,13 +28,15 @@ func TestAudioTranscriptionNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Audio.Transcriptions.New(context.TODO(), together.AudioTranscriptionNewParams{
-		File:                   together.F(io.Reader(bytes.NewBuffer([]byte("some file contents")))),
-		Language:               together.F("en"),
-		Model:                  together.F(together.AudioTranscriptionNewParamsModelOpenAIWhisperLargeV3),
-		Prompt:                 together.F("prompt"),
-		ResponseFormat:         together.F(together.AudioTranscriptionNewParamsResponseFormatJson),
-		Temperature:            together.F(0.000000),
-		TimestampGranularities: together.F[together.AudioTranscriptionNewParamsTimestampGranularitiesUnion](together.AudioTranscriptionNewParamsTimestampGranularitiesArray([]together.AudioTranscriptionNewParamsTimestampGranularitiesArrayItem{together.AudioTranscriptionNewParamsTimestampGranularitiesArrayItemWord, together.AudioTranscriptionNewParamsTimestampGranularitiesArrayItemSegment})),
+		File:           io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		Language:       together.String("en"),
+		Model:          together.AudioTranscriptionNewParamsModelOpenAIWhisperLargeV3,
+		Prompt:         together.String("prompt"),
+		ResponseFormat: together.AudioTranscriptionNewParamsResponseFormatJson,
+		Temperature:    together.Float(0),
+		TimestampGranularities: together.AudioTranscriptionNewParamsTimestampGranularitiesUnion{
+			OfAudioTranscriptionNewsTimestampGranularitiesArrayItemArray: []string{"word", "segment"},
+		},
 	})
 	if err != nil {
 		var apierr *together.Error

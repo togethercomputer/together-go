@@ -26,11 +26,11 @@ func TestBatchNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Batches.New(context.TODO(), together.BatchNewParams{
-		Endpoint:         together.F("/v1/chat/completions"),
-		InputFileID:      together.F("file-abc123def456ghi789"),
-		CompletionWindow: together.F("24h"),
-		ModelID:          together.F("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
-		Priority:         together.F(int64(1)),
+		Endpoint:         "/v1/chat/completions",
+		InputFileID:      "file-abc123def456ghi789",
+		CompletionWindow: together.String("24h"),
+		ModelID:          together.String("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
+		Priority:         together.Int(1),
 	})
 	if err != nil {
 		var apierr *together.Error

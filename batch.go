@@ -11,9 +11,10 @@ import (
 	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
-	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 // BatchService contains methods and other services that help with interacting with
@@ -29,8 +30,8 @@ type BatchService struct {
 // NewBatchService generates a new service that applies the given options to each
 // request. These options are applied after the parent client's options (if there
 // is one), and before any request-specific options.
-func NewBatchService(opts ...option.RequestOption) (r *BatchService) {
-	r = &BatchService{}
+func NewBatchService(opts ...option.RequestOption) (r BatchService) {
+	r = BatchService{}
 	r.Options = opts
 	return
 }
@@ -64,26 +65,21 @@ func (r *BatchService) List(ctx context.Context, opts ...option.RequestOption) (
 }
 
 type BatchNewResponse struct {
-	Job     BatchNewResponseJob  `json:"job"`
-	Warning string               `json:"warning"`
-	JSON    batchNewResponseJSON `json:"-"`
+	Job     BatchNewResponseJob `json:"job"`
+	Warning string              `json:"warning"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Job         respjson.Field
+		Warning     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// batchNewResponseJSON contains the JSON metadata for the struct
-// [BatchNewResponse]
-type batchNewResponseJSON struct {
-	Job         apijson.Field
-	Warning     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *BatchNewResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r BatchNewResponse) RawJSON() string { return r.JSON.raw }
+func (r *BatchNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r batchNewResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 type BatchNewResponseJob struct {
@@ -103,58 +99,36 @@ type BatchNewResponseJob struct {
 	// Completion progress (0.0 to 100)
 	Progress float64 `json:"progress"`
 	// Current status of the batch job
-	Status BatchNewResponseJobStatus `json:"status"`
-	UserID string                    `json:"user_id"`
-	JSON   batchNewResponseJobJSON   `json:"-"`
+	//
+	// Any of "VALIDATING", "IN_PROGRESS", "COMPLETED", "FAILED", "EXPIRED",
+	// "CANCELLED".
+	Status string `json:"status"`
+	UserID string `json:"user_id"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID            respjson.Field
+		CompletedAt   respjson.Field
+		CreatedAt     respjson.Field
+		Endpoint      respjson.Field
+		Error         respjson.Field
+		ErrorFileID   respjson.Field
+		FileSizeBytes respjson.Field
+		InputFileID   respjson.Field
+		JobDeadline   respjson.Field
+		ModelID       respjson.Field
+		OutputFileID  respjson.Field
+		Progress      respjson.Field
+		Status        respjson.Field
+		UserID        respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
 }
 
-// batchNewResponseJobJSON contains the JSON metadata for the struct
-// [BatchNewResponseJob]
-type batchNewResponseJobJSON struct {
-	ID            apijson.Field
-	CompletedAt   apijson.Field
-	CreatedAt     apijson.Field
-	Endpoint      apijson.Field
-	Error         apijson.Field
-	ErrorFileID   apijson.Field
-	FileSizeBytes apijson.Field
-	InputFileID   apijson.Field
-	JobDeadline   apijson.Field
-	ModelID       apijson.Field
-	OutputFileID  apijson.Field
-	Progress      apijson.Field
-	Status        apijson.Field
-	UserID        apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
-}
-
-func (r *BatchNewResponseJob) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r BatchNewResponseJob) RawJSON() string { return r.JSON.raw }
+func (r *BatchNewResponseJob) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r batchNewResponseJobJSON) RawJSON() string {
-	return r.raw
-}
-
-// Current status of the batch job
-type BatchNewResponseJobStatus string
-
-const (
-	BatchNewResponseJobStatusValidating BatchNewResponseJobStatus = "VALIDATING"
-	BatchNewResponseJobStatusInProgress BatchNewResponseJobStatus = "IN_PROGRESS"
-	BatchNewResponseJobStatusCompleted  BatchNewResponseJobStatus = "COMPLETED"
-	BatchNewResponseJobStatusFailed     BatchNewResponseJobStatus = "FAILED"
-	BatchNewResponseJobStatusExpired    BatchNewResponseJobStatus = "EXPIRED"
-	BatchNewResponseJobStatusCancelled  BatchNewResponseJobStatus = "CANCELLED"
-)
-
-func (r BatchNewResponseJobStatus) IsKnown() bool {
-	switch r {
-	case BatchNewResponseJobStatusValidating, BatchNewResponseJobStatusInProgress, BatchNewResponseJobStatusCompleted, BatchNewResponseJobStatusFailed, BatchNewResponseJobStatusExpired, BatchNewResponseJobStatusCancelled:
-		return true
-	}
-	return false
 }
 
 type BatchGetResponse struct {
@@ -174,38 +148,36 @@ type BatchGetResponse struct {
 	// Completion progress (0.0 to 100)
 	Progress float64 `json:"progress"`
 	// Current status of the batch job
+	//
+	// Any of "VALIDATING", "IN_PROGRESS", "COMPLETED", "FAILED", "EXPIRED",
+	// "CANCELLED".
 	Status BatchGetResponseStatus `json:"status"`
 	UserID string                 `json:"user_id"`
-	JSON   batchGetResponseJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID            respjson.Field
+		CompletedAt   respjson.Field
+		CreatedAt     respjson.Field
+		Endpoint      respjson.Field
+		Error         respjson.Field
+		ErrorFileID   respjson.Field
+		FileSizeBytes respjson.Field
+		InputFileID   respjson.Field
+		JobDeadline   respjson.Field
+		ModelID       respjson.Field
+		OutputFileID  respjson.Field
+		Progress      respjson.Field
+		Status        respjson.Field
+		UserID        respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
 }
 
-// batchGetResponseJSON contains the JSON metadata for the struct
-// [BatchGetResponse]
-type batchGetResponseJSON struct {
-	ID            apijson.Field
-	CompletedAt   apijson.Field
-	CreatedAt     apijson.Field
-	Endpoint      apijson.Field
-	Error         apijson.Field
-	ErrorFileID   apijson.Field
-	FileSizeBytes apijson.Field
-	InputFileID   apijson.Field
-	JobDeadline   apijson.Field
-	ModelID       apijson.Field
-	OutputFileID  apijson.Field
-	Progress      apijson.Field
-	Status        apijson.Field
-	UserID        apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
-}
-
-func (r *BatchGetResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r BatchGetResponse) RawJSON() string { return r.JSON.raw }
+func (r *BatchGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r batchGetResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // Current status of the batch job
@@ -219,14 +191,6 @@ const (
 	BatchGetResponseStatusExpired    BatchGetResponseStatus = "EXPIRED"
 	BatchGetResponseStatusCancelled  BatchGetResponseStatus = "CANCELLED"
 )
-
-func (r BatchGetResponseStatus) IsKnown() bool {
-	switch r {
-	case BatchGetResponseStatusValidating, BatchGetResponseStatusInProgress, BatchGetResponseStatusCompleted, BatchGetResponseStatusFailed, BatchGetResponseStatusExpired, BatchGetResponseStatusCancelled:
-		return true
-	}
-	return false
-}
 
 type BatchListResponse struct {
 	ID          string    `json:"id" format:"uuid"`
@@ -245,38 +209,36 @@ type BatchListResponse struct {
 	// Completion progress (0.0 to 100)
 	Progress float64 `json:"progress"`
 	// Current status of the batch job
+	//
+	// Any of "VALIDATING", "IN_PROGRESS", "COMPLETED", "FAILED", "EXPIRED",
+	// "CANCELLED".
 	Status BatchListResponseStatus `json:"status"`
 	UserID string                  `json:"user_id"`
-	JSON   batchListResponseJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID            respjson.Field
+		CompletedAt   respjson.Field
+		CreatedAt     respjson.Field
+		Endpoint      respjson.Field
+		Error         respjson.Field
+		ErrorFileID   respjson.Field
+		FileSizeBytes respjson.Field
+		InputFileID   respjson.Field
+		JobDeadline   respjson.Field
+		ModelID       respjson.Field
+		OutputFileID  respjson.Field
+		Progress      respjson.Field
+		Status        respjson.Field
+		UserID        respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
 }
 
-// batchListResponseJSON contains the JSON metadata for the struct
-// [BatchListResponse]
-type batchListResponseJSON struct {
-	ID            apijson.Field
-	CompletedAt   apijson.Field
-	CreatedAt     apijson.Field
-	Endpoint      apijson.Field
-	Error         apijson.Field
-	ErrorFileID   apijson.Field
-	FileSizeBytes apijson.Field
-	InputFileID   apijson.Field
-	JobDeadline   apijson.Field
-	ModelID       apijson.Field
-	OutputFileID  apijson.Field
-	Progress      apijson.Field
-	Status        apijson.Field
-	UserID        apijson.Field
-	raw           string
-	ExtraFields   map[string]apijson.Field
-}
-
-func (r *BatchListResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r BatchListResponse) RawJSON() string { return r.JSON.raw }
+func (r *BatchListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r batchListResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // Current status of the batch job
@@ -291,27 +253,24 @@ const (
 	BatchListResponseStatusCancelled  BatchListResponseStatus = "CANCELLED"
 )
 
-func (r BatchListResponseStatus) IsKnown() bool {
-	switch r {
-	case BatchListResponseStatusValidating, BatchListResponseStatusInProgress, BatchListResponseStatusCompleted, BatchListResponseStatusFailed, BatchListResponseStatusExpired, BatchListResponseStatusCancelled:
-		return true
-	}
-	return false
-}
-
 type BatchNewParams struct {
 	// The endpoint to use for batch processing
-	Endpoint param.Field[string] `json:"endpoint,required"`
+	Endpoint string `json:"endpoint,required"`
 	// ID of the uploaded input file containing batch requests
-	InputFileID param.Field[string] `json:"input_file_id,required"`
+	InputFileID string `json:"input_file_id,required"`
 	// Time window for batch completion (optional)
-	CompletionWindow param.Field[string] `json:"completion_window"`
+	CompletionWindow param.Opt[string] `json:"completion_window,omitzero"`
 	// Model to use for processing batch requests
-	ModelID param.Field[string] `json:"model_id"`
+	ModelID param.Opt[string] `json:"model_id,omitzero"`
 	// Priority for batch processing (optional)
-	Priority param.Field[int64] `json:"priority"`
+	Priority param.Opt[int64] `json:"priority,omitzero"`
+	paramObj
 }
 
 func (r BatchNewParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow BatchNewParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BatchNewParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }

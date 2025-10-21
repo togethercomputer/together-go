@@ -48,13 +48,13 @@ func TestModelUploadWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Models.Upload(context.TODO(), together.ModelUploadParams{
-		ModelName:   together.F("Qwen2.5-72B-Instruct"),
-		ModelSource: together.F("unsloth/Qwen2.5-72B-Instruct"),
-		BaseModel:   together.F("Qwen/Qwen2.5-72B-Instruct"),
-		Description: together.F("Finetuned Qwen2.5-72B-Instruct by Unsloth"),
-		HfToken:     together.F("hf_examplehuggingfacetoken"),
-		LoraModel:   together.F("my_username/Qwen2.5-72B-Instruct-lora"),
-		ModelType:   together.F(together.ModelUploadParamsModelTypeModel),
+		ModelName:   "Qwen2.5-72B-Instruct",
+		ModelSource: "unsloth/Qwen2.5-72B-Instruct",
+		BaseModel:   together.String("Qwen/Qwen2.5-72B-Instruct"),
+		Description: together.String("Finetuned Qwen2.5-72B-Instruct by Unsloth"),
+		HfToken:     together.String("hf_examplehuggingfacetoken"),
+		LoraModel:   together.String("my_username/Qwen2.5-72B-Instruct-lora"),
+		ModelType:   together.ModelUploadParamsModelTypeModel,
 	})
 	if err != nil {
 		var apierr *together.Error

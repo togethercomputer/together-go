@@ -27,13 +27,13 @@ func TestAudioNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	resp, err := client.Audio.New(context.TODO(), together.AudioNewParams{
-		Input:            together.F("input"),
-		Model:            together.F(together.AudioNewParamsModelCartesiaSonic),
-		Voice:            together.F(together.AudioNewParamsVoiceLaidbackWoman),
-		Language:         together.F(together.AudioNewParamsLanguageEn),
-		ResponseEncoding: together.F(together.AudioNewParamsResponseEncodingPcmF32le),
-		ResponseFormat:   together.F(together.AudioNewParamsResponseFormatMP3),
-		SampleRate:       together.F(0.000000),
+		Input:            "input",
+		Model:            together.AudioNewParamsModelCartesiaSonic,
+		Voice:            together.AudioNewParamsVoiceLaidbackWoman,
+		Language:         together.AudioNewParamsLanguageEn,
+		ResponseEncoding: together.AudioNewParamsResponseEncodingPcmF32le,
+		ResponseFormat:   together.AudioNewParamsResponseFormatMP3,
+		SampleRate:       together.Float(0),
 	})
 	if err != nil {
 		var apierr *together.Error
