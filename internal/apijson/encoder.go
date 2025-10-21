@@ -7,22 +7,25 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/tidwall/sjson"
-
-	"github.com/togethercomputer/together-go/internal/param"
 )
 
 var encoders sync.Map // map[encoderEntry]encoderFunc
 
-func Marshal(value interface{}) ([]byte, error) {
+// If we want to set a literal key value into JSON using sjson, we need to make sure it doesn't have
+// special characters that sjson interprets as a path.
+var EscapeSJSONKey = strings.NewReplacer("\\", "\\\\", "|", "\\|", "#", "\\#", "@", "\\@", "*", "\\*", ".", "\\.", ":", "\\:", "?", "\\?").Replace
+
+func Marshal(value any) ([]byte, error) {
 	e := &encoder{dateFormat: time.RFC3339}
 	return e.marshal(value)
 }
 
-func MarshalRoot(value interface{}) ([]byte, error) {
+func MarshalRoot(value any) ([]byte, error) {
 	e := &encoder{root: true, dateFormat: time.RFC3339}
 	return e.marshal(value)
 }
@@ -46,7 +49,7 @@ type encoderEntry struct {
 	root       bool
 }
 
-func (e *encoder) marshal(value interface{}) ([]byte, error) {
+func (e *encoder) marshal(value any) ([]byte, error) {
 	val := reflect.ValueOf(value)
 	if !val.IsValid() {
 		return nil, nil
@@ -95,12 +98,19 @@ func marshalerEncoder(v reflect.Value) ([]byte, error) {
 	return v.Interface().(json.Marshaler).MarshalJSON()
 }
 
+func indirectMarshalerEncoder(v reflect.Value) ([]byte, error) {
+	return v.Addr().Interface().(json.Marshaler).MarshalJSON()
+}
+
 func (e *encoder) newTypeEncoder(t reflect.Type) encoderFunc {
 	if t.ConvertibleTo(reflect.TypeOf(time.Time{})) {
 		return e.newTimeTypeEncoder()
 	}
 	if !e.root && t.Implements(reflect.TypeOf((*json.Marshaler)(nil)).Elem()) {
 		return marshalerEncoder
+	}
+	if !e.root && reflect.PointerTo(t).Implements(reflect.TypeOf((*json.Marshaler)(nil)).Elem()) {
+		return indirectMarshalerEncoder
 	}
 	e.root = false
 	switch t.Kind() {
@@ -135,7 +145,7 @@ func (e *encoder) newPrimitiveTypeEncoder(t reflect.Type) encoderFunc {
 	// code more and this current code shouldn't cause any issues
 	case reflect.String:
 		return func(v reflect.Value) ([]byte, error) {
-			return []byte(fmt.Sprintf("%q", v.String())), nil
+			return json.Marshal(v.Interface())
 		}
 	case reflect.Bool:
 		return func(v reflect.Value) ([]byte, error) {
@@ -194,10 +204,6 @@ func (e *encoder) newArrayTypeEncoder(t reflect.Type) encoderFunc {
 }
 
 func (e *encoder) newStructTypeEncoder(t reflect.Type) encoderFunc {
-	if t.Implements(reflect.TypeOf((*param.FieldLike)(nil)).Elem()) {
-		return e.newFieldTypeEncoder(t)
-	}
-
 	encoderFields := []encoderField{}
 	extraEncoder := (*encoderField)(nil)
 
@@ -268,7 +274,7 @@ func (e *encoder) newStructTypeEncoder(t reflect.Type) encoderFunc {
 			if encoded == nil {
 				continue
 			}
-			json, err = sjson.SetRawBytes(json, ef.tag.name, encoded)
+			json, err = sjson.SetRawBytes(json, EscapeSJSONKey(ef.tag.name), encoded)
 			if err != nil {
 				return nil, err
 			}
@@ -335,16 +341,18 @@ func (e *encoder) encodeMapEntries(json []byte, v reflect.Value) ([]byte, error)
 
 	iter := v.MapRange()
 	for iter.Next() {
-		var encodedKey []byte
+		var encodedKeyString string
 		if iter.Key().Type().Kind() == reflect.String {
-			encodedKey = []byte(iter.Key().String())
+			encodedKeyString = iter.Key().String()
 		} else {
 			var err error
-			encodedKey, err = keyEncoder(iter.Key())
+			encodedKeyBytes, err := keyEncoder(iter.Key())
 			if err != nil {
 				return nil, err
 			}
+			encodedKeyString = string(encodedKeyBytes)
 		}
+		encodedKey := []byte(encodedKeyString)
 		pairs = append(pairs, mapPair{key: encodedKey, value: iter.Value()})
 	}
 
@@ -362,7 +370,7 @@ func (e *encoder) encodeMapEntries(json []byte, v reflect.Value) ([]byte, error)
 		if len(encodedValue) == 0 {
 			continue
 		}
-		json, err = sjson.SetRawBytes(json, string(p.key), encodedValue)
+		json, err = sjson.SetRawBytes(json, EscapeSJSONKey(string(p.key)), encodedValue)
 		if err != nil {
 			return nil, err
 		}
@@ -371,7 +379,7 @@ func (e *encoder) encodeMapEntries(json []byte, v reflect.Value) ([]byte, error)
 	return json, nil
 }
 
-func (e *encoder) newMapEncoder(t reflect.Type) encoderFunc {
+func (e *encoder) newMapEncoder(_ reflect.Type) encoderFunc {
 	return func(value reflect.Value) ([]byte, error) {
 		json := []byte("{}")
 		var err error

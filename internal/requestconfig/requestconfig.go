@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"math/rand"
+	"mime"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -76,7 +77,17 @@ func getPlatformProperties() map[string]string {
 	}
 }
 
-func NewRequestConfig(ctx context.Context, method string, u string, body interface{}, dst interface{}, opts ...func(*RequestConfig) error) (*RequestConfig, error) {
+type RequestOption interface {
+	Apply(*RequestConfig) error
+}
+
+type RequestOptionFunc func(*RequestConfig) error
+type PreRequestOptionFunc func(*RequestConfig) error
+
+func (s RequestOptionFunc) Apply(r *RequestConfig) error    { return s(r) }
+func (s PreRequestOptionFunc) Apply(r *RequestConfig) error { return s(r) }
+
+func NewRequestConfig(ctx context.Context, method string, u string, body any, dst any, opts ...RequestOption) (*RequestConfig, error) {
 	var reader io.Reader
 
 	contentType := "application/json"
@@ -104,7 +115,11 @@ func NewRequestConfig(ctx context.Context, method string, u string, body interfa
 	}
 	if body, ok := body.(apiquery.Queryer); ok {
 		hasSerializationFunc = true
-		params := body.URLQuery().Encode()
+		q, err := body.URLQuery()
+		if err != nil {
+			return nil, err
+		}
+		params := q.Encode()
 		if params != "" {
 			u = u + "?" + params
 		}
@@ -121,11 +136,13 @@ func NewRequestConfig(ctx context.Context, method string, u string, body interfa
 	// Fallback to json serialization if none of the serialization functions that we expect
 	// to see is present.
 	if body != nil && !hasSerializationFunc {
-		content, err := json.Marshal(body)
-		if err != nil {
+		buf := new(bytes.Buffer)
+		enc := json.NewEncoder(buf)
+		enc.SetEscapeHTML(true)
+		if err := enc.Encode(body); err != nil {
 			return nil, err
 		}
-		reader = bytes.NewBuffer(content)
+		reader = buf
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, u, nil)
@@ -137,6 +154,8 @@ func NewRequestConfig(ctx context.Context, method string, u string, body interfa
 	}
 
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-Stainless-Retry-Count", "0")
+	req.Header.Set("X-Stainless-Timeout", "0")
 	for k, v := range getDefaultHeaders() {
 		req.Header.Add(k, v)
 	}
@@ -156,26 +175,48 @@ func NewRequestConfig(ctx context.Context, method string, u string, body interfa
 	if err != nil {
 		return nil, err
 	}
+
+	// This must run after `cfg.Apply(...)` above in case the request timeout gets modified. We also only
+	// apply our own logic for it if it's still "0" from above. If it's not, then it was deleted or modified
+	// by the user and we should respect that.
+	if req.Header.Get("X-Stainless-Timeout") == "0" {
+		if cfg.RequestTimeout == time.Duration(0) {
+			req.Header.Del("X-Stainless-Timeout")
+		} else {
+			req.Header.Set("X-Stainless-Timeout", strconv.Itoa(int(cfg.RequestTimeout.Seconds())))
+		}
+	}
+
 	return &cfg, nil
+}
+
+// This interface is primarily used to describe an [*http.Client], but also
+// supports custom HTTP implementations.
+type HTTPDoer interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
 // RequestConfig represents all the state related to one request.
 //
 // Editing the variables inside RequestConfig directly is unstable api. Prefer
-// composing func(\*RequestConfig) error instead if possible.
+// composing the RequestOption instead if possible.
 type RequestConfig struct {
 	MaxRetries     int
 	RequestTimeout time.Duration
 	Context        context.Context
 	Request        *http.Request
 	BaseURL        *url.URL
+	// DefaultBaseURL will be used if BaseURL is not explicitly overridden using
+	// WithBaseURL.
+	DefaultBaseURL *url.URL
+	CustomHTTPDoer HTTPDoer
 	HTTPClient     *http.Client
 	Middlewares    []middleware
 	APIKey         string
 	// If ResponseBodyInto not nil, then we will attempt to deserialize into
 	// ResponseBodyInto. If Destination is a []byte, then it will return the body as
 	// is.
-	ResponseBodyInto interface{}
+	ResponseBodyInto any
 	// ResponseInto copies the \*http.Response of the corresponding request into the
 	// given address
 	ResponseInto **http.Response
@@ -208,7 +249,7 @@ func shouldRetry(req *http.Request, res *http.Response) bool {
 		return true
 	}
 
-	// If the header explictly wants a retry behavior, respect that over the
+	// If the header explicitly wants a retry behavior, respect that over the
 	// http status code.
 	if res.Header.Get("x-should-retry") == "true" {
 		return true
@@ -278,6 +319,41 @@ func parseRetryAfterHeader(resp *http.Response) (time.Duration, bool) {
 	return 0, false
 }
 
+// isBeforeContextDeadline reports whether the non-zero Time t is
+// before ctx's deadline. If ctx does not have a deadline, it
+// always reports true (the deadline is considered infinite).
+func isBeforeContextDeadline(t time.Time, ctx context.Context) bool {
+	d, ok := ctx.Deadline()
+	if !ok {
+		return true
+	}
+	return t.Before(d)
+}
+
+// bodyWithTimeout is an io.ReadCloser which can observe a context's cancel func
+// to handle timeouts etc. It wraps an existing io.ReadCloser.
+type bodyWithTimeout struct {
+	stop func() // stops the time.Timer waiting to cancel the request
+	rc   io.ReadCloser
+}
+
+func (b *bodyWithTimeout) Read(p []byte) (n int, err error) {
+	n, err = b.rc.Read(p)
+	if err == nil {
+		return n, nil
+	}
+	if err == io.EOF {
+		return n, err
+	}
+	return n, err
+}
+
+func (b *bodyWithTimeout) Close() error {
+	err := b.rc.Close()
+	b.stop()
+	return err
+}
+
 func retryDelay(res *http.Response, retryCount int) time.Duration {
 	// If the API asks us to wait a certain amount of time (and it's a reasonable amount),
 	// just do what it says.
@@ -298,6 +374,14 @@ func retryDelay(res *http.Response, retryCount int) time.Duration {
 }
 
 func (cfg *RequestConfig) Execute() (err error) {
+	if cfg.BaseURL == nil {
+		if cfg.DefaultBaseURL != nil {
+			cfg.BaseURL = cfg.DefaultBaseURL
+		} else {
+			return fmt.Errorf("requestconfig: base url is not set")
+		}
+	}
+
 	cfg.Request.URL, err = cfg.BaseURL.Parse(strings.TrimLeft(cfg.Request.URL.String(), "/"))
 	if err != nil {
 		return err
@@ -327,20 +411,36 @@ func (cfg *RequestConfig) Execute() (err error) {
 	}
 
 	handler := cfg.HTTPClient.Do
+	if cfg.CustomHTTPDoer != nil {
+		handler = cfg.CustomHTTPDoer.Do
+	}
 	for i := len(cfg.Middlewares) - 1; i >= 0; i -= 1 {
 		handler = applyMiddleware(cfg.Middlewares[i], handler)
 	}
 
+	// Don't send the current retry count in the headers if the caller modified the header defaults.
+	shouldSendRetryCount := cfg.Request.Header.Get("X-Stainless-Retry-Count") == "0"
+
 	var res *http.Response
+	var cancel context.CancelFunc
 	for retryCount := 0; retryCount <= cfg.MaxRetries; retryCount += 1 {
 		ctx := cfg.Request.Context()
-		if cfg.RequestTimeout != time.Duration(0) {
-			var cancel context.CancelFunc
+		if cfg.RequestTimeout != time.Duration(0) && isBeforeContextDeadline(time.Now().Add(cfg.RequestTimeout), ctx) {
 			ctx, cancel = context.WithTimeout(ctx, cfg.RequestTimeout)
-			defer cancel()
+			defer func() {
+				// The cancel function is nil if it was handed off to be handled in a different scope.
+				if cancel != nil {
+					cancel()
+				}
+			}()
 		}
 
-		res, err = handler(cfg.Request.Clone(ctx))
+		req := cfg.Request.Clone(ctx)
+		if shouldSendRetryCount {
+			req.Header.Set("X-Stainless-Retry-Count", strconv.Itoa(retryCount))
+		}
+
+		res, err = handler(req)
 		if ctx != nil && ctx.Err() != nil {
 			return ctx.Err()
 		}
@@ -359,6 +459,11 @@ func (cfg *RequestConfig) Execute() (err error) {
 		// Can't actually refresh the body, so we don't attempt to retry here
 		if cfg.Request.GetBody == nil && cfg.Request.Body != nil {
 			break
+		}
+
+		// Close the response body before retrying to prevent connection leaks
+		if res != nil && res.Body != nil {
+			res.Body.Close()
 		}
 
 		time.Sleep(retryDelay(res, retryCount))
@@ -400,21 +505,28 @@ func (cfg *RequestConfig) Execute() (err error) {
 		return &aerr
 	}
 
-	if cfg.ResponseBodyInto == nil {
-		return nil
-	}
-	if _, ok := cfg.ResponseBodyInto.(**http.Response); ok {
+	_, intoCustomResponseBody := cfg.ResponseBodyInto.(**http.Response)
+	if cfg.ResponseBodyInto == nil || intoCustomResponseBody {
+		// We aren't reading the response body in this scope, but whoever is will need the
+		// cancel func from the context to observe request timeouts.
+		// Put the cancel function in the response body so it can be handled elsewhere.
+		if cancel != nil {
+			res.Body = &bodyWithTimeout{rc: res.Body, stop: cancel}
+			cancel = nil
+		}
 		return nil
 	}
 
 	contents, err := io.ReadAll(res.Body)
+	res.Body.Close()
 	if err != nil {
 		return fmt.Errorf("error reading response body: %w", err)
 	}
 
 	// If we are not json, return plaintext
 	contentType := res.Header.Get("content-type")
-	isJSON := strings.Contains(contentType, "application/json") || strings.Contains(contentType, "application/vnd.api+json")
+	mediaType, _, _ := mime.ParseMediaType(contentType)
+	isJSON := strings.Contains(mediaType, "application/json") || strings.HasSuffix(mediaType, "+json")
 	if !isJSON {
 		switch dst := cfg.ResponseBodyInto.(type) {
 		case *string:
@@ -425,26 +537,26 @@ func (cfg *RequestConfig) Execute() (err error) {
 		case *[]byte:
 			*dst = contents
 		default:
-			return fmt.Errorf("expected destination type of 'string' or '[]byte' for responses with content-type that is not 'application/json'")
+			return fmt.Errorf("expected destination type of 'string' or '[]byte' for responses with content-type '%s' that is not 'application/json'", contentType)
 		}
 		return nil
 	}
 
-	// If the response happens to be a byte array, deserialize the body as-is.
 	switch dst := cfg.ResponseBodyInto.(type) {
+	// If the response happens to be a byte array, deserialize the body as-is.
 	case *[]byte:
 		*dst = contents
-	}
-
-	err = json.NewDecoder(bytes.NewReader(contents)).Decode(cfg.ResponseBodyInto)
-	if err != nil {
-		err = fmt.Errorf("error parsing response json: %w", err)
+	default:
+		err = json.NewDecoder(bytes.NewReader(contents)).Decode(cfg.ResponseBodyInto)
+		if err != nil {
+			return fmt.Errorf("error parsing response json: %w", err)
+		}
 	}
 
 	return nil
 }
 
-func ExecuteNewRequest(ctx context.Context, method string, u string, body interface{}, dst interface{}, opts ...func(*RequestConfig) error) error {
+func ExecuteNewRequest(ctx context.Context, method string, u string, body any, dst any, opts ...RequestOption) error {
 	cfg, err := NewRequestConfig(ctx, method, u, body, dst, opts...)
 	if err != nil {
 		return err
@@ -465,21 +577,58 @@ func (cfg *RequestConfig) Clone(ctx context.Context) *RequestConfig {
 		return nil
 	}
 	new := &RequestConfig{
-		MaxRetries: cfg.MaxRetries,
-		Context:    ctx,
-		Request:    req,
-		HTTPClient: cfg.HTTPClient,
+		MaxRetries:     cfg.MaxRetries,
+		RequestTimeout: cfg.RequestTimeout,
+		Context:        ctx,
+		Request:        req,
+		BaseURL:        cfg.BaseURL,
+		HTTPClient:     cfg.HTTPClient,
+		Middlewares:    cfg.Middlewares,
+		APIKey:         cfg.APIKey,
 	}
 
 	return new
 }
 
-func (cfg *RequestConfig) Apply(opts ...func(*RequestConfig) error) error {
+func (cfg *RequestConfig) Apply(opts ...RequestOption) error {
 	for _, opt := range opts {
-		err := opt(cfg)
+		err := opt.Apply(cfg)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// PreRequestOptions is used to collect all the options which need to be known before
+// a call to [RequestConfig.ExecuteNewRequest], such as path parameters
+// or global defaults.
+// PreRequestOptions will return a [RequestConfig] with the options applied.
+//
+// Only request option functions of type [PreRequestOptionFunc] are applied.
+func PreRequestOptions(opts ...RequestOption) (RequestConfig, error) {
+	cfg := RequestConfig{}
+	for _, opt := range opts {
+		if opt, ok := opt.(PreRequestOptionFunc); ok {
+			err := opt.Apply(&cfg)
+			if err != nil {
+				return cfg, err
+			}
+		}
+	}
+	return cfg, nil
+}
+
+// WithDefaultBaseURL returns a RequestOption that sets the client's default Base URL.
+// This is always overridden by setting a base URL with WithBaseURL.
+// WithBaseURL should be used instead of WithDefaultBaseURL except in internal code.
+func WithDefaultBaseURL(baseURL string) RequestOption {
+	u, err := url.Parse(baseURL)
+	return RequestOptionFunc(func(r *RequestConfig) error {
+		if err != nil {
+			return err
+		}
+		r.DefaultBaseURL = u
+		return nil
+	})
 }

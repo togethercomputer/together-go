@@ -26,8 +26,10 @@ func TestEmbeddingNew(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Embeddings.New(context.TODO(), together.EmbeddingNewParams{
-		Input: together.F("Our solar system orbits the Milky Way galaxy at about 515,000 mph"),
-		Model: together.F("togethercomputer/m2-bert-80M-8k-retrieval"),
+		Input: together.EmbeddingNewParamsInputUnion{
+			OfString: together.String("Our solar system orbits the Milky Way galaxy at about 515,000 mph"),
+		},
+		Model: together.EmbeddingNewParamsModelWhereIsAIUaeLargeV1,
 	})
 	if err != nil {
 		var apierr *together.Error

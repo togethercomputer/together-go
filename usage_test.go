@@ -24,15 +24,19 @@ func TestUsage(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
-			Content: together.F("Say this is a test!"),
-		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test!"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 	})
 	if err != nil {
-		t.Error(err)
+		t.Fatalf("err should be nil: %s", err.Error())
 	}
 	t.Logf("%+v\n", chatCompletion.Choices)
 }

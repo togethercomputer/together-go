@@ -26,14 +26,23 @@ func TestImageNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.New(context.TODO(), together.ImageNewParams{
-		Model:          together.F("stabilityai/stable-diffusion-xl-base-1.0"),
-		Prompt:         together.F("cat floating in space, cinematic"),
-		Height:         together.F(int64(0)),
-		N:              together.F(int64(0)),
-		NegativePrompt: together.F("string"),
-		Seed:           together.F(int64(0)),
-		Steps:          together.F(int64(0)),
-		Width:          together.F(int64(0)),
+		Model:                together.ImageNewParamsModelBlackForestLabsFlux1SchnellFree,
+		Prompt:               "cat floating in space, cinematic",
+		DisableSafetyChecker: together.Bool(true),
+		GuidanceScale:        together.Float(0),
+		Height:               together.Int(0),
+		ImageLoras: []together.ImageNewParamsImageLora{{
+			Path:  "path",
+			Scale: 0,
+		}},
+		ImageURL:       together.String("image_url"),
+		N:              together.Int(0),
+		NegativePrompt: together.String("negative_prompt"),
+		OutputFormat:   together.ImageNewParamsOutputFormatJpeg,
+		ResponseFormat: together.ImageNewParamsResponseFormatBase64,
+		Seed:           together.Int(0),
+		Steps:          together.Int(0),
+		Width:          together.Int(0),
 	})
 	if err != nil {
 		var apierr *together.Error

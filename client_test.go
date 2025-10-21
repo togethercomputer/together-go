@@ -5,7 +5,9 @@ package together_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"reflect"
 	"testing"
 	"time"
 
@@ -25,6 +27,7 @@ func (t *closureTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 func TestUserAgentHeader(t *testing.T) {
 	var userAgent string
 	client := together.NewClient(
+		option.WithAPIKey("My API Key"),
 		option.WithHTTPClient(&http.Client{
 			Transport: &closureTransport{
 				fn: func(req *http.Request) (*http.Response, error) {
@@ -36,12 +39,16 @@ func TestUserAgentHeader(t *testing.T) {
 			},
 		}),
 	)
-	client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
-			Content: together.F("Say this is a test"),
-		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+	client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 	})
 	if userAgent != fmt.Sprintf("Together/Go %s", internal.PackageVersion) {
 		t.Errorf("Expected User-Agent to be correct, but got: %#v", userAgent)
@@ -49,12 +56,13 @@ func TestUserAgentHeader(t *testing.T) {
 }
 
 func TestRetryAfter(t *testing.T) {
-	attempts := 0
+	retryCountHeaders := make([]string, 0)
 	client := together.NewClient(
+		option.WithAPIKey("My API Key"),
 		option.WithHTTPClient(&http.Client{
 			Transport: &closureTransport{
 				fn: func(req *http.Request) (*http.Response, error) {
-					attempts++
+					retryCountHeaders = append(retryCountHeaders, req.Header.Get("X-Stainless-Retry-Count"))
 					return &http.Response{
 						StatusCode: http.StatusTooManyRequests,
 						Header: http.Header{
@@ -65,24 +73,116 @@ func TestRetryAfter(t *testing.T) {
 			},
 		}),
 	)
-	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
-			Content: together.F("Say this is a test"),
-		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 	})
-	if err == nil || res != nil {
-		t.Error("Expected there to be a cancel error and for the response to be nil")
+	if err == nil {
+		t.Error("Expected there to be a cancel error")
 	}
-	if want := 6; attempts != want {
-		t.Errorf("Expected %d attempts, got %d", want, attempts)
+
+	attempts := len(retryCountHeaders)
+	if attempts != 6 {
+		t.Errorf("Expected %d attempts, got %d", 6, attempts)
+	}
+
+	expectedRetryCountHeaders := []string{"0", "1", "2", "3", "4", "5"}
+	if !reflect.DeepEqual(retryCountHeaders, expectedRetryCountHeaders) {
+		t.Errorf("Expected %v retry count headers, got %v", expectedRetryCountHeaders, retryCountHeaders)
+	}
+}
+
+func TestDeleteRetryCountHeader(t *testing.T) {
+	retryCountHeaders := make([]string, 0)
+	client := together.NewClient(
+		option.WithAPIKey("My API Key"),
+		option.WithHTTPClient(&http.Client{
+			Transport: &closureTransport{
+				fn: func(req *http.Request) (*http.Response, error) {
+					retryCountHeaders = append(retryCountHeaders, req.Header.Get("X-Stainless-Retry-Count"))
+					return &http.Response{
+						StatusCode: http.StatusTooManyRequests,
+						Header: http.Header{
+							http.CanonicalHeaderKey("Retry-After"): []string{"0.1"},
+						},
+					}, nil
+				},
+			},
+		}),
+		option.WithHeaderDel("X-Stainless-Retry-Count"),
+	)
+	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+	})
+	if err == nil {
+		t.Error("Expected there to be a cancel error")
+	}
+
+	expectedRetryCountHeaders := []string{"", "", "", "", "", ""}
+	if !reflect.DeepEqual(retryCountHeaders, expectedRetryCountHeaders) {
+		t.Errorf("Expected %v retry count headers, got %v", expectedRetryCountHeaders, retryCountHeaders)
+	}
+}
+
+func TestOverwriteRetryCountHeader(t *testing.T) {
+	retryCountHeaders := make([]string, 0)
+	client := together.NewClient(
+		option.WithAPIKey("My API Key"),
+		option.WithHTTPClient(&http.Client{
+			Transport: &closureTransport{
+				fn: func(req *http.Request) (*http.Response, error) {
+					retryCountHeaders = append(retryCountHeaders, req.Header.Get("X-Stainless-Retry-Count"))
+					return &http.Response{
+						StatusCode: http.StatusTooManyRequests,
+						Header: http.Header{
+							http.CanonicalHeaderKey("Retry-After"): []string{"0.1"},
+						},
+					}, nil
+				},
+			},
+		}),
+		option.WithHeader("X-Stainless-Retry-Count", "42"),
+	)
+	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+	})
+	if err == nil {
+		t.Error("Expected there to be a cancel error")
+	}
+
+	expectedRetryCountHeaders := []string{"42", "42", "42", "42", "42", "42"}
+	if !reflect.DeepEqual(retryCountHeaders, expectedRetryCountHeaders) {
+		t.Errorf("Expected %v retry count headers, got %v", expectedRetryCountHeaders, retryCountHeaders)
 	}
 }
 
 func TestRetryAfterMs(t *testing.T) {
 	attempts := 0
 	client := together.NewClient(
+		option.WithAPIKey("My API Key"),
 		option.WithHTTPClient(&http.Client{
 			Transport: &closureTransport{
 				fn: func(req *http.Request) (*http.Response, error) {
@@ -97,15 +197,19 @@ func TestRetryAfterMs(t *testing.T) {
 			},
 		}),
 	)
-	res, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
-			Content: together.F("Say this is a test"),
-		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 	})
-	if err == nil || res != nil {
-		t.Error("Expected there to be a cancel error and for the response to be nil")
+	if err == nil {
+		t.Error("Expected there to be a cancel error")
 	}
 	if want := 6; attempts != want {
 		t.Errorf("Expected %d attempts, got %d", want, attempts)
@@ -114,6 +218,7 @@ func TestRetryAfterMs(t *testing.T) {
 
 func TestContextCancel(t *testing.T) {
 	client := together.NewClient(
+		option.WithAPIKey("My API Key"),
 		option.WithHTTPClient(&http.Client{
 			Transport: &closureTransport{
 				fn: func(req *http.Request) (*http.Response, error) {
@@ -125,20 +230,25 @@ func TestContextCancel(t *testing.T) {
 	)
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	cancel()
-	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
-			Content: together.F("Say this is a test"),
-		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+	_, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 	})
-	if err == nil || res != nil {
-		t.Error("Expected there to be a cancel error and for the response to be nil")
+	if err == nil {
+		t.Error("Expected there to be a cancel error")
 	}
 }
 
 func TestContextCancelDelay(t *testing.T) {
 	client := together.NewClient(
+		option.WithAPIKey("My API Key"),
 		option.WithHTTPClient(&http.Client{
 			Transport: &closureTransport{
 				fn: func(req *http.Request) (*http.Response, error) {
@@ -150,15 +260,19 @@ func TestContextCancelDelay(t *testing.T) {
 	)
 	cancelCtx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
 	defer cancel()
-	res, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParamsChatCompletionRequest{
-		Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-			Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
-			Content: together.F("Say this is a test"),
-		}}),
-		Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+	_, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+				Role: "user",
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+					OfString: together.String("Say this is a test"),
+				},
+			},
+		}},
+		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 	})
-	if err == nil || res != nil {
-		t.Error("expected there to be a cancel error and for the response to be nil")
+	if err == nil {
+		t.Error("expected there to be a cancel error")
 	}
 }
 
@@ -172,6 +286,7 @@ func TestContextDeadline(t *testing.T) {
 
 	go func() {
 		client := together.NewClient(
+			option.WithAPIKey("My API Key"),
 			option.WithHTTPClient(&http.Client{
 				Transport: &closureTransport{
 					fn: func(req *http.Request) (*http.Response, error) {
@@ -181,15 +296,19 @@ func TestContextDeadline(t *testing.T) {
 				},
 			}),
 		)
-		res, err := client.Chat.Completions.New(deadlineCtx, together.ChatCompletionNewParamsChatCompletionRequest{
-			Messages: together.F([]together.ChatCompletionNewParamsChatCompletionRequestMessage{{
-				Role:    together.F(together.ChatCompletionNewParamsChatCompletionRequestMessagesRoleUser),
-				Content: together.F("Say this is a test"),
-			}}),
-			Model: together.F("mistralai/Mixtral-8x7B-Instruct-v0.1"),
+		_, err := client.Chat.Completions.New(deadlineCtx, together.ChatCompletionNewParams{
+			Messages: []together.ChatCompletionNewParamsMessageUnion{{
+				OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+					Role: "user",
+					Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+						OfString: together.String("Say this is a test"),
+					},
+				},
+			}},
+			Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
 		})
-		if err == nil || res != nil {
-			t.Error("expected there to be a deadline error and for the response to be nil")
+		if err == nil {
+			t.Error("expected there to be a deadline error")
 		}
 		close(testDone)
 	}()
@@ -203,3 +322,121 @@ func TestContextDeadline(t *testing.T) {
 		}
 	}
 }
+
+func TestContextDeadlineStreaming(t *testing.T) {
+	testTimeout := time.After(3 * time.Second)
+	testDone := make(chan struct{})
+
+	deadline := time.Now().Add(100 * time.Millisecond)
+	deadlineCtx, cancel := context.WithDeadline(context.Background(), deadline)
+	defer cancel()
+
+	go func() {
+		client := together.NewClient(
+			option.WithAPIKey("My API Key"),
+			option.WithHTTPClient(&http.Client{
+				Transport: &closureTransport{
+					fn: func(req *http.Request) (*http.Response, error) {
+						return &http.Response{
+							StatusCode: 200,
+							Status:     "200 OK",
+							Body: io.NopCloser(
+								io.Reader(readerFunc(func([]byte) (int, error) {
+									<-req.Context().Done()
+									return 0, req.Context().Err()
+								})),
+							),
+						}, nil
+					},
+				},
+			}),
+		)
+		stream := client.Chat.Completions.NewStreaming(deadlineCtx, together.ChatCompletionNewParams{
+			Messages: []together.ChatCompletionNewParamsMessageUnion{{
+				OfChatCompletionNewsMessageChatCompletionSystemMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionSystemMessageParam{
+					Content: "content",
+					Role:    "system",
+				},
+			}},
+			Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		})
+		for stream.Next() {
+			_ = stream.Current()
+		}
+		if stream.Err() == nil {
+			t.Error("expected there to be a deadline error")
+		}
+		close(testDone)
+	}()
+
+	select {
+	case <-testTimeout:
+		t.Fatal("client didn't finish in time")
+	case <-testDone:
+		if diff := time.Since(deadline); diff < -30*time.Millisecond || 30*time.Millisecond < diff {
+			t.Fatalf("client did not return within 30ms of context deadline, got %s", diff)
+		}
+	}
+}
+
+func TestContextDeadlineStreamingWithRequestTimeout(t *testing.T) {
+	testTimeout := time.After(3 * time.Second)
+	testDone := make(chan struct{})
+	deadline := time.Now().Add(100 * time.Millisecond)
+
+	go func() {
+		client := together.NewClient(
+			option.WithAPIKey("My API Key"),
+			option.WithHTTPClient(&http.Client{
+				Transport: &closureTransport{
+					fn: func(req *http.Request) (*http.Response, error) {
+						return &http.Response{
+							StatusCode: 200,
+							Status:     "200 OK",
+							Body: io.NopCloser(
+								io.Reader(readerFunc(func([]byte) (int, error) {
+									<-req.Context().Done()
+									return 0, req.Context().Err()
+								})),
+							),
+						}, nil
+					},
+				},
+			}),
+		)
+		stream := client.Chat.Completions.NewStreaming(
+			context.Background(),
+			together.ChatCompletionNewParams{
+				Messages: []together.ChatCompletionNewParamsMessageUnion{{
+					OfChatCompletionNewsMessageChatCompletionSystemMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionSystemMessageParam{
+						Content: "content",
+						Role:    "system",
+					},
+				}},
+				Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+			},
+			option.WithRequestTimeout((100 * time.Millisecond)),
+		)
+		for stream.Next() {
+			_ = stream.Current()
+		}
+		if stream.Err() == nil {
+			t.Error("expected there to be a deadline error")
+		}
+		close(testDone)
+	}()
+
+	select {
+	case <-testTimeout:
+		t.Fatal("client didn't finish in time")
+	case <-testDone:
+		if diff := time.Since(deadline); diff < -30*time.Millisecond || 30*time.Millisecond < diff {
+			t.Fatalf("client did not return within 30ms of context deadline, got %s", diff)
+		}
+	}
+}
+
+type readerFunc func([]byte) (int, error)
+
+func (f readerFunc) Read(p []byte) (int, error) { return f(p) }
+func (f readerFunc) Close() error               { return nil }

@@ -3,14 +3,20 @@
 package together
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"slices"
 
+	"github.com/togethercomputer/together-go/internal/apiform"
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 // FileService contains methods and other services that help with interacting with
@@ -26,15 +32,15 @@ type FileService struct {
 // NewFileService generates a new service that applies the given options to each
 // request. These options are applied after the parent client's options (if there
 // is one), and before any request-specific options.
-func NewFileService(opts ...option.RequestOption) (r *FileService) {
-	r = &FileService{}
+func NewFileService(opts ...option.RequestOption) (r FileService) {
+	r = FileService{}
 	r.Options = opts
 	return
 }
 
-// Retrieve a file
+// List the metadata for a single uploaded data file.
 func (r *FileService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FileGetResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -44,17 +50,17 @@ func (r *FileService) Get(ctx context.Context, id string, opts ...option.Request
 	return
 }
 
-// List all files
+// List the metadata for all uploaded data files.
 func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (res *FileListResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	path := "files"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
 
-// Delete a file
+// Delete a previously uploaded data file.
 func (r *FileService) Delete(ctx context.Context, id string, opts ...option.RequestOption) (res *FileDeleteResponse, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return
@@ -64,9 +70,9 @@ func (r *FileService) Delete(ctx context.Context, id string, opts ...option.Requ
 	return
 }
 
-// Retrieve file content
+// Get the contents of a single uploaded data file.
 func (r *FileService) Content(ctx context.Context, id string, opts ...option.RequestOption) (res *http.Response, err error) {
-	opts = append(r.Options[:], opts...)
+	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/binary")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -77,177 +83,218 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 	return
 }
 
+// Upload a file with specified purpose, file name, and file type.
+func (r *FileService) Upload(ctx context.Context, body FileUploadParams, opts ...option.RequestOption) (res *FileUploadResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "files/upload"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}
+
+// The purpose of the file
+type FilePurpose string
+
+const (
+	FilePurposeFineTune       FilePurpose = "fine-tune"
+	FilePurposeEval           FilePurpose = "eval"
+	FilePurposeEvalSample     FilePurpose = "eval-sample"
+	FilePurposeEvalOutput     FilePurpose = "eval-output"
+	FilePurposeEvalSummary    FilePurpose = "eval-summary"
+	FilePurposeBatchGenerated FilePurpose = "batch-generated"
+	FilePurposeBatchAPI       FilePurpose = "batch-api"
+)
+
+// The type of the file
+type FileType string
+
+const (
+	FileTypeCsv     FileType = "csv"
+	FileTypeJSONL   FileType = "jsonl"
+	FileTypeParquet FileType = "parquet"
+)
+
 type FileGetResponse struct {
-	ID        string                  `json:"id,required"`
-	Bytes     int64                   `json:"bytes,required"`
-	CreatedAt int64                   `json:"created_at,required"`
-	Filename  string                  `json:"filename,required"`
-	FileType  FileGetResponseFileType `json:"FileType,required"`
-	LineCount int64                   `json:"LineCount,required"`
-	Object    string                  `json:"object,required"`
-	Processed bool                    `json:"Processed,required"`
-	Purpose   FileGetResponsePurpose  `json:"purpose,required"`
-	JSON      fileGetResponseJSON     `json:"-"`
+	ID        string `json:"id,required"`
+	Bytes     int64  `json:"bytes,required"`
+	CreatedAt int64  `json:"created_at,required"`
+	Filename  string `json:"filename,required"`
+	// The type of the file
+	//
+	// Any of "csv", "jsonl", "parquet".
+	FileType  FileType `json:"FileType,required"`
+	LineCount int64    `json:"LineCount,required"`
+	Object    string   `json:"object,required"`
+	Processed bool     `json:"Processed,required"`
+	// The purpose of the file
+	//
+	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
+	// "batch-generated", "batch-api".
+	Purpose FilePurpose `json:"purpose,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		Bytes       respjson.Field
+		CreatedAt   respjson.Field
+		Filename    respjson.Field
+		FileType    respjson.Field
+		LineCount   respjson.Field
+		Object      respjson.Field
+		Processed   respjson.Field
+		Purpose     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// fileGetResponseJSON contains the JSON metadata for the struct [FileGetResponse]
-type fileGetResponseJSON struct {
-	ID          apijson.Field
-	Bytes       apijson.Field
-	CreatedAt   apijson.Field
-	Filename    apijson.Field
-	FileType    apijson.Field
-	LineCount   apijson.Field
-	Object      apijson.Field
-	Processed   apijson.Field
-	Purpose     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *FileGetResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r FileGetResponse) RawJSON() string { return r.JSON.raw }
+func (r *FileGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r fileGetResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-type FileGetResponseFileType string
-
-const (
-	FileGetResponseFileTypeJsonl   FileGetResponseFileType = "jsonl"
-	FileGetResponseFileTypeParquet FileGetResponseFileType = "parquet"
-)
-
-func (r FileGetResponseFileType) IsKnown() bool {
-	switch r {
-	case FileGetResponseFileTypeJsonl, FileGetResponseFileTypeParquet:
-		return true
-	}
-	return false
-}
-
-type FileGetResponsePurpose string
-
-const (
-	FileGetResponsePurposeFineTune FileGetResponsePurpose = "fine-tune"
-)
-
-func (r FileGetResponsePurpose) IsKnown() bool {
-	switch r {
-	case FileGetResponsePurposeFineTune:
-		return true
-	}
-	return false
 }
 
 type FileListResponse struct {
 	Data []FileListResponseData `json:"data,required"`
-	JSON fileListResponseJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// fileListResponseJSON contains the JSON metadata for the struct
-// [FileListResponse]
-type fileListResponseJSON struct {
-	Data        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *FileListResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r FileListResponse) RawJSON() string { return r.JSON.raw }
+func (r *FileListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r fileListResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 type FileListResponseData struct {
-	ID        string                       `json:"id,required"`
-	Bytes     int64                        `json:"bytes,required"`
-	CreatedAt int64                        `json:"created_at,required"`
-	Filename  string                       `json:"filename,required"`
-	FileType  FileListResponseDataFileType `json:"FileType,required"`
-	LineCount int64                        `json:"LineCount,required"`
-	Object    string                       `json:"object,required"`
-	Processed bool                         `json:"Processed,required"`
-	Purpose   FileListResponseDataPurpose  `json:"purpose,required"`
-	JSON      fileListResponseDataJSON     `json:"-"`
+	ID        string `json:"id,required"`
+	Bytes     int64  `json:"bytes,required"`
+	CreatedAt int64  `json:"created_at,required"`
+	Filename  string `json:"filename,required"`
+	// The type of the file
+	//
+	// Any of "csv", "jsonl", "parquet".
+	FileType  FileType `json:"FileType,required"`
+	LineCount int64    `json:"LineCount,required"`
+	Object    string   `json:"object,required"`
+	Processed bool     `json:"Processed,required"`
+	// The purpose of the file
+	//
+	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
+	// "batch-generated", "batch-api".
+	Purpose FilePurpose `json:"purpose,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		Bytes       respjson.Field
+		CreatedAt   respjson.Field
+		Filename    respjson.Field
+		FileType    respjson.Field
+		LineCount   respjson.Field
+		Object      respjson.Field
+		Processed   respjson.Field
+		Purpose     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// fileListResponseDataJSON contains the JSON metadata for the struct
-// [FileListResponseData]
-type fileListResponseDataJSON struct {
-	ID          apijson.Field
-	Bytes       apijson.Field
-	CreatedAt   apijson.Field
-	Filename    apijson.Field
-	FileType    apijson.Field
-	LineCount   apijson.Field
-	Object      apijson.Field
-	Processed   apijson.Field
-	Purpose     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *FileListResponseData) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r FileListResponseData) RawJSON() string { return r.JSON.raw }
+func (r *FileListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r fileListResponseDataJSON) RawJSON() string {
-	return r.raw
-}
-
-type FileListResponseDataFileType string
-
-const (
-	FileListResponseDataFileTypeJsonl   FileListResponseDataFileType = "jsonl"
-	FileListResponseDataFileTypeParquet FileListResponseDataFileType = "parquet"
-)
-
-func (r FileListResponseDataFileType) IsKnown() bool {
-	switch r {
-	case FileListResponseDataFileTypeJsonl, FileListResponseDataFileTypeParquet:
-		return true
-	}
-	return false
-}
-
-type FileListResponseDataPurpose string
-
-const (
-	FileListResponseDataPurposeFineTune FileListResponseDataPurpose = "fine-tune"
-)
-
-func (r FileListResponseDataPurpose) IsKnown() bool {
-	switch r {
-	case FileListResponseDataPurposeFineTune:
-		return true
-	}
-	return false
 }
 
 type FileDeleteResponse struct {
-	ID      string                 `json:"id"`
-	Deleted bool                   `json:"deleted"`
-	JSON    fileDeleteResponseJSON `json:"-"`
+	ID      string `json:"id"`
+	Deleted bool   `json:"deleted"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		Deleted     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// fileDeleteResponseJSON contains the JSON metadata for the struct
-// [FileDeleteResponse]
-type fileDeleteResponseJSON struct {
-	ID          apijson.Field
-	Deleted     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *FileDeleteResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r FileDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *FileDeleteResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r fileDeleteResponseJSON) RawJSON() string {
-	return r.raw
+type FileUploadResponse struct {
+	ID        string `json:"id,required"`
+	Bytes     int64  `json:"bytes,required"`
+	CreatedAt int64  `json:"created_at,required"`
+	Filename  string `json:"filename,required"`
+	// The type of the file
+	//
+	// Any of "csv", "jsonl", "parquet".
+	FileType  FileType `json:"FileType,required"`
+	LineCount int64    `json:"LineCount,required"`
+	Object    string   `json:"object,required"`
+	Processed bool     `json:"Processed,required"`
+	// The purpose of the file
+	//
+	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
+	// "batch-generated", "batch-api".
+	Purpose FilePurpose `json:"purpose,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		Bytes       respjson.Field
+		CreatedAt   respjson.Field
+		Filename    respjson.Field
+		FileType    respjson.Field
+		LineCount   respjson.Field
+		Object      respjson.Field
+		Processed   respjson.Field
+		Purpose     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FileUploadResponse) RawJSON() string { return r.JSON.raw }
+func (r *FileUploadResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FileUploadParams struct {
+	// The content of the file being uploaded
+	File io.Reader `json:"file,omitzero,required" format:"binary"`
+	// The name of the file being uploaded
+	FileName string `json:"file_name,required"`
+	// The purpose of the file
+	//
+	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
+	// "batch-generated", "batch-api".
+	Purpose FilePurpose `json:"purpose,omitzero,required"`
+	// The type of the file
+	//
+	// Any of "csv", "jsonl", "parquet".
+	FileType FileType `json:"file_type,omitzero"`
+	paramObj
+}
+
+func (r FileUploadParams) MarshalMultipart() (data []byte, contentType string, err error) {
+	buf := bytes.NewBuffer(nil)
+	writer := multipart.NewWriter(buf)
+	err = apiform.MarshalRoot(r, writer)
+	if err == nil {
+		err = apiform.WriteExtras(writer, r.ExtraFields())
+	}
+	if err != nil {
+		writer.Close()
+		return nil, "", err
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, "", err
+	}
+	return buf.Bytes(), writer.FormDataContentType(), nil
 }

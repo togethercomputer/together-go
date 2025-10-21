@@ -29,7 +29,7 @@ func TestFileGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Files.Get(context.TODO(), "string")
+	_, err := client.Files.Get(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -73,7 +73,7 @@ func TestFileDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Files.Delete(context.TODO(), "string")
+	_, err := client.Files.Delete(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -94,7 +94,7 @@ func TestFileContent(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	resp, err := client.Files.Content(context.TODO(), "string")
+	resp, err := client.Files.Content(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -114,5 +114,32 @@ func TestFileContent(t *testing.T) {
 	}
 	if !bytes.Equal(b, []byte("abc")) {
 		t.Fatalf("return value not %s: %s", "abc", b)
+	}
+}
+
+func TestFileUploadWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Files.Upload(context.TODO(), together.FileUploadParams{
+		File:     io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		FileName: "dataset.csv",
+		Purpose:  together.FilePurposeFineTune,
+		FileType: together.FileTypeJSONL,
+	})
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
 	}
 }

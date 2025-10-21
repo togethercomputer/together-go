@@ -6,6 +6,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"slices"
 
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
@@ -15,36 +16,61 @@ import (
 // interacting with the together API. You should not instantiate this client
 // directly, and instead use the [NewClient] method instead.
 type Client struct {
-	Options     []option.RequestOption
-	Chat        *ChatService
-	Completions *CompletionService
-	Embeddings  *EmbeddingService
-	Files       *FileService
-	FineTune    *FineTuneService
-	Images      *ImageService
-	Models      *ModelService
+	Options         []option.RequestOption
+	Chat            ChatService
+	Completions     CompletionService
+	Embeddings      EmbeddingService
+	Files           FileService
+	FineTune        FineTuneService
+	CodeInterpreter CodeInterpreterService
+	Images          ImageService
+	Videos          VideoService
+	Audio           AudioService
+	Models          ModelService
+	Jobs            JobService
+	Endpoints       EndpointService
+	Hardware        HardwareService
+	Batches         BatchService
+	Evals           EvalService
 }
 
-// NewClient generates a new client with the default option read from the
-// environment (TOGETHER_API_KEY). The option passed in as arguments are applied
-// after these default arguments, and all option will be passed down to the
-// services and requests that this client makes.
-func NewClient(opts ...option.RequestOption) (r *Client) {
+// DefaultClientOptions read from the environment (TOGETHER_API_KEY,
+// TOGETHER_BASE_URL). This should be used to initialize new clients.
+func DefaultClientOptions() []option.RequestOption {
 	defaults := []option.RequestOption{option.WithEnvironmentProduction()}
+	if o, ok := os.LookupEnv("TOGETHER_BASE_URL"); ok {
+		defaults = append(defaults, option.WithBaseURL(o))
+	}
 	if o, ok := os.LookupEnv("TOGETHER_API_KEY"); ok {
 		defaults = append(defaults, option.WithAPIKey(o))
 	}
-	opts = append(defaults, opts...)
+	return defaults
+}
 
-	r = &Client{Options: opts}
+// NewClient generates a new client with the default option read from the
+// environment (TOGETHER_API_KEY, TOGETHER_BASE_URL). The option passed in as
+// arguments are applied after these default arguments, and all option will be
+// passed down to the services and requests that this client makes.
+func NewClient(opts ...option.RequestOption) (r Client) {
+	opts = append(DefaultClientOptions(), opts...)
+
+	r = Client{Options: opts}
 
 	r.Chat = NewChatService(opts...)
 	r.Completions = NewCompletionService(opts...)
 	r.Embeddings = NewEmbeddingService(opts...)
 	r.Files = NewFileService(opts...)
 	r.FineTune = NewFineTuneService(opts...)
+	r.CodeInterpreter = NewCodeInterpreterService(opts...)
 	r.Images = NewImageService(opts...)
+	r.Videos = NewVideoService(opts...)
+	r.Audio = NewAudioService(opts...)
 	r.Models = NewModelService(opts...)
+	r.Jobs = NewJobService(opts...)
+	r.Endpoints = NewEndpointService(opts...)
+	r.Hardware = NewHardwareService(opts...)
+	r.Batches = NewBatchService(opts...)
+	r.Evals = NewEvalService(opts...)
 
 	return
 }
@@ -80,40 +106,48 @@ func NewClient(opts ...option.RequestOption) (r *Client) {
 //
 // For even greater flexibility, see [option.WithResponseInto] and
 // [option.WithResponseBodyInto].
-func (r *Client) Execute(ctx context.Context, method string, path string, params interface{}, res interface{}, opts ...option.RequestOption) error {
-	opts = append(r.Options, opts...)
+func (r *Client) Execute(ctx context.Context, method string, path string, params any, res any, opts ...option.RequestOption) error {
+	opts = slices.Concat(r.Options, opts)
 	return requestconfig.ExecuteNewRequest(ctx, method, path, params, res, opts...)
 }
 
 // Get makes a GET request with the given URL, params, and optionally deserializes
 // to a response. See [Execute] documentation on the params and response.
-func (r *Client) Get(ctx context.Context, path string, params interface{}, res interface{}, opts ...option.RequestOption) error {
+func (r *Client) Get(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodGet, path, params, res, opts...)
 }
 
 // Post makes a POST request with the given URL, params, and optionally
 // deserializes to a response. See [Execute] documentation on the params and
 // response.
-func (r *Client) Post(ctx context.Context, path string, params interface{}, res interface{}, opts ...option.RequestOption) error {
+func (r *Client) Post(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodPost, path, params, res, opts...)
 }
 
 // Put makes a PUT request with the given URL, params, and optionally deserializes
 // to a response. See [Execute] documentation on the params and response.
-func (r *Client) Put(ctx context.Context, path string, params interface{}, res interface{}, opts ...option.RequestOption) error {
+func (r *Client) Put(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodPut, path, params, res, opts...)
 }
 
 // Patch makes a PATCH request with the given URL, params, and optionally
 // deserializes to a response. See [Execute] documentation on the params and
 // response.
-func (r *Client) Patch(ctx context.Context, path string, params interface{}, res interface{}, opts ...option.RequestOption) error {
+func (r *Client) Patch(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodPatch, path, params, res, opts...)
 }
 
 // Delete makes a DELETE request with the given URL, params, and optionally
 // deserializes to a response. See [Execute] documentation on the params and
 // response.
-func (r *Client) Delete(ctx context.Context, path string, params interface{}, res interface{}, opts ...option.RequestOption) error {
+func (r *Client) Delete(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodDelete, path, params, res, opts...)
+}
+
+// Query a reranker model
+func (r *Client) Rerank(ctx context.Context, body RerankParams, opts ...option.RequestOption) (res *RerankResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "rerank"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
 }
