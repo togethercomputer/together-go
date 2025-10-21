@@ -30,8 +30,8 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 		Model: together.F("model"),
 		Fps:   together.F(int64(0)),
 		FrameImages: together.F([]together.VideoNewParamsFrameImage{{
-			Frame:      together.F[together.VideoNewParamsFrameImagesFrameUnion](shared.UnionFloat(0.000000)),
 			InputImage: together.F("input_image"),
+			Frame:      together.F[together.VideoNewParamsFrameImagesFrameUnion](shared.UnionFloat(0.000000)),
 		}}),
 		GuidanceScale:   together.F(int64(0)),
 		Height:          together.F(int64(0)),
@@ -39,7 +39,7 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 		OutputFormat:    together.F(together.VideoNewParamsOutputFormatMP4),
 		OutputQuality:   together.F(int64(0)),
 		Prompt:          together.F("x"),
-		ReferenceImages: together.F([]interface{}{map[string]interface{}{}}),
+		ReferenceImages: together.F([]string{"string"}),
 		Seconds:         together.F("seconds"),
 		Seed:            together.F(int64(0)),
 		Steps:           together.F(int64(10)),
