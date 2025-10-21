@@ -214,9 +214,7 @@ type VideoNewParams struct {
 	Model param.Field[string] `json:"model,required"`
 	// Frames per second. Defaults to 24.
 	Fps param.Field[int64] `json:"fps"`
-	// Array of images to guide video generation, like keyframes. If size 1, starting
-	// frame, if size 2, starting and ending frame, if more than 2 then frame must be
-	// specified
+	// Array of images to guide video generation, similar to keyframes.
 	FrameImages param.Field[[]VideoNewParamsFrameImage] `json:"frame_images"`
 	// Controls how closely the video generation follows your prompt. Higher values
 	// make the model adhere more strictly to your text description, while lower values
@@ -233,8 +231,10 @@ type VideoNewParams struct {
 	OutputQuality param.Field[int64] `json:"output_quality"`
 	// Text prompt that describes the video to generate.
 	Prompt param.Field[string] `json:"prompt"`
-	// TODO need to figure this out
-	ReferenceImages param.Field[[]interface{}] `json:"reference_images"`
+	// Unlike frame_images which constrain specific timeline positions, reference
+	// images guide the general appearance that should appear consistently across the
+	// video.
+	ReferenceImages param.Field[[]string] `json:"reference_images"`
 	// Clip duration in seconds.
 	Seconds param.Field[string] `json:"seconds"`
 	// Seed to use in initializing the video generation. Using the same seed allows
@@ -253,15 +253,28 @@ func (r VideoNewParams) MarshalJSON() (data []byte, err error) {
 }
 
 type VideoNewParamsFrameImage struct {
-	Frame param.Field[VideoNewParamsFrameImagesFrameUnion] `json:"frame,required"`
-	// idk
+	// URL path to hosted image that is used for a frame
 	InputImage param.Field[string] `json:"input_image,required"`
+	// Optional param to specify where to insert the frame. If this is omitted, the
+	// following heuristics are applied:
+	//
+	// - frame_images size is one, frame is first.
+	// - If size is two, frames are first and last.
+	// - If size is larger, frames are first, last and evenly spaced between.
+	Frame param.Field[VideoNewParamsFrameImagesFrameUnion] `json:"frame"`
 }
 
 func (r VideoNewParamsFrameImage) MarshalJSON() (data []byte, err error) {
 	return apijson.MarshalRoot(r)
 }
 
+// Optional param to specify where to insert the frame. If this is omitted, the
+// following heuristics are applied:
+//
+// - frame_images size is one, frame is first.
+// - If size is two, frames are first and last.
+// - If size is larger, frames are first, last and evenly spaced between.
+//
 // Satisfied by [shared.UnionFloat], [VideoNewParamsFrameImagesFrameString].
 type VideoNewParamsFrameImagesFrameUnion interface {
 	ImplementsVideoNewParamsFrameImagesFrameUnion()
