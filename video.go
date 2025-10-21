@@ -189,7 +189,7 @@ func (r videoJobOutputsJSON) RawJSON() string {
 
 type VideoNewResponse struct {
 	// Unique identifier for the video job.
-	ID   string               `json:"id"`
+	ID   string               `json:"id,required"`
 	JSON videoNewResponseJSON `json:"-"`
 }
 
