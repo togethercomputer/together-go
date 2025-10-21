@@ -11,7 +11,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 func TestVideoNewWithOptionalParams(t *testing.T) {
@@ -27,23 +26,25 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Videos.New(context.TODO(), together.VideoNewParams{
-		Model: together.F("model"),
-		Fps:   together.F(int64(0)),
-		FrameImages: together.F([]together.VideoNewParamsFrameImage{{
-			InputImage: together.F("input_image"),
-			Frame:      together.F[together.VideoNewParamsFrameImagesFrameUnion](shared.UnionFloat(0.000000)),
-		}}),
-		GuidanceScale:   together.F(int64(0)),
-		Height:          together.F(int64(0)),
-		NegativePrompt:  together.F("negative_prompt"),
-		OutputFormat:    together.F(together.VideoNewParamsOutputFormatMP4),
-		OutputQuality:   together.F(int64(0)),
-		Prompt:          together.F("x"),
-		ReferenceImages: together.F([]string{"string"}),
-		Seconds:         together.F("seconds"),
-		Seed:            together.F(int64(0)),
-		Steps:           together.F(int64(10)),
-		Width:           together.F(int64(0)),
+		Model: "model",
+		Fps:   together.Int(0),
+		FrameImages: []together.VideoNewParamsFrameImage{{
+			InputImage: "input_image",
+			Frame: together.VideoNewParamsFrameImageFrameUnion{
+				OfFloat: together.Float(0),
+			},
+		}},
+		GuidanceScale:   together.Int(0),
+		Height:          together.Int(0),
+		NegativePrompt:  together.String("negative_prompt"),
+		OutputFormat:    together.VideoNewParamsOutputFormatMP4,
+		OutputQuality:   together.Int(0),
+		Prompt:          together.String("x"),
+		ReferenceImages: []string{"string"},
+		Seconds:         together.String("seconds"),
+		Seed:            together.Int(0),
+		Steps:           together.Int(10),
+		Width:           together.Int(0),
 	})
 	if err != nil {
 		var apierr *together.Error

@@ -26,24 +26,26 @@ func TestTogetherRerankWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Rerank(context.TODO(), together.RerankParams{
-		Documents: together.F[together.RerankParamsDocumentsUnion](together.RerankParamsDocumentsArray([]map[string]interface{}{{
-			"title": "bar",
-			"text":  "bar",
-		}, {
-			"title": "bar",
-			"text":  "bar",
-		}, {
-			"title": "bar",
-			"text":  "bar",
-		}, {
-			"title": "bar",
-			"text":  "bar",
-		}})),
-		Model:           together.F(together.RerankParamsModelSalesforceLlamaRankV1),
-		Query:           together.F("What animals can I find near Peru?"),
-		RankFields:      together.F([]string{"title", "text"}),
-		ReturnDocuments: together.F(true),
-		TopN:            together.F(int64(2)),
+		Documents: together.RerankParamsDocumentsUnion{
+			OfMapOfAnyMap: []map[string]any{{
+				"title": "bar",
+				"text":  "bar",
+			}, {
+				"title": "bar",
+				"text":  "bar",
+			}, {
+				"title": "bar",
+				"text":  "bar",
+			}, {
+				"title": "bar",
+				"text":  "bar",
+			}},
+		},
+		Model:           together.RerankParamsModelSalesforceLlamaRankV1,
+		Query:           "What animals can I find near Peru?",
+		RankFields:      []string{"title", "text"},
+		ReturnDocuments: together.Bool(true),
+		TopN:            together.Int(2),
 	})
 	if err != nil {
 		var apierr *together.Error

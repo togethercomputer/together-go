@@ -4,38 +4,37 @@ package together
 
 import (
 	"github.com/togethercomputer/together-go/internal/apijson"
-	"github.com/togethercomputer/together-go/internal/param"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 type RerankResponse struct {
 	// The model to be used for the rerank request.
 	Model string `json:"model,required"`
 	// Object type
+	//
+	// Any of "rerank".
 	Object  RerankResponseObject   `json:"object,required"`
 	Results []RerankResponseResult `json:"results,required"`
 	// Request ID
 	ID    string              `json:"id"`
 	Usage ChatCompletionUsage `json:"usage,nullable"`
-	JSON  rerankResponseJSON  `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Model       respjson.Field
+		Object      respjson.Field
+		Results     respjson.Field
+		ID          respjson.Field
+		Usage       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// rerankResponseJSON contains the JSON metadata for the struct [RerankResponse]
-type rerankResponseJSON struct {
-	Model       apijson.Field
-	Object      apijson.Field
-	Results     apijson.Field
-	ID          apijson.Field
-	Usage       apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *RerankResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r RerankResponse) RawJSON() string { return r.JSON.raw }
+func (r *RerankResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r rerankResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // Object type
@@ -45,92 +44,93 @@ const (
 	RerankResponseObjectRerank RerankResponseObject = "rerank"
 )
 
-func (r RerankResponseObject) IsKnown() bool {
-	switch r {
-	case RerankResponseObjectRerank:
-		return true
-	}
-	return false
-}
-
 type RerankResponseResult struct {
-	Document       RerankResponseResultsDocument `json:"document,required"`
-	Index          int64                         `json:"index,required"`
-	RelevanceScore float64                       `json:"relevance_score,required"`
-	JSON           rerankResponseResultJSON      `json:"-"`
+	Document       RerankResponseResultDocument `json:"document,required"`
+	Index          int64                        `json:"index,required"`
+	RelevanceScore float64                      `json:"relevance_score,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Document       respjson.Field
+		Index          respjson.Field
+		RelevanceScore respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
 }
 
-// rerankResponseResultJSON contains the JSON metadata for the struct
-// [RerankResponseResult]
-type rerankResponseResultJSON struct {
-	Document       apijson.Field
-	Index          apijson.Field
-	RelevanceScore apijson.Field
-	raw            string
-	ExtraFields    map[string]apijson.Field
-}
-
-func (r *RerankResponseResult) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r RerankResponseResult) RawJSON() string { return r.JSON.raw }
+func (r *RerankResponseResult) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r rerankResponseResultJSON) RawJSON() string {
-	return r.raw
+type RerankResponseResultDocument struct {
+	Text string `json:"text,nullable"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Text        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-type RerankResponseResultsDocument struct {
-	Text string                            `json:"text,nullable"`
-	JSON rerankResponseResultsDocumentJSON `json:"-"`
-}
-
-// rerankResponseResultsDocumentJSON contains the JSON metadata for the struct
-// [RerankResponseResultsDocument]
-type rerankResponseResultsDocumentJSON struct {
-	Text        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *RerankResponseResultsDocument) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r RerankResponseResultDocument) RawJSON() string { return r.JSON.raw }
+func (r *RerankResponseResultDocument) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r rerankResponseResultsDocumentJSON) RawJSON() string {
-	return r.raw
 }
 
 type RerankParams struct {
 	// List of documents, which can be either strings or objects.
-	Documents param.Field[RerankParamsDocumentsUnion] `json:"documents,required"`
+	Documents RerankParamsDocumentsUnion `json:"documents,omitzero,required"`
 	// The model to be used for the rerank request.
 	//
 	// [See all of Together AI's rerank models](https://docs.together.ai/docs/serverless-models#rerank-models)
-	Model param.Field[RerankParamsModel] `json:"model,required"`
+	Model RerankParamsModel `json:"model,omitzero,required"`
 	// The search query to be used for ranking.
-	Query param.Field[string] `json:"query,required"`
+	Query string `json:"query,required"`
+	// Whether to return supplied documents with the response.
+	ReturnDocuments param.Opt[bool] `json:"return_documents,omitzero"`
+	// The number of top results to return.
+	TopN param.Opt[int64] `json:"top_n,omitzero"`
 	// List of keys in the JSON Object document to rank by. Defaults to use all
 	// supplied keys for ranking.
-	RankFields param.Field[[]string] `json:"rank_fields"`
-	// Whether to return supplied documents with the response.
-	ReturnDocuments param.Field[bool] `json:"return_documents"`
-	// The number of top results to return.
-	TopN param.Field[int64] `json:"top_n"`
+	RankFields []string `json:"rank_fields,omitzero"`
+	paramObj
 }
 
 func (r RerankParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow RerankParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RerankParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
-// List of documents, which can be either strings or objects.
+// Only one field can be non-zero.
 //
-// Satisfied by [RerankParamsDocumentsArray], [RerankParamsDocumentsArray].
-type RerankParamsDocumentsUnion interface {
-	implementsRerankParamsDocumentsUnion()
+// Use [param.IsOmitted] to confirm if a field is set.
+type RerankParamsDocumentsUnion struct {
+	OfMapOfAnyMap []map[string]any `json:",omitzero,inline"`
+	OfStringArray []string         `json:",omitzero,inline"`
+	paramUnion
 }
 
-type RerankParamsDocumentsArray []map[string]interface{}
+func (u RerankParamsDocumentsUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfMapOfAnyMap, u.OfStringArray)
+}
+func (u *RerankParamsDocumentsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
 
-func (r RerankParamsDocumentsArray) implementsRerankParamsDocumentsUnion() {}
+func (u *RerankParamsDocumentsUnion) asAny() any {
+	if !param.IsOmitted(u.OfMapOfAnyMap) {
+		return &u.OfMapOfAnyMap
+	} else if !param.IsOmitted(u.OfStringArray) {
+		return &u.OfStringArray
+	}
+	return nil
+}
 
 // The model to be used for the rerank request.
 //
@@ -140,11 +140,3 @@ type RerankParamsModel string
 const (
 	RerankParamsModelSalesforceLlamaRankV1 RerankParamsModel = "Salesforce/Llama-Rank-v1"
 )
-
-func (r RerankParamsModel) IsKnown() bool {
-	switch r {
-	case RerankParamsModelSalesforceLlamaRankV1:
-		return true
-	}
-	return false
-}

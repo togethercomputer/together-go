@@ -11,7 +11,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 func TestChatCompletionNewWithOptionalParams(t *testing.T) {
@@ -27,50 +26,56 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-		Messages: together.F([]together.ChatCompletionNewParamsMessageUnion{together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParam{
-			Content: together.F("content"),
-			Role:    together.F(together.ChatCompletionNewParamsMessagesChatCompletionSystemMessageParamRoleSystem),
-			Name:    together.F("name"),
-		}}),
-		Model:                         together.F(together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo),
-		ContextLengthExceededBehavior: together.F(together.ChatCompletionNewParamsContextLengthExceededBehaviorTruncate),
-		Echo:                          together.F(true),
-		FrequencyPenalty:              together.F(0.000000),
-		FunctionCall:                  together.F[together.ChatCompletionNewParamsFunctionCallUnion](together.ChatCompletionNewParamsFunctionCallString(together.ChatCompletionNewParamsFunctionCallStringNone)),
-		LogitBias: together.F(map[string]float64{
-			"105":  21.400000,
-			"1024": -10.500000,
-		}),
-		Logprobs:          together.F(int64(0)),
-		MaxTokens:         together.F(int64(0)),
-		MinP:              together.F(0.000000),
-		N:                 together.F(int64(1)),
-		PresencePenalty:   together.F(0.000000),
-		ReasoningEffort:   together.F(together.ChatCompletionNewParamsReasoningEffortMedium),
-		RepetitionPenalty: together.F(0.000000),
-		ResponseFormat: together.F(together.ChatCompletionNewParamsResponseFormat{
-			Schema: together.F(map[string]interface{}{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionSystemMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionSystemMessageParam{
+				Content: "content",
+				Role:    "system",
+				Name:    together.String("name"),
+			},
+		}},
+		Model:                         together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		ContextLengthExceededBehavior: together.ChatCompletionNewParamsContextLengthExceededBehaviorTruncate,
+		Echo:                          together.Bool(true),
+		FrequencyPenalty:              together.Float(0),
+		FunctionCall: together.ChatCompletionNewParamsFunctionCallUnion{
+			OfChatCompletionNewsFunctionCallString: together.String("none"),
+		},
+		LogitBias: map[string]float64{
+			"105":  21.4,
+			"1024": -10.5,
+		},
+		Logprobs:          together.Int(0),
+		MaxTokens:         together.Int(0),
+		MinP:              together.Float(0),
+		N:                 together.Int(1),
+		PresencePenalty:   together.Float(0),
+		ReasoningEffort:   together.ChatCompletionNewParamsReasoningEffortMedium,
+		RepetitionPenalty: together.Float(0),
+		ResponseFormat: together.ChatCompletionNewParamsResponseFormat{
+			Schema: map[string]any{
 				"foo": "bar",
-			}),
-			Type: together.F("json"),
-		}),
-		SafetyModel: together.F("safety_model_name"),
-		Seed:        together.F(int64(42)),
-		Stop:        together.F([]string{"string"}),
-		Temperature: together.F(0.000000),
-		ToolChoice:  together.F[together.ChatCompletionNewParamsToolChoiceUnion](shared.UnionString("tool_name")),
-		Tools: together.F([]together.ToolsParam{{
-			Function: together.F(together.ToolsFunctionParam{
-				Description: together.F("A description of the function."),
-				Name:        together.F("function_name"),
-				Parameters: together.F(map[string]interface{}{
+			},
+			Type: together.String("json"),
+		},
+		SafetyModel: together.String("safety_model_name"),
+		Seed:        together.Int(42),
+		Stop:        []string{"string"},
+		Temperature: together.Float(0),
+		ToolChoice: together.ChatCompletionNewParamsToolChoiceUnion{
+			OfString: together.String("tool_name"),
+		},
+		Tools: []together.ToolsParam{{
+			Function: together.ToolsFunctionParam{
+				Description: together.String("A description of the function."),
+				Name:        together.String("function_name"),
+				Parameters: map[string]any{
 					"foo": "bar",
-				}),
-			}),
-			Type: together.F("tool_type"),
-		}}),
-		TopK: together.F(int64(0)),
-		TopP: together.F(0.000000),
+				},
+			},
+			Type: together.String("tool_type"),
+		}},
+		TopK: together.Int(0),
+		TopP: together.Float(0),
 	})
 	if err != nil {
 		var apierr *together.Error

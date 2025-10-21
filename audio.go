@@ -8,9 +8,10 @@ import (
 	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
-	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
 	"github.com/togethercomputer/together-go/packages/ssestream"
 )
 
@@ -22,15 +23,15 @@ import (
 // the [NewAudioService] method instead.
 type AudioService struct {
 	Options        []option.RequestOption
-	Transcriptions *AudioTranscriptionService
-	Translations   *AudioTranslationService
+	Transcriptions AudioTranscriptionService
+	Translations   AudioTranslationService
 }
 
 // NewAudioService generates a new service that applies the given options to each
 // request. These options are applied after the parent client's options (if there
 // is one), and before any request-specific options.
-func NewAudioService(opts ...option.RequestOption) (r *AudioService) {
-	r = &AudioService{}
+func NewAudioService(opts ...option.RequestOption) (r AudioService) {
+	r = AudioService{}
 	r.Options = opts
 	r.Transcriptions = NewAudioTranscriptionService(opts...)
 	r.Translations = NewAudioTranslationService(opts...)
@@ -61,28 +62,24 @@ func (r *AudioService) NewStreaming(ctx context.Context, body AudioNewParams, op
 
 type AudioSpeechStreamChunk struct {
 	// base64 encoded audio stream
-	B64    string                       `json:"b64,required"`
-	Model  string                       `json:"model,required"`
+	B64   string `json:"b64,required"`
+	Model string `json:"model,required"`
+	// Any of "audio.tts.chunk".
 	Object AudioSpeechStreamChunkObject `json:"object,required"`
-	JSON   audioSpeechStreamChunkJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		B64         respjson.Field
+		Model       respjson.Field
+		Object      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// audioSpeechStreamChunkJSON contains the JSON metadata for the struct
-// [AudioSpeechStreamChunk]
-type audioSpeechStreamChunkJSON struct {
-	B64         apijson.Field
-	Model       apijson.Field
-	Object      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *AudioSpeechStreamChunk) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r AudioSpeechStreamChunk) RawJSON() string { return r.JSON.raw }
+func (r *AudioSpeechStreamChunk) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r audioSpeechStreamChunkJSON) RawJSON() string {
-	return r.raw
 }
 
 type AudioSpeechStreamChunkObject string
@@ -91,36 +88,40 @@ const (
 	AudioSpeechStreamChunkObjectAudioTtsChunk AudioSpeechStreamChunkObject = "audio.tts.chunk"
 )
 
-func (r AudioSpeechStreamChunkObject) IsKnown() bool {
-	switch r {
-	case AudioSpeechStreamChunkObjectAudioTtsChunk:
-		return true
-	}
-	return false
-}
-
 type AudioNewParams struct {
 	// Input text to generate the audio for
-	Input param.Field[string] `json:"input,required"`
+	Input string `json:"input,required"`
 	// The name of the model to query.
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#audio-models)
-	Model param.Field[AudioNewParamsModel] `json:"model,required"`
+	Model AudioNewParamsModel `json:"model,omitzero,required"`
 	// The voice to use for generating the audio.
 	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#voices-available).
-	Voice param.Field[AudioNewParamsVoice] `json:"voice,required"`
-	// Language of input text
-	Language param.Field[AudioNewParamsLanguage] `json:"language"`
-	// Audio encoding of response
-	ResponseEncoding param.Field[AudioNewParamsResponseEncoding] `json:"response_encoding"`
-	// The format of audio output
-	ResponseFormat param.Field[AudioNewParamsResponseFormat] `json:"response_format"`
+	Voice AudioNewParamsVoice `json:"voice,omitzero,required"`
 	// Sampling rate to use for the output audio
-	SampleRate param.Field[float64] `json:"sample_rate"`
+	SampleRate param.Opt[float64] `json:"sample_rate,omitzero"`
+	// Language of input text
+	//
+	// Any of "en", "de", "fr", "es", "hi", "it", "ja", "ko", "nl", "pl", "pt", "ru",
+	// "sv", "tr", "zh".
+	Language AudioNewParamsLanguage `json:"language,omitzero"`
+	// Audio encoding of response
+	//
+	// Any of "pcm_f32le", "pcm_s16le", "pcm_mulaw", "pcm_alaw".
+	ResponseEncoding AudioNewParamsResponseEncoding `json:"response_encoding,omitzero"`
+	// The format of audio output
+	//
+	// Any of "mp3", "wav", "raw".
+	ResponseFormat AudioNewParamsResponseFormat `json:"response_format,omitzero"`
+	paramObj
 }
 
 func (r AudioNewParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow AudioNewParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *AudioNewParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // The name of the model to query.
@@ -132,14 +133,6 @@ const (
 	AudioNewParamsModelCartesiaSonic AudioNewParamsModel = "cartesia/sonic"
 )
 
-func (r AudioNewParamsModel) IsKnown() bool {
-	switch r {
-	case AudioNewParamsModelCartesiaSonic:
-		return true
-	}
-	return false
-}
-
 // The voice to use for generating the audio.
 // [View all supported voices here](https://docs.together.ai/docs/text-to-speech#voices-available).
 type AudioNewParamsVoice string
@@ -150,14 +143,6 @@ const (
 	AudioNewParamsVoiceStorytellerLady  AudioNewParamsVoice = "storyteller lady"
 	AudioNewParamsVoiceFriendlySidekick AudioNewParamsVoice = "friendly sidekick"
 )
-
-func (r AudioNewParamsVoice) IsKnown() bool {
-	switch r {
-	case AudioNewParamsVoiceLaidbackWoman, AudioNewParamsVoicePoliteMan, AudioNewParamsVoiceStorytellerLady, AudioNewParamsVoiceFriendlySidekick:
-		return true
-	}
-	return false
-}
 
 // Language of input text
 type AudioNewParamsLanguage string
@@ -180,14 +165,6 @@ const (
 	AudioNewParamsLanguageZh AudioNewParamsLanguage = "zh"
 )
 
-func (r AudioNewParamsLanguage) IsKnown() bool {
-	switch r {
-	case AudioNewParamsLanguageEn, AudioNewParamsLanguageDe, AudioNewParamsLanguageFr, AudioNewParamsLanguageEs, AudioNewParamsLanguageHi, AudioNewParamsLanguageIt, AudioNewParamsLanguageJa, AudioNewParamsLanguageKo, AudioNewParamsLanguageNl, AudioNewParamsLanguagePl, AudioNewParamsLanguagePt, AudioNewParamsLanguageRu, AudioNewParamsLanguageSv, AudioNewParamsLanguageTr, AudioNewParamsLanguageZh:
-		return true
-	}
-	return false
-}
-
 // Audio encoding of response
 type AudioNewParamsResponseEncoding string
 
@@ -198,14 +175,6 @@ const (
 	AudioNewParamsResponseEncodingPcmAlaw  AudioNewParamsResponseEncoding = "pcm_alaw"
 )
 
-func (r AudioNewParamsResponseEncoding) IsKnown() bool {
-	switch r {
-	case AudioNewParamsResponseEncodingPcmF32le, AudioNewParamsResponseEncodingPcmS16le, AudioNewParamsResponseEncodingPcmMulaw, AudioNewParamsResponseEncodingPcmAlaw:
-		return true
-	}
-	return false
-}
-
 // The format of audio output
 type AudioNewParamsResponseFormat string
 
@@ -214,11 +183,3 @@ const (
 	AudioNewParamsResponseFormatWav AudioNewParamsResponseFormat = "wav"
 	AudioNewParamsResponseFormatRaw AudioNewParamsResponseFormat = "raw"
 )
-
-func (r AudioNewParamsResponseFormat) IsKnown() bool {
-	switch r {
-	case AudioNewParamsResponseFormatMP3, AudioNewParamsResponseFormatWav, AudioNewParamsResponseFormatRaw:
-		return true
-	}
-	return false
-}

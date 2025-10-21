@@ -5,18 +5,18 @@ package together
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"reflect"
 	"slices"
 
-	"github.com/tidwall/gjson"
 	"github.com/togethercomputer/together-go/internal/apiform"
 	"github.com/togethercomputer/together-go/internal/apijson"
-	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 // AudioTranscriptionService contains methods and other services that help with
@@ -32,120 +32,87 @@ type AudioTranscriptionService struct {
 // NewAudioTranscriptionService generates a new service that applies the given
 // options to each request. These options are applied after the parent client's
 // options (if there is one), and before any request-specific options.
-func NewAudioTranscriptionService(opts ...option.RequestOption) (r *AudioTranscriptionService) {
-	r = &AudioTranscriptionService{}
+func NewAudioTranscriptionService(opts ...option.RequestOption) (r AudioTranscriptionService) {
+	r = AudioTranscriptionService{}
 	r.Options = opts
 	return
 }
 
 // Transcribes audio into text
-func (r *AudioTranscriptionService) New(ctx context.Context, body AudioTranscriptionNewParams, opts ...option.RequestOption) (res *AudioTranscriptionNewResponse, err error) {
+func (r *AudioTranscriptionService) New(ctx context.Context, body AudioTranscriptionNewParams, opts ...option.RequestOption) (res *AudioTranscriptionNewResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "audio/transcriptions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
 
-type AudioTranscriptionNewResponse struct {
-	// The transcribed text
-	Text string `json:"text,required"`
-	// The duration of the audio in seconds
-	Duration float64 `json:"duration"`
-	// The language of the audio
-	Language string `json:"language"`
-	// This field can have the runtime type of
-	// [[]AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment].
-	Segments interface{} `json:"segments"`
-	// The task performed
-	Task AudioTranscriptionNewResponseTask `json:"task"`
-	// This field can have the runtime type of
-	// [[]AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord].
-	Words interface{}                       `json:"words"`
-	JSON  audioTranscriptionNewResponseJSON `json:"-"`
-	union AudioTranscriptionNewResponseUnion
-}
-
-// audioTranscriptionNewResponseJSON contains the JSON metadata for the struct
-// [AudioTranscriptionNewResponse]
-type audioTranscriptionNewResponseJSON struct {
-	Text        apijson.Field
-	Duration    apijson.Field
-	Language    apijson.Field
-	Segments    apijson.Field
-	Task        apijson.Field
-	Words       apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r audioTranscriptionNewResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-func (r *AudioTranscriptionNewResponse) UnmarshalJSON(data []byte) (err error) {
-	*r = AudioTranscriptionNewResponse{}
-	err = apijson.UnmarshalRoot(data, &r.union)
-	if err != nil {
-		return err
-	}
-	return apijson.Port(r.union, &r)
-}
-
-// AsUnion returns a [AudioTranscriptionNewResponseUnion] interface which you can
-// cast to the specific types for more type safety.
-//
-// Possible runtime types of the union are
-// [AudioTranscriptionNewResponseAudioTranscriptionJsonResponse],
+// AudioTranscriptionNewResponseUnion contains all possible properties and values
+// from [AudioTranscriptionNewResponseAudioTranscriptionJsonResponse],
 // [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
-func (r AudioTranscriptionNewResponse) AsUnion() AudioTranscriptionNewResponseUnion {
-	return r.union
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type AudioTranscriptionNewResponseUnion struct {
+	Text string `json:"text"`
+	// This field is from variant
+	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
+	Duration float64 `json:"duration"`
+	// This field is from variant
+	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
+	Language string `json:"language"`
+	// This field is from variant
+	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
+	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments"`
+	// This field is from variant
+	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
+	Task string `json:"task"`
+	// This field is from variant
+	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
+	Words []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord `json:"words"`
+	JSON  struct {
+		Text     respjson.Field
+		Duration respjson.Field
+		Language respjson.Field
+		Segments respjson.Field
+		Task     respjson.Field
+		Words    respjson.Field
+		raw      string
+	} `json:"-"`
 }
 
-// Union satisfied by [AudioTranscriptionNewResponseAudioTranscriptionJsonResponse]
-// or [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
-type AudioTranscriptionNewResponseUnion interface {
-	implementsAudioTranscriptionNewResponse()
+func (u AudioTranscriptionNewResponseUnion) AsAudioTranscriptionNewResponseAudioTranscriptionJsonResponse() (v AudioTranscriptionNewResponseAudioTranscriptionJsonResponse) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
 }
 
-func init() {
-	apijson.RegisterUnion(
-		reflect.TypeOf((*AudioTranscriptionNewResponseUnion)(nil)).Elem(),
-		"",
-		apijson.UnionVariant{
-			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(AudioTranscriptionNewResponseAudioTranscriptionJsonResponse{}),
-		},
-		apijson.UnionVariant{
-			TypeFilter: gjson.JSON,
-			Type:       reflect.TypeOf(AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse{}),
-		},
-	)
+func (u AudioTranscriptionNewResponseUnion) AsAudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse() (v AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u AudioTranscriptionNewResponseUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *AudioTranscriptionNewResponseUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 type AudioTranscriptionNewResponseAudioTranscriptionJsonResponse struct {
 	// The transcribed text
-	Text string                                                          `json:"text,required"`
-	JSON audioTranscriptionNewResponseAudioTranscriptionJsonResponseJSON `json:"-"`
+	Text string `json:"text,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Text        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// audioTranscriptionNewResponseAudioTranscriptionJsonResponseJSON contains the
-// JSON metadata for the struct
-// [AudioTranscriptionNewResponseAudioTranscriptionJsonResponse]
-type audioTranscriptionNewResponseAudioTranscriptionJsonResponseJSON struct {
-	Text        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+// Returns the unmodified JSON received from the API
+func (r AudioTranscriptionNewResponseAudioTranscriptionJsonResponse) RawJSON() string {
+	return r.JSON.raw
 }
-
-func (r *AudioTranscriptionNewResponseAudioTranscriptionJsonResponse) UnmarshalJSON(data []byte) (err error) {
+func (r *AudioTranscriptionNewResponseAudioTranscriptionJsonResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r audioTranscriptionNewResponseAudioTranscriptionJsonResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-func (r AudioTranscriptionNewResponseAudioTranscriptionJsonResponse) implementsAudioTranscriptionNewResponse() {
 }
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
@@ -156,37 +123,32 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
 	// Array of transcription segments
 	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments,required"`
 	// The task performed
-	Task AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTask `json:"task,required"`
+	//
+	// Any of "transcribe", "translate".
+	Task string `json:"task,required"`
 	// The transcribed text
 	Text string `json:"text,required"`
 	// Array of transcription words (only when timestamp_granularities includes 'word')
 	Words []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord `json:"words"`
-	JSON  audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Duration    respjson.Field
+		Language    respjson.Field
+		Segments    respjson.Field
+		Task        respjson.Field
+		Text        respjson.Field
+		Words       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseJSON contains
-// the JSON metadata for the struct
-// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse]
-type audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseJSON struct {
-	Duration    apijson.Field
-	Language    apijson.Field
-	Segments    apijson.Field
-	Task        apijson.Field
-	Text        apijson.Field
-	Words       apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+// Returns the unmodified JSON received from the API
+func (r AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse) RawJSON() string {
+	return r.JSON.raw
 }
-
-func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse) UnmarshalJSON(data []byte) (err error) {
+func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseJSON) RawJSON() string {
-	return r.raw
-}
-
-func (r AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse) implementsAudioTranscriptionNewResponse() {
 }
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment struct {
@@ -197,44 +159,24 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment s
 	// Start time of the segment in seconds
 	Start float64 `json:"start,required"`
 	// The text content of the segment
-	Text string                                                                        `json:"text,required"`
-	JSON audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJSON `json:"-"`
+	Text string `json:"text,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		End         respjson.Field
+		Start       respjson.Field
+		Text        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJSON
-// contains the JSON metadata for the struct
-// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment]
-type audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJSON struct {
-	ID          apijson.Field
-	End         apijson.Field
-	Start       apijson.Field
-	Text        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+// Returns the unmodified JSON received from the API
+func (r AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment) RawJSON() string {
+	return r.JSON.raw
 }
-
-func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment) UnmarshalJSON(data []byte) (err error) {
+func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegmentJSON) RawJSON() string {
-	return r.raw
-}
-
-// The task performed
-type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTask string
-
-const (
-	AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTaskTranscribe AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTask = "transcribe"
-	AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTaskTranslate  AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTask = "translate"
-)
-
-func (r AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTask) IsKnown() bool {
-	switch r {
-	case AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTaskTranscribe, AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseTaskTranslate:
-		return true
-	}
-	return false
 }
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord struct {
@@ -243,69 +185,57 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord stru
 	// Start time of the word in seconds
 	Start float64 `json:"start,required"`
 	// The word
-	Word string                                                                     `json:"word,required"`
-	JSON audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWordJSON `json:"-"`
+	Word string `json:"word,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		End         respjson.Field
+		Start       respjson.Field
+		Word        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWordJSON
-// contains the JSON metadata for the struct
-// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord]
-type audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWordJSON struct {
-	End         apijson.Field
-	Start       apijson.Field
-	Word        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
+// Returns the unmodified JSON received from the API
+func (r AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord) RawJSON() string {
+	return r.JSON.raw
 }
-
-func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord) UnmarshalJSON(data []byte) (err error) {
+func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r audioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWordJSON) RawJSON() string {
-	return r.raw
-}
-
-// The task performed
-type AudioTranscriptionNewResponseTask string
-
-const (
-	AudioTranscriptionNewResponseTaskTranscribe AudioTranscriptionNewResponseTask = "transcribe"
-	AudioTranscriptionNewResponseTaskTranslate  AudioTranscriptionNewResponseTask = "translate"
-)
-
-func (r AudioTranscriptionNewResponseTask) IsKnown() bool {
-	switch r {
-	case AudioTranscriptionNewResponseTaskTranscribe, AudioTranscriptionNewResponseTaskTranslate:
-		return true
-	}
-	return false
 }
 
 type AudioTranscriptionNewParams struct {
 	// Audio file to transcribe
-	File param.Field[io.Reader] `json:"file,required" format:"binary"`
+	File io.Reader `json:"file,omitzero,required" format:"binary"`
 	// Optional ISO 639-1 language code. If `auto` is provided, language is
 	// auto-detected.
-	Language param.Field[string] `json:"language"`
-	// Model to use for transcription
-	Model param.Field[AudioTranscriptionNewParamsModel] `json:"model"`
+	Language param.Opt[string] `json:"language,omitzero"`
 	// Optional text to bias decoding.
-	Prompt param.Field[string] `json:"prompt"`
-	// The format of the response
-	ResponseFormat param.Field[AudioTranscriptionNewParamsResponseFormat] `json:"response_format"`
+	Prompt param.Opt[string] `json:"prompt,omitzero"`
 	// Sampling temperature between 0.0 and 1.0
-	Temperature param.Field[float64] `json:"temperature"`
+	Temperature param.Opt[float64] `json:"temperature,omitzero"`
+	// Model to use for transcription
+	//
+	// Any of "openai/whisper-large-v3".
+	Model AudioTranscriptionNewParamsModel `json:"model,omitzero"`
+	// The format of the response
+	//
+	// Any of "json", "verbose_json".
+	ResponseFormat AudioTranscriptionNewParamsResponseFormat `json:"response_format,omitzero"`
 	// Controls level of timestamp detail in verbose_json. Only used when
 	// response_format is verbose_json. Can be a single granularity or an array to get
 	// multiple levels.
-	TimestampGranularities param.Field[AudioTranscriptionNewParamsTimestampGranularitiesUnion] `json:"timestamp_granularities"`
+	TimestampGranularities AudioTranscriptionNewParamsTimestampGranularitiesUnion `json:"timestamp_granularities,omitzero"`
+	paramObj
 }
 
 func (r AudioTranscriptionNewParams) MarshalMultipart() (data []byte, contentType string, err error) {
 	buf := bytes.NewBuffer(nil)
 	writer := multipart.NewWriter(buf)
 	err = apiform.MarshalRoot(r, writer)
+	if err == nil {
+		err = apiform.WriteExtras(writer, r.ExtraFields())
+	}
 	if err != nil {
 		writer.Close()
 		return nil, "", err
@@ -324,14 +254,6 @@ const (
 	AudioTranscriptionNewParamsModelOpenAIWhisperLargeV3 AudioTranscriptionNewParamsModel = "openai/whisper-large-v3"
 )
 
-func (r AudioTranscriptionNewParamsModel) IsKnown() bool {
-	switch r {
-	case AudioTranscriptionNewParamsModelOpenAIWhisperLargeV3:
-		return true
-	}
-	return false
-}
-
 // The format of the response
 type AudioTranscriptionNewParamsResponseFormat string
 
@@ -340,22 +262,31 @@ const (
 	AudioTranscriptionNewParamsResponseFormatVerboseJson AudioTranscriptionNewParamsResponseFormat = "verbose_json"
 )
 
-func (r AudioTranscriptionNewParamsResponseFormat) IsKnown() bool {
-	switch r {
-	case AudioTranscriptionNewParamsResponseFormatJson, AudioTranscriptionNewParamsResponseFormatVerboseJson:
-		return true
-	}
-	return false
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type AudioTranscriptionNewParamsTimestampGranularitiesUnion struct {
+	// Check if union is this variant with
+	// !param.IsOmitted(union.OfAudioTranscriptionNewsTimestampGranularitiesString)
+	OfAudioTranscriptionNewsTimestampGranularitiesString         param.Opt[string] `json:",omitzero,inline"`
+	OfAudioTranscriptionNewsTimestampGranularitiesArrayItemArray []string          `json:",omitzero,inline"`
+	paramUnion
 }
 
-// Controls level of timestamp detail in verbose_json. Only used when
-// response_format is verbose_json. Can be a single granularity or an array to get
-// multiple levels.
-//
-// Satisfied by [AudioTranscriptionNewParamsTimestampGranularitiesString],
-// [AudioTranscriptionNewParamsTimestampGranularitiesArray].
-type AudioTranscriptionNewParamsTimestampGranularitiesUnion interface {
-	implementsAudioTranscriptionNewParamsTimestampGranularitiesUnion()
+func (u AudioTranscriptionNewParamsTimestampGranularitiesUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfAudioTranscriptionNewsTimestampGranularitiesString, u.OfAudioTranscriptionNewsTimestampGranularitiesArrayItemArray)
+}
+func (u *AudioTranscriptionNewParamsTimestampGranularitiesUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *AudioTranscriptionNewParamsTimestampGranularitiesUnion) asAny() any {
+	if !param.IsOmitted(u.OfAudioTranscriptionNewsTimestampGranularitiesString) {
+		return &u.OfAudioTranscriptionNewsTimestampGranularitiesString
+	} else if !param.IsOmitted(u.OfAudioTranscriptionNewsTimestampGranularitiesArrayItemArray) {
+		return &u.OfAudioTranscriptionNewsTimestampGranularitiesArrayItemArray
+	}
+	return nil
 }
 
 type AudioTranscriptionNewParamsTimestampGranularitiesString string
@@ -364,34 +295,3 @@ const (
 	AudioTranscriptionNewParamsTimestampGranularitiesStringSegment AudioTranscriptionNewParamsTimestampGranularitiesString = "segment"
 	AudioTranscriptionNewParamsTimestampGranularitiesStringWord    AudioTranscriptionNewParamsTimestampGranularitiesString = "word"
 )
-
-func (r AudioTranscriptionNewParamsTimestampGranularitiesString) IsKnown() bool {
-	switch r {
-	case AudioTranscriptionNewParamsTimestampGranularitiesStringSegment, AudioTranscriptionNewParamsTimestampGranularitiesStringWord:
-		return true
-	}
-	return false
-}
-
-func (r AudioTranscriptionNewParamsTimestampGranularitiesString) implementsAudioTranscriptionNewParamsTimestampGranularitiesUnion() {
-}
-
-type AudioTranscriptionNewParamsTimestampGranularitiesArray []AudioTranscriptionNewParamsTimestampGranularitiesArrayItem
-
-func (r AudioTranscriptionNewParamsTimestampGranularitiesArray) implementsAudioTranscriptionNewParamsTimestampGranularitiesUnion() {
-}
-
-type AudioTranscriptionNewParamsTimestampGranularitiesArrayItem string
-
-const (
-	AudioTranscriptionNewParamsTimestampGranularitiesArrayItemSegment AudioTranscriptionNewParamsTimestampGranularitiesArrayItem = "segment"
-	AudioTranscriptionNewParamsTimestampGranularitiesArrayItemWord    AudioTranscriptionNewParamsTimestampGranularitiesArrayItem = "word"
-)
-
-func (r AudioTranscriptionNewParamsTimestampGranularitiesArrayItem) IsKnown() bool {
-	switch r {
-	case AudioTranscriptionNewParamsTimestampGranularitiesArrayItemSegment, AudioTranscriptionNewParamsTimestampGranularitiesArrayItemWord:
-		return true
-	}
-	return false
-}

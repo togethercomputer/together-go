@@ -11,7 +11,6 @@ import (
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/shared"
 )
 
 func TestEmbeddingNew(t *testing.T) {
@@ -27,8 +26,10 @@ func TestEmbeddingNew(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Embeddings.New(context.TODO(), together.EmbeddingNewParams{
-		Input: together.F[together.EmbeddingNewParamsInputUnion](shared.UnionString("Our solar system orbits the Milky Way galaxy at about 515,000 mph")),
-		Model: together.F(together.EmbeddingNewParamsModelWhereIsAIUaeLargeV1),
+		Input: together.EmbeddingNewParamsInputUnion{
+			OfString: together.String("Our solar system orbits the Milky Way galaxy at about 515,000 mph"),
+		},
+		Model: together.EmbeddingNewParamsModelWhereIsAIUaeLargeV1,
 	})
 	if err != nil {
 		var apierr *together.Error

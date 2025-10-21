@@ -11,9 +11,10 @@ import (
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
-	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 // HardwareService contains methods and other services that help with interacting
@@ -29,8 +30,8 @@ type HardwareService struct {
 // NewHardwareService generates a new service that applies the given options to
 // each request. These options are applied after the parent client's options (if
 // there is one), and before any request-specific options.
-func NewHardwareService(opts ...option.RequestOption) (r *HardwareService) {
-	r = &HardwareService{}
+func NewHardwareService(opts ...option.RequestOption) (r HardwareService) {
+	r = HardwareService{}
 	r.Options = opts
 	return
 }
@@ -46,33 +47,30 @@ func (r *HardwareService) List(ctx context.Context, query HardwareListParams, op
 }
 
 type HardwareListResponse struct {
-	Data   []HardwareListResponseData `json:"data,required"`
+	Data []HardwareListResponseData `json:"data,required"`
+	// Any of "list".
 	Object HardwareListResponseObject `json:"object,required"`
-	JSON   hardwareListResponseJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Object      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// hardwareListResponseJSON contains the JSON metadata for the struct
-// [HardwareListResponse]
-type hardwareListResponseJSON struct {
-	Data        apijson.Field
-	Object      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *HardwareListResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r HardwareListResponse) RawJSON() string { return r.JSON.raw }
+func (r *HardwareListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r hardwareListResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // Hardware configuration details with optional availability status
 type HardwareListResponseData struct {
 	// Unique identifier for the hardware configuration
-	ID     string                         `json:"id,required"`
-	Object HardwareListResponseDataObject `json:"object,required"`
+	ID string `json:"id,required"`
+	// Any of "hardware".
+	Object string `json:"object,required"`
 	// Pricing details for using an endpoint
 	Pricing HardwareListResponseDataPricing `json:"pricing,required"`
 	// Detailed specifications of a hardware configuration
@@ -81,65 +79,41 @@ type HardwareListResponseData struct {
 	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
 	// Indicates the current availability status of a hardware configuration
 	Availability HardwareListResponseDataAvailability `json:"availability"`
-	JSON         hardwareListResponseDataJSON         `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID           respjson.Field
+		Object       respjson.Field
+		Pricing      respjson.Field
+		Specs        respjson.Field
+		UpdatedAt    respjson.Field
+		Availability respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
 }
 
-// hardwareListResponseDataJSON contains the JSON metadata for the struct
-// [HardwareListResponseData]
-type hardwareListResponseDataJSON struct {
-	ID           apijson.Field
-	Object       apijson.Field
-	Pricing      apijson.Field
-	Specs        apijson.Field
-	UpdatedAt    apijson.Field
-	Availability apijson.Field
-	raw          string
-	ExtraFields  map[string]apijson.Field
-}
-
-func (r *HardwareListResponseData) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r HardwareListResponseData) RawJSON() string { return r.JSON.raw }
+func (r *HardwareListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r hardwareListResponseDataJSON) RawJSON() string {
-	return r.raw
-}
-
-type HardwareListResponseDataObject string
-
-const (
-	HardwareListResponseDataObjectHardware HardwareListResponseDataObject = "hardware"
-)
-
-func (r HardwareListResponseDataObject) IsKnown() bool {
-	switch r {
-	case HardwareListResponseDataObjectHardware:
-		return true
-	}
-	return false
 }
 
 // Pricing details for using an endpoint
 type HardwareListResponseDataPricing struct {
 	// Cost per minute of endpoint uptime in cents
-	CentsPerMinute float64                             `json:"cents_per_minute,required"`
-	JSON           hardwareListResponseDataPricingJSON `json:"-"`
+	CentsPerMinute float64 `json:"cents_per_minute,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CentsPerMinute respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
 }
 
-// hardwareListResponseDataPricingJSON contains the JSON metadata for the struct
-// [HardwareListResponseDataPricing]
-type hardwareListResponseDataPricingJSON struct {
-	CentsPerMinute apijson.Field
-	raw            string
-	ExtraFields    map[string]apijson.Field
-}
-
-func (r *HardwareListResponseDataPricing) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r HardwareListResponseDataPricing) RawJSON() string { return r.JSON.raw }
+func (r *HardwareListResponseDataPricing) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r hardwareListResponseDataPricingJSON) RawJSON() string {
-	return r.raw
 }
 
 // Detailed specifications of a hardware configuration
@@ -151,67 +125,42 @@ type HardwareListResponseDataSpecs struct {
 	// Amount of GPU memory in GB
 	GPUMemory float64 `json:"gpu_memory,required"`
 	// The type/model of GPU
-	GPUType string                            `json:"gpu_type,required"`
-	JSON    hardwareListResponseDataSpecsJSON `json:"-"`
+	GPUType string `json:"gpu_type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		GPUCount    respjson.Field
+		GPULink     respjson.Field
+		GPUMemory   respjson.Field
+		GPUType     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// hardwareListResponseDataSpecsJSON contains the JSON metadata for the struct
-// [HardwareListResponseDataSpecs]
-type hardwareListResponseDataSpecsJSON struct {
-	GPUCount    apijson.Field
-	GPULink     apijson.Field
-	GPUMemory   apijson.Field
-	GPUType     apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *HardwareListResponseDataSpecs) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r HardwareListResponseDataSpecs) RawJSON() string { return r.JSON.raw }
+func (r *HardwareListResponseDataSpecs) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r hardwareListResponseDataSpecsJSON) RawJSON() string {
-	return r.raw
 }
 
 // Indicates the current availability status of a hardware configuration
 type HardwareListResponseDataAvailability struct {
 	// The availability status of the hardware configuration
-	Status HardwareListResponseDataAvailabilityStatus `json:"status,required"`
-	JSON   hardwareListResponseDataAvailabilityJSON   `json:"-"`
+	//
+	// Any of "available", "unavailable", "insufficient".
+	Status string `json:"status,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// hardwareListResponseDataAvailabilityJSON contains the JSON metadata for the
-// struct [HardwareListResponseDataAvailability]
-type hardwareListResponseDataAvailabilityJSON struct {
-	Status      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *HardwareListResponseDataAvailability) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r HardwareListResponseDataAvailability) RawJSON() string { return r.JSON.raw }
+func (r *HardwareListResponseDataAvailability) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r hardwareListResponseDataAvailabilityJSON) RawJSON() string {
-	return r.raw
-}
-
-// The availability status of the hardware configuration
-type HardwareListResponseDataAvailabilityStatus string
-
-const (
-	HardwareListResponseDataAvailabilityStatusAvailable    HardwareListResponseDataAvailabilityStatus = "available"
-	HardwareListResponseDataAvailabilityStatusUnavailable  HardwareListResponseDataAvailabilityStatus = "unavailable"
-	HardwareListResponseDataAvailabilityStatusInsufficient HardwareListResponseDataAvailabilityStatus = "insufficient"
-)
-
-func (r HardwareListResponseDataAvailabilityStatus) IsKnown() bool {
-	switch r {
-	case HardwareListResponseDataAvailabilityStatusAvailable, HardwareListResponseDataAvailabilityStatusUnavailable, HardwareListResponseDataAvailabilityStatusInsufficient:
-		return true
-	}
-	return false
 }
 
 type HardwareListResponseObject string
@@ -220,22 +169,15 @@ const (
 	HardwareListResponseObjectList HardwareListResponseObject = "list"
 )
 
-func (r HardwareListResponseObject) IsKnown() bool {
-	switch r {
-	case HardwareListResponseObjectList:
-		return true
-	}
-	return false
-}
-
 type HardwareListParams struct {
 	// Filter hardware configurations by model compatibility. When provided, the
 	// response includes availability status for each compatible configuration.
-	Model param.Field[string] `query:"model"`
+	Model param.Opt[string] `query:"model,omitzero" json:"-"`
+	paramObj
 }
 
 // URLQuery serializes [HardwareListParams]'s query parameters as `url.Values`.
-func (r HardwareListParams) URLQuery() (v url.Values) {
+func (r HardwareListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

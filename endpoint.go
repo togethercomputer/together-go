@@ -4,6 +4,7 @@ package together
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,9 +14,10 @@ import (
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
-	"github.com/togethercomputer/together-go/internal/param"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
+	"github.com/togethercomputer/together-go/packages/param"
+	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
 // EndpointService contains methods and other services that help with interacting
@@ -31,8 +33,8 @@ type EndpointService struct {
 // NewEndpointService generates a new service that applies the given options to
 // each request. These options are applied after the parent client's options (if
 // there is one), and before any request-specific options.
-func NewEndpointService(opts ...option.RequestOption) (r *EndpointService) {
-	r = &EndpointService{}
+func NewEndpointService(opts ...option.RequestOption) (r EndpointService) {
+	r = EndpointService{}
 	r.Options = opts
 	return
 }
@@ -100,36 +102,48 @@ type Autoscaling struct {
 	// The maximum number of replicas to scale up to under load
 	MaxReplicas int64 `json:"max_replicas,required"`
 	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas int64           `json:"min_replicas,required"`
-	JSON        autoscalingJSON `json:"-"`
+	MinReplicas int64 `json:"min_replicas,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MaxReplicas respjson.Field
+		MinReplicas respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// autoscalingJSON contains the JSON metadata for the struct [Autoscaling]
-type autoscalingJSON struct {
-	MaxReplicas apijson.Field
-	MinReplicas apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *Autoscaling) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r Autoscaling) RawJSON() string { return r.JSON.raw }
+func (r *Autoscaling) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-func (r autoscalingJSON) RawJSON() string {
-	return r.raw
+// ToParam converts this Autoscaling to a AutoscalingParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// AutoscalingParam.Overrides()
+func (r Autoscaling) ToParam() AutoscalingParam {
+	return param.Override[AutoscalingParam](json.RawMessage(r.RawJSON()))
 }
 
 // Configuration for automatic scaling of replicas based on demand.
+//
+// The properties MaxReplicas, MinReplicas are required.
 type AutoscalingParam struct {
 	// The maximum number of replicas to scale up to under load
-	MaxReplicas param.Field[int64] `json:"max_replicas,required"`
+	MaxReplicas int64 `json:"max_replicas,required"`
 	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas param.Field[int64] `json:"min_replicas,required"`
+	MinReplicas int64 `json:"min_replicas,required"`
+	paramObj
 }
 
 func (r AutoscalingParam) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow AutoscalingParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *AutoscalingParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // Details about a dedicated endpoint deployment
@@ -149,40 +163,41 @@ type EndpointNewResponse struct {
 	// System name for the endpoint
 	Name string `json:"name,required"`
 	// The type of object
+	//
+	// Any of "endpoint".
 	Object EndpointNewResponseObject `json:"object,required"`
 	// The owner of this endpoint
 	Owner string `json:"owner,required"`
 	// Current state of the endpoint
+	//
+	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
 	State EndpointNewResponseState `json:"state,required"`
 	// The type of endpoint
+	//
+	// Any of "dedicated".
 	Type EndpointNewResponseType `json:"type,required"`
-	JSON endpointNewResponseJSON `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		Autoscaling respjson.Field
+		CreatedAt   respjson.Field
+		DisplayName respjson.Field
+		Hardware    respjson.Field
+		Model       respjson.Field
+		Name        respjson.Field
+		Object      respjson.Field
+		Owner       respjson.Field
+		State       respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// endpointNewResponseJSON contains the JSON metadata for the struct
-// [EndpointNewResponse]
-type endpointNewResponseJSON struct {
-	ID          apijson.Field
-	Autoscaling apijson.Field
-	CreatedAt   apijson.Field
-	DisplayName apijson.Field
-	Hardware    apijson.Field
-	Model       apijson.Field
-	Name        apijson.Field
-	Object      apijson.Field
-	Owner       apijson.Field
-	State       apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointNewResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r EndpointNewResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointNewResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // The type of object
@@ -191,14 +206,6 @@ type EndpointNewResponseObject string
 const (
 	EndpointNewResponseObjectEndpoint EndpointNewResponseObject = "endpoint"
 )
-
-func (r EndpointNewResponseObject) IsKnown() bool {
-	switch r {
-	case EndpointNewResponseObjectEndpoint:
-		return true
-	}
-	return false
-}
 
 // Current state of the endpoint
 type EndpointNewResponseState string
@@ -212,28 +219,12 @@ const (
 	EndpointNewResponseStateError    EndpointNewResponseState = "ERROR"
 )
 
-func (r EndpointNewResponseState) IsKnown() bool {
-	switch r {
-	case EndpointNewResponseStatePending, EndpointNewResponseStateStarting, EndpointNewResponseStateStarted, EndpointNewResponseStateStopping, EndpointNewResponseStateStopped, EndpointNewResponseStateError:
-		return true
-	}
-	return false
-}
-
 // The type of endpoint
 type EndpointNewResponseType string
 
 const (
 	EndpointNewResponseTypeDedicated EndpointNewResponseType = "dedicated"
 )
-
-func (r EndpointNewResponseType) IsKnown() bool {
-	switch r {
-	case EndpointNewResponseTypeDedicated:
-		return true
-	}
-	return false
-}
 
 // Details about a dedicated endpoint deployment
 type EndpointGetResponse struct {
@@ -252,40 +243,41 @@ type EndpointGetResponse struct {
 	// System name for the endpoint
 	Name string `json:"name,required"`
 	// The type of object
+	//
+	// Any of "endpoint".
 	Object EndpointGetResponseObject `json:"object,required"`
 	// The owner of this endpoint
 	Owner string `json:"owner,required"`
 	// Current state of the endpoint
+	//
+	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
 	State EndpointGetResponseState `json:"state,required"`
 	// The type of endpoint
+	//
+	// Any of "dedicated".
 	Type EndpointGetResponseType `json:"type,required"`
-	JSON endpointGetResponseJSON `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		Autoscaling respjson.Field
+		CreatedAt   respjson.Field
+		DisplayName respjson.Field
+		Hardware    respjson.Field
+		Model       respjson.Field
+		Name        respjson.Field
+		Object      respjson.Field
+		Owner       respjson.Field
+		State       respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// endpointGetResponseJSON contains the JSON metadata for the struct
-// [EndpointGetResponse]
-type endpointGetResponseJSON struct {
-	ID          apijson.Field
-	Autoscaling apijson.Field
-	CreatedAt   apijson.Field
-	DisplayName apijson.Field
-	Hardware    apijson.Field
-	Model       apijson.Field
-	Name        apijson.Field
-	Object      apijson.Field
-	Owner       apijson.Field
-	State       apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointGetResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r EndpointGetResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointGetResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // The type of object
@@ -294,14 +286,6 @@ type EndpointGetResponseObject string
 const (
 	EndpointGetResponseObjectEndpoint EndpointGetResponseObject = "endpoint"
 )
-
-func (r EndpointGetResponseObject) IsKnown() bool {
-	switch r {
-	case EndpointGetResponseObjectEndpoint:
-		return true
-	}
-	return false
-}
 
 // Current state of the endpoint
 type EndpointGetResponseState string
@@ -315,28 +299,12 @@ const (
 	EndpointGetResponseStateError    EndpointGetResponseState = "ERROR"
 )
 
-func (r EndpointGetResponseState) IsKnown() bool {
-	switch r {
-	case EndpointGetResponseStatePending, EndpointGetResponseStateStarting, EndpointGetResponseStateStarted, EndpointGetResponseStateStopping, EndpointGetResponseStateStopped, EndpointGetResponseStateError:
-		return true
-	}
-	return false
-}
-
 // The type of endpoint
 type EndpointGetResponseType string
 
 const (
 	EndpointGetResponseTypeDedicated EndpointGetResponseType = "dedicated"
 )
-
-func (r EndpointGetResponseType) IsKnown() bool {
-	switch r {
-	case EndpointGetResponseTypeDedicated:
-		return true
-	}
-	return false
-}
 
 // Details about a dedicated endpoint deployment
 type EndpointUpdateResponse struct {
@@ -355,40 +323,41 @@ type EndpointUpdateResponse struct {
 	// System name for the endpoint
 	Name string `json:"name,required"`
 	// The type of object
+	//
+	// Any of "endpoint".
 	Object EndpointUpdateResponseObject `json:"object,required"`
 	// The owner of this endpoint
 	Owner string `json:"owner,required"`
 	// Current state of the endpoint
+	//
+	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
 	State EndpointUpdateResponseState `json:"state,required"`
 	// The type of endpoint
+	//
+	// Any of "dedicated".
 	Type EndpointUpdateResponseType `json:"type,required"`
-	JSON endpointUpdateResponseJSON `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		Autoscaling respjson.Field
+		CreatedAt   respjson.Field
+		DisplayName respjson.Field
+		Hardware    respjson.Field
+		Model       respjson.Field
+		Name        respjson.Field
+		Object      respjson.Field
+		Owner       respjson.Field
+		State       respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// endpointUpdateResponseJSON contains the JSON metadata for the struct
-// [EndpointUpdateResponse]
-type endpointUpdateResponseJSON struct {
-	ID          apijson.Field
-	Autoscaling apijson.Field
-	CreatedAt   apijson.Field
-	DisplayName apijson.Field
-	Hardware    apijson.Field
-	Model       apijson.Field
-	Name        apijson.Field
-	Object      apijson.Field
-	Owner       apijson.Field
-	State       apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointUpdateResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r EndpointUpdateResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointUpdateResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointUpdateResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // The type of object
@@ -397,14 +366,6 @@ type EndpointUpdateResponseObject string
 const (
 	EndpointUpdateResponseObjectEndpoint EndpointUpdateResponseObject = "endpoint"
 )
-
-func (r EndpointUpdateResponseObject) IsKnown() bool {
-	switch r {
-	case EndpointUpdateResponseObjectEndpoint:
-		return true
-	}
-	return false
-}
 
 // Current state of the endpoint
 type EndpointUpdateResponseState string
@@ -418,14 +379,6 @@ const (
 	EndpointUpdateResponseStateError    EndpointUpdateResponseState = "ERROR"
 )
 
-func (r EndpointUpdateResponseState) IsKnown() bool {
-	switch r {
-	case EndpointUpdateResponseStatePending, EndpointUpdateResponseStateStarting, EndpointUpdateResponseStateStarted, EndpointUpdateResponseStateStopping, EndpointUpdateResponseStateStopped, EndpointUpdateResponseStateError:
-		return true
-	}
-	return false
-}
-
 // The type of endpoint
 type EndpointUpdateResponseType string
 
@@ -433,35 +386,23 @@ const (
 	EndpointUpdateResponseTypeDedicated EndpointUpdateResponseType = "dedicated"
 )
 
-func (r EndpointUpdateResponseType) IsKnown() bool {
-	switch r {
-	case EndpointUpdateResponseTypeDedicated:
-		return true
-	}
-	return false
-}
-
 type EndpointListResponse struct {
-	Data   []EndpointListResponseData `json:"data,required"`
+	Data []EndpointListResponseData `json:"data,required"`
+	// Any of "list".
 	Object EndpointListResponseObject `json:"object,required"`
-	JSON   endpointListResponseJSON   `json:"-"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Object      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// endpointListResponseJSON contains the JSON metadata for the struct
-// [EndpointListResponse]
-type endpointListResponseJSON struct {
-	Data        apijson.Field
-	Object      apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointListResponse) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r EndpointListResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointListResponseJSON) RawJSON() string {
-	return r.raw
 }
 
 // Details about an endpoint when listed via the list endpoint
@@ -475,88 +416,38 @@ type EndpointListResponseData struct {
 	// System name for the endpoint
 	Name string `json:"name,required"`
 	// The type of object
-	Object EndpointListResponseDataObject `json:"object,required"`
+	//
+	// Any of "endpoint".
+	Object string `json:"object,required"`
 	// The owner of this endpoint
 	Owner string `json:"owner,required"`
 	// Current state of the endpoint
-	State EndpointListResponseDataState `json:"state,required"`
+	//
+	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
+	State string `json:"state,required"`
 	// The type of endpoint
-	Type EndpointListResponseDataType `json:"type,required"`
-	JSON endpointListResponseDataJSON `json:"-"`
+	//
+	// Any of "serverless", "dedicated".
+	Type string `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		CreatedAt   respjson.Field
+		Model       respjson.Field
+		Name        respjson.Field
+		Object      respjson.Field
+		Owner       respjson.Field
+		State       respjson.Field
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-// endpointListResponseDataJSON contains the JSON metadata for the struct
-// [EndpointListResponseData]
-type endpointListResponseDataJSON struct {
-	ID          apijson.Field
-	CreatedAt   apijson.Field
-	Model       apijson.Field
-	Name        apijson.Field
-	Object      apijson.Field
-	Owner       apijson.Field
-	State       apijson.Field
-	Type        apijson.Field
-	raw         string
-	ExtraFields map[string]apijson.Field
-}
-
-func (r *EndpointListResponseData) UnmarshalJSON(data []byte) (err error) {
+// Returns the unmodified JSON received from the API
+func (r EndpointListResponseData) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func (r endpointListResponseDataJSON) RawJSON() string {
-	return r.raw
-}
-
-// The type of object
-type EndpointListResponseDataObject string
-
-const (
-	EndpointListResponseDataObjectEndpoint EndpointListResponseDataObject = "endpoint"
-)
-
-func (r EndpointListResponseDataObject) IsKnown() bool {
-	switch r {
-	case EndpointListResponseDataObjectEndpoint:
-		return true
-	}
-	return false
-}
-
-// Current state of the endpoint
-type EndpointListResponseDataState string
-
-const (
-	EndpointListResponseDataStatePending  EndpointListResponseDataState = "PENDING"
-	EndpointListResponseDataStateStarting EndpointListResponseDataState = "STARTING"
-	EndpointListResponseDataStateStarted  EndpointListResponseDataState = "STARTED"
-	EndpointListResponseDataStateStopping EndpointListResponseDataState = "STOPPING"
-	EndpointListResponseDataStateStopped  EndpointListResponseDataState = "STOPPED"
-	EndpointListResponseDataStateError    EndpointListResponseDataState = "ERROR"
-)
-
-func (r EndpointListResponseDataState) IsKnown() bool {
-	switch r {
-	case EndpointListResponseDataStatePending, EndpointListResponseDataStateStarting, EndpointListResponseDataStateStarted, EndpointListResponseDataStateStopping, EndpointListResponseDataStateStopped, EndpointListResponseDataStateError:
-		return true
-	}
-	return false
-}
-
-// The type of endpoint
-type EndpointListResponseDataType string
-
-const (
-	EndpointListResponseDataTypeServerless EndpointListResponseDataType = "serverless"
-	EndpointListResponseDataTypeDedicated  EndpointListResponseDataType = "dedicated"
-)
-
-func (r EndpointListResponseDataType) IsKnown() bool {
-	switch r {
-	case EndpointListResponseDataTypeServerless, EndpointListResponseDataTypeDedicated:
-		return true
-	}
-	return false
 }
 
 type EndpointListResponseObject string
@@ -565,37 +456,36 @@ const (
 	EndpointListResponseObjectList EndpointListResponseObject = "list"
 )
 
-func (r EndpointListResponseObject) IsKnown() bool {
-	switch r {
-	case EndpointListResponseObjectList:
-		return true
-	}
-	return false
-}
-
 type EndpointNewParams struct {
 	// Configuration for automatic scaling of the endpoint
-	Autoscaling param.Field[AutoscalingParam] `json:"autoscaling,required"`
+	Autoscaling AutoscalingParam `json:"autoscaling,omitzero,required"`
 	// The hardware configuration to use for this endpoint
-	Hardware param.Field[string] `json:"hardware,required"`
+	Hardware string `json:"hardware,required"`
 	// The model to deploy on this endpoint
-	Model param.Field[string] `json:"model,required"`
-	// Whether to disable the prompt cache for this endpoint
-	DisablePromptCache param.Field[bool] `json:"disable_prompt_cache"`
-	// Whether to disable speculative decoding for this endpoint
-	DisableSpeculativeDecoding param.Field[bool] `json:"disable_speculative_decoding"`
-	// A human-readable name for the endpoint
-	DisplayName param.Field[string] `json:"display_name"`
+	Model string `json:"model,required"`
 	// The number of minutes of inactivity after which the endpoint will be
 	// automatically stopped. Set to null, omit or set to 0 to disable automatic
 	// timeout.
-	InactiveTimeout param.Field[int64] `json:"inactive_timeout"`
+	InactiveTimeout param.Opt[int64] `json:"inactive_timeout,omitzero"`
+	// Whether to disable the prompt cache for this endpoint
+	DisablePromptCache param.Opt[bool] `json:"disable_prompt_cache,omitzero"`
+	// Whether to disable speculative decoding for this endpoint
+	DisableSpeculativeDecoding param.Opt[bool] `json:"disable_speculative_decoding,omitzero"`
+	// A human-readable name for the endpoint
+	DisplayName param.Opt[string] `json:"display_name,omitzero"`
 	// The desired state of the endpoint
-	State param.Field[EndpointNewParamsState] `json:"state"`
+	//
+	// Any of "STARTED", "STOPPED".
+	State EndpointNewParamsState `json:"state,omitzero"`
+	paramObj
 }
 
 func (r EndpointNewParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow EndpointNewParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EndpointNewParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // The desired state of the endpoint
@@ -606,28 +496,27 @@ const (
 	EndpointNewParamsStateStopped EndpointNewParamsState = "STOPPED"
 )
 
-func (r EndpointNewParamsState) IsKnown() bool {
-	switch r {
-	case EndpointNewParamsStateStarted, EndpointNewParamsStateStopped:
-		return true
-	}
-	return false
-}
-
 type EndpointUpdateParams struct {
-	// New autoscaling configuration for the endpoint
-	Autoscaling param.Field[AutoscalingParam] `json:"autoscaling"`
-	// A human-readable name for the endpoint
-	DisplayName param.Field[string] `json:"display_name"`
 	// The number of minutes of inactivity after which the endpoint will be
 	// automatically stopped. Set to 0 to disable automatic timeout.
-	InactiveTimeout param.Field[int64] `json:"inactive_timeout"`
+	InactiveTimeout param.Opt[int64] `json:"inactive_timeout,omitzero"`
+	// A human-readable name for the endpoint
+	DisplayName param.Opt[string] `json:"display_name,omitzero"`
+	// New autoscaling configuration for the endpoint
+	Autoscaling AutoscalingParam `json:"autoscaling,omitzero"`
 	// The desired state of the endpoint
-	State param.Field[EndpointUpdateParamsState] `json:"state"`
+	//
+	// Any of "STARTED", "STOPPED".
+	State EndpointUpdateParamsState `json:"state,omitzero"`
+	paramObj
 }
 
 func (r EndpointUpdateParams) MarshalJSON() (data []byte, err error) {
-	return apijson.MarshalRoot(r)
+	type shadow EndpointUpdateParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EndpointUpdateParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // The desired state of the endpoint
@@ -638,21 +527,16 @@ const (
 	EndpointUpdateParamsStateStopped EndpointUpdateParamsState = "STOPPED"
 )
 
-func (r EndpointUpdateParamsState) IsKnown() bool {
-	switch r {
-	case EndpointUpdateParamsStateStarted, EndpointUpdateParamsStateStopped:
-		return true
-	}
-	return false
-}
-
 type EndpointListParams struct {
 	// Filter endpoints by type
-	Type param.Field[EndpointListParamsType] `query:"type"`
+	//
+	// Any of "dedicated", "serverless".
+	Type EndpointListParamsType `query:"type,omitzero" json:"-"`
+	paramObj
 }
 
 // URLQuery serializes [EndpointListParams]'s query parameters as `url.Values`.
-func (r EndpointListParams) URLQuery() (v url.Values) {
+func (r EndpointListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -666,11 +550,3 @@ const (
 	EndpointListParamsTypeDedicated  EndpointListParamsType = "dedicated"
 	EndpointListParamsTypeServerless EndpointListParamsType = "serverless"
 )
-
-func (r EndpointListParamsType) IsKnown() bool {
-	switch r {
-	case EndpointListParamsTypeDedicated, EndpointListParamsTypeServerless:
-		return true
-	}
-	return false
-}
