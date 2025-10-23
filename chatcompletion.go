@@ -578,6 +578,8 @@ func (u ChatCompletionNewParamsMessageUnion) GetName() *string {
 		return &vt.Name.Value
 	} else if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil && vt.Name.Valid() {
 		return &vt.Name.Value
+	} else if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil && vt.Name.Valid() {
+		return &vt.Name.Value
 	} else if vt := u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam; vt != nil {
 		return (*string)(&vt.Name)
 	}
@@ -914,8 +916,9 @@ func (r *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFuncti
 type ChatCompletionNewParamsMessageChatCompletionToolMessageParam struct {
 	Content string `json:"content,required"`
 	// Any of "tool".
-	Role       string `json:"role,omitzero,required"`
-	ToolCallID string `json:"tool_call_id,required"`
+	Role       string            `json:"role,omitzero,required"`
+	ToolCallID string            `json:"tool_call_id,required"`
+	Name       param.Opt[string] `json:"name,omitzero"`
 	paramObj
 }
 
