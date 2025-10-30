@@ -29,7 +29,7 @@ func TestAudioNewWithOptionalParams(t *testing.T) {
 	resp, err := client.Audio.New(context.TODO(), together.AudioNewParams{
 		Input:            "input",
 		Model:            together.AudioNewParamsModelCartesiaSonic,
-		Voice:            together.AudioNewParamsVoiceLaidbackWoman,
+		Voice:            "voice",
 		Language:         together.AudioNewParamsLanguageEn,
 		ResponseEncoding: together.AudioNewParamsResponseEncodingPcmF32le,
 		ResponseFormat:   together.AudioNewParamsResponseFormatMP3,

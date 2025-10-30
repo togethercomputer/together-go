@@ -184,11 +184,14 @@ type AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord struct {
 	Start float64 `json:"start,required"`
 	// The word
 	Word string `json:"word,required"`
+	// The speaker id for the word (only when diarize is enabled)
+	SpeakerID string `json:"speaker_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		End         respjson.Field
 		Start       respjson.Field
 		Word        respjson.Field
+		SpeakerID   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`

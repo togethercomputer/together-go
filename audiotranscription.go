@@ -67,15 +67,19 @@ type AudioTranscriptionNewResponseUnion struct {
 	Task string `json:"task"`
 	// This field is from variant
 	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
+	SpeakerSegments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment `json:"speaker_segments"`
+	// This field is from variant
+	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
 	Words []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord `json:"words"`
 	JSON  struct {
-		Text     respjson.Field
-		Duration respjson.Field
-		Language respjson.Field
-		Segments respjson.Field
-		Task     respjson.Field
-		Words    respjson.Field
-		raw      string
+		Text            respjson.Field
+		Duration        respjson.Field
+		Language        respjson.Field
+		Segments        respjson.Field
+		Task            respjson.Field
+		SpeakerSegments respjson.Field
+		Words           respjson.Field
+		raw             string
 	} `json:"-"`
 }
 
@@ -128,18 +132,21 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
 	Task string `json:"task,required"`
 	// The transcribed text
 	Text string `json:"text,required"`
+	// Array of transcription speaker segments (only when diarize is enabled)
+	SpeakerSegments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment `json:"speaker_segments"`
 	// Array of transcription words (only when timestamp_granularities includes 'word')
 	Words []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord `json:"words"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Duration    respjson.Field
-		Language    respjson.Field
-		Segments    respjson.Field
-		Task        respjson.Field
-		Text        respjson.Field
-		Words       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Duration        respjson.Field
+		Language        respjson.Field
+		Segments        respjson.Field
+		Task            respjson.Field
+		Text            respjson.Field
+		SpeakerSegments respjson.Field
+		Words           respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
 	} `json:"-"`
 }
 
@@ -179,6 +186,68 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegme
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment struct {
+	// Unique identifier for the speaker segment
+	ID int64 `json:"id,required"`
+	// End time of the speaker segment in seconds
+	End float64 `json:"end,required"`
+	// The speaker identifier
+	SpeakerID string `json:"speaker_id,required"`
+	// Start time of the speaker segment in seconds
+	Start float64 `json:"start,required"`
+	// The full text spoken by this speaker in this segment
+	Text string `json:"text,required"`
+	// Array of words spoken by this speaker in this segment
+	Words []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegmentWord `json:"words,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID          respjson.Field
+		End         respjson.Field
+		SpeakerID   respjson.Field
+		Start       respjson.Field
+		Text        respjson.Field
+		Words       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegmentWord struct {
+	// End time of the word in seconds
+	End float64 `json:"end,required"`
+	// Start time of the word in seconds
+	Start float64 `json:"start,required"`
+	// The word
+	Word string `json:"word,required"`
+	// The speaker id for the word (only when diarize is enabled)
+	SpeakerID string `json:"speaker_id"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		End         respjson.Field
+		Start       respjson.Field
+		Word        respjson.Field
+		SpeakerID   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegmentWord) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegmentWord) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord struct {
 	// End time of the word in seconds
 	End float64 `json:"end,required"`
@@ -186,11 +255,14 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord stru
 	Start float64 `json:"start,required"`
 	// The word
 	Word string `json:"word,required"`
+	// The speaker id for the word (only when diarize is enabled)
+	SpeakerID string `json:"speaker_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		End         respjson.Field
 		Start       respjson.Field
 		Word        respjson.Field
+		SpeakerID   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -207,6 +279,17 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord)
 type AudioTranscriptionNewParams struct {
 	// Audio file to transcribe
 	File io.Reader `json:"file,omitzero,required" format:"binary"`
+	// Whether to enable speaker diarization. When enabled, you will get the speaker id
+	// for each word in the transcription. In the response, in the words array, you
+	// will get the speaker id for each word. In addition, we also return the
+	// speaker_segments array which contains the speaker id for each speaker segment
+	// along with the start and end time of the segment along with all the words in the
+	// segment.
+	//
+	// For eg - ... "speaker_segments": [ "speaker_id": "SPEAKER_00", "start": 0,
+	// "end": 30.02, "words": [ { "id": 0, "word": "Tijana", "start": 0, "end": 11.475,
+	// "speaker_id": "SPEAKER_00" }, ...
+	Diarize param.Opt[bool] `json:"diarize,omitzero"`
 	// Optional ISO 639-1 language code. If `auto` is provided, language is
 	// auto-detected.
 	Language param.Opt[string] `json:"language,omitzero"`
