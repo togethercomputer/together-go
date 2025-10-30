@@ -29,6 +29,7 @@ func TestAudioTranscriptionNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Audio.Transcriptions.New(context.TODO(), together.AudioTranscriptionNewParams{
 		File:           io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		Diarize:        together.Bool(true),
 		Language:       together.String("en"),
 		Model:          together.AudioTranscriptionNewParamsModelOpenAIWhisperLargeV3,
 		Prompt:         together.String("prompt"),
