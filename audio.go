@@ -94,13 +94,24 @@ type AudioNewParams struct {
 	// The name of the model to query.
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#audio-models)
+	// The current supported tts models are: - cartesia/sonic - hexgrad/Kokoro-82M -
+	// canopylabs/orpheus-3b-0.1-ft
 	Model AudioNewParamsModel `json:"model,omitzero,required"`
-	// The voice to use for generating the audio.
+	// The voice to use for generating the audio. The voices supported are different
+	// for each model. For eg - for canopylabs/orpheus-3b-0.1-ft, one of the voices
+	// supported is tara, for hexgrad/Kokoro-82M, one of the voices supported is
+	// af_alloy and for cartesia/sonic, one of the voices supported is "friendly
+	// sidekick".
+	//
+	// You can view the voices supported for each model using the /v1/voices endpoint
+	// sending the model name as the query parameter.
 	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#voices-available).
-	Voice AudioNewParamsVoice `json:"voice,omitzero,required"`
-	// Sampling rate to use for the output audio
+	Voice string `json:"voice,required"`
+	// Sampling rate to use for the output audio. The default sampling rate for
+	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
+	// cartesia/sonic is 44100.
 	SampleRate param.Opt[float64] `json:"sample_rate,omitzero"`
-	// Language of input text
+	// Language of input text.
 	//
 	// Any of "en", "de", "fr", "es", "hi", "it", "ja", "ko", "nl", "pl", "pt", "ru",
 	// "sv", "tr", "zh".
@@ -109,7 +120,8 @@ type AudioNewParams struct {
 	//
 	// Any of "pcm_f32le", "pcm_s16le", "pcm_mulaw", "pcm_alaw".
 	ResponseEncoding AudioNewParamsResponseEncoding `json:"response_encoding,omitzero"`
-	// The format of audio output
+	// The format of audio output. Supported formats are mp3, wav, raw if streaming is
+	// false. If streaming is true, the only supported format is raw.
 	//
 	// Any of "mp3", "wav", "raw".
 	ResponseFormat AudioNewParamsResponseFormat `json:"response_format,omitzero"`
@@ -127,24 +139,17 @@ func (r *AudioNewParams) UnmarshalJSON(data []byte) error {
 // The name of the model to query.
 //
 // [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#audio-models)
+// The current supported tts models are: - cartesia/sonic - hexgrad/Kokoro-82M -
+// canopylabs/orpheus-3b-0.1-ft
 type AudioNewParamsModel string
 
 const (
-	AudioNewParamsModelCartesiaSonic AudioNewParamsModel = "cartesia/sonic"
+	AudioNewParamsModelCartesiaSonic            AudioNewParamsModel = "cartesia/sonic"
+	AudioNewParamsModelHexgradKokoro82M         AudioNewParamsModel = "hexgrad/Kokoro-82M"
+	AudioNewParamsModelCanopylabsOrpheus3b0_1Ft AudioNewParamsModel = "canopylabs/orpheus-3b-0.1-ft"
 )
 
-// The voice to use for generating the audio.
-// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#voices-available).
-type AudioNewParamsVoice string
-
-const (
-	AudioNewParamsVoiceLaidbackWoman    AudioNewParamsVoice = "laidback woman"
-	AudioNewParamsVoicePoliteMan        AudioNewParamsVoice = "polite man"
-	AudioNewParamsVoiceStorytellerLady  AudioNewParamsVoice = "storyteller lady"
-	AudioNewParamsVoiceFriendlySidekick AudioNewParamsVoice = "friendly sidekick"
-)
-
-// Language of input text
+// Language of input text.
 type AudioNewParamsLanguage string
 
 const (
@@ -175,7 +180,8 @@ const (
 	AudioNewParamsResponseEncodingPcmAlaw  AudioNewParamsResponseEncoding = "pcm_alaw"
 )
 
-// The format of audio output
+// The format of audio output. Supported formats are mp3, wav, raw if streaming is
+// false. If streaming is true, the only supported format is raw.
 type AudioNewParamsResponseFormat string
 
 const (
