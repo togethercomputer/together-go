@@ -116,7 +116,9 @@ func TestEndpointListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Endpoints.List(context.TODO(), together.EndpointListParams{
-		Type: together.EndpointListParamsTypeDedicated,
+		Mine:      together.Bool(true),
+		Type:      together.EndpointListParamsTypeDedicated,
+		UsageType: together.EndpointListParamsUsageTypeOnDemand,
 	})
 	if err != nil {
 		var apierr *together.Error

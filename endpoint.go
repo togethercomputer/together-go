@@ -368,10 +368,16 @@ const (
 )
 
 type EndpointListParams struct {
+	// If true, return only endpoints owned by the caller
+	Mine param.Opt[bool] `query:"mine,omitzero" json:"-"`
 	// Filter endpoints by type
 	//
 	// Any of "dedicated", "serverless".
 	Type EndpointListParamsType `query:"type,omitzero" json:"-"`
+	// Filter endpoints by usage type
+	//
+	// Any of "on-demand", "reserved".
+	UsageType EndpointListParamsUsageType `query:"usage_type,omitzero" json:"-"`
 	paramObj
 }
 
@@ -389,4 +395,12 @@ type EndpointListParamsType string
 const (
 	EndpointListParamsTypeDedicated  EndpointListParamsType = "dedicated"
 	EndpointListParamsTypeServerless EndpointListParamsType = "serverless"
+)
+
+// Filter endpoints by usage type
+type EndpointListParamsUsageType string
+
+const (
+	EndpointListParamsUsageTypeOnDemand EndpointListParamsUsageType = "on-demand"
+	EndpointListParamsUsageTypeReserved EndpointListParamsUsageType = "reserved"
 )
