@@ -68,6 +68,18 @@ func (r *FineTuneService) List(ctx context.Context, opts ...option.RequestOption
 	return
 }
 
+// Delete a fine-tuning job.
+func (r *FineTuneService) Delete(ctx context.Context, id string, body FineTuneDeleteParams, opts ...option.RequestOption) (res *FineTuneDeleteResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return
+	}
+	path := fmt.Sprintf("fine-tunes/%s", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
+	return
+}
+
 // Cancel a currently running fine-tuning job. Returns a FinetuneResponseTruncated
 // object.
 func (r *FineTuneService) Cancel(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneCancelResponse, err error) {
@@ -1408,6 +1420,23 @@ func (r *FineTuneListResponseDataTrainingTypeUnion) UnmarshalJSON(data []byte) e
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type FineTuneDeleteResponse struct {
+	// Message indicating the result of the deletion
+	Message string `json:"message"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuneDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *FineTuneDeleteResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // A truncated version of the fine-tune response, used for POST /fine-tunes, GET
 // /fine-tunes and POST /fine-tunes/{id}/cancel endpoints
 type FineTuneCancelResponse struct {
@@ -1992,6 +2021,19 @@ func (u FineTuneNewParamsTrainingTypeUnion) GetType() *string {
 		return (*string)(&vt.Type)
 	}
 	return nil
+}
+
+type FineTuneDeleteParams struct {
+	Force bool `query:"force,required" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [FineTuneDeleteParams]'s query parameters as `url.Values`.
+func (r FineTuneDeleteParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 type FineTuneDownloadParams struct {
