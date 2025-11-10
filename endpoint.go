@@ -42,7 +42,7 @@ func NewEndpointService(opts ...option.RequestOption) (r EndpointService) {
 // Creates a new dedicated endpoint for serving models. The endpoint will
 // automatically start after creation. You can deploy any supported model on
 // hardware configurations that meet the model's requirements.
-func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts ...option.RequestOption) (res *EndpointNewResponse, err error) {
+func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts ...option.RequestOption) (res *DedicatedEndpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "endpoints"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -51,7 +51,7 @@ func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts 
 
 // Retrieves details about a specific endpoint, including its current state,
 // configuration, and scaling settings.
-func (r *EndpointService) Get(ctx context.Context, endpointID string, opts ...option.RequestOption) (res *EndpointGetResponse, err error) {
+func (r *EndpointService) Get(ctx context.Context, endpointID string, opts ...option.RequestOption) (res *DedicatedEndpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
@@ -64,7 +64,7 @@ func (r *EndpointService) Get(ctx context.Context, endpointID string, opts ...op
 
 // Updates an existing endpoint's configuration. You can modify the display name,
 // autoscaling settings, or change the endpoint's state (start/stop).
-func (r *EndpointService) Update(ctx context.Context, endpointID string, body EndpointUpdateParams, opts ...option.RequestOption) (res *EndpointUpdateResponse, err error) {
+func (r *EndpointService) Update(ctx context.Context, endpointID string, body EndpointUpdateParams, opts ...option.RequestOption) (res *DedicatedEndpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
@@ -147,7 +147,7 @@ func (r *AutoscalingParam) UnmarshalJSON(data []byte) error {
 }
 
 // Details about a dedicated endpoint deployment
-type EndpointNewResponse struct {
+type DedicatedEndpoint struct {
 	// Unique identifier for the endpoint
 	ID string `json:"id,required"`
 	// Configuration for automatic scaling of the endpoint
@@ -165,17 +165,17 @@ type EndpointNewResponse struct {
 	// The type of object
 	//
 	// Any of "endpoint".
-	Object EndpointNewResponseObject `json:"object,required"`
+	Object DedicatedEndpointObject `json:"object,required"`
 	// The owner of this endpoint
 	Owner string `json:"owner,required"`
 	// Current state of the endpoint
 	//
 	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
-	State EndpointNewResponseState `json:"state,required"`
+	State DedicatedEndpointState `json:"state,required"`
 	// The type of endpoint
 	//
 	// Any of "dedicated".
-	Type EndpointNewResponseType `json:"type,required"`
+	Type DedicatedEndpointType `json:"type,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -195,195 +195,35 @@ type EndpointNewResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EndpointNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *EndpointNewResponse) UnmarshalJSON(data []byte) error {
+func (r DedicatedEndpoint) RawJSON() string { return r.JSON.raw }
+func (r *DedicatedEndpoint) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // The type of object
-type EndpointNewResponseObject string
+type DedicatedEndpointObject string
 
 const (
-	EndpointNewResponseObjectEndpoint EndpointNewResponseObject = "endpoint"
+	DedicatedEndpointObjectEndpoint DedicatedEndpointObject = "endpoint"
 )
 
 // Current state of the endpoint
-type EndpointNewResponseState string
+type DedicatedEndpointState string
 
 const (
-	EndpointNewResponseStatePending  EndpointNewResponseState = "PENDING"
-	EndpointNewResponseStateStarting EndpointNewResponseState = "STARTING"
-	EndpointNewResponseStateStarted  EndpointNewResponseState = "STARTED"
-	EndpointNewResponseStateStopping EndpointNewResponseState = "STOPPING"
-	EndpointNewResponseStateStopped  EndpointNewResponseState = "STOPPED"
-	EndpointNewResponseStateError    EndpointNewResponseState = "ERROR"
+	DedicatedEndpointStatePending  DedicatedEndpointState = "PENDING"
+	DedicatedEndpointStateStarting DedicatedEndpointState = "STARTING"
+	DedicatedEndpointStateStarted  DedicatedEndpointState = "STARTED"
+	DedicatedEndpointStateStopping DedicatedEndpointState = "STOPPING"
+	DedicatedEndpointStateStopped  DedicatedEndpointState = "STOPPED"
+	DedicatedEndpointStateError    DedicatedEndpointState = "ERROR"
 )
 
 // The type of endpoint
-type EndpointNewResponseType string
+type DedicatedEndpointType string
 
 const (
-	EndpointNewResponseTypeDedicated EndpointNewResponseType = "dedicated"
-)
-
-// Details about a dedicated endpoint deployment
-type EndpointGetResponse struct {
-	// Unique identifier for the endpoint
-	ID string `json:"id,required"`
-	// Configuration for automatic scaling of the endpoint
-	Autoscaling Autoscaling `json:"autoscaling,required"`
-	// Timestamp when the endpoint was created
-	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
-	// Human-readable name for the endpoint
-	DisplayName string `json:"display_name,required"`
-	// The hardware configuration used for this endpoint
-	Hardware string `json:"hardware,required"`
-	// The model deployed on this endpoint
-	Model string `json:"model,required"`
-	// System name for the endpoint
-	Name string `json:"name,required"`
-	// The type of object
-	//
-	// Any of "endpoint".
-	Object EndpointGetResponseObject `json:"object,required"`
-	// The owner of this endpoint
-	Owner string `json:"owner,required"`
-	// Current state of the endpoint
-	//
-	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
-	State EndpointGetResponseState `json:"state,required"`
-	// The type of endpoint
-	//
-	// Any of "dedicated".
-	Type EndpointGetResponseType `json:"type,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID          respjson.Field
-		Autoscaling respjson.Field
-		CreatedAt   respjson.Field
-		DisplayName respjson.Field
-		Hardware    respjson.Field
-		Model       respjson.Field
-		Name        respjson.Field
-		Object      respjson.Field
-		Owner       respjson.Field
-		State       respjson.Field
-		Type        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EndpointGetResponse) RawJSON() string { return r.JSON.raw }
-func (r *EndpointGetResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// The type of object
-type EndpointGetResponseObject string
-
-const (
-	EndpointGetResponseObjectEndpoint EndpointGetResponseObject = "endpoint"
-)
-
-// Current state of the endpoint
-type EndpointGetResponseState string
-
-const (
-	EndpointGetResponseStatePending  EndpointGetResponseState = "PENDING"
-	EndpointGetResponseStateStarting EndpointGetResponseState = "STARTING"
-	EndpointGetResponseStateStarted  EndpointGetResponseState = "STARTED"
-	EndpointGetResponseStateStopping EndpointGetResponseState = "STOPPING"
-	EndpointGetResponseStateStopped  EndpointGetResponseState = "STOPPED"
-	EndpointGetResponseStateError    EndpointGetResponseState = "ERROR"
-)
-
-// The type of endpoint
-type EndpointGetResponseType string
-
-const (
-	EndpointGetResponseTypeDedicated EndpointGetResponseType = "dedicated"
-)
-
-// Details about a dedicated endpoint deployment
-type EndpointUpdateResponse struct {
-	// Unique identifier for the endpoint
-	ID string `json:"id,required"`
-	// Configuration for automatic scaling of the endpoint
-	Autoscaling Autoscaling `json:"autoscaling,required"`
-	// Timestamp when the endpoint was created
-	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
-	// Human-readable name for the endpoint
-	DisplayName string `json:"display_name,required"`
-	// The hardware configuration used for this endpoint
-	Hardware string `json:"hardware,required"`
-	// The model deployed on this endpoint
-	Model string `json:"model,required"`
-	// System name for the endpoint
-	Name string `json:"name,required"`
-	// The type of object
-	//
-	// Any of "endpoint".
-	Object EndpointUpdateResponseObject `json:"object,required"`
-	// The owner of this endpoint
-	Owner string `json:"owner,required"`
-	// Current state of the endpoint
-	//
-	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
-	State EndpointUpdateResponseState `json:"state,required"`
-	// The type of endpoint
-	//
-	// Any of "dedicated".
-	Type EndpointUpdateResponseType `json:"type,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID          respjson.Field
-		Autoscaling respjson.Field
-		CreatedAt   respjson.Field
-		DisplayName respjson.Field
-		Hardware    respjson.Field
-		Model       respjson.Field
-		Name        respjson.Field
-		Object      respjson.Field
-		Owner       respjson.Field
-		State       respjson.Field
-		Type        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EndpointUpdateResponse) RawJSON() string { return r.JSON.raw }
-func (r *EndpointUpdateResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// The type of object
-type EndpointUpdateResponseObject string
-
-const (
-	EndpointUpdateResponseObjectEndpoint EndpointUpdateResponseObject = "endpoint"
-)
-
-// Current state of the endpoint
-type EndpointUpdateResponseState string
-
-const (
-	EndpointUpdateResponseStatePending  EndpointUpdateResponseState = "PENDING"
-	EndpointUpdateResponseStateStarting EndpointUpdateResponseState = "STARTING"
-	EndpointUpdateResponseStateStarted  EndpointUpdateResponseState = "STARTED"
-	EndpointUpdateResponseStateStopping EndpointUpdateResponseState = "STOPPING"
-	EndpointUpdateResponseStateStopped  EndpointUpdateResponseState = "STOPPED"
-	EndpointUpdateResponseStateError    EndpointUpdateResponseState = "ERROR"
-)
-
-// The type of endpoint
-type EndpointUpdateResponseType string
-
-const (
-	EndpointUpdateResponseTypeDedicated EndpointUpdateResponseType = "dedicated"
+	DedicatedEndpointTypeDedicated DedicatedEndpointType = "dedicated"
 )
 
 type EndpointListResponse struct {
