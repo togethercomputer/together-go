@@ -39,8 +39,16 @@ func NewEvalService(opts ...option.RequestOption) (r EvalService) {
 	return
 }
 
+// Create an evaluation job
+func (r *EvalService) New(ctx context.Context, body EvalNewParams, opts ...option.RequestOption) (res *EvalNewResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "evaluation"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}
+
 // Get evaluation job details
-func (r *EvalService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *EvalGetResponse, err error) {
+func (r *EvalService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *EvaluationJob, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -51,24 +59,28 @@ func (r *EvalService) Get(ctx context.Context, id string, opts ...option.Request
 	return
 }
 
-// Get all evaluation jobs. Deprecated! Please use /evaluation
-func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...option.RequestOption) (res *[]EvalListResponse, err error) {
+// Update evaluation job status and results
+func (r *EvalService) Update(ctx context.Context, id string, body EvalUpdateParams, opts ...option.RequestOption) (res *EvalUpdateResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "evaluations"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return
+	}
+	path := fmt.Sprintf("evaluation/%s/update", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
 
-// Get model list
-func (r *EvalService) GetAllowedModels(ctx context.Context, query EvalGetAllowedModelsParams, opts ...option.RequestOption) (res *EvalGetAllowedModelsResponse, err error) {
+// Get all evaluation jobs
+func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...option.RequestOption) (res *[]EvaluationJob, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "evaluations/model-list"
+	path := "evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
 }
 
 // Get evaluation job status and results
-func (r *EvalService) GetStatus(ctx context.Context, id string, opts ...option.RequestOption) (res *EvalGetStatusResponse, err error) {
+func (r *EvalService) Status(ctx context.Context, id string, opts ...option.RequestOption) (res *EvalStatusResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -79,7 +91,7 @@ func (r *EvalService) GetStatus(ctx context.Context, id string, opts ...option.R
 	return
 }
 
-type EvalGetResponse struct {
+type EvaluationJob struct {
 	// When the job was created
 	CreatedAt time.Time `json:"created_at" format:"date-time"`
 	// ID of the job owner (admin only)
@@ -87,17 +99,17 @@ type EvalGetResponse struct {
 	// The parameters used for this evaluation
 	Parameters map[string]any `json:"parameters"`
 	// Results of the evaluation (when completed)
-	Results EvalGetResponseResultsUnion `json:"results,nullable"`
+	Results EvaluationJobResultsUnion `json:"results,nullable"`
 	// Current status of the job
 	//
 	// Any of "pending", "queued", "running", "completed", "error", "user_error".
-	Status EvalGetResponseStatus `json:"status"`
+	Status EvaluationJobStatus `json:"status"`
 	// History of status updates (admin only)
-	StatusUpdates []EvalGetResponseStatusUpdate `json:"status_updates"`
+	StatusUpdates []EvaluationJobStatusUpdate `json:"status_updates"`
 	// The type of evaluation
 	//
 	// Any of "classify", "score", "compare".
-	Type EvalGetResponseType `json:"type"`
+	Type EvaluationJobType `json:"type"`
 	// When the job was last updated
 	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 	// The evaluation job ID
@@ -119,42 +131,42 @@ type EvalGetResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetResponse) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetResponse) UnmarshalJSON(data []byte) error {
+func (r EvaluationJob) RawJSON() string { return r.JSON.raw }
+func (r *EvaluationJob) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// EvalGetResponseResultsUnion contains all possible properties and values from
-// [EvalGetResponseResultsEvaluationClassifyResults],
-// [EvalGetResponseResultsEvaluationScoreResults],
-// [EvalGetResponseResultsEvaluationCompareResults], [EvalGetResponseResultsError].
+// EvaluationJobResultsUnion contains all possible properties and values from
+// [EvaluationJobResultsEvaluationClassifyResults],
+// [EvaluationJobResultsEvaluationScoreResults],
+// [EvaluationJobResultsEvaluationCompareResults], [EvaluationJobResultsError].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
-type EvalGetResponseResultsUnion struct {
+type EvaluationJobResultsUnion struct {
 	GenerationFailCount float64 `json:"generation_fail_count"`
-	// This field is from variant [EvalGetResponseResultsEvaluationClassifyResults].
+	// This field is from variant [EvaluationJobResultsEvaluationClassifyResults].
 	InvalidLabelCount float64 `json:"invalid_label_count"`
 	JudgeFailCount    float64 `json:"judge_fail_count"`
-	// This field is from variant [EvalGetResponseResultsEvaluationClassifyResults].
+	// This field is from variant [EvaluationJobResultsEvaluationClassifyResults].
 	LabelCounts string `json:"label_counts"`
-	// This field is from variant [EvalGetResponseResultsEvaluationClassifyResults].
+	// This field is from variant [EvaluationJobResultsEvaluationClassifyResults].
 	PassPercentage float64 `json:"pass_percentage"`
 	ResultFileID   string  `json:"result_file_id"`
-	// This field is from variant [EvalGetResponseResultsEvaluationScoreResults].
-	AggregatedScores EvalGetResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
-	// This field is from variant [EvalGetResponseResultsEvaluationScoreResults].
+	// This field is from variant [EvaluationJobResultsEvaluationScoreResults].
+	AggregatedScores EvaluationJobResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
+	// This field is from variant [EvaluationJobResultsEvaluationScoreResults].
 	FailedSamples float64 `json:"failed_samples"`
-	// This field is from variant [EvalGetResponseResultsEvaluationScoreResults].
+	// This field is from variant [EvaluationJobResultsEvaluationScoreResults].
 	InvalidScoreCount float64 `json:"invalid_score_count"`
-	// This field is from variant [EvalGetResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvaluationJobResultsEvaluationCompareResults].
 	AWins int64 `json:"A_wins"`
-	// This field is from variant [EvalGetResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvaluationJobResultsEvaluationCompareResults].
 	BWins int64 `json:"B_wins"`
-	// This field is from variant [EvalGetResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvaluationJobResultsEvaluationCompareResults].
 	NumSamples int64 `json:"num_samples"`
-	// This field is from variant [EvalGetResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvaluationJobResultsEvaluationCompareResults].
 	Ties int64 `json:"Ties"`
-	// This field is from variant [EvalGetResponseResultsError].
+	// This field is from variant [EvaluationJobResultsError].
 	Error string `json:"error"`
 	JSON  struct {
 		GenerationFailCount respjson.Field
@@ -175,34 +187,34 @@ type EvalGetResponseResultsUnion struct {
 	} `json:"-"`
 }
 
-func (u EvalGetResponseResultsUnion) AsEvalGetResponseResultsEvaluationClassifyResults() (v EvalGetResponseResultsEvaluationClassifyResults) {
+func (u EvaluationJobResultsUnion) AsEvaluationJobResultsEvaluationClassifyResults() (v EvaluationJobResultsEvaluationClassifyResults) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u EvalGetResponseResultsUnion) AsEvalGetResponseResultsEvaluationScoreResults() (v EvalGetResponseResultsEvaluationScoreResults) {
+func (u EvaluationJobResultsUnion) AsEvaluationJobResultsEvaluationScoreResults() (v EvaluationJobResultsEvaluationScoreResults) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u EvalGetResponseResultsUnion) AsEvalGetResponseResultsEvaluationCompareResults() (v EvalGetResponseResultsEvaluationCompareResults) {
+func (u EvaluationJobResultsUnion) AsEvaluationJobResultsEvaluationCompareResults() (v EvaluationJobResultsEvaluationCompareResults) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u EvalGetResponseResultsUnion) AsEvalGetResponseResultsError() (v EvalGetResponseResultsError) {
+func (u EvaluationJobResultsUnion) AsEvaluationJobResultsError() (v EvaluationJobResultsError) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u EvalGetResponseResultsUnion) RawJSON() string { return u.JSON.raw }
+func (u EvaluationJobResultsUnion) RawJSON() string { return u.JSON.raw }
 
-func (r *EvalGetResponseResultsUnion) UnmarshalJSON(data []byte) error {
+func (r *EvaluationJobResultsUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetResponseResultsEvaluationClassifyResults struct {
+type EvaluationJobResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
 	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
 	// Number of invalid labels
@@ -229,13 +241,13 @@ type EvalGetResponseResultsEvaluationClassifyResults struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetResponseResultsEvaluationClassifyResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetResponseResultsEvaluationClassifyResults) UnmarshalJSON(data []byte) error {
+func (r EvaluationJobResultsEvaluationClassifyResults) RawJSON() string { return r.JSON.raw }
+func (r *EvaluationJobResultsEvaluationClassifyResults) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetResponseResultsEvaluationScoreResults struct {
-	AggregatedScores EvalGetResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
+type EvaluationJobResultsEvaluationScoreResults struct {
+	AggregatedScores EvaluationJobResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
 	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
@@ -260,12 +272,12 @@ type EvalGetResponseResultsEvaluationScoreResults struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetResponseResultsEvaluationScoreResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetResponseResultsEvaluationScoreResults) UnmarshalJSON(data []byte) error {
+func (r EvaluationJobResultsEvaluationScoreResults) RawJSON() string { return r.JSON.raw }
+func (r *EvaluationJobResultsEvaluationScoreResults) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetResponseResultsEvaluationScoreResultsAggregatedScores struct {
+type EvaluationJobResultsEvaluationScoreResultsAggregatedScores struct {
 	MeanScore      float64 `json:"mean_score"`
 	PassPercentage float64 `json:"pass_percentage"`
 	StdScore       float64 `json:"std_score"`
@@ -280,14 +292,14 @@ type EvalGetResponseResultsEvaluationScoreResultsAggregatedScores struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetResponseResultsEvaluationScoreResultsAggregatedScores) RawJSON() string {
+func (r EvaluationJobResultsEvaluationScoreResultsAggregatedScores) RawJSON() string {
 	return r.JSON.raw
 }
-func (r *EvalGetResponseResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) error {
+func (r *EvaluationJobResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetResponseResultsEvaluationCompareResults struct {
+type EvaluationJobResultsEvaluationCompareResults struct {
 	// Number of times model A won
 	AWins int64 `json:"A_wins"`
 	// Number of times model B won
@@ -317,12 +329,12 @@ type EvalGetResponseResultsEvaluationCompareResults struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetResponseResultsEvaluationCompareResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetResponseResultsEvaluationCompareResults) UnmarshalJSON(data []byte) error {
+func (r EvaluationJobResultsEvaluationCompareResults) RawJSON() string { return r.JSON.raw }
+func (r *EvaluationJobResultsEvaluationCompareResults) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetResponseResultsError struct {
+type EvaluationJobResultsError struct {
 	Error string `json:"error"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -333,24 +345,24 @@ type EvalGetResponseResultsError struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetResponseResultsError) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetResponseResultsError) UnmarshalJSON(data []byte) error {
+func (r EvaluationJobResultsError) RawJSON() string { return r.JSON.raw }
+func (r *EvaluationJobResultsError) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Current status of the job
-type EvalGetResponseStatus string
+type EvaluationJobStatus string
 
 const (
-	EvalGetResponseStatusPending   EvalGetResponseStatus = "pending"
-	EvalGetResponseStatusQueued    EvalGetResponseStatus = "queued"
-	EvalGetResponseStatusRunning   EvalGetResponseStatus = "running"
-	EvalGetResponseStatusCompleted EvalGetResponseStatus = "completed"
-	EvalGetResponseStatusError     EvalGetResponseStatus = "error"
-	EvalGetResponseStatusUserError EvalGetResponseStatus = "user_error"
+	EvaluationJobStatusPending   EvaluationJobStatus = "pending"
+	EvaluationJobStatusQueued    EvaluationJobStatus = "queued"
+	EvaluationJobStatusRunning   EvaluationJobStatus = "running"
+	EvaluationJobStatusCompleted EvaluationJobStatus = "completed"
+	EvaluationJobStatusError     EvaluationJobStatus = "error"
+	EvaluationJobStatusUserError EvaluationJobStatus = "user_error"
 )
 
-type EvalGetResponseStatusUpdate struct {
+type EvaluationJobStatusUpdate struct {
 	// Additional message for this update
 	Message string `json:"message"`
 	// The status at this update
@@ -368,347 +380,74 @@ type EvalGetResponseStatusUpdate struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetResponseStatusUpdate) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetResponseStatusUpdate) UnmarshalJSON(data []byte) error {
+func (r EvaluationJobStatusUpdate) RawJSON() string { return r.JSON.raw }
+func (r *EvaluationJobStatusUpdate) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // The type of evaluation
-type EvalGetResponseType string
+type EvaluationJobType string
 
 const (
-	EvalGetResponseTypeClassify EvalGetResponseType = "classify"
-	EvalGetResponseTypeScore    EvalGetResponseType = "score"
-	EvalGetResponseTypeCompare  EvalGetResponseType = "compare"
+	EvaluationJobTypeClassify EvaluationJobType = "classify"
+	EvaluationJobTypeScore    EvaluationJobType = "score"
+	EvaluationJobTypeCompare  EvaluationJobType = "compare"
 )
 
-type EvalListResponse struct {
-	// When the job was created
-	CreatedAt time.Time `json:"created_at" format:"date-time"`
-	// ID of the job owner (admin only)
-	OwnerID string `json:"owner_id"`
-	// The parameters used for this evaluation
-	Parameters map[string]any `json:"parameters"`
-	// Results of the evaluation (when completed)
-	Results EvalListResponseResultsUnion `json:"results,nullable"`
-	// Current status of the job
+type EvalNewResponse struct {
+	// Initial status of the job
 	//
-	// Any of "pending", "queued", "running", "completed", "error", "user_error".
-	Status EvalListResponseStatus `json:"status"`
-	// History of status updates (admin only)
-	StatusUpdates []EvalListResponseStatusUpdate `json:"status_updates"`
-	// The type of evaluation
-	//
-	// Any of "classify", "score", "compare".
-	Type EvalListResponseType `json:"type"`
-	// When the job was last updated
-	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
-	// The evaluation job ID
+	// Any of "pending".
+	Status EvalNewResponseStatus `json:"status"`
+	// The ID of the created evaluation job
 	WorkflowID string `json:"workflow_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		CreatedAt     respjson.Field
-		OwnerID       respjson.Field
-		Parameters    respjson.Field
-		Results       respjson.Field
-		Status        respjson.Field
-		StatusUpdates respjson.Field
-		Type          respjson.Field
-		UpdatedAt     respjson.Field
-		WorkflowID    respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalListResponse) RawJSON() string { return r.JSON.raw }
-func (r *EvalListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// EvalListResponseResultsUnion contains all possible properties and values from
-// [EvalListResponseResultsEvaluationClassifyResults],
-// [EvalListResponseResultsEvaluationScoreResults],
-// [EvalListResponseResultsEvaluationCompareResults],
-// [EvalListResponseResultsError].
-//
-// Use the methods beginning with 'As' to cast the union to one of its variants.
-type EvalListResponseResultsUnion struct {
-	GenerationFailCount float64 `json:"generation_fail_count"`
-	// This field is from variant [EvalListResponseResultsEvaluationClassifyResults].
-	InvalidLabelCount float64 `json:"invalid_label_count"`
-	JudgeFailCount    float64 `json:"judge_fail_count"`
-	// This field is from variant [EvalListResponseResultsEvaluationClassifyResults].
-	LabelCounts string `json:"label_counts"`
-	// This field is from variant [EvalListResponseResultsEvaluationClassifyResults].
-	PassPercentage float64 `json:"pass_percentage"`
-	ResultFileID   string  `json:"result_file_id"`
-	// This field is from variant [EvalListResponseResultsEvaluationScoreResults].
-	AggregatedScores EvalListResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
-	// This field is from variant [EvalListResponseResultsEvaluationScoreResults].
-	FailedSamples float64 `json:"failed_samples"`
-	// This field is from variant [EvalListResponseResultsEvaluationScoreResults].
-	InvalidScoreCount float64 `json:"invalid_score_count"`
-	// This field is from variant [EvalListResponseResultsEvaluationCompareResults].
-	AWins int64 `json:"A_wins"`
-	// This field is from variant [EvalListResponseResultsEvaluationCompareResults].
-	BWins int64 `json:"B_wins"`
-	// This field is from variant [EvalListResponseResultsEvaluationCompareResults].
-	NumSamples int64 `json:"num_samples"`
-	// This field is from variant [EvalListResponseResultsEvaluationCompareResults].
-	Ties int64 `json:"Ties"`
-	// This field is from variant [EvalListResponseResultsError].
-	Error string `json:"error"`
-	JSON  struct {
-		GenerationFailCount respjson.Field
-		InvalidLabelCount   respjson.Field
-		JudgeFailCount      respjson.Field
-		LabelCounts         respjson.Field
-		PassPercentage      respjson.Field
-		ResultFileID        respjson.Field
-		AggregatedScores    respjson.Field
-		FailedSamples       respjson.Field
-		InvalidScoreCount   respjson.Field
-		AWins               respjson.Field
-		BWins               respjson.Field
-		NumSamples          respjson.Field
-		Ties                respjson.Field
-		Error               respjson.Field
-		raw                 string
-	} `json:"-"`
-}
-
-func (u EvalListResponseResultsUnion) AsEvalListResponseResultsEvaluationClassifyResults() (v EvalListResponseResultsEvaluationClassifyResults) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u EvalListResponseResultsUnion) AsEvalListResponseResultsEvaluationScoreResults() (v EvalListResponseResultsEvaluationScoreResults) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u EvalListResponseResultsUnion) AsEvalListResponseResultsEvaluationCompareResults() (v EvalListResponseResultsEvaluationCompareResults) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u EvalListResponseResultsUnion) AsEvalListResponseResultsError() (v EvalListResponseResultsError) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-// Returns the unmodified JSON received from the API
-func (u EvalListResponseResultsUnion) RawJSON() string { return u.JSON.raw }
-
-func (r *EvalListResponseResultsUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type EvalListResponseResultsEvaluationClassifyResults struct {
-	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
-	// Number of invalid labels
-	InvalidLabelCount float64 `json:"invalid_label_count,nullable"`
-	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
-	// JSON string representing label counts
-	LabelCounts string `json:"label_counts"`
-	// Pecentage of pass labels.
-	PassPercentage float64 `json:"pass_percentage,nullable"`
-	// Data File ID
-	ResultFileID string `json:"result_file_id"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		GenerationFailCount respjson.Field
-		InvalidLabelCount   respjson.Field
-		JudgeFailCount      respjson.Field
-		LabelCounts         respjson.Field
-		PassPercentage      respjson.Field
-		ResultFileID        respjson.Field
-		ExtraFields         map[string]respjson.Field
-		raw                 string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalListResponseResultsEvaluationClassifyResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalListResponseResultsEvaluationClassifyResults) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type EvalListResponseResultsEvaluationScoreResults struct {
-	AggregatedScores EvalListResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
-	// number of failed samples generated from model
-	FailedSamples float64 `json:"failed_samples"`
-	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
-	// number of invalid scores generated from model
-	InvalidScoreCount float64 `json:"invalid_score_count"`
-	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
-	// Data File ID
-	ResultFileID string `json:"result_file_id"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AggregatedScores    respjson.Field
-		FailedSamples       respjson.Field
-		GenerationFailCount respjson.Field
-		InvalidScoreCount   respjson.Field
-		JudgeFailCount      respjson.Field
-		ResultFileID        respjson.Field
-		ExtraFields         map[string]respjson.Field
-		raw                 string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalListResponseResultsEvaluationScoreResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalListResponseResultsEvaluationScoreResults) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type EvalListResponseResultsEvaluationScoreResultsAggregatedScores struct {
-	MeanScore      float64 `json:"mean_score"`
-	PassPercentage float64 `json:"pass_percentage"`
-	StdScore       float64 `json:"std_score"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		MeanScore      respjson.Field
-		PassPercentage respjson.Field
-		StdScore       respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalListResponseResultsEvaluationScoreResultsAggregatedScores) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *EvalListResponseResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type EvalListResponseResultsEvaluationCompareResults struct {
-	// Number of times model A won
-	AWins int64 `json:"A_wins"`
-	// Number of times model B won
-	BWins int64 `json:"B_wins"`
-	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
-	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
-	// Total number of samples compared
-	NumSamples int64 `json:"num_samples"`
-	// Data File ID
-	ResultFileID string `json:"result_file_id"`
-	// Number of ties
-	Ties int64 `json:"Ties"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AWins               respjson.Field
-		BWins               respjson.Field
-		GenerationFailCount respjson.Field
-		JudgeFailCount      respjson.Field
-		NumSamples          respjson.Field
-		ResultFileID        respjson.Field
-		Ties                respjson.Field
-		ExtraFields         map[string]respjson.Field
-		raw                 string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalListResponseResultsEvaluationCompareResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalListResponseResultsEvaluationCompareResults) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type EvalListResponseResultsError struct {
-	Error string `json:"error"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Error       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalListResponseResultsError) RawJSON() string { return r.JSON.raw }
-func (r *EvalListResponseResultsError) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Current status of the job
-type EvalListResponseStatus string
-
-const (
-	EvalListResponseStatusPending   EvalListResponseStatus = "pending"
-	EvalListResponseStatusQueued    EvalListResponseStatus = "queued"
-	EvalListResponseStatusRunning   EvalListResponseStatus = "running"
-	EvalListResponseStatusCompleted EvalListResponseStatus = "completed"
-	EvalListResponseStatusError     EvalListResponseStatus = "error"
-	EvalListResponseStatusUserError EvalListResponseStatus = "user_error"
-)
-
-type EvalListResponseStatusUpdate struct {
-	// Additional message for this update
-	Message string `json:"message"`
-	// The status at this update
-	Status string `json:"status"`
-	// When this update occurred
-	Timestamp time.Time `json:"timestamp" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Message     respjson.Field
 		Status      respjson.Field
-		Timestamp   respjson.Field
+		WorkflowID  respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalListResponseStatusUpdate) RawJSON() string { return r.JSON.raw }
-func (r *EvalListResponseStatusUpdate) UnmarshalJSON(data []byte) error {
+func (r EvalNewResponse) RawJSON() string { return r.JSON.raw }
+func (r *EvalNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// The type of evaluation
-type EvalListResponseType string
+// Initial status of the job
+type EvalNewResponseStatus string
 
 const (
-	EvalListResponseTypeClassify EvalListResponseType = "classify"
-	EvalListResponseTypeScore    EvalListResponseType = "score"
-	EvalListResponseTypeCompare  EvalListResponseType = "compare"
+	EvalNewResponseStatusPending EvalNewResponseStatus = "pending"
 )
 
-type EvalGetAllowedModelsResponse struct {
-	ModelList []string `json:"model_list"`
+type EvalUpdateResponse struct {
+	Status     string `json:"status"`
+	WorkflowID string `json:"workflow_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ModelList   respjson.Field
+		Status      respjson.Field
+		WorkflowID  respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetAllowedModelsResponse) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetAllowedModelsResponse) UnmarshalJSON(data []byte) error {
+func (r EvalUpdateResponse) RawJSON() string { return r.JSON.raw }
+func (r *EvalUpdateResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetStatusResponse struct {
+type EvalStatusResponse struct {
 	// The results of the evaluation job
-	Results EvalGetStatusResponseResultsUnion `json:"results"`
+	Results EvalStatusResponseResultsUnion `json:"results"`
 	// The status of the evaluation job
 	//
 	// Any of "completed", "error", "user_error", "running", "queued", "pending".
-	Status EvalGetStatusResponseStatus `json:"status"`
+	Status EvalStatusResponseStatus `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Results     respjson.Field
@@ -719,47 +458,40 @@ type EvalGetStatusResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetStatusResponse) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetStatusResponse) UnmarshalJSON(data []byte) error {
+func (r EvalStatusResponse) RawJSON() string { return r.JSON.raw }
+func (r *EvalStatusResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// EvalGetStatusResponseResultsUnion contains all possible properties and values
-// from [EvalGetStatusResponseResultsEvaluationClassifyResults],
-// [EvalGetStatusResponseResultsEvaluationScoreResults],
-// [EvalGetStatusResponseResultsEvaluationCompareResults].
+// EvalStatusResponseResultsUnion contains all possible properties and values from
+// [EvalStatusResponseResultsEvaluationClassifyResults],
+// [EvalStatusResponseResultsEvaluationScoreResults],
+// [EvalStatusResponseResultsEvaluationCompareResults].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
-type EvalGetStatusResponseResultsUnion struct {
+type EvalStatusResponseResultsUnion struct {
 	GenerationFailCount float64 `json:"generation_fail_count"`
-	// This field is from variant
-	// [EvalGetStatusResponseResultsEvaluationClassifyResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationClassifyResults].
 	InvalidLabelCount float64 `json:"invalid_label_count"`
 	JudgeFailCount    float64 `json:"judge_fail_count"`
-	// This field is from variant
-	// [EvalGetStatusResponseResultsEvaluationClassifyResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationClassifyResults].
 	LabelCounts string `json:"label_counts"`
-	// This field is from variant
-	// [EvalGetStatusResponseResultsEvaluationClassifyResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationClassifyResults].
 	PassPercentage float64 `json:"pass_percentage"`
 	ResultFileID   string  `json:"result_file_id"`
-	// This field is from variant [EvalGetStatusResponseResultsEvaluationScoreResults].
-	AggregatedScores EvalGetStatusResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
-	// This field is from variant [EvalGetStatusResponseResultsEvaluationScoreResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationScoreResults].
+	AggregatedScores EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
+	// This field is from variant [EvalStatusResponseResultsEvaluationScoreResults].
 	FailedSamples float64 `json:"failed_samples"`
-	// This field is from variant [EvalGetStatusResponseResultsEvaluationScoreResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationScoreResults].
 	InvalidScoreCount float64 `json:"invalid_score_count"`
-	// This field is from variant
-	// [EvalGetStatusResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationCompareResults].
 	AWins int64 `json:"A_wins"`
-	// This field is from variant
-	// [EvalGetStatusResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationCompareResults].
 	BWins int64 `json:"B_wins"`
-	// This field is from variant
-	// [EvalGetStatusResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationCompareResults].
 	NumSamples int64 `json:"num_samples"`
-	// This field is from variant
-	// [EvalGetStatusResponseResultsEvaluationCompareResults].
+	// This field is from variant [EvalStatusResponseResultsEvaluationCompareResults].
 	Ties int64 `json:"Ties"`
 	JSON struct {
 		GenerationFailCount respjson.Field
@@ -779,29 +511,29 @@ type EvalGetStatusResponseResultsUnion struct {
 	} `json:"-"`
 }
 
-func (u EvalGetStatusResponseResultsUnion) AsEvalGetStatusResponseResultsEvaluationClassifyResults() (v EvalGetStatusResponseResultsEvaluationClassifyResults) {
+func (u EvalStatusResponseResultsUnion) AsEvalStatusResponseResultsEvaluationClassifyResults() (v EvalStatusResponseResultsEvaluationClassifyResults) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u EvalGetStatusResponseResultsUnion) AsEvalGetStatusResponseResultsEvaluationScoreResults() (v EvalGetStatusResponseResultsEvaluationScoreResults) {
+func (u EvalStatusResponseResultsUnion) AsEvalStatusResponseResultsEvaluationScoreResults() (v EvalStatusResponseResultsEvaluationScoreResults) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u EvalGetStatusResponseResultsUnion) AsEvalGetStatusResponseResultsEvaluationCompareResults() (v EvalGetStatusResponseResultsEvaluationCompareResults) {
+func (u EvalStatusResponseResultsUnion) AsEvalStatusResponseResultsEvaluationCompareResults() (v EvalStatusResponseResultsEvaluationCompareResults) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u EvalGetStatusResponseResultsUnion) RawJSON() string { return u.JSON.raw }
+func (u EvalStatusResponseResultsUnion) RawJSON() string { return u.JSON.raw }
 
-func (r *EvalGetStatusResponseResultsUnion) UnmarshalJSON(data []byte) error {
+func (r *EvalStatusResponseResultsUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetStatusResponseResultsEvaluationClassifyResults struct {
+type EvalStatusResponseResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
 	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
 	// Number of invalid labels
@@ -828,13 +560,13 @@ type EvalGetStatusResponseResultsEvaluationClassifyResults struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetStatusResponseResultsEvaluationClassifyResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetStatusResponseResultsEvaluationClassifyResults) UnmarshalJSON(data []byte) error {
+func (r EvalStatusResponseResultsEvaluationClassifyResults) RawJSON() string { return r.JSON.raw }
+func (r *EvalStatusResponseResultsEvaluationClassifyResults) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetStatusResponseResultsEvaluationScoreResults struct {
-	AggregatedScores EvalGetStatusResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
+type EvalStatusResponseResultsEvaluationScoreResults struct {
+	AggregatedScores EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
 	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
@@ -859,12 +591,12 @@ type EvalGetStatusResponseResultsEvaluationScoreResults struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetStatusResponseResultsEvaluationScoreResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetStatusResponseResultsEvaluationScoreResults) UnmarshalJSON(data []byte) error {
+func (r EvalStatusResponseResultsEvaluationScoreResults) RawJSON() string { return r.JSON.raw }
+func (r *EvalStatusResponseResultsEvaluationScoreResults) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetStatusResponseResultsEvaluationScoreResultsAggregatedScores struct {
+type EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores struct {
 	MeanScore      float64 `json:"mean_score"`
 	PassPercentage float64 `json:"pass_percentage"`
 	StdScore       float64 `json:"std_score"`
@@ -879,14 +611,14 @@ type EvalGetStatusResponseResultsEvaluationScoreResultsAggregatedScores struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetStatusResponseResultsEvaluationScoreResultsAggregatedScores) RawJSON() string {
+func (r EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores) RawJSON() string {
 	return r.JSON.raw
 }
-func (r *EvalGetStatusResponseResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) error {
+func (r *EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetStatusResponseResultsEvaluationCompareResults struct {
+type EvalStatusResponseResultsEvaluationCompareResults struct {
 	// Number of times model A won
 	AWins int64 `json:"A_wins"`
 	// Number of times model B won
@@ -916,21 +648,644 @@ type EvalGetStatusResponseResultsEvaluationCompareResults struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EvalGetStatusResponseResultsEvaluationCompareResults) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetStatusResponseResultsEvaluationCompareResults) UnmarshalJSON(data []byte) error {
+func (r EvalStatusResponseResultsEvaluationCompareResults) RawJSON() string { return r.JSON.raw }
+func (r *EvalStatusResponseResultsEvaluationCompareResults) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // The status of the evaluation job
-type EvalGetStatusResponseStatus string
+type EvalStatusResponseStatus string
 
 const (
-	EvalGetStatusResponseStatusCompleted EvalGetStatusResponseStatus = "completed"
-	EvalGetStatusResponseStatusError     EvalGetStatusResponseStatus = "error"
-	EvalGetStatusResponseStatusUserError EvalGetStatusResponseStatus = "user_error"
-	EvalGetStatusResponseStatusRunning   EvalGetStatusResponseStatus = "running"
-	EvalGetStatusResponseStatusQueued    EvalGetStatusResponseStatus = "queued"
-	EvalGetStatusResponseStatusPending   EvalGetStatusResponseStatus = "pending"
+	EvalStatusResponseStatusCompleted EvalStatusResponseStatus = "completed"
+	EvalStatusResponseStatusError     EvalStatusResponseStatus = "error"
+	EvalStatusResponseStatusUserError EvalStatusResponseStatus = "user_error"
+	EvalStatusResponseStatusRunning   EvalStatusResponseStatus = "running"
+	EvalStatusResponseStatusQueued    EvalStatusResponseStatus = "queued"
+	EvalStatusResponseStatusPending   EvalStatusResponseStatus = "pending"
+)
+
+type EvalNewParams struct {
+	// Type-specific parameters for the evaluation
+	Parameters EvalNewParamsParametersUnion `json:"parameters,omitzero,required"`
+	// The type of evaluation to perform
+	//
+	// Any of "classify", "score", "compare".
+	Type EvalNewParamsType `json:"type,omitzero,required"`
+	paramObj
+}
+
+func (r EvalNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type EvalNewParamsParametersUnion struct {
+	OfEvalNewsParametersEvaluationClassifyParameters *EvalNewParamsParametersEvaluationClassifyParameters `json:",omitzero,inline"`
+	OfEvalNewsParametersEvaluationScoreParameters    *EvalNewParamsParametersEvaluationScoreParameters    `json:",omitzero,inline"`
+	OfEvalNewsParametersEvaluationCompareParameters  *EvalNewParamsParametersEvaluationCompareParameters  `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u EvalNewParamsParametersUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfEvalNewsParametersEvaluationClassifyParameters, u.OfEvalNewsParametersEvaluationScoreParameters, u.OfEvalNewsParametersEvaluationCompareParameters)
+}
+func (u *EvalNewParamsParametersUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *EvalNewParamsParametersUnion) asAny() any {
+	if !param.IsOmitted(u.OfEvalNewsParametersEvaluationClassifyParameters) {
+		return u.OfEvalNewsParametersEvaluationClassifyParameters
+	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationScoreParameters) {
+		return u.OfEvalNewsParametersEvaluationScoreParameters
+	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationCompareParameters) {
+		return u.OfEvalNewsParametersEvaluationCompareParameters
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetLabels() []string {
+	if vt := u.OfEvalNewsParametersEvaluationClassifyParameters; vt != nil {
+		return vt.Labels
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetPassLabels() []string {
+	if vt := u.OfEvalNewsParametersEvaluationClassifyParameters; vt != nil {
+		return vt.PassLabels
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetMaxScore() *float64 {
+	if vt := u.OfEvalNewsParametersEvaluationScoreParameters; vt != nil {
+		return &vt.MaxScore
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetMinScore() *float64 {
+	if vt := u.OfEvalNewsParametersEvaluationScoreParameters; vt != nil {
+		return &vt.MinScore
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetPassThreshold() *float64 {
+	if vt := u.OfEvalNewsParametersEvaluationScoreParameters; vt != nil {
+		return &vt.PassThreshold
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetModelA() *EvalNewParamsParametersEvaluationCompareParametersModelAUnion {
+	if vt := u.OfEvalNewsParametersEvaluationCompareParameters; vt != nil {
+		return &vt.ModelA
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetModelB() *EvalNewParamsParametersEvaluationCompareParametersModelBUnion {
+	if vt := u.OfEvalNewsParametersEvaluationCompareParameters; vt != nil {
+		return &vt.ModelB
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetInputDataFilePath() *string {
+	if vt := u.OfEvalNewsParametersEvaluationClassifyParameters; vt != nil {
+		return (*string)(&vt.InputDataFilePath)
+	} else if vt := u.OfEvalNewsParametersEvaluationScoreParameters; vt != nil {
+		return (*string)(&vt.InputDataFilePath)
+	} else if vt := u.OfEvalNewsParametersEvaluationCompareParameters; vt != nil {
+		return (*string)(&vt.InputDataFilePath)
+	}
+	return nil
+}
+
+// Returns a subunion which exports methods to access subproperties
+//
+// Or use AsAny() to get the underlying value
+func (u EvalNewParamsParametersUnion) GetJudge() (res evalNewParamsParametersUnionJudge) {
+	if vt := u.OfEvalNewsParametersEvaluationClassifyParameters; vt != nil {
+		res.any = &vt.Judge
+	} else if vt := u.OfEvalNewsParametersEvaluationScoreParameters; vt != nil {
+		res.any = &vt.Judge
+	} else if vt := u.OfEvalNewsParametersEvaluationCompareParameters; vt != nil {
+		res.any = &vt.Judge
+	}
+	return
+}
+
+// Can have the runtime types
+// [*EvalNewParamsParametersEvaluationClassifyParametersJudge],
+// [*EvalNewParamsParametersEvaluationScoreParametersJudge],
+// [*EvalNewParamsParametersEvaluationCompareParametersJudge]
+type evalNewParamsParametersUnionJudge struct{ any }
+
+// Use the following switch statement to get the type of the union:
+//
+//	switch u.AsAny().(type) {
+//	case *together.EvalNewParamsParametersEvaluationClassifyParametersJudge:
+//	case *together.EvalNewParamsParametersEvaluationScoreParametersJudge:
+//	case *together.EvalNewParamsParametersEvaluationCompareParametersJudge:
+//	default:
+//	    fmt.Errorf("not present")
+//	}
+func (u evalNewParamsParametersUnionJudge) AsAny() any { return u.any }
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetModelName() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return (*string)(&vt.ModelName)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return (*string)(&vt.ModelName)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return (*string)(&vt.ModelName)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetSystemTemplate() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return (*string)(&vt.SystemTemplate)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return (*string)(&vt.SystemTemplate)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return (*string)(&vt.SystemTemplate)
+	}
+	return nil
+}
+
+// Returns a subunion which exports methods to access subproperties
+//
+// Or use AsAny() to get the underlying value
+func (u EvalNewParamsParametersUnion) GetModelToEvaluate() (res evalNewParamsParametersUnionModelToEvaluate) {
+	if vt := u.OfEvalNewsParametersEvaluationClassifyParameters; vt != nil {
+		res.any = vt.ModelToEvaluate.asAny()
+	} else if vt := u.OfEvalNewsParametersEvaluationScoreParameters; vt != nil {
+		res.any = vt.ModelToEvaluate.asAny()
+	}
+	return
+}
+
+// Can have the runtime types [*string]
+type evalNewParamsParametersUnionModelToEvaluate struct{ any }
+
+// Use the following switch statement to get the type of the union:
+//
+//	switch u.AsAny().(type) {
+//	case *string:
+//	default:
+//	    fmt.Errorf("not present")
+//	}
+func (u evalNewParamsParametersUnionModelToEvaluate) AsAny() any { return u.any }
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetInputTemplate() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.InputTemplate)
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.InputTemplate)
+		}
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetMaxTokens() *int64 {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*int64)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.MaxTokens)
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*int64)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.MaxTokens)
+		}
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetModelName() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ModelName)
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ModelName)
+		}
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetSystemTemplate() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.SystemTemplate)
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.SystemTemplate)
+		}
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetTemperature() *float64 {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*float64)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.Temperature)
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*float64)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.Temperature)
+		}
+	}
+	return nil
+}
+
+// The properties InputDataFilePath, Judge, Labels, PassLabels are required.
+type EvalNewParamsParametersEvaluationClassifyParameters struct {
+	// Data file ID
+	InputDataFilePath string                                                   `json:"input_data_file_path,required"`
+	Judge             EvalNewParamsParametersEvaluationClassifyParametersJudge `json:"judge,omitzero,required"`
+	// List of possible classification labels
+	Labels []string `json:"labels,omitzero,required"`
+	// List of labels that are considered passing
+	PassLabels []string `json:"pass_labels,omitzero,required"`
+	// Field name in the input data
+	ModelToEvaluate EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion `json:"model_to_evaluate,omitzero"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationClassifyParameters) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationClassifyParameters
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationClassifyParameters) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties ModelName, SystemTemplate are required.
+type EvalNewParamsParametersEvaluationClassifyParametersJudge struct {
+	// Name of the judge model
+	ModelName string `json:"model_name,required"`
+	// System prompt template for the judge
+	SystemTemplate string `json:"system_template,required"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationClassifyParametersJudge) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationClassifyParametersJudge
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationClassifyParametersJudge) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion struct {
+	OfString                                                                              param.Opt[string]                                                                         `json:",omitzero,inline"`
+	OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfString, u.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest)
+}
+func (u *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion) asAny() any {
+	if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest) {
+		return u.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest
+	}
+	return nil
+}
+
+// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
+// are required.
+type EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest struct {
+	// Input prompt template
+	InputTemplate string `json:"input_template,required"`
+	// Maximum number of tokens to generate
+	MaxTokens int64 `json:"max_tokens,required"`
+	// Name of the model to evaluate
+	ModelName string `json:"model_name,required"`
+	// System prompt template
+	SystemTemplate string `json:"system_template,required"`
+	// Sampling temperature
+	Temperature float64 `json:"temperature,required"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties InputDataFilePath, Judge, MaxScore, MinScore, PassThreshold are
+// required.
+type EvalNewParamsParametersEvaluationScoreParameters struct {
+	// Data file ID
+	InputDataFilePath string                                                `json:"input_data_file_path,required"`
+	Judge             EvalNewParamsParametersEvaluationScoreParametersJudge `json:"judge,omitzero,required"`
+	// Maximum possible score
+	MaxScore float64 `json:"max_score,required"`
+	// Minimum possible score
+	MinScore float64 `json:"min_score,required"`
+	// Score threshold for passing
+	PassThreshold float64 `json:"pass_threshold,required"`
+	// Field name in the input data
+	ModelToEvaluate EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion `json:"model_to_evaluate,omitzero"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationScoreParameters) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationScoreParameters
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationScoreParameters) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties ModelName, SystemTemplate are required.
+type EvalNewParamsParametersEvaluationScoreParametersJudge struct {
+	// Name of the judge model
+	ModelName string `json:"model_name,required"`
+	// System prompt template for the judge
+	SystemTemplate string `json:"system_template,required"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationScoreParametersJudge) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationScoreParametersJudge
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationScoreParametersJudge) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion struct {
+	OfString                                                                           param.Opt[string]                                                                      `json:",omitzero,inline"`
+	OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfString, u.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest)
+}
+func (u *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion) asAny() any {
+	if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest) {
+		return u.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest
+	}
+	return nil
+}
+
+// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
+// are required.
+type EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest struct {
+	// Input prompt template
+	InputTemplate string `json:"input_template,required"`
+	// Maximum number of tokens to generate
+	MaxTokens int64 `json:"max_tokens,required"`
+	// Name of the model to evaluate
+	ModelName string `json:"model_name,required"`
+	// System prompt template
+	SystemTemplate string `json:"system_template,required"`
+	// Sampling temperature
+	Temperature float64 `json:"temperature,required"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties InputDataFilePath, Judge are required.
+type EvalNewParamsParametersEvaluationCompareParameters struct {
+	// Data file name
+	InputDataFilePath string                                                  `json:"input_data_file_path,required"`
+	Judge             EvalNewParamsParametersEvaluationCompareParametersJudge `json:"judge,omitzero,required"`
+	// Field name in the input data
+	ModelA EvalNewParamsParametersEvaluationCompareParametersModelAUnion `json:"model_a,omitzero"`
+	// Field name in the input data
+	ModelB EvalNewParamsParametersEvaluationCompareParametersModelBUnion `json:"model_b,omitzero"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationCompareParameters) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationCompareParameters
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationCompareParameters) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties ModelName, SystemTemplate are required.
+type EvalNewParamsParametersEvaluationCompareParametersJudge struct {
+	// Name of the judge model
+	ModelName string `json:"model_name,required"`
+	// System prompt template for the judge
+	SystemTemplate string `json:"system_template,required"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationCompareParametersJudge) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationCompareParametersJudge
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationCompareParametersJudge) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type EvalNewParamsParametersEvaluationCompareParametersModelAUnion struct {
+	OfString                                                                    param.Opt[string]                                                               `json:",omitzero,inline"`
+	OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest *EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u EvalNewParamsParametersEvaluationCompareParametersModelAUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfString, u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest)
+}
+func (u *EvalNewParamsParametersEvaluationCompareParametersModelAUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *EvalNewParamsParametersEvaluationCompareParametersModelAUnion) asAny() any {
+	if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest) {
+		return u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest
+	}
+	return nil
+}
+
+// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
+// are required.
+type EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest struct {
+	// Input prompt template
+	InputTemplate string `json:"input_template,required"`
+	// Maximum number of tokens to generate
+	MaxTokens int64 `json:"max_tokens,required"`
+	// Name of the model to evaluate
+	ModelName string `json:"model_name,required"`
+	// System prompt template
+	SystemTemplate string `json:"system_template,required"`
+	// Sampling temperature
+	Temperature float64 `json:"temperature,required"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type EvalNewParamsParametersEvaluationCompareParametersModelBUnion struct {
+	OfString                                                                    param.Opt[string]                                                               `json:",omitzero,inline"`
+	OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest *EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u EvalNewParamsParametersEvaluationCompareParametersModelBUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfString, u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest)
+}
+func (u *EvalNewParamsParametersEvaluationCompareParametersModelBUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *EvalNewParamsParametersEvaluationCompareParametersModelBUnion) asAny() any {
+	if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest) {
+		return u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest
+	}
+	return nil
+}
+
+// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
+// are required.
+type EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest struct {
+	// Input prompt template
+	InputTemplate string `json:"input_template,required"`
+	// Maximum number of tokens to generate
+	MaxTokens int64 `json:"max_tokens,required"`
+	// Name of the model to evaluate
+	ModelName string `json:"model_name,required"`
+	// System prompt template
+	SystemTemplate string `json:"system_template,required"`
+	// Sampling temperature
+	Temperature float64 `json:"temperature,required"`
+	paramObj
+}
+
+func (r EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest) MarshalJSON() (data []byte, err error) {
+	type shadow EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The type of evaluation to perform
+type EvalNewParamsType string
+
+const (
+	EvalNewParamsTypeClassify EvalNewParamsType = "classify"
+	EvalNewParamsTypeScore    EvalNewParamsType = "score"
+	EvalNewParamsTypeCompare  EvalNewParamsType = "compare"
+)
+
+type EvalUpdateParams struct {
+	// Error message when status is 'error' or 'user_error'
+	Error param.Opt[string] `json:"error,omitzero"`
+	// The results of the evaluation job. The concrete structure depends on the type of
+	// evaluation job
+	Results any `json:"results,omitzero"`
+	// Any of "completed", "error", "user_error", "running", "queued", "pending".
+	Status EvalUpdateParamsStatus `json:"status,omitzero"`
+	paramObj
+}
+
+func (r EvalUpdateParams) MarshalJSON() (data []byte, err error) {
+	type shadow EvalUpdateParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EvalUpdateParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EvalUpdateParamsStatus string
+
+const (
+	EvalUpdateParamsStatusCompleted EvalUpdateParamsStatus = "completed"
+	EvalUpdateParamsStatusError     EvalUpdateParamsStatus = "error"
+	EvalUpdateParamsStatusUserError EvalUpdateParamsStatus = "user_error"
+	EvalUpdateParamsStatusRunning   EvalUpdateParamsStatus = "running"
+	EvalUpdateParamsStatusQueued    EvalUpdateParamsStatus = "queued"
+	EvalUpdateParamsStatusPending   EvalUpdateParamsStatus = "pending"
 )
 
 type EvalListParams struct {
@@ -944,20 +1299,6 @@ type EvalListParams struct {
 
 // URLQuery serializes [EvalListParams]'s query parameters as `url.Values`.
 func (r EvalListParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type EvalGetAllowedModelsParams struct {
-	ModelSource param.Opt[string] `query:"model_source,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [EvalGetAllowedModelsParams]'s query parameters as
-// `url.Values`.
-func (r EvalGetAllowedModelsParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
