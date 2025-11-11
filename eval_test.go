@@ -13,6 +13,44 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
+func TestEvalNewWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Evals.New(context.TODO(), together.EvalNewParams{
+		Parameters: together.EvalNewParamsParametersUnion{
+			OfEvalNewsParametersEvaluationClassifyParameters: &together.EvalNewParamsParametersEvaluationClassifyParameters{
+				InputDataFilePath: "file-1234-aefd",
+				Judge: together.EvalNewParamsParametersEvaluationClassifyParametersJudge{
+					ModelName:      "meta-llama/Llama-3-70B-Instruct-Turbo",
+					SystemTemplate: "Imagine you are a helpful assistant",
+				},
+				Labels:     []string{"yes", "no"},
+				PassLabels: []string{"yes"},
+				ModelToEvaluate: together.EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion{
+					OfString: together.String("string"),
+				},
+			},
+		},
+		Type: together.EvalNewParamsTypeClassify,
+	})
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
 func TestEvalGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -26,6 +64,36 @@ func TestEvalGet(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Evals.Get(context.TODO(), "id")
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestEvalUpdateWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Evals.Update(
+		context.TODO(),
+		"id",
+		together.EvalUpdateParams{
+			Error:   together.String("error"),
+			Results: map[string]interface{}{},
+			Status:  together.EvalUpdateParamsStatusCompleted,
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -61,7 +129,7 @@ func TestEvalListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEvalGetAllowedModelsWithOptionalParams(t *testing.T) {
+func TestEvalStatus(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -73,31 +141,7 @@ func TestEvalGetAllowedModelsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Evals.GetAllowedModels(context.TODO(), together.EvalGetAllowedModelsParams{
-		ModelSource: together.String("model_source"),
-	})
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestEvalGetStatus(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Evals.GetStatus(context.TODO(), "id")
+	_, err := client.Evals.Status(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
