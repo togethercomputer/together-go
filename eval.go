@@ -39,7 +39,7 @@ func NewEvalService(opts ...option.RequestOption) (r EvalService) {
 	return
 }
 
-// Get details of a specific evaluation job
+// Get evaluation job details
 func (r *EvalService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *EvalGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
@@ -51,7 +51,7 @@ func (r *EvalService) Get(ctx context.Context, id string, opts ...option.Request
 	return
 }
 
-// Get a list of evaluation jobs with optional filtering
+// Get all evaluation jobs. Deprecated! Please use /evaluation
 func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...option.RequestOption) (res *[]EvalListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "evaluations"
@@ -59,15 +59,15 @@ func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...op
 	return
 }
 
-// Get the list of models that are allowed for evaluation
-func (r *EvalService) GetAllowedModels(ctx context.Context, opts ...option.RequestOption) (res *EvalGetAllowedModelsResponse, err error) {
+// Get model list
+func (r *EvalService) GetAllowedModels(ctx context.Context, query EvalGetAllowedModelsParams, opts ...option.RequestOption) (res *EvalGetAllowedModelsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "evaluations/model-list"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
 }
 
-// Get the status and results of a specific evaluation job
+// Get evaluation job status and results
 func (r *EvalService) GetStatus(ctx context.Context, id string, opts ...option.RequestOption) (res *EvalGetStatusResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
@@ -703,8 +703,11 @@ func (r *EvalGetAllowedModelsResponse) UnmarshalJSON(data []byte) error {
 }
 
 type EvalGetStatusResponse struct {
-	Results EvalGetStatusResponseResultsUnion `json:"results,nullable"`
-	// Any of "pending", "queued", "running", "completed", "error", "user_error".
+	// The results of the evaluation job
+	Results EvalGetStatusResponseResultsUnion `json:"results"`
+	// The status of the evaluation job
+	//
+	// Any of "completed", "error", "user_error", "running", "queued", "pending".
 	Status EvalGetStatusResponseStatus `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -724,8 +727,7 @@ func (r *EvalGetStatusResponse) UnmarshalJSON(data []byte) error {
 // EvalGetStatusResponseResultsUnion contains all possible properties and values
 // from [EvalGetStatusResponseResultsEvaluationClassifyResults],
 // [EvalGetStatusResponseResultsEvaluationScoreResults],
-// [EvalGetStatusResponseResultsEvaluationCompareResults],
-// [EvalGetStatusResponseResultsError].
+// [EvalGetStatusResponseResultsEvaluationCompareResults].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 type EvalGetStatusResponseResultsUnion struct {
@@ -759,9 +761,7 @@ type EvalGetStatusResponseResultsUnion struct {
 	// This field is from variant
 	// [EvalGetStatusResponseResultsEvaluationCompareResults].
 	Ties int64 `json:"Ties"`
-	// This field is from variant [EvalGetStatusResponseResultsError].
-	Error string `json:"error"`
-	JSON  struct {
+	JSON struct {
 		GenerationFailCount respjson.Field
 		InvalidLabelCount   respjson.Field
 		JudgeFailCount      respjson.Field
@@ -775,7 +775,6 @@ type EvalGetStatusResponseResultsUnion struct {
 		BWins               respjson.Field
 		NumSamples          respjson.Field
 		Ties                respjson.Field
-		Error               respjson.Field
 		raw                 string
 	} `json:"-"`
 }
@@ -791,11 +790,6 @@ func (u EvalGetStatusResponseResultsUnion) AsEvalGetStatusResponseResultsEvaluat
 }
 
 func (u EvalGetStatusResponseResultsUnion) AsEvalGetStatusResponseResultsEvaluationCompareResults() (v EvalGetStatusResponseResultsEvaluationCompareResults) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u EvalGetStatusResponseResultsUnion) AsEvalGetStatusResponseResultsError() (v EvalGetStatusResponseResultsError) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -927,40 +921,24 @@ func (r *EvalGetStatusResponseResultsEvaluationCompareResults) UnmarshalJSON(dat
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EvalGetStatusResponseResultsError struct {
-	Error string `json:"error"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Error       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalGetStatusResponseResultsError) RawJSON() string { return r.JSON.raw }
-func (r *EvalGetStatusResponseResultsError) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
+// The status of the evaluation job
 type EvalGetStatusResponseStatus string
 
 const (
-	EvalGetStatusResponseStatusPending   EvalGetStatusResponseStatus = "pending"
-	EvalGetStatusResponseStatusQueued    EvalGetStatusResponseStatus = "queued"
-	EvalGetStatusResponseStatusRunning   EvalGetStatusResponseStatus = "running"
 	EvalGetStatusResponseStatusCompleted EvalGetStatusResponseStatus = "completed"
 	EvalGetStatusResponseStatusError     EvalGetStatusResponseStatus = "error"
 	EvalGetStatusResponseStatusUserError EvalGetStatusResponseStatus = "user_error"
+	EvalGetStatusResponseStatusRunning   EvalGetStatusResponseStatus = "running"
+	EvalGetStatusResponseStatusQueued    EvalGetStatusResponseStatus = "queued"
+	EvalGetStatusResponseStatusPending   EvalGetStatusResponseStatus = "pending"
 )
 
 type EvalListParams struct {
-	// Maximum number of results to return (max 100)
-	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
-	// Filter by job status
-	//
-	// Any of "pending", "queued", "running", "completed", "error", "user_error".
-	Status EvalListParamsStatus `query:"status,omitzero" json:"-"`
+	Limit  param.Opt[int64]  `query:"limit,omitzero" json:"-"`
+	Status param.Opt[string] `query:"status,omitzero" json:"-"`
+	// Admin users can specify a user ID to filter jobs. Pass empty string to get all
+	// jobs.
+	UserID param.Opt[string] `query:"userId,omitzero" json:"-"`
 	paramObj
 }
 
@@ -972,14 +950,16 @@ func (r EvalListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-// Filter by job status
-type EvalListParamsStatus string
+type EvalGetAllowedModelsParams struct {
+	ModelSource param.Opt[string] `query:"model_source,omitzero" json:"-"`
+	paramObj
+}
 
-const (
-	EvalListParamsStatusPending   EvalListParamsStatus = "pending"
-	EvalListParamsStatusQueued    EvalListParamsStatus = "queued"
-	EvalListParamsStatusRunning   EvalListParamsStatus = "running"
-	EvalListParamsStatusCompleted EvalListParamsStatus = "completed"
-	EvalListParamsStatusError     EvalListParamsStatus = "error"
-	EvalListParamsStatusUserError EvalListParamsStatus = "user_error"
-)
+// URLQuery serializes [EvalGetAllowedModelsParams]'s query parameters as
+// `url.Values`.
+func (r EvalGetAllowedModelsParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}

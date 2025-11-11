@@ -48,8 +48,9 @@ func TestEvalListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Evals.List(context.TODO(), together.EvalListParams{
-		Limit:  together.Int(1),
-		Status: together.EvalListParamsStatusPending,
+		Limit:  together.Int(0),
+		Status: together.String("status"),
+		UserID: together.String("userId"),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -60,7 +61,7 @@ func TestEvalListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEvalGetAllowedModels(t *testing.T) {
+func TestEvalGetAllowedModelsWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -72,7 +73,9 @@ func TestEvalGetAllowedModels(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Evals.GetAllowedModels(context.TODO())
+	_, err := client.Evals.GetAllowedModels(context.TODO(), together.EvalGetAllowedModelsParams{
+		ModelSource: together.String("model_source"),
+	})
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
