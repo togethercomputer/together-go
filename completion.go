@@ -212,6 +212,7 @@ type CompletionChunkChoiceDelta struct {
 	Content string `json:"content,nullable"`
 	// Deprecated: deprecated
 	FunctionCall CompletionChunkChoiceDeltaFunctionCall `json:"function_call,nullable"`
+	Reasoning    string                                 `json:"reasoning,nullable"`
 	TokenID      int64                                  `json:"token_id"`
 	ToolCalls    []ToolChoice                           `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -219,6 +220,7 @@ type CompletionChunkChoiceDelta struct {
 		Role         respjson.Field
 		Content      respjson.Field
 		FunctionCall respjson.Field
+		Reasoning    respjson.Field
 		TokenID      respjson.Field
 		ToolCalls    respjson.Field
 		ExtraFields  map[string]respjson.Field
