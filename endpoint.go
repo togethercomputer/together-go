@@ -98,7 +98,7 @@ func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ..
 }
 
 // List all available availability zones.
-func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.RequestOption) (res *[]string, err error) {
+func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.RequestOption) (res *EndpointListAvzonesResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters/availability-zones"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
@@ -303,6 +303,23 @@ type EndpointListResponseObject string
 const (
 	EndpointListResponseObjectList EndpointListResponseObject = "list"
 )
+
+// List of unique availability zones
+type EndpointListAvzonesResponse struct {
+	Avzones []string `json:"avzones,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Avzones     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListAvzonesResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListAvzonesResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 type EndpointNewParams struct {
 	// Configuration for automatic scaling of the endpoint
