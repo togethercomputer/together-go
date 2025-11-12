@@ -14,6 +14,7 @@ import (
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
+	"github.com/togethercomputer/together-go/internal/paramutil"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
@@ -811,14 +812,27 @@ type evalNewParamsParametersUnionJudge struct{ any }
 func (u evalNewParamsParametersUnionJudge) AsAny() any { return u.any }
 
 // Returns a pointer to the underlying variant's property, if present.
-func (u evalNewParamsParametersUnionJudge) GetModelName() *string {
+func (u evalNewParamsParametersUnionJudge) GetModel() *string {
 	switch vt := u.any.(type) {
 	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
-		return (*string)(&vt.ModelName)
+		return (*string)(&vt.Model)
 	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
-		return (*string)(&vt.ModelName)
+		return (*string)(&vt.Model)
 	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
-		return (*string)(&vt.ModelName)
+		return (*string)(&vt.Model)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetModelSource() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return (*string)(&vt.ModelSource)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return (*string)(&vt.ModelSource)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return (*string)(&vt.ModelSource)
 	}
 	return nil
 }
@@ -832,6 +846,32 @@ func (u evalNewParamsParametersUnionJudge) GetSystemTemplate() *string {
 		return (*string)(&vt.SystemTemplate)
 	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
 		return (*string)(&vt.SystemTemplate)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetExternalAPIToken() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return paramutil.AddrIfPresent(vt.ExternalAPIToken)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return paramutil.AddrIfPresent(vt.ExternalAPIToken)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return paramutil.AddrIfPresent(vt.ExternalAPIToken)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetExternalBaseURL() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return paramutil.AddrIfPresent(vt.ExternalBaseURL)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return paramutil.AddrIfPresent(vt.ExternalBaseURL)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return paramutil.AddrIfPresent(vt.ExternalBaseURL)
 	}
 	return nil
 }
@@ -891,15 +931,30 @@ func (u evalNewParamsParametersUnionModelToEvaluate) GetMaxTokens() *int64 {
 }
 
 // Returns a pointer to the underlying variant's property, if present.
-func (u evalNewParamsParametersUnionModelToEvaluate) GetModelName() *string {
+func (u evalNewParamsParametersUnionModelToEvaluate) GetModel() *string {
 	switch vt := u.any.(type) {
 	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
 		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
-			return (*string)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ModelName)
+			return (*string)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.Model)
 		}
 	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
 		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
-			return (*string)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ModelName)
+			return (*string)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.Model)
+		}
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetModelSource() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ModelSource)
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return (*string)(&vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ModelSource)
 		}
 	}
 	return nil
@@ -935,6 +990,36 @@ func (u evalNewParamsParametersUnionModelToEvaluate) GetTemperature() *float64 {
 	return nil
 }
 
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetExternalAPIToken() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ExternalAPIToken))
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ExternalAPIToken))
+		}
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetExternalBaseURL() *string {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ExternalBaseURL))
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ExternalBaseURL))
+		}
+	}
+	return nil
+}
+
 // The properties InputDataFilePath, Judge, Labels, PassLabels are required.
 type EvalNewParamsParametersEvaluationClassifyParameters struct {
 	// Data file ID
@@ -957,12 +1042,20 @@ func (r *EvalNewParamsParametersEvaluationClassifyParameters) UnmarshalJSON(data
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// The properties ModelName, SystemTemplate are required.
+// The properties Model, ModelSource, SystemTemplate are required.
 type EvalNewParamsParametersEvaluationClassifyParametersJudge struct {
 	// Name of the judge model
-	ModelName string `json:"model_name,required"`
+	Model string `json:"model,required"`
+	// Source of the judge model.
+	//
+	// Any of "serverless", "dedicated", "external".
+	ModelSource string `json:"model_source,omitzero,required"`
 	// System prompt template for the judge
 	SystemTemplate string `json:"system_template,required"`
+	// Bearer/API token for external judge models.
+	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
+	// Base URL for external judge models. Must be OpenAI-compatible base URL.
+	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
 	paramObj
 }
 
@@ -972,6 +1065,12 @@ func (r EvalNewParamsParametersEvaluationClassifyParametersJudge) MarshalJSON() 
 }
 func (r *EvalNewParamsParametersEvaluationClassifyParametersJudge) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[EvalNewParamsParametersEvaluationClassifyParametersJudge](
+		"model_source", "serverless", "dedicated", "external",
+	)
 }
 
 // Only one field can be non-zero.
@@ -999,19 +1098,27 @@ func (u *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion
 	return nil
 }
 
-// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
-// are required.
+// The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
+// Temperature are required.
 type EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest struct {
 	// Input prompt template
 	InputTemplate string `json:"input_template,required"`
 	// Maximum number of tokens to generate
 	MaxTokens int64 `json:"max_tokens,required"`
 	// Name of the model to evaluate
-	ModelName string `json:"model_name,required"`
+	Model string `json:"model,required"`
+	// Source of the model.
+	//
+	// Any of "serverless", "dedicated", "external".
+	ModelSource string `json:"model_source,omitzero,required"`
 	// System prompt template
 	SystemTemplate string `json:"system_template,required"`
 	// Sampling temperature
 	Temperature float64 `json:"temperature,required"`
+	// Bearer/API token for external models.
+	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
+	// Base URL for external models. Must be OpenAI-compatible base URL
+	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
 	paramObj
 }
 
@@ -1021,6 +1128,12 @@ func (r EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvalua
 }
 func (r *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest](
+		"model_source", "serverless", "dedicated", "external",
+	)
 }
 
 // The properties InputDataFilePath, Judge, MaxScore, MinScore, PassThreshold are
@@ -1048,12 +1161,20 @@ func (r *EvalNewParamsParametersEvaluationScoreParameters) UnmarshalJSON(data []
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// The properties ModelName, SystemTemplate are required.
+// The properties Model, ModelSource, SystemTemplate are required.
 type EvalNewParamsParametersEvaluationScoreParametersJudge struct {
 	// Name of the judge model
-	ModelName string `json:"model_name,required"`
+	Model string `json:"model,required"`
+	// Source of the judge model.
+	//
+	// Any of "serverless", "dedicated", "external".
+	ModelSource string `json:"model_source,omitzero,required"`
 	// System prompt template for the judge
 	SystemTemplate string `json:"system_template,required"`
+	// Bearer/API token for external judge models.
+	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
+	// Base URL for external judge models. Must be OpenAI-compatible base URL.
+	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
 	paramObj
 }
 
@@ -1063,6 +1184,12 @@ func (r EvalNewParamsParametersEvaluationScoreParametersJudge) MarshalJSON() (da
 }
 func (r *EvalNewParamsParametersEvaluationScoreParametersJudge) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[EvalNewParamsParametersEvaluationScoreParametersJudge](
+		"model_source", "serverless", "dedicated", "external",
+	)
 }
 
 // Only one field can be non-zero.
@@ -1090,19 +1217,27 @@ func (u *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion) a
 	return nil
 }
 
-// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
-// are required.
+// The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
+// Temperature are required.
 type EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest struct {
 	// Input prompt template
 	InputTemplate string `json:"input_template,required"`
 	// Maximum number of tokens to generate
 	MaxTokens int64 `json:"max_tokens,required"`
 	// Name of the model to evaluate
-	ModelName string `json:"model_name,required"`
+	Model string `json:"model,required"`
+	// Source of the model.
+	//
+	// Any of "serverless", "dedicated", "external".
+	ModelSource string `json:"model_source,omitzero,required"`
 	// System prompt template
 	SystemTemplate string `json:"system_template,required"`
 	// Sampling temperature
 	Temperature float64 `json:"temperature,required"`
+	// Bearer/API token for external models.
+	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
+	// Base URL for external models. Must be OpenAI-compatible base URL
+	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
 	paramObj
 }
 
@@ -1112,6 +1247,12 @@ func (r EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluatio
 }
 func (r *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest](
+		"model_source", "serverless", "dedicated", "external",
+	)
 }
 
 // The properties InputDataFilePath, Judge are required.
@@ -1134,12 +1275,20 @@ func (r *EvalNewParamsParametersEvaluationCompareParameters) UnmarshalJSON(data 
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// The properties ModelName, SystemTemplate are required.
+// The properties Model, ModelSource, SystemTemplate are required.
 type EvalNewParamsParametersEvaluationCompareParametersJudge struct {
 	// Name of the judge model
-	ModelName string `json:"model_name,required"`
+	Model string `json:"model,required"`
+	// Source of the judge model.
+	//
+	// Any of "serverless", "dedicated", "external".
+	ModelSource string `json:"model_source,omitzero,required"`
 	// System prompt template for the judge
 	SystemTemplate string `json:"system_template,required"`
+	// Bearer/API token for external judge models.
+	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
+	// Base URL for external judge models. Must be OpenAI-compatible base URL.
+	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
 	paramObj
 }
 
@@ -1149,6 +1298,12 @@ func (r EvalNewParamsParametersEvaluationCompareParametersJudge) MarshalJSON() (
 }
 func (r *EvalNewParamsParametersEvaluationCompareParametersJudge) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[EvalNewParamsParametersEvaluationCompareParametersJudge](
+		"model_source", "serverless", "dedicated", "external",
+	)
 }
 
 // Only one field can be non-zero.
@@ -1176,19 +1331,27 @@ func (u *EvalNewParamsParametersEvaluationCompareParametersModelAUnion) asAny() 
 	return nil
 }
 
-// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
-// are required.
+// The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
+// Temperature are required.
 type EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest struct {
 	// Input prompt template
 	InputTemplate string `json:"input_template,required"`
 	// Maximum number of tokens to generate
 	MaxTokens int64 `json:"max_tokens,required"`
 	// Name of the model to evaluate
-	ModelName string `json:"model_name,required"`
+	Model string `json:"model,required"`
+	// Source of the model.
+	//
+	// Any of "serverless", "dedicated", "external".
+	ModelSource string `json:"model_source,omitzero,required"`
 	// System prompt template
 	SystemTemplate string `json:"system_template,required"`
 	// Sampling temperature
 	Temperature float64 `json:"temperature,required"`
+	// Bearer/API token for external models.
+	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
+	// Base URL for external models. Must be OpenAI-compatible base URL
+	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
 	paramObj
 }
 
@@ -1198,6 +1361,12 @@ func (r EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelR
 }
 func (r *EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest](
+		"model_source", "serverless", "dedicated", "external",
+	)
 }
 
 // Only one field can be non-zero.
@@ -1225,19 +1394,27 @@ func (u *EvalNewParamsParametersEvaluationCompareParametersModelBUnion) asAny() 
 	return nil
 }
 
-// The properties InputTemplate, MaxTokens, ModelName, SystemTemplate, Temperature
-// are required.
+// The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
+// Temperature are required.
 type EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest struct {
 	// Input prompt template
 	InputTemplate string `json:"input_template,required"`
 	// Maximum number of tokens to generate
 	MaxTokens int64 `json:"max_tokens,required"`
 	// Name of the model to evaluate
-	ModelName string `json:"model_name,required"`
+	Model string `json:"model,required"`
+	// Source of the model.
+	//
+	// Any of "serverless", "dedicated", "external".
+	ModelSource string `json:"model_source,omitzero,required"`
 	// System prompt template
 	SystemTemplate string `json:"system_template,required"`
 	// Sampling temperature
 	Temperature float64 `json:"temperature,required"`
+	// Bearer/API token for external models.
+	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
+	// Base URL for external models. Must be OpenAI-compatible base URL
+	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
 	paramObj
 }
 
@@ -1247,6 +1424,12 @@ func (r EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelR
 }
 func (r *EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest](
+		"model_source", "serverless", "dedicated", "external",
+	)
 }
 
 // The type of evaluation to perform

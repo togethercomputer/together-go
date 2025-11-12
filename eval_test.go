@@ -30,8 +30,11 @@ func TestEvalNewWithOptionalParams(t *testing.T) {
 			OfEvalNewsParametersEvaluationClassifyParameters: &together.EvalNewParamsParametersEvaluationClassifyParameters{
 				InputDataFilePath: "file-1234-aefd",
 				Judge: together.EvalNewParamsParametersEvaluationClassifyParametersJudge{
-					ModelName:      "meta-llama/Llama-3-70B-Instruct-Turbo",
-					SystemTemplate: "Imagine you are a helpful assistant",
+					Model:            "meta-llama/Llama-3-70B-Instruct-Turbo",
+					ModelSource:      "serverless",
+					SystemTemplate:   "Imagine you are a helpful assistant",
+					ExternalAPIToken: together.String("external_api_token"),
+					ExternalBaseURL:  together.String("external_base_url"),
 				},
 				Labels:     []string{"yes", "no"},
 				PassLabels: []string{"yes"},
