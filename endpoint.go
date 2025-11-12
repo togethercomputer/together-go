@@ -97,6 +97,14 @@ func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ..
 	return
 }
 
+// List all available availability zones.
+func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.RequestOption) (res *[]string, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "clusters/availability-zones"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
 // Configuration for automatic scaling of replicas based on demand.
 type Autoscaling struct {
 	// The maximum number of replicas to scale up to under load
