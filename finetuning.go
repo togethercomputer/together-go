@@ -101,6 +101,18 @@ func (r *FineTuningService) Download(ctx context.Context, query FineTuningDownlo
 	return
 }
 
+// List the checkpoints for a single fine-tuning job.
+func (r *FineTuningService) ListCheckpoints(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuningListCheckpointsResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return
+	}
+	path := fmt.Sprintf("fine-tunes/%s/checkpoints", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
 // List the events for a single fine-tuning job.
 func (r *FineTuningService) ListEvents(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuningListEventsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
@@ -109,18 +121,6 @@ func (r *FineTuningService) ListEvents(ctx context.Context, id string, opts ...o
 		return
 	}
 	path := fmt.Sprintf("fine-tunes/%s/events", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
-}
-
-// List the checkpoints for a single fine-tuning job.
-func (r *FineTuningService) GetCheckpoints(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuningGetCheckpointsResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return
-	}
-	path := fmt.Sprintf("fine-tunes/%s/checkpoints", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
@@ -1676,8 +1676,8 @@ const (
 	FineTuningDownloadResponseObjectLocal FineTuningDownloadResponseObject = "local"
 )
 
-type FineTuningListEventsResponse struct {
-	Data []FineTuneEvent `json:"data,required"`
+type FineTuningListCheckpointsResponse struct {
+	Data []FineTuningListCheckpointsResponseData `json:"data,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -1687,28 +1687,12 @@ type FineTuningListEventsResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FineTuningListEventsResponse) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningListEventsResponse) UnmarshalJSON(data []byte) error {
+func (r FineTuningListCheckpointsResponse) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningListCheckpointsResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FineTuningGetCheckpointsResponse struct {
-	Data []FineTuningGetCheckpointsResponseData `json:"data,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FineTuningGetCheckpointsResponse) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningGetCheckpointsResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type FineTuningGetCheckpointsResponseData struct {
+type FineTuningListCheckpointsResponseData struct {
 	CheckpointType string `json:"checkpoint_type,required"`
 	CreatedAt      string `json:"created_at,required"`
 	Path           string `json:"path,required"`
@@ -1725,8 +1709,24 @@ type FineTuningGetCheckpointsResponseData struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FineTuningGetCheckpointsResponseData) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningGetCheckpointsResponseData) UnmarshalJSON(data []byte) error {
+func (r FineTuningListCheckpointsResponseData) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningListCheckpointsResponseData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningListEventsResponse struct {
+	Data []FineTuneEvent `json:"data,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListEventsResponse) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningListEventsResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
