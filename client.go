@@ -21,7 +21,7 @@ type Client struct {
 	Completions     CompletionService
 	Embeddings      EmbeddingService
 	Files           FileService
-	FineTune        FineTuneService
+	FineTuning      FineTuningService
 	CodeInterpreter CodeInterpreterService
 	Images          ImageService
 	Videos          VideoService
@@ -60,7 +60,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Completions = NewCompletionService(opts...)
 	r.Embeddings = NewEmbeddingService(opts...)
 	r.Files = NewFileService(opts...)
-	r.FineTune = NewFineTuneService(opts...)
+	r.FineTuning = NewFineTuningService(opts...)
 	r.CodeInterpreter = NewCodeInterpreterService(opts...)
 	r.Images = NewImageService(opts...)
 	r.Videos = NewVideoService(opts...)
