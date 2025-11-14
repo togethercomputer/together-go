@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestFineTuneNewWithOptionalParams(t *testing.T) {
+func TestFineTuningNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,10 +25,10 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.New(context.TODO(), together.FineTuneNewParams{
+	_, err := client.FineTuning.New(context.TODO(), together.FineTuningNewParams{
 		Model:        "model",
 		TrainingFile: "training_file",
-		BatchSize: together.FineTuneNewParamsBatchSizeUnion{
+		BatchSize: together.FineTuningNewParamsBatchSizeUnion{
 			OfInt: together.Int(0),
 		},
 		FromCheckpoint:   together.String("from_checkpoint"),
@@ -50,10 +50,10 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 		NEpochs:      together.Int(0),
 		NEvals:       together.Int(0),
 		Suffix:       together.String("suffix"),
-		TrainOnInputs: together.FineTuneNewParamsTrainOnInputsUnion{
+		TrainOnInputs: together.FineTuningNewParamsTrainOnInputsUnion{
 			OfBool: together.Bool(true),
 		},
-		TrainingMethod: together.FineTuneNewParamsTrainingMethodUnion{
+		TrainingMethod: together.FineTuningNewParamsTrainingMethodUnion{
 			OfTrainingMethodSft: &together.TrainingMethodSftParam{
 				Method: together.TrainingMethodSftMethodSft,
 				TrainOnInputs: together.TrainingMethodSftTrainOnInputsUnionParam{
@@ -61,7 +61,7 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 				},
 			},
 		},
-		TrainingType: together.FineTuneNewParamsTrainingTypeUnion{
+		TrainingType: together.FineTuningNewParamsTrainingTypeUnion{
 			OfFullTrainingType: &together.FullTrainingTypeParam{
 				Type: together.FullTrainingTypeTypeFull,
 			},
@@ -83,7 +83,7 @@ func TestFineTuneNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestFineTuneGet(t *testing.T) {
+func TestFineTuningGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -95,7 +95,7 @@ func TestFineTuneGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.Get(context.TODO(), "id")
+	_, err := client.FineTuning.Get(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -105,7 +105,7 @@ func TestFineTuneGet(t *testing.T) {
 	}
 }
 
-func TestFineTuneList(t *testing.T) {
+func TestFineTuningList(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -117,7 +117,7 @@ func TestFineTuneList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.List(context.TODO())
+	_, err := client.FineTuning.List(context.TODO())
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -127,7 +127,7 @@ func TestFineTuneList(t *testing.T) {
 	}
 }
 
-func TestFineTuneDelete(t *testing.T) {
+func TestFineTuningDelete(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -139,10 +139,10 @@ func TestFineTuneDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.Delete(
+	_, err := client.FineTuning.Delete(
 		context.TODO(),
 		"id",
-		together.FineTuneDeleteParams{
+		together.FineTuningDeleteParams{
 			Force: true,
 		},
 	)
@@ -155,7 +155,7 @@ func TestFineTuneDelete(t *testing.T) {
 	}
 }
 
-func TestFineTuneCancel(t *testing.T) {
+func TestFineTuningCancel(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -167,7 +167,7 @@ func TestFineTuneCancel(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.Cancel(context.TODO(), "id")
+	_, err := client.FineTuning.Cancel(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -177,7 +177,7 @@ func TestFineTuneCancel(t *testing.T) {
 	}
 }
 
-func TestFineTuneDownloadWithOptionalParams(t *testing.T) {
+func TestFineTuningDownloadWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -189,9 +189,9 @@ func TestFineTuneDownloadWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.Download(context.TODO(), together.FineTuneDownloadParams{
+	_, err := client.FineTuning.Download(context.TODO(), together.FineTuningDownloadParams{
 		FtID:           "ft_id",
-		Checkpoint:     together.FineTuneDownloadParamsCheckpointMerged,
+		Checkpoint:     together.FineTuningDownloadParamsCheckpointMerged,
 		CheckpointStep: together.Int(0),
 		Output:         together.String("output"),
 	})
@@ -204,7 +204,7 @@ func TestFineTuneDownloadWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestFineTuneListEvents(t *testing.T) {
+func TestFineTuningListEvents(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -216,7 +216,7 @@ func TestFineTuneListEvents(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.ListEvents(context.TODO(), "id")
+	_, err := client.FineTuning.ListEvents(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -226,7 +226,7 @@ func TestFineTuneListEvents(t *testing.T) {
 	}
 }
 
-func TestFineTuneGetCheckpoints(t *testing.T) {
+func TestFineTuningGetCheckpoints(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -238,7 +238,7 @@ func TestFineTuneGetCheckpoints(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTune.GetCheckpoints(context.TODO(), "id")
+	_, err := client.FineTuning.GetCheckpoints(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
