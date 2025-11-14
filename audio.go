@@ -23,6 +23,7 @@ import (
 // the [NewAudioService] method instead.
 type AudioService struct {
 	Options        []option.RequestOption
+	Voices         AudioVoiceService
 	Transcriptions AudioTranscriptionService
 	Translations   AudioTranslationService
 }
@@ -33,6 +34,7 @@ type AudioService struct {
 func NewAudioService(opts ...option.RequestOption) (r AudioService) {
 	r = AudioService{}
 	r.Options = opts
+	r.Voices = NewAudioVoiceService(opts...)
 	r.Transcriptions = NewAudioTranscriptionService(opts...)
 	r.Translations = NewAudioTranslationService(opts...)
 	return
