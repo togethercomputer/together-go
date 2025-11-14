@@ -64,6 +64,18 @@ func (r *BatchService) List(ctx context.Context, opts ...option.RequestOption) (
 	return
 }
 
+// Cancel a batch job by ID
+func (r *BatchService) Cancel(ctx context.Context, id string, opts ...option.RequestOption) (res *BatchCancelResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return
+	}
+	path := fmt.Sprintf("batches/%s/cancel", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
+	return
+}
+
 type BatchNewResponse struct {
 	Job     BatchNewResponseJob `json:"job"`
 	Warning string              `json:"warning"`
@@ -251,6 +263,67 @@ const (
 	BatchListResponseStatusFailed     BatchListResponseStatus = "FAILED"
 	BatchListResponseStatusExpired    BatchListResponseStatus = "EXPIRED"
 	BatchListResponseStatusCancelled  BatchListResponseStatus = "CANCELLED"
+)
+
+type BatchCancelResponse struct {
+	ID          string    `json:"id" format:"uuid"`
+	CompletedAt time.Time `json:"completed_at" format:"date-time"`
+	CreatedAt   time.Time `json:"created_at" format:"date-time"`
+	Endpoint    string    `json:"endpoint"`
+	Error       string    `json:"error"`
+	ErrorFileID string    `json:"error_file_id"`
+	// Size of input file in bytes
+	FileSizeBytes int64     `json:"file_size_bytes"`
+	InputFileID   string    `json:"input_file_id"`
+	JobDeadline   time.Time `json:"job_deadline" format:"date-time"`
+	// Model used for processing requests
+	ModelID      string `json:"model_id"`
+	OutputFileID string `json:"output_file_id"`
+	// Completion progress (0.0 to 100)
+	Progress float64 `json:"progress"`
+	// Current status of the batch job
+	//
+	// Any of "VALIDATING", "IN_PROGRESS", "COMPLETED", "FAILED", "EXPIRED",
+	// "CANCELLED".
+	Status BatchCancelResponseStatus `json:"status"`
+	UserID string                    `json:"user_id"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID            respjson.Field
+		CompletedAt   respjson.Field
+		CreatedAt     respjson.Field
+		Endpoint      respjson.Field
+		Error         respjson.Field
+		ErrorFileID   respjson.Field
+		FileSizeBytes respjson.Field
+		InputFileID   respjson.Field
+		JobDeadline   respjson.Field
+		ModelID       respjson.Field
+		OutputFileID  respjson.Field
+		Progress      respjson.Field
+		Status        respjson.Field
+		UserID        respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BatchCancelResponse) RawJSON() string { return r.JSON.raw }
+func (r *BatchCancelResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Current status of the batch job
+type BatchCancelResponseStatus string
+
+const (
+	BatchCancelResponseStatusValidating BatchCancelResponseStatus = "VALIDATING"
+	BatchCancelResponseStatusInProgress BatchCancelResponseStatus = "IN_PROGRESS"
+	BatchCancelResponseStatusCompleted  BatchCancelResponseStatus = "COMPLETED"
+	BatchCancelResponseStatusFailed     BatchCancelResponseStatus = "FAILED"
+	BatchCancelResponseStatusExpired    BatchCancelResponseStatus = "EXPIRED"
+	BatchCancelResponseStatusCancelled  BatchCancelResponseStatus = "CANCELLED"
 )
 
 type BatchNewParams struct {
