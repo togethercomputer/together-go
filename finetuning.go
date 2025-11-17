@@ -93,9 +93,10 @@ func (r *FineTuningService) Cancel(ctx context.Context, id string, opts ...optio
 	return
 }
 
-// Download a compressed fine-tuned model or checkpoint to local disk.
-func (r *FineTuningService) Download(ctx context.Context, query FineTuningDownloadParams, opts ...option.RequestOption) (res *FineTuningDownloadResponse, err error) {
+// Download a compressed fine-tuned model or checkpoint.
+func (r *FineTuningService) Download(ctx context.Context, query FineTuningDownloadParams, opts ...option.RequestOption) (res *http.Response, err error) {
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
 	path := "finetune/download"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
@@ -1645,37 +1646,6 @@ func (r *FineTuningCancelResponseTrainingTypeUnion) UnmarshalJSON(data []byte) e
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FineTuningDownloadResponse struct {
-	ID             string `json:"id"`
-	CheckpointStep int64  `json:"checkpoint_step"`
-	Filename       string `json:"filename"`
-	// Any of "local".
-	Object FineTuningDownloadResponseObject `json:"object,nullable"`
-	Size   int64                            `json:"size"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID             respjson.Field
-		CheckpointStep respjson.Field
-		Filename       respjson.Field
-		Object         respjson.Field
-		Size           respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FineTuningDownloadResponse) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningDownloadResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type FineTuningDownloadResponseObject string
-
-const (
-	FineTuningDownloadResponseObjectLocal FineTuningDownloadResponseObject = "local"
-)
-
 type FineTuningListCheckpointsResponse struct {
 	Data []FineTuningListCheckpointsResponseData `json:"data,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -2042,13 +2012,10 @@ type FineTuningDownloadParams struct {
 	// Specifies step number for checkpoint to download. Ignores `checkpoint` value if
 	// set.
 	CheckpointStep param.Opt[int64] `query:"checkpoint_step,omitzero" json:"-"`
-	// Specifies output file name for downloaded model. Defaults to
-	// `$PWD/{model_name}.{extension}`.
-	Output param.Opt[string] `query:"output,omitzero" json:"-"`
 	// Specifies checkpoint type to download - `merged` vs `adapter`. This field is
 	// required if the checkpoint_step is not set.
 	//
-	// Any of "merged", "adapter".
+	// Any of "merged", "adapter", "model_output_path".
 	Checkpoint FineTuningDownloadParamsCheckpoint `query:"checkpoint,omitzero" json:"-"`
 	paramObj
 }
@@ -2067,6 +2034,7 @@ func (r FineTuningDownloadParams) URLQuery() (v url.Values, err error) {
 type FineTuningDownloadParamsCheckpoint string
 
 const (
-	FineTuningDownloadParamsCheckpointMerged  FineTuningDownloadParamsCheckpoint = "merged"
-	FineTuningDownloadParamsCheckpointAdapter FineTuningDownloadParamsCheckpoint = "adapter"
+	FineTuningDownloadParamsCheckpointMerged          FineTuningDownloadParamsCheckpoint = "merged"
+	FineTuningDownloadParamsCheckpointAdapter         FineTuningDownloadParamsCheckpoint = "adapter"
+	FineTuningDownloadParamsCheckpointModelOutputPath FineTuningDownloadParamsCheckpoint = "model_output_path"
 )
