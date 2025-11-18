@@ -87,7 +87,7 @@ func (r *EndpointService) List(ctx context.Context, query EndpointListParams, op
 // Permanently deletes an endpoint. This action cannot be undone.
 func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ...option.RequestOption) (err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithHeader("Accept", "")}, opts...)
+	opts = append([]option.RequestOption{option.WithHeader("Accept", "*/*")}, opts...)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
 		return
