@@ -181,7 +181,7 @@ func TestFineTuningCancel(t *testing.T) {
 	}
 }
 
-func TestFineTuningDownloadWithOptionalParams(t *testing.T) {
+func TestFineTuningContentWithOptionalParams(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write([]byte("abc"))
@@ -192,9 +192,9 @@ func TestFineTuningDownloadWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	resp, err := client.FineTuning.Download(context.TODO(), together.FineTuningDownloadParams{
+	resp, err := client.FineTuning.Content(context.TODO(), together.FineTuningContentParams{
 		FtID:           "ft_id",
-		Checkpoint:     together.FineTuningDownloadParamsCheckpointMerged,
+		Checkpoint:     together.FineTuningContentParamsCheckpointMerged,
 		CheckpointStep: together.Int(0),
 	})
 	if err != nil {

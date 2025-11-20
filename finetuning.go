@@ -94,7 +94,7 @@ func (r *FineTuningService) Cancel(ctx context.Context, id string, opts ...optio
 }
 
 // Download a compressed fine-tuned model or checkpoint.
-func (r *FineTuningService) Download(ctx context.Context, query FineTuningDownloadParams, opts ...option.RequestOption) (res *http.Response, err error) {
+func (r *FineTuningService) Content(ctx context.Context, query FineTuningContentParams, opts ...option.RequestOption) (res *http.Response, err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
 	path := "finetune/download"
@@ -2006,7 +2006,7 @@ func (r FineTuningDeleteParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-type FineTuningDownloadParams struct {
+type FineTuningContentParams struct {
 	// Fine-tune ID to download. A string that starts with `ft-`.
 	FtID string `query:"ft_id,required" json:"-"`
 	// Specifies step number for checkpoint to download. Ignores `checkpoint` value if
@@ -2016,13 +2016,13 @@ type FineTuningDownloadParams struct {
 	// required if the checkpoint_step is not set.
 	//
 	// Any of "merged", "adapter", "model_output_path".
-	Checkpoint FineTuningDownloadParamsCheckpoint `query:"checkpoint,omitzero" json:"-"`
+	Checkpoint FineTuningContentParamsCheckpoint `query:"checkpoint,omitzero" json:"-"`
 	paramObj
 }
 
-// URLQuery serializes [FineTuningDownloadParams]'s query parameters as
+// URLQuery serializes [FineTuningContentParams]'s query parameters as
 // `url.Values`.
-func (r FineTuningDownloadParams) URLQuery() (v url.Values, err error) {
+func (r FineTuningContentParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -2031,10 +2031,10 @@ func (r FineTuningDownloadParams) URLQuery() (v url.Values, err error) {
 
 // Specifies checkpoint type to download - `merged` vs `adapter`. This field is
 // required if the checkpoint_step is not set.
-type FineTuningDownloadParamsCheckpoint string
+type FineTuningContentParamsCheckpoint string
 
 const (
-	FineTuningDownloadParamsCheckpointMerged          FineTuningDownloadParamsCheckpoint = "merged"
-	FineTuningDownloadParamsCheckpointAdapter         FineTuningDownloadParamsCheckpoint = "adapter"
-	FineTuningDownloadParamsCheckpointModelOutputPath FineTuningDownloadParamsCheckpoint = "model_output_path"
+	FineTuningContentParamsCheckpointMerged          FineTuningContentParamsCheckpoint = "merged"
+	FineTuningContentParamsCheckpointAdapter         FineTuningContentParamsCheckpoint = "adapter"
+	FineTuningContentParamsCheckpointModelOutputPath FineTuningContentParamsCheckpoint = "model_output_path"
 )
