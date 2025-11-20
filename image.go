@@ -35,7 +35,7 @@ func NewImageService(opts ...option.RequestOption) (r ImageService) {
 }
 
 // Use an image model to generate an image for a given prompt.
-func (r *ImageService) New(ctx context.Context, body ImageNewParams, opts ...option.RequestOption) (res *ImageFile, err error) {
+func (r *ImageService) Generate(ctx context.Context, body ImageGenerateParams, opts ...option.RequestOption) (res *ImageFile, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "images/generations"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -192,11 +192,11 @@ const (
 	ImageFileObjectList ImageFileObject = "list"
 )
 
-type ImageNewParams struct {
+type ImageGenerateParams struct {
 	// The model to use for image generation.
 	//
 	// [See all of Together AI's image models](https://docs.together.ai/docs/serverless-models#image-models)
-	Model ImageNewParamsModel `json:"model,omitzero,required"`
+	Model ImageGenerateParamsModel `json:"model,omitzero,required"`
 	// A description of the desired images. Maximum length varies by model.
 	Prompt string `json:"prompt,required"`
 	// If true, disables the safety checker for image generation.
@@ -221,40 +221,40 @@ type ImageNewParams struct {
 	Width param.Opt[int64] `json:"width,omitzero"`
 	// An array of objects that define LoRAs (Low-Rank Adaptations) to influence the
 	// generated image.
-	ImageLoras []ImageNewParamsImageLora `json:"image_loras,omitzero"`
+	ImageLoras []ImageGenerateParamsImageLora `json:"image_loras,omitzero"`
 	// The format of the image response. Can be either be `jpeg` or `png`. Defaults to
 	// `jpeg`.
 	//
 	// Any of "jpeg", "png".
-	OutputFormat ImageNewParamsOutputFormat `json:"output_format,omitzero"`
+	OutputFormat ImageGenerateParamsOutputFormat `json:"output_format,omitzero"`
 	// Format of the image response. Can be either a base64 string or a URL.
 	//
 	// Any of "base64", "url".
-	ResponseFormat ImageNewParamsResponseFormat `json:"response_format,omitzero"`
+	ResponseFormat ImageGenerateParamsResponseFormat `json:"response_format,omitzero"`
 	paramObj
 }
 
-func (r ImageNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow ImageNewParams
+func (r ImageGenerateParams) MarshalJSON() (data []byte, err error) {
+	type shadow ImageGenerateParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ImageNewParams) UnmarshalJSON(data []byte) error {
+func (r *ImageGenerateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // The model to use for image generation.
 //
 // [See all of Together AI's image models](https://docs.together.ai/docs/serverless-models#image-models)
-type ImageNewParamsModel string
+type ImageGenerateParamsModel string
 
 const (
-	ImageNewParamsModelBlackForestLabsFlux1SchnellFree ImageNewParamsModel = "black-forest-labs/FLUX.1-schnell-Free"
-	ImageNewParamsModelBlackForestLabsFlux1Schnell     ImageNewParamsModel = "black-forest-labs/FLUX.1-schnell"
-	ImageNewParamsModelBlackForestLabsFlux1_1Pro       ImageNewParamsModel = "black-forest-labs/FLUX.1.1-pro"
+	ImageGenerateParamsModelBlackForestLabsFlux1SchnellFree ImageGenerateParamsModel = "black-forest-labs/FLUX.1-schnell-Free"
+	ImageGenerateParamsModelBlackForestLabsFlux1Schnell     ImageGenerateParamsModel = "black-forest-labs/FLUX.1-schnell"
+	ImageGenerateParamsModelBlackForestLabsFlux1_1Pro       ImageGenerateParamsModel = "black-forest-labs/FLUX.1.1-pro"
 )
 
 // The properties Path, Scale are required.
-type ImageNewParamsImageLora struct {
+type ImageGenerateParamsImageLora struct {
 	// The URL of the LoRA to apply (e.g.
 	// https://huggingface.co/strangerzonehf/Flux-Midjourney-Mix2-LoRA).
 	Path string `json:"path,required"`
@@ -263,27 +263,27 @@ type ImageNewParamsImageLora struct {
 	paramObj
 }
 
-func (r ImageNewParamsImageLora) MarshalJSON() (data []byte, err error) {
-	type shadow ImageNewParamsImageLora
+func (r ImageGenerateParamsImageLora) MarshalJSON() (data []byte, err error) {
+	type shadow ImageGenerateParamsImageLora
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ImageNewParamsImageLora) UnmarshalJSON(data []byte) error {
+func (r *ImageGenerateParamsImageLora) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // The format of the image response. Can be either be `jpeg` or `png`. Defaults to
 // `jpeg`.
-type ImageNewParamsOutputFormat string
+type ImageGenerateParamsOutputFormat string
 
 const (
-	ImageNewParamsOutputFormatJpeg ImageNewParamsOutputFormat = "jpeg"
-	ImageNewParamsOutputFormatPng  ImageNewParamsOutputFormat = "png"
+	ImageGenerateParamsOutputFormatJpeg ImageGenerateParamsOutputFormat = "jpeg"
+	ImageGenerateParamsOutputFormatPng  ImageGenerateParamsOutputFormat = "png"
 )
 
 // Format of the image response. Can be either a base64 string or a URL.
-type ImageNewParamsResponseFormat string
+type ImageGenerateParamsResponseFormat string
 
 const (
-	ImageNewParamsResponseFormatBase64 ImageNewParamsResponseFormat = "base64"
-	ImageNewParamsResponseFormatURL    ImageNewParamsResponseFormat = "url"
+	ImageGenerateParamsResponseFormatBase64 ImageGenerateParamsResponseFormat = "base64"
+	ImageGenerateParamsResponseFormatURL    ImageGenerateParamsResponseFormat = "url"
 )
