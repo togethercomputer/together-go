@@ -1,13 +1,3 @@
-# together
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankResponse">RerankResponse</a>
-
-Methods:
-
-- <code title="post /rerank">client.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#TogetherService.Rerank">Rerank</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankParams">RerankParams</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankResponse">RerankResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 # Chat
 
 ## Completions
@@ -261,6 +251,16 @@ Response Types:
 Methods:
 
 - <code title="get /hardware">client.Hardware.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#HardwareService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#HardwareListParams">HardwareListParams</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#HardwareListResponse">HardwareListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Rerank
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankNewResponse">RerankNewResponse</a>
+
+Methods:
+
+- <code title="post /rerank">client.Rerank.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankService.New">New</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankNewParams">RerankNewParams</a>) (<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#RerankNewResponse">RerankNewResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # Batches
 
