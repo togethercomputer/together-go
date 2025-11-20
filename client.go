@@ -30,6 +30,7 @@ type Client struct {
 	Jobs            JobService
 	Endpoints       EndpointService
 	Hardware        HardwareService
+	Rerank          RerankService
 	Batches         BatchService
 	Evals           EvalService
 }
@@ -69,6 +70,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Jobs = NewJobService(opts...)
 	r.Endpoints = NewEndpointService(opts...)
 	r.Hardware = NewHardwareService(opts...)
+	r.Rerank = NewRerankService(opts...)
 	r.Batches = NewBatchService(opts...)
 	r.Evals = NewEvalService(opts...)
 
@@ -142,12 +144,4 @@ func (r *Client) Patch(ctx context.Context, path string, params any, res any, op
 // response.
 func (r *Client) Delete(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodDelete, path, params, res, opts...)
-}
-
-// Query a reranker model
-func (r *Client) Rerank(ctx context.Context, body RerankParams, opts ...option.RequestOption) (res *RerankResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	path := "rerank"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
 }

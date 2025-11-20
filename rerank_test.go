@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestTogetherRerankWithOptionalParams(t *testing.T) {
+func TestRerankNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,8 +25,8 @@ func TestTogetherRerankWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Rerank(context.TODO(), together.RerankParams{
-		Documents: together.RerankParamsDocumentsUnion{
+	_, err := client.Rerank.New(context.TODO(), together.RerankNewParams{
+		Documents: together.RerankNewParamsDocumentsUnion{
 			OfMapOfAnyMap: []map[string]any{{
 				"title": "bar",
 				"text":  "bar",
@@ -41,7 +41,7 @@ func TestTogetherRerankWithOptionalParams(t *testing.T) {
 				"text":  "bar",
 			}},
 		},
-		Model:           together.RerankParamsModelSalesforceLlamaRankV1,
+		Model:           together.RerankNewParamsModelSalesforceLlamaRankV1,
 		Query:           "What animals can I find near Peru?",
 		RankFields:      []string{"title", "text"},
 		ReturnDocuments: together.Bool(true),

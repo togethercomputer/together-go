@@ -3,19 +3,52 @@
 package together
 
 import (
+	"context"
+	"net/http"
+	"slices"
+
 	"github.com/togethercomputer/together-go/internal/apijson"
+	"github.com/togethercomputer/together-go/internal/requestconfig"
+	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-type RerankResponse struct {
+// RerankService contains methods and other services that help with interacting
+// with the together API.
+//
+// Note, unlike clients, this service does not read variables from the environment
+// automatically. You should not instantiate this service directly, and instead use
+// the [NewRerankService] method instead.
+type RerankService struct {
+	Options []option.RequestOption
+}
+
+// NewRerankService generates a new service that applies the given options to each
+// request. These options are applied after the parent client's options (if there
+// is one), and before any request-specific options.
+func NewRerankService(opts ...option.RequestOption) (r RerankService) {
+	r = RerankService{}
+	r.Options = opts
+	return
+}
+
+// Query a reranker model
+func (r *RerankService) New(ctx context.Context, body RerankNewParams, opts ...option.RequestOption) (res *RerankNewResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "rerank"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}
+
+type RerankNewResponse struct {
 	// The model to be used for the rerank request.
 	Model string `json:"model,required"`
 	// Object type
 	//
 	// Any of "rerank".
-	Object  RerankResponseObject   `json:"object,required"`
-	Results []RerankResponseResult `json:"results,required"`
+	Object  RerankNewResponseObject   `json:"object,required"`
+	Results []RerankNewResponseResult `json:"results,required"`
 	// Request ID
 	ID    string              `json:"id"`
 	Usage ChatCompletionUsage `json:"usage,nullable"`
@@ -32,22 +65,22 @@ type RerankResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r RerankResponse) RawJSON() string { return r.JSON.raw }
-func (r *RerankResponse) UnmarshalJSON(data []byte) error {
+func (r RerankNewResponse) RawJSON() string { return r.JSON.raw }
+func (r *RerankNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Object type
-type RerankResponseObject string
+type RerankNewResponseObject string
 
 const (
-	RerankResponseObjectRerank RerankResponseObject = "rerank"
+	RerankNewResponseObjectRerank RerankNewResponseObject = "rerank"
 )
 
-type RerankResponseResult struct {
-	Document       RerankResponseResultDocument `json:"document,required"`
-	Index          int64                        `json:"index,required"`
-	RelevanceScore float64                      `json:"relevance_score,required"`
+type RerankNewResponseResult struct {
+	Document       RerankNewResponseResultDocument `json:"document,required"`
+	Index          int64                           `json:"index,required"`
+	RelevanceScore float64                         `json:"relevance_score,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Document       respjson.Field
@@ -59,12 +92,12 @@ type RerankResponseResult struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r RerankResponseResult) RawJSON() string { return r.JSON.raw }
-func (r *RerankResponseResult) UnmarshalJSON(data []byte) error {
+func (r RerankNewResponseResult) RawJSON() string { return r.JSON.raw }
+func (r *RerankNewResponseResult) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type RerankResponseResultDocument struct {
+type RerankNewResponseResultDocument struct {
 	Text string `json:"text,nullable"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -75,18 +108,18 @@ type RerankResponseResultDocument struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r RerankResponseResultDocument) RawJSON() string { return r.JSON.raw }
-func (r *RerankResponseResultDocument) UnmarshalJSON(data []byte) error {
+func (r RerankNewResponseResultDocument) RawJSON() string { return r.JSON.raw }
+func (r *RerankNewResponseResultDocument) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type RerankParams struct {
+type RerankNewParams struct {
 	// List of documents, which can be either strings or objects.
-	Documents RerankParamsDocumentsUnion `json:"documents,omitzero,required"`
+	Documents RerankNewParamsDocumentsUnion `json:"documents,omitzero,required"`
 	// The model to be used for the rerank request.
 	//
 	// [See all of Together AI's rerank models](https://docs.together.ai/docs/serverless-models#rerank-models)
-	Model RerankParamsModel `json:"model,omitzero,required"`
+	Model RerankNewParamsModel `json:"model,omitzero,required"`
 	// The search query to be used for ranking.
 	Query string `json:"query,required"`
 	// Whether to return supplied documents with the response.
@@ -99,31 +132,31 @@ type RerankParams struct {
 	paramObj
 }
 
-func (r RerankParams) MarshalJSON() (data []byte, err error) {
-	type shadow RerankParams
+func (r RerankNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow RerankNewParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *RerankParams) UnmarshalJSON(data []byte) error {
+func (r *RerankNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Only one field can be non-zero.
 //
 // Use [param.IsOmitted] to confirm if a field is set.
-type RerankParamsDocumentsUnion struct {
+type RerankNewParamsDocumentsUnion struct {
 	OfMapOfAnyMap []map[string]any `json:",omitzero,inline"`
 	OfStringArray []string         `json:",omitzero,inline"`
 	paramUnion
 }
 
-func (u RerankParamsDocumentsUnion) MarshalJSON() ([]byte, error) {
+func (u RerankNewParamsDocumentsUnion) MarshalJSON() ([]byte, error) {
 	return param.MarshalUnion(u, u.OfMapOfAnyMap, u.OfStringArray)
 }
-func (u *RerankParamsDocumentsUnion) UnmarshalJSON(data []byte) error {
+func (u *RerankNewParamsDocumentsUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, u)
 }
 
-func (u *RerankParamsDocumentsUnion) asAny() any {
+func (u *RerankNewParamsDocumentsUnion) asAny() any {
 	if !param.IsOmitted(u.OfMapOfAnyMap) {
 		return &u.OfMapOfAnyMap
 	} else if !param.IsOmitted(u.OfStringArray) {
@@ -135,8 +168,8 @@ func (u *RerankParamsDocumentsUnion) asAny() any {
 // The model to be used for the rerank request.
 //
 // [See all of Together AI's rerank models](https://docs.together.ai/docs/serverless-models#rerank-models)
-type RerankParamsModel string
+type RerankNewParamsModel string
 
 const (
-	RerankParamsModelSalesforceLlamaRankV1 RerankParamsModel = "Salesforce/Llama-Rank-v1"
+	RerankNewParamsModelSalesforceLlamaRankV1 RerankNewParamsModel = "Salesforce/Llama-Rank-v1"
 )
