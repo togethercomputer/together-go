@@ -32,6 +32,7 @@ func TestEndpointNewWithOptionalParams(t *testing.T) {
 		},
 		Hardware:                   "1x_nvidia_a100_80gb_sxm",
 		Model:                      "meta-llama/Llama-3-8b-chat-hf",
+		AvailabilityZone:           together.String("availability_zone"),
 		DisablePromptCache:         together.Bool(true),
 		DisableSpeculativeDecoding: together.Bool(true),
 		DisplayName:                together.String("My Llama3 70b endpoint"),
