@@ -15,7 +15,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestAudioNewWithOptionalParams(t *testing.T) {
+func TestAudioSpeechNewWithOptionalParams(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write([]byte("abc"))
@@ -26,13 +26,13 @@ func TestAudioNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	resp, err := client.Audio.New(context.TODO(), together.AudioNewParams{
+	resp, err := client.Audio.Speech.New(context.TODO(), together.AudioSpeechNewParams{
 		Input:            "input",
-		Model:            together.AudioNewParamsModelCartesiaSonic,
+		Model:            together.AudioSpeechNewParamsModelCartesiaSonic,
 		Voice:            "voice",
-		Language:         together.AudioNewParamsLanguageEn,
-		ResponseEncoding: together.AudioNewParamsResponseEncodingPcmF32le,
-		ResponseFormat:   together.AudioNewParamsResponseFormatMP3,
+		Language:         together.AudioSpeechNewParamsLanguageEn,
+		ResponseEncoding: together.AudioSpeechNewParamsResponseEncodingPcmF32le,
+		ResponseFormat:   together.AudioSpeechNewParamsResponseFormatMP3,
 		SampleRate:       together.Float(0),
 	})
 	if err != nil {
