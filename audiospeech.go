@@ -77,7 +77,7 @@ type AudioSpeechNewParams struct {
 	// Sampling rate to use for the output audio. The default sampling rate for
 	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
 	// cartesia/sonic is 44100.
-	SampleRate param.Opt[float64] `json:"sample_rate,omitzero"`
+	SampleRate param.Opt[int64] `json:"sample_rate,omitzero"`
 	// Language of input text.
 	//
 	// Any of "en", "de", "fr", "es", "hi", "it", "ja", "ko", "nl", "pl", "pt", "ru",
