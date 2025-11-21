@@ -33,7 +33,7 @@ func TestAudioSpeechNewWithOptionalParams(t *testing.T) {
 		Language:         together.AudioSpeechNewParamsLanguageEn,
 		ResponseEncoding: together.AudioSpeechNewParamsResponseEncodingPcmF32le,
 		ResponseFormat:   together.AudioSpeechNewParamsResponseFormatMP3,
-		SampleRate:       together.Float(0),
+		SampleRate:       together.Int(0),
 	})
 	if err != nil {
 		var apierr *together.Error
