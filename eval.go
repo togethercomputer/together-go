@@ -60,18 +60,6 @@ func (r *EvalService) Get(ctx context.Context, id string, opts ...option.Request
 	return
 }
 
-// Update evaluation job status and results
-func (r *EvalService) Update(ctx context.Context, id string, body EvalUpdateParams, opts ...option.RequestOption) (res *EvalUpdateResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return
-	}
-	path := fmt.Sprintf("evaluation/%s/update", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
-}
-
 // Get all evaluation jobs
 func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...option.RequestOption) (res *[]EvaluationJob, err error) {
 	opts = slices.Concat(r.Options, opts)
@@ -423,24 +411,6 @@ type EvalNewResponseStatus string
 const (
 	EvalNewResponseStatusPending EvalNewResponseStatus = "pending"
 )
-
-type EvalUpdateResponse struct {
-	Status     string `json:"status"`
-	WorkflowID string `json:"workflow_id"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Status      respjson.Field
-		WorkflowID  respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EvalUpdateResponse) RawJSON() string { return r.JSON.raw }
-func (r *EvalUpdateResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
 
 type EvalStatusResponse struct {
 	// The results of the evaluation job
@@ -1439,36 +1409,6 @@ const (
 	EvalNewParamsTypeClassify EvalNewParamsType = "classify"
 	EvalNewParamsTypeScore    EvalNewParamsType = "score"
 	EvalNewParamsTypeCompare  EvalNewParamsType = "compare"
-)
-
-type EvalUpdateParams struct {
-	// Error message when status is 'error' or 'user_error'
-	Error param.Opt[string] `json:"error,omitzero"`
-	// The results of the evaluation job. The concrete structure depends on the type of
-	// evaluation job
-	Results any `json:"results,omitzero"`
-	// Any of "completed", "error", "user_error", "running", "queued", "pending".
-	Status EvalUpdateParamsStatus `json:"status,omitzero"`
-	paramObj
-}
-
-func (r EvalUpdateParams) MarshalJSON() (data []byte, err error) {
-	type shadow EvalUpdateParams
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *EvalUpdateParams) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type EvalUpdateParamsStatus string
-
-const (
-	EvalUpdateParamsStatusCompleted EvalUpdateParamsStatus = "completed"
-	EvalUpdateParamsStatusError     EvalUpdateParamsStatus = "error"
-	EvalUpdateParamsStatusUserError EvalUpdateParamsStatus = "user_error"
-	EvalUpdateParamsStatusRunning   EvalUpdateParamsStatus = "running"
-	EvalUpdateParamsStatusQueued    EvalUpdateParamsStatus = "queued"
-	EvalUpdateParamsStatusPending   EvalUpdateParamsStatus = "pending"
 )
 
 type EvalListParams struct {
