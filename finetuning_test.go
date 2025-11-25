@@ -41,10 +41,10 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		HfModelRevision:  together.String("hf_model_revision"),
 		HfOutputRepoName: together.String("hf_output_repo_name"),
 		LearningRate:     together.Float(0),
-		LrScheduler: together.LrSchedulerParam{
-			LrSchedulerType: together.LrSchedulerLrSchedulerTypeLinear,
-			LrSchedulerArgs: together.LrSchedulerLrSchedulerArgsUnionParam{
-				OfLinearLrSchedulerArgs: &together.LinearLrSchedulerArgsParam{
+		LrScheduler: together.FineTuningNewParamsLrScheduler{
+			LrSchedulerType: "linear",
+			LrSchedulerArgs: together.FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion{
+				OfFineTuningNewsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs: &together.FineTuningNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs{
 					MinLrRatio: together.Float(0),
 				},
 			},
@@ -58,16 +58,16 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 			OfBool: together.Bool(true),
 		},
 		TrainingMethod: together.FineTuningNewParamsTrainingMethodUnion{
-			OfTrainingMethodSft: &together.TrainingMethodSftParam{
-				Method: together.TrainingMethodSftMethodSft,
-				TrainOnInputs: together.TrainingMethodSftTrainOnInputsUnionParam{
+			OfFineTuningNewsTrainingMethodTrainingMethodSft: &together.FineTuningNewParamsTrainingMethodTrainingMethodSft{
+				Method: "sft",
+				TrainOnInputs: together.FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion{
 					OfBool: together.Bool(true),
 				},
 			},
 		},
 		TrainingType: together.FineTuningNewParamsTrainingTypeUnion{
-			OfFullTrainingType: &together.FullTrainingTypeParam{
-				Type: together.FullTrainingTypeTypeFull,
+			OfFineTuningNewsTrainingTypeFullTrainingType: &together.FineTuningNewParamsTrainingTypeFullTrainingType{
+				Type: "Full",
 			},
 		},
 		ValidationFile:   together.String("validation_file"),

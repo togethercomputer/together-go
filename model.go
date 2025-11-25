@@ -34,7 +34,7 @@ func NewModelService(opts ...option.RequestOption) (r ModelService) {
 }
 
 // Lists all of Together's open-source models
-func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (res *[]ModelListResponse, err error) {
+func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (res *[]ModelObject, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
@@ -49,18 +49,18 @@ func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts 
 	return
 }
 
-type ModelListResponse struct {
+type ModelObject struct {
 	ID      string `json:"id,required"`
 	Created int64  `json:"created,required"`
 	Object  string `json:"object,required"`
 	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank".
-	Type          ModelListResponseType    `json:"type,required"`
-	ContextLength int64                    `json:"context_length"`
-	DisplayName   string                   `json:"display_name"`
-	License       string                   `json:"license"`
-	Link          string                   `json:"link"`
-	Organization  string                   `json:"organization"`
-	Pricing       ModelListResponsePricing `json:"pricing"`
+	Type          ModelObjectType    `json:"type,required"`
+	ContextLength int64              `json:"context_length"`
+	DisplayName   string             `json:"display_name"`
+	License       string             `json:"license"`
+	Link          string             `json:"link"`
+	Organization  string             `json:"organization"`
+	Pricing       ModelObjectPricing `json:"pricing"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID            respjson.Field
@@ -79,24 +79,24 @@ type ModelListResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelListResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelListResponse) UnmarshalJSON(data []byte) error {
+func (r ModelObject) RawJSON() string { return r.JSON.raw }
+func (r *ModelObject) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ModelListResponseType string
+type ModelObjectType string
 
 const (
-	ModelListResponseTypeChat       ModelListResponseType = "chat"
-	ModelListResponseTypeLanguage   ModelListResponseType = "language"
-	ModelListResponseTypeCode       ModelListResponseType = "code"
-	ModelListResponseTypeImage      ModelListResponseType = "image"
-	ModelListResponseTypeEmbedding  ModelListResponseType = "embedding"
-	ModelListResponseTypeModeration ModelListResponseType = "moderation"
-	ModelListResponseTypeRerank     ModelListResponseType = "rerank"
+	ModelObjectTypeChat       ModelObjectType = "chat"
+	ModelObjectTypeLanguage   ModelObjectType = "language"
+	ModelObjectTypeCode       ModelObjectType = "code"
+	ModelObjectTypeImage      ModelObjectType = "image"
+	ModelObjectTypeEmbedding  ModelObjectType = "embedding"
+	ModelObjectTypeModeration ModelObjectType = "moderation"
+	ModelObjectTypeRerank     ModelObjectType = "rerank"
 )
 
-type ModelListResponsePricing struct {
+type ModelObjectPricing struct {
 	Base     float64 `json:"base,required"`
 	Finetune float64 `json:"finetune,required"`
 	Hourly   float64 `json:"hourly,required"`
@@ -115,8 +115,8 @@ type ModelListResponsePricing struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelListResponsePricing) RawJSON() string { return r.JSON.raw }
-func (r *ModelListResponsePricing) UnmarshalJSON(data []byte) error {
+func (r ModelObjectPricing) RawJSON() string { return r.JSON.raw }
+func (r *ModelObjectPricing) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
