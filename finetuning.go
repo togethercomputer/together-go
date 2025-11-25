@@ -48,7 +48,7 @@ func (r *FineTuningService) New(ctx context.Context, body FineTuningNewParams, o
 }
 
 // List the metadata for a single fine-tuning job.
-func (r *FineTuningService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTune, err error) {
+func (r *FineTuningService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FinetuneResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -126,91 +126,145 @@ func (r *FineTuningService) ListEvents(ctx context.Context, id string, opts ...o
 	return
 }
 
-type CosineLrSchedulerArgs struct {
-	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio,required"`
-	// Number or fraction of cycles for the cosine learning rate scheduler
-	NumCycles float64 `json:"num_cycles,required"`
+type FinetuneEvent struct {
+	CheckpointPath string `json:"checkpoint_path,required"`
+	CreatedAt      string `json:"created_at,required"`
+	Hash           string `json:"hash,required"`
+	Message        string `json:"message,required"`
+	ModelPath      string `json:"model_path,required"`
+	// Any of "fine-tune-event".
+	Object         FinetuneEventObject `json:"object,required"`
+	ParamCount     int64               `json:"param_count,required"`
+	Step           int64               `json:"step,required"`
+	TokenCount     int64               `json:"token_count,required"`
+	TotalSteps     int64               `json:"total_steps,required"`
+	TrainingOffset int64               `json:"training_offset,required"`
+	// Any of "job_pending", "job_start", "job_stopped", "model_downloading",
+	// "model_download_complete", "training_data_downloading",
+	// "training_data_download_complete", "validation_data_downloading",
+	// "validation_data_download_complete", "wandb_init", "training_start",
+	// "checkpoint_save", "billing_limit", "epoch_complete", "training_complete",
+	// "model_compressing", "model_compression_complete", "model_uploading",
+	// "model_upload_complete", "job_complete", "job_error", "cancel_requested",
+	// "job_restarted", "refund", "warning".
+	Type     FinetuneEventType `json:"type,required"`
+	WandbURL string            `json:"wandb_url,required"`
+	// Any of "info", "warning", "error", "legacy_info", "legacy_iwarning",
+	// "legacy_ierror".
+	Level FinetuneEventLevel `json:"level,nullable"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		MinLrRatio  respjson.Field
-		NumCycles   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		CheckpointPath respjson.Field
+		CreatedAt      respjson.Field
+		Hash           respjson.Field
+		Message        respjson.Field
+		ModelPath      respjson.Field
+		Object         respjson.Field
+		ParamCount     respjson.Field
+		Step           respjson.Field
+		TokenCount     respjson.Field
+		TotalSteps     respjson.Field
+		TrainingOffset respjson.Field
+		Type           respjson.Field
+		WandbURL       respjson.Field
+		Level          respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
-func (r CosineLrSchedulerArgs) RawJSON() string { return r.JSON.raw }
-func (r *CosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+func (r FinetuneEvent) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneEvent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// ToParam converts this CosineLrSchedulerArgs to a CosineLrSchedulerArgsParam.
-//
-// Warning: the fields of the param type will not be present. ToParam should only
-// be used at the last possible moment before sending a request. Test for this with
-// CosineLrSchedulerArgsParam.Overrides()
-func (r CosineLrSchedulerArgs) ToParam() CosineLrSchedulerArgsParam {
-	return param.Override[CosineLrSchedulerArgsParam](json.RawMessage(r.RawJSON()))
-}
+type FinetuneEventObject string
 
-// The properties MinLrRatio, NumCycles are required.
-type CosineLrSchedulerArgsParam struct {
-	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio,required"`
-	// Number or fraction of cycles for the cosine learning rate scheduler
-	NumCycles float64 `json:"num_cycles,required"`
-	paramObj
-}
+const (
+	FinetuneEventObjectFineTuneEvent FinetuneEventObject = "fine-tune-event"
+)
 
-func (r CosineLrSchedulerArgsParam) MarshalJSON() (data []byte, err error) {
-	type shadow CosineLrSchedulerArgsParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *CosineLrSchedulerArgsParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+type FinetuneEventLevel string
 
-type FineTune struct {
+const (
+	FinetuneEventLevelInfo           FinetuneEventLevel = "info"
+	FinetuneEventLevelWarning        FinetuneEventLevel = "warning"
+	FinetuneEventLevelError          FinetuneEventLevel = "error"
+	FinetuneEventLevelLegacyInfo     FinetuneEventLevel = "legacy_info"
+	FinetuneEventLevelLegacyIwarning FinetuneEventLevel = "legacy_iwarning"
+	FinetuneEventLevelLegacyIerror   FinetuneEventLevel = "legacy_ierror"
+)
+
+type FinetuneEventType string
+
+const (
+	FinetuneEventTypeJobPending                     FinetuneEventType = "job_pending"
+	FinetuneEventTypeJobStart                       FinetuneEventType = "job_start"
+	FinetuneEventTypeJobStopped                     FinetuneEventType = "job_stopped"
+	FinetuneEventTypeModelDownloading               FinetuneEventType = "model_downloading"
+	FinetuneEventTypeModelDownloadComplete          FinetuneEventType = "model_download_complete"
+	FinetuneEventTypeTrainingDataDownloading        FinetuneEventType = "training_data_downloading"
+	FinetuneEventTypeTrainingDataDownloadComplete   FinetuneEventType = "training_data_download_complete"
+	FinetuneEventTypeValidationDataDownloading      FinetuneEventType = "validation_data_downloading"
+	FinetuneEventTypeValidationDataDownloadComplete FinetuneEventType = "validation_data_download_complete"
+	FinetuneEventTypeWandbInit                      FinetuneEventType = "wandb_init"
+	FinetuneEventTypeTrainingStart                  FinetuneEventType = "training_start"
+	FinetuneEventTypeCheckpointSave                 FinetuneEventType = "checkpoint_save"
+	FinetuneEventTypeBillingLimit                   FinetuneEventType = "billing_limit"
+	FinetuneEventTypeEpochComplete                  FinetuneEventType = "epoch_complete"
+	FinetuneEventTypeTrainingComplete               FinetuneEventType = "training_complete"
+	FinetuneEventTypeModelCompressing               FinetuneEventType = "model_compressing"
+	FinetuneEventTypeModelCompressionComplete       FinetuneEventType = "model_compression_complete"
+	FinetuneEventTypeModelUploading                 FinetuneEventType = "model_uploading"
+	FinetuneEventTypeModelUploadComplete            FinetuneEventType = "model_upload_complete"
+	FinetuneEventTypeJobComplete                    FinetuneEventType = "job_complete"
+	FinetuneEventTypeJobError                       FinetuneEventType = "job_error"
+	FinetuneEventTypeCancelRequested                FinetuneEventType = "cancel_requested"
+	FinetuneEventTypeJobRestarted                   FinetuneEventType = "job_restarted"
+	FinetuneEventTypeRefund                         FinetuneEventType = "refund"
+	FinetuneEventTypeWarning                        FinetuneEventType = "warning"
+)
+
+type FinetuneResponse struct {
 	ID string `json:"id,required" format:"uuid"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status               FineTuneStatus              `json:"status,required"`
-	BatchSize            FineTuneBatchSizeUnion      `json:"batch_size"`
-	CreatedAt            string                      `json:"created_at"`
-	EpochsCompleted      int64                       `json:"epochs_completed"`
-	EvalSteps            int64                       `json:"eval_steps"`
-	Events               []FineTuneEvent             `json:"events"`
-	FromCheckpoint       string                      `json:"from_checkpoint"`
-	FromHfModel          string                      `json:"from_hf_model"`
-	HfModelRevision      string                      `json:"hf_model_revision"`
-	JobID                string                      `json:"job_id"`
-	LearningRate         float64                     `json:"learning_rate"`
-	LrScheduler          LrScheduler                 `json:"lr_scheduler"`
-	MaxGradNorm          float64                     `json:"max_grad_norm"`
-	Model                string                      `json:"model"`
-	ModelOutputName      string                      `json:"model_output_name"`
-	ModelOutputPath      string                      `json:"model_output_path"`
-	NCheckpoints         int64                       `json:"n_checkpoints"`
-	NEpochs              int64                       `json:"n_epochs"`
-	NEvals               int64                       `json:"n_evals"`
-	ParamCount           int64                       `json:"param_count"`
-	QueueDepth           int64                       `json:"queue_depth"`
-	TokenCount           int64                       `json:"token_count"`
-	TotalPrice           int64                       `json:"total_price"`
-	TrainOnInputs        FineTuneTrainOnInputsUnion  `json:"train_on_inputs"`
-	TrainingFile         string                      `json:"training_file"`
-	TrainingMethod       FineTuneTrainingMethodUnion `json:"training_method"`
-	TrainingType         FineTuneTrainingTypeUnion   `json:"training_type"`
-	TrainingfileNumlines int64                       `json:"trainingfile_numlines"`
-	TrainingfileSize     int64                       `json:"trainingfile_size"`
-	UpdatedAt            string                      `json:"updated_at"`
-	ValidationFile       string                      `json:"validation_file"`
-	WandbProjectName     string                      `json:"wandb_project_name"`
-	WandbURL             string                      `json:"wandb_url"`
-	WarmupRatio          float64                     `json:"warmup_ratio"`
-	WeightDecay          float64                     `json:"weight_decay"`
+	Status               FinetuneResponseStatus              `json:"status,required"`
+	BatchSize            FinetuneResponseBatchSizeUnion      `json:"batch_size"`
+	CreatedAt            string                              `json:"created_at"`
+	EpochsCompleted      int64                               `json:"epochs_completed"`
+	EvalSteps            int64                               `json:"eval_steps"`
+	Events               []FinetuneEvent                     `json:"events"`
+	FromCheckpoint       string                              `json:"from_checkpoint"`
+	FromHfModel          string                              `json:"from_hf_model"`
+	HfModelRevision      string                              `json:"hf_model_revision"`
+	JobID                string                              `json:"job_id"`
+	LearningRate         float64                             `json:"learning_rate"`
+	LrScheduler          FinetuneResponseLrScheduler         `json:"lr_scheduler"`
+	MaxGradNorm          float64                             `json:"max_grad_norm"`
+	Model                string                              `json:"model"`
+	ModelOutputName      string                              `json:"model_output_name"`
+	ModelOutputPath      string                              `json:"model_output_path"`
+	NCheckpoints         int64                               `json:"n_checkpoints"`
+	NEpochs              int64                               `json:"n_epochs"`
+	NEvals               int64                               `json:"n_evals"`
+	ParamCount           int64                               `json:"param_count"`
+	QueueDepth           int64                               `json:"queue_depth"`
+	TokenCount           int64                               `json:"token_count"`
+	TotalPrice           int64                               `json:"total_price"`
+	TrainOnInputs        FinetuneResponseTrainOnInputsUnion  `json:"train_on_inputs"`
+	TrainingFile         string                              `json:"training_file"`
+	TrainingMethod       FinetuneResponseTrainingMethodUnion `json:"training_method"`
+	TrainingType         FinetuneResponseTrainingTypeUnion   `json:"training_type"`
+	TrainingfileNumlines int64                               `json:"trainingfile_numlines"`
+	TrainingfileSize     int64                               `json:"trainingfile_size"`
+	UpdatedAt            string                              `json:"updated_at"`
+	ValidationFile       string                              `json:"validation_file"`
+	WandbProjectName     string                              `json:"wandb_project_name"`
+	WandbURL             string                              `json:"wandb_url"`
+	WarmupRatio          float64                             `json:"warmup_ratio"`
+	WeightDecay          float64                             `json:"weight_decay"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID                   respjson.Field
@@ -255,126 +309,222 @@ type FineTune struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FineTune) RawJSON() string { return r.JSON.raw }
-func (r *FineTune) UnmarshalJSON(data []byte) error {
+func (r FinetuneResponse) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FineTuneStatus string
+type FinetuneResponseStatus string
 
 const (
-	FineTuneStatusPending         FineTuneStatus = "pending"
-	FineTuneStatusQueued          FineTuneStatus = "queued"
-	FineTuneStatusRunning         FineTuneStatus = "running"
-	FineTuneStatusCompressing     FineTuneStatus = "compressing"
-	FineTuneStatusUploading       FineTuneStatus = "uploading"
-	FineTuneStatusCancelRequested FineTuneStatus = "cancel_requested"
-	FineTuneStatusCancelled       FineTuneStatus = "cancelled"
-	FineTuneStatusError           FineTuneStatus = "error"
-	FineTuneStatusCompleted       FineTuneStatus = "completed"
+	FinetuneResponseStatusPending         FinetuneResponseStatus = "pending"
+	FinetuneResponseStatusQueued          FinetuneResponseStatus = "queued"
+	FinetuneResponseStatusRunning         FinetuneResponseStatus = "running"
+	FinetuneResponseStatusCompressing     FinetuneResponseStatus = "compressing"
+	FinetuneResponseStatusUploading       FinetuneResponseStatus = "uploading"
+	FinetuneResponseStatusCancelRequested FinetuneResponseStatus = "cancel_requested"
+	FinetuneResponseStatusCancelled       FinetuneResponseStatus = "cancelled"
+	FinetuneResponseStatusError           FinetuneResponseStatus = "error"
+	FinetuneResponseStatusCompleted       FinetuneResponseStatus = "completed"
 )
 
-// FineTuneBatchSizeUnion contains all possible properties and values from [int64],
-// [string].
+// FinetuneResponseBatchSizeUnion contains all possible properties and values from
+// [int64], [string].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
 // If the underlying value is not a json object, one of the following properties
-// will be valid: OfInt OfFineTuneBatchSizeString]
-type FineTuneBatchSizeUnion struct {
+// will be valid: OfInt OfFinetuneResponseBatchSizeString]
+type FinetuneResponseBatchSizeUnion struct {
 	// This field will be present if the value is a [int64] instead of an object.
 	OfInt int64 `json:",inline"`
 	// This field will be present if the value is a [string] instead of an object.
-	OfFineTuneBatchSizeString string `json:",inline"`
-	JSON                      struct {
-		OfInt                     respjson.Field
-		OfFineTuneBatchSizeString respjson.Field
-		raw                       string
+	OfFinetuneResponseBatchSizeString string `json:",inline"`
+	JSON                              struct {
+		OfInt                             respjson.Field
+		OfFinetuneResponseBatchSizeString respjson.Field
+		raw                               string
 	} `json:"-"`
 }
 
-func (u FineTuneBatchSizeUnion) AsInt() (v int64) {
+func (u FinetuneResponseBatchSizeUnion) AsInt() (v int64) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuneBatchSizeUnion) AsFineTuneBatchSizeString() (v string) {
+func (u FinetuneResponseBatchSizeUnion) AsFinetuneResponseBatchSizeString() (v string) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u FineTuneBatchSizeUnion) RawJSON() string { return u.JSON.raw }
+func (u FinetuneResponseBatchSizeUnion) RawJSON() string { return u.JSON.raw }
 
-func (r *FineTuneBatchSizeUnion) UnmarshalJSON(data []byte) error {
+func (r *FinetuneResponseBatchSizeUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FineTuneBatchSizeString string
+type FinetuneResponseBatchSizeString string
 
 const (
-	FineTuneBatchSizeStringMax FineTuneBatchSizeString = "max"
+	FinetuneResponseBatchSizeStringMax FinetuneResponseBatchSizeString = "max"
 )
 
-// FineTuneTrainOnInputsUnion contains all possible properties and values from
-// [bool], [string].
+type FinetuneResponseLrScheduler struct {
+	// Any of "linear", "cosine".
+	LrSchedulerType string                                          `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FinetuneResponseLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LrSchedulerType respjson.Field
+		LrSchedulerArgs respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseLrScheduler) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponseLrScheduler) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FinetuneResponseLrSchedulerLrSchedulerArgsUnion contains all possible properties
+// and values from
+// [FinetuneResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type FinetuneResponseLrSchedulerLrSchedulerArgsUnion struct {
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// This field is from variant
+	// [FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+	NumCycles float64 `json:"num_cycles"`
+	JSON      struct {
+		MinLrRatio respjson.Field
+		NumCycles  respjson.Field
+		raw        string
+	} `json:"-"`
+}
+
+func (u FinetuneResponseLrSchedulerLrSchedulerArgsUnion) AsFinetuneResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs() (v FinetuneResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FinetuneResponseLrSchedulerLrSchedulerArgsUnion) AsFinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs() (v FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FinetuneResponseLrSchedulerLrSchedulerArgsUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *FinetuneResponseLrSchedulerLrSchedulerArgsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FinetuneResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FinetuneResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64 `json:"num_cycles,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		NumCycles   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FinetuneResponseTrainOnInputsUnion contains all possible properties and values
+// from [bool], [string].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 //
 // If the underlying value is not a json object, one of the following properties
-// will be valid: OfBool OfFineTuneTrainOnInputsString]
-type FineTuneTrainOnInputsUnion struct {
+// will be valid: OfBool OfFinetuneResponseTrainOnInputsString]
+type FinetuneResponseTrainOnInputsUnion struct {
 	// This field will be present if the value is a [bool] instead of an object.
 	OfBool bool `json:",inline"`
 	// This field will be present if the value is a [string] instead of an object.
-	OfFineTuneTrainOnInputsString string `json:",inline"`
-	JSON                          struct {
-		OfBool                        respjson.Field
-		OfFineTuneTrainOnInputsString respjson.Field
-		raw                           string
+	OfFinetuneResponseTrainOnInputsString string `json:",inline"`
+	JSON                                  struct {
+		OfBool                                respjson.Field
+		OfFinetuneResponseTrainOnInputsString respjson.Field
+		raw                                   string
 	} `json:"-"`
 }
 
-func (u FineTuneTrainOnInputsUnion) AsBool() (v bool) {
+func (u FinetuneResponseTrainOnInputsUnion) AsBool() (v bool) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuneTrainOnInputsUnion) AsFineTuneTrainOnInputsString() (v string) {
+func (u FinetuneResponseTrainOnInputsUnion) AsFinetuneResponseTrainOnInputsString() (v string) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u FineTuneTrainOnInputsUnion) RawJSON() string { return u.JSON.raw }
+func (u FinetuneResponseTrainOnInputsUnion) RawJSON() string { return u.JSON.raw }
 
-func (r *FineTuneTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
+func (r *FinetuneResponseTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FineTuneTrainOnInputsString string
+type FinetuneResponseTrainOnInputsString string
 
 const (
-	FineTuneTrainOnInputsStringAuto FineTuneTrainOnInputsString = "auto"
+	FinetuneResponseTrainOnInputsStringAuto FinetuneResponseTrainOnInputsString = "auto"
 )
 
-// FineTuneTrainingMethodUnion contains all possible properties and values from
-// [TrainingMethodSft], [TrainingMethodDpo].
+// FinetuneResponseTrainingMethodUnion contains all possible properties and values
+// from [FinetuneResponseTrainingMethodTrainingMethodSft],
+// [FinetuneResponseTrainingMethodTrainingMethodDpo].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
-type FineTuneTrainingMethodUnion struct {
+type FinetuneResponseTrainingMethodUnion struct {
 	Method string `json:"method"`
-	// This field is from variant [TrainingMethodSft].
-	TrainOnInputs TrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant [FinetuneResponseTrainingMethodTrainingMethodSft].
+	TrainOnInputs FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
+	// This field is from variant [FinetuneResponseTrainingMethodTrainingMethodDpo].
 	DpoBeta float64 `json:"dpo_beta"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant [FinetuneResponseTrainingMethodTrainingMethodDpo].
 	DpoNormalizeLogratiosByLength bool `json:"dpo_normalize_logratios_by_length"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant [FinetuneResponseTrainingMethodTrainingMethodDpo].
 	DpoReferenceFree bool `json:"dpo_reference_free"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant [FinetuneResponseTrainingMethodTrainingMethodDpo].
 	RpoAlpha float64 `json:"rpo_alpha"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant [FinetuneResponseTrainingMethodTrainingMethodDpo].
 	SimpoGamma float64 `json:"simpo_gamma"`
 	JSON       struct {
 		Method                        respjson.Field
@@ -388,444 +538,97 @@ type FineTuneTrainingMethodUnion struct {
 	} `json:"-"`
 }
 
-func (u FineTuneTrainingMethodUnion) AsTrainingMethodSft() (v TrainingMethodSft) {
+func (u FinetuneResponseTrainingMethodUnion) AsFinetuneResponseTrainingMethodTrainingMethodSft() (v FinetuneResponseTrainingMethodTrainingMethodSft) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuneTrainingMethodUnion) AsTrainingMethodDpo() (v TrainingMethodDpo) {
+func (u FinetuneResponseTrainingMethodUnion) AsFinetuneResponseTrainingMethodTrainingMethodDpo() (v FinetuneResponseTrainingMethodTrainingMethodDpo) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u FineTuneTrainingMethodUnion) RawJSON() string { return u.JSON.raw }
+func (u FinetuneResponseTrainingMethodUnion) RawJSON() string { return u.JSON.raw }
 
-func (r *FineTuneTrainingMethodUnion) UnmarshalJSON(data []byte) error {
+func (r *FinetuneResponseTrainingMethodUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// FineTuneTrainingTypeUnion contains all possible properties and values from
-// [FullTrainingType], [LoRaTrainingType].
+type FinetuneResponseTrainingMethodTrainingMethodSft struct {
+	// Any of "sft".
+	Method string `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Method        respjson.Field
+		TrainOnInputs respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseTrainingMethodTrainingMethodSft) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponseTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion contains all
+// possible properties and values from [bool], [string].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
-type FineTuneTrainingTypeUnion struct {
-	Type string `json:"type"`
-	// This field is from variant [LoRaTrainingType].
-	LoraAlpha int64 `json:"lora_alpha"`
-	// This field is from variant [LoRaTrainingType].
-	LoraR int64 `json:"lora_r"`
-	// This field is from variant [LoRaTrainingType].
-	LoraDropout float64 `json:"lora_dropout"`
-	// This field is from variant [LoRaTrainingType].
-	LoraTrainableModules string `json:"lora_trainable_modules"`
-	JSON                 struct {
-		Type                 respjson.Field
-		LoraAlpha            respjson.Field
-		LoraR                respjson.Field
-		LoraDropout          respjson.Field
-		LoraTrainableModules respjson.Field
-		raw                  string
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfBool
+// OfFinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsString]
+type FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion struct {
+	// This field will be present if the value is a [bool] instead of an object.
+	OfBool bool `json:",inline"`
+	// This field will be present if the value is a [string] instead of an object.
+	OfFinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsString string `json:",inline"`
+	JSON                                                                 struct {
+		OfBool                                                               respjson.Field
+		OfFinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsString respjson.Field
+		raw                                                                  string
 	} `json:"-"`
 }
 
-func (u FineTuneTrainingTypeUnion) AsFullTrainingType() (v FullTrainingType) {
+func (u FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsBool() (v bool) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuneTrainingTypeUnion) AsLoRaTrainingType() (v LoRaTrainingType) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-// Returns the unmodified JSON received from the API
-func (u FineTuneTrainingTypeUnion) RawJSON() string { return u.JSON.raw }
-
-func (r *FineTuneTrainingTypeUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type FineTuneEvent struct {
-	CheckpointPath string `json:"checkpoint_path,required"`
-	CreatedAt      string `json:"created_at,required"`
-	Hash           string `json:"hash,required"`
-	Message        string `json:"message,required"`
-	ModelPath      string `json:"model_path,required"`
-	// Any of "fine-tune-event".
-	Object         FineTuneEventObject `json:"object,required"`
-	ParamCount     int64               `json:"param_count,required"`
-	Step           int64               `json:"step,required"`
-	TokenCount     int64               `json:"token_count,required"`
-	TotalSteps     int64               `json:"total_steps,required"`
-	TrainingOffset int64               `json:"training_offset,required"`
-	// Any of "job_pending", "job_start", "job_stopped", "model_downloading",
-	// "model_download_complete", "training_data_downloading",
-	// "training_data_download_complete", "validation_data_downloading",
-	// "validation_data_download_complete", "wandb_init", "training_start",
-	// "checkpoint_save", "billing_limit", "epoch_complete", "training_complete",
-	// "model_compressing", "model_compression_complete", "model_uploading",
-	// "model_upload_complete", "job_complete", "job_error", "cancel_requested",
-	// "job_restarted", "refund", "warning".
-	Type     FineTuneEventType `json:"type,required"`
-	WandbURL string            `json:"wandb_url,required"`
-	// Any of "info", "warning", "error", "legacy_info", "legacy_iwarning",
-	// "legacy_ierror".
-	Level FineTuneEventLevel `json:"level,nullable"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CheckpointPath respjson.Field
-		CreatedAt      respjson.Field
-		Hash           respjson.Field
-		Message        respjson.Field
-		ModelPath      respjson.Field
-		Object         respjson.Field
-		ParamCount     respjson.Field
-		Step           respjson.Field
-		TokenCount     respjson.Field
-		TotalSteps     respjson.Field
-		TrainingOffset respjson.Field
-		Type           respjson.Field
-		WandbURL       respjson.Field
-		Level          respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FineTuneEvent) RawJSON() string { return r.JSON.raw }
-func (r *FineTuneEvent) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type FineTuneEventObject string
-
-const (
-	FineTuneEventObjectFineTuneEvent FineTuneEventObject = "fine-tune-event"
-)
-
-type FineTuneEventType string
-
-const (
-	FineTuneEventTypeJobPending                     FineTuneEventType = "job_pending"
-	FineTuneEventTypeJobStart                       FineTuneEventType = "job_start"
-	FineTuneEventTypeJobStopped                     FineTuneEventType = "job_stopped"
-	FineTuneEventTypeModelDownloading               FineTuneEventType = "model_downloading"
-	FineTuneEventTypeModelDownloadComplete          FineTuneEventType = "model_download_complete"
-	FineTuneEventTypeTrainingDataDownloading        FineTuneEventType = "training_data_downloading"
-	FineTuneEventTypeTrainingDataDownloadComplete   FineTuneEventType = "training_data_download_complete"
-	FineTuneEventTypeValidationDataDownloading      FineTuneEventType = "validation_data_downloading"
-	FineTuneEventTypeValidationDataDownloadComplete FineTuneEventType = "validation_data_download_complete"
-	FineTuneEventTypeWandbInit                      FineTuneEventType = "wandb_init"
-	FineTuneEventTypeTrainingStart                  FineTuneEventType = "training_start"
-	FineTuneEventTypeCheckpointSave                 FineTuneEventType = "checkpoint_save"
-	FineTuneEventTypeBillingLimit                   FineTuneEventType = "billing_limit"
-	FineTuneEventTypeEpochComplete                  FineTuneEventType = "epoch_complete"
-	FineTuneEventTypeTrainingComplete               FineTuneEventType = "training_complete"
-	FineTuneEventTypeModelCompressing               FineTuneEventType = "model_compressing"
-	FineTuneEventTypeModelCompressionComplete       FineTuneEventType = "model_compression_complete"
-	FineTuneEventTypeModelUploading                 FineTuneEventType = "model_uploading"
-	FineTuneEventTypeModelUploadComplete            FineTuneEventType = "model_upload_complete"
-	FineTuneEventTypeJobComplete                    FineTuneEventType = "job_complete"
-	FineTuneEventTypeJobError                       FineTuneEventType = "job_error"
-	FineTuneEventTypeCancelRequested                FineTuneEventType = "cancel_requested"
-	FineTuneEventTypeJobRestarted                   FineTuneEventType = "job_restarted"
-	FineTuneEventTypeRefund                         FineTuneEventType = "refund"
-	FineTuneEventTypeWarning                        FineTuneEventType = "warning"
-)
-
-type FineTuneEventLevel string
-
-const (
-	FineTuneEventLevelInfo           FineTuneEventLevel = "info"
-	FineTuneEventLevelWarning        FineTuneEventLevel = "warning"
-	FineTuneEventLevelError          FineTuneEventLevel = "error"
-	FineTuneEventLevelLegacyInfo     FineTuneEventLevel = "legacy_info"
-	FineTuneEventLevelLegacyIwarning FineTuneEventLevel = "legacy_iwarning"
-	FineTuneEventLevelLegacyIerror   FineTuneEventLevel = "legacy_ierror"
-)
-
-type FullTrainingType struct {
-	// Any of "Full".
-	Type FullTrainingTypeType `json:"type,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Type        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FullTrainingType) RawJSON() string { return r.JSON.raw }
-func (r *FullTrainingType) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// ToParam converts this FullTrainingType to a FullTrainingTypeParam.
-//
-// Warning: the fields of the param type will not be present. ToParam should only
-// be used at the last possible moment before sending a request. Test for this with
-// FullTrainingTypeParam.Overrides()
-func (r FullTrainingType) ToParam() FullTrainingTypeParam {
-	return param.Override[FullTrainingTypeParam](json.RawMessage(r.RawJSON()))
-}
-
-type FullTrainingTypeType string
-
-const (
-	FullTrainingTypeTypeFull FullTrainingTypeType = "Full"
-)
-
-// The property Type is required.
-type FullTrainingTypeParam struct {
-	// Any of "Full".
-	Type FullTrainingTypeType `json:"type,omitzero,required"`
-	paramObj
-}
-
-func (r FullTrainingTypeParam) MarshalJSON() (data []byte, err error) {
-	type shadow FullTrainingTypeParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *FullTrainingTypeParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type LinearLrSchedulerArgs struct {
-	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		MinLrRatio  respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r LinearLrSchedulerArgs) RawJSON() string { return r.JSON.raw }
-func (r *LinearLrSchedulerArgs) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// ToParam converts this LinearLrSchedulerArgs to a LinearLrSchedulerArgsParam.
-//
-// Warning: the fields of the param type will not be present. ToParam should only
-// be used at the last possible moment before sending a request. Test for this with
-// LinearLrSchedulerArgsParam.Overrides()
-func (r LinearLrSchedulerArgs) ToParam() LinearLrSchedulerArgsParam {
-	return param.Override[LinearLrSchedulerArgsParam](json.RawMessage(r.RawJSON()))
-}
-
-type LinearLrSchedulerArgsParam struct {
-	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio param.Opt[float64] `json:"min_lr_ratio,omitzero"`
-	paramObj
-}
-
-func (r LinearLrSchedulerArgsParam) MarshalJSON() (data []byte, err error) {
-	type shadow LinearLrSchedulerArgsParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *LinearLrSchedulerArgsParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type LoRaTrainingType struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
-	// Any of "Lora".
-	Type                 LoRaTrainingTypeType `json:"type,required"`
-	LoraDropout          float64              `json:"lora_dropout"`
-	LoraTrainableModules string               `json:"lora_trainable_modules"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		LoraAlpha            respjson.Field
-		LoraR                respjson.Field
-		Type                 respjson.Field
-		LoraDropout          respjson.Field
-		LoraTrainableModules respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r LoRaTrainingType) RawJSON() string { return r.JSON.raw }
-func (r *LoRaTrainingType) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// ToParam converts this LoRaTrainingType to a LoRaTrainingTypeParam.
-//
-// Warning: the fields of the param type will not be present. ToParam should only
-// be used at the last possible moment before sending a request. Test for this with
-// LoRaTrainingTypeParam.Overrides()
-func (r LoRaTrainingType) ToParam() LoRaTrainingTypeParam {
-	return param.Override[LoRaTrainingTypeParam](json.RawMessage(r.RawJSON()))
-}
-
-type LoRaTrainingTypeType string
-
-const (
-	LoRaTrainingTypeTypeLora LoRaTrainingTypeType = "Lora"
-)
-
-// The properties LoraAlpha, LoraR, Type are required.
-type LoRaTrainingTypeParam struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
-	// Any of "Lora".
-	Type                 LoRaTrainingTypeType `json:"type,omitzero,required"`
-	LoraDropout          param.Opt[float64]   `json:"lora_dropout,omitzero"`
-	LoraTrainableModules param.Opt[string]    `json:"lora_trainable_modules,omitzero"`
-	paramObj
-}
-
-func (r LoRaTrainingTypeParam) MarshalJSON() (data []byte, err error) {
-	type shadow LoRaTrainingTypeParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *LoRaTrainingTypeParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type LrScheduler struct {
-	// Any of "linear", "cosine".
-	LrSchedulerType LrSchedulerLrSchedulerType      `json:"lr_scheduler_type,required"`
-	LrSchedulerArgs LrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		LrSchedulerType respjson.Field
-		LrSchedulerArgs respjson.Field
-		ExtraFields     map[string]respjson.Field
-		raw             string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r LrScheduler) RawJSON() string { return r.JSON.raw }
-func (r *LrScheduler) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// ToParam converts this LrScheduler to a LrSchedulerParam.
-//
-// Warning: the fields of the param type will not be present. ToParam should only
-// be used at the last possible moment before sending a request. Test for this with
-// LrSchedulerParam.Overrides()
-func (r LrScheduler) ToParam() LrSchedulerParam {
-	return param.Override[LrSchedulerParam](json.RawMessage(r.RawJSON()))
-}
-
-type LrSchedulerLrSchedulerType string
-
-const (
-	LrSchedulerLrSchedulerTypeLinear LrSchedulerLrSchedulerType = "linear"
-	LrSchedulerLrSchedulerTypeCosine LrSchedulerLrSchedulerType = "cosine"
-)
-
-// LrSchedulerLrSchedulerArgsUnion contains all possible properties and values from
-// [LinearLrSchedulerArgs], [CosineLrSchedulerArgs].
-//
-// Use the methods beginning with 'As' to cast the union to one of its variants.
-type LrSchedulerLrSchedulerArgsUnion struct {
-	MinLrRatio float64 `json:"min_lr_ratio"`
-	// This field is from variant [CosineLrSchedulerArgs].
-	NumCycles float64 `json:"num_cycles"`
-	JSON      struct {
-		MinLrRatio respjson.Field
-		NumCycles  respjson.Field
-		raw        string
-	} `json:"-"`
-}
-
-func (u LrSchedulerLrSchedulerArgsUnion) AsLinearLrSchedulerArgs() (v LinearLrSchedulerArgs) {
-	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
-	return
-}
-
-func (u LrSchedulerLrSchedulerArgsUnion) AsCosineLrSchedulerArgs() (v CosineLrSchedulerArgs) {
+func (u FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsFinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsString() (v string) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u LrSchedulerLrSchedulerArgsUnion) RawJSON() string { return u.JSON.raw }
+func (u FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) RawJSON() string {
+	return u.JSON.raw
+}
 
-func (r *LrSchedulerLrSchedulerArgsUnion) UnmarshalJSON(data []byte) error {
+func (r *FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// The property LrSchedulerType is required.
-type LrSchedulerParam struct {
-	// Any of "linear", "cosine".
-	LrSchedulerType LrSchedulerLrSchedulerType           `json:"lr_scheduler_type,omitzero,required"`
-	LrSchedulerArgs LrSchedulerLrSchedulerArgsUnionParam `json:"lr_scheduler_args,omitzero"`
-	paramObj
-}
+type FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsString string
 
-func (r LrSchedulerParam) MarshalJSON() (data []byte, err error) {
-	type shadow LrSchedulerParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *LrSchedulerParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
 
-// Only one field can be non-zero.
-//
-// Use [param.IsOmitted] to confirm if a field is set.
-type LrSchedulerLrSchedulerArgsUnionParam struct {
-	OfLinearLrSchedulerArgs *LinearLrSchedulerArgsParam `json:",omitzero,inline"`
-	OfCosineLrSchedulerArgs *CosineLrSchedulerArgsParam `json:",omitzero,inline"`
-	paramUnion
-}
-
-func (u LrSchedulerLrSchedulerArgsUnionParam) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfLinearLrSchedulerArgs, u.OfCosineLrSchedulerArgs)
-}
-func (u *LrSchedulerLrSchedulerArgsUnionParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, u)
-}
-
-func (u *LrSchedulerLrSchedulerArgsUnionParam) asAny() any {
-	if !param.IsOmitted(u.OfLinearLrSchedulerArgs) {
-		return u.OfLinearLrSchedulerArgs
-	} else if !param.IsOmitted(u.OfCosineLrSchedulerArgs) {
-		return u.OfCosineLrSchedulerArgs
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u LrSchedulerLrSchedulerArgsUnionParam) GetNumCycles() *float64 {
-	if vt := u.OfCosineLrSchedulerArgs; vt != nil {
-		return &vt.NumCycles
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u LrSchedulerLrSchedulerArgsUnionParam) GetMinLrRatio() *float64 {
-	if vt := u.OfLinearLrSchedulerArgs; vt != nil && vt.MinLrRatio.Valid() {
-		return &vt.MinLrRatio.Value
-	} else if vt := u.OfCosineLrSchedulerArgs; vt != nil {
-		return (*float64)(&vt.MinLrRatio)
-	}
-	return nil
-}
-
-type TrainingMethodDpo struct {
+type FinetuneResponseTrainingMethodTrainingMethodDpo struct {
 	// Any of "dpo".
-	Method                        TrainingMethodDpoMethod `json:"method,required"`
-	DpoBeta                       float64                 `json:"dpo_beta"`
-	DpoNormalizeLogratiosByLength bool                    `json:"dpo_normalize_logratios_by_length"`
-	DpoReferenceFree              bool                    `json:"dpo_reference_free"`
-	RpoAlpha                      float64                 `json:"rpo_alpha"`
-	SimpoGamma                    float64                 `json:"simpo_gamma"`
+	Method                        string  `json:"method,required"`
+	DpoBeta                       float64 `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool    `json:"dpo_reference_free"`
+	RpoAlpha                      float64 `json:"rpo_alpha"`
+	SimpoGamma                    float64 `json:"simpo_gamma"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Method                        respjson.Field
@@ -840,167 +643,93 @@ type TrainingMethodDpo struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r TrainingMethodDpo) RawJSON() string { return r.JSON.raw }
-func (r *TrainingMethodDpo) UnmarshalJSON(data []byte) error {
+func (r FinetuneResponseTrainingMethodTrainingMethodDpo) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponseTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// ToParam converts this TrainingMethodDpo to a TrainingMethodDpoParam.
-//
-// Warning: the fields of the param type will not be present. ToParam should only
-// be used at the last possible moment before sending a request. Test for this with
-// TrainingMethodDpoParam.Overrides()
-func (r TrainingMethodDpo) ToParam() TrainingMethodDpoParam {
-	return param.Override[TrainingMethodDpoParam](json.RawMessage(r.RawJSON()))
-}
-
-type TrainingMethodDpoMethod string
-
-const (
-	TrainingMethodDpoMethodDpo TrainingMethodDpoMethod = "dpo"
-)
-
-// The property Method is required.
-type TrainingMethodDpoParam struct {
-	// Any of "dpo".
-	Method                        TrainingMethodDpoMethod `json:"method,omitzero,required"`
-	DpoBeta                       param.Opt[float64]      `json:"dpo_beta,omitzero"`
-	DpoNormalizeLogratiosByLength param.Opt[bool]         `json:"dpo_normalize_logratios_by_length,omitzero"`
-	DpoReferenceFree              param.Opt[bool]         `json:"dpo_reference_free,omitzero"`
-	RpoAlpha                      param.Opt[float64]      `json:"rpo_alpha,omitzero"`
-	SimpoGamma                    param.Opt[float64]      `json:"simpo_gamma,omitzero"`
-	paramObj
-}
-
-func (r TrainingMethodDpoParam) MarshalJSON() (data []byte, err error) {
-	type shadow TrainingMethodDpoParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *TrainingMethodDpoParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type TrainingMethodSft struct {
-	// Any of "sft".
-	Method TrainingMethodSftMethod `json:"method,required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
-	TrainOnInputs TrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Method        respjson.Field
-		TrainOnInputs respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r TrainingMethodSft) RawJSON() string { return r.JSON.raw }
-func (r *TrainingMethodSft) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// ToParam converts this TrainingMethodSft to a TrainingMethodSftParam.
-//
-// Warning: the fields of the param type will not be present. ToParam should only
-// be used at the last possible moment before sending a request. Test for this with
-// TrainingMethodSftParam.Overrides()
-func (r TrainingMethodSft) ToParam() TrainingMethodSftParam {
-	return param.Override[TrainingMethodSftParam](json.RawMessage(r.RawJSON()))
-}
-
-type TrainingMethodSftMethod string
-
-const (
-	TrainingMethodSftMethodSft TrainingMethodSftMethod = "sft"
-)
-
-// TrainingMethodSftTrainOnInputsUnion contains all possible properties and values
-// from [bool], [string].
+// FinetuneResponseTrainingTypeUnion contains all possible properties and values
+// from [FinetuneResponseTrainingTypeFullTrainingType],
+// [FinetuneResponseTrainingTypeLoRaTrainingType].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
-//
-// If the underlying value is not a json object, one of the following properties
-// will be valid: OfBool OfTrainingMethodSftTrainOnInputsString]
-type TrainingMethodSftTrainOnInputsUnion struct {
-	// This field will be present if the value is a [bool] instead of an object.
-	OfBool bool `json:",inline"`
-	// This field will be present if the value is a [string] instead of an object.
-	OfTrainingMethodSftTrainOnInputsString string `json:",inline"`
-	JSON                                   struct {
-		OfBool                                 respjson.Field
-		OfTrainingMethodSftTrainOnInputsString respjson.Field
-		raw                                    string
+type FinetuneResponseTrainingTypeUnion struct {
+	Type string `json:"type"`
+	// This field is from variant [FinetuneResponseTrainingTypeLoRaTrainingType].
+	LoraAlpha int64 `json:"lora_alpha"`
+	// This field is from variant [FinetuneResponseTrainingTypeLoRaTrainingType].
+	LoraR int64 `json:"lora_r"`
+	// This field is from variant [FinetuneResponseTrainingTypeLoRaTrainingType].
+	LoraDropout float64 `json:"lora_dropout"`
+	// This field is from variant [FinetuneResponseTrainingTypeLoRaTrainingType].
+	LoraTrainableModules string `json:"lora_trainable_modules"`
+	JSON                 struct {
+		Type                 respjson.Field
+		LoraAlpha            respjson.Field
+		LoraR                respjson.Field
+		LoraDropout          respjson.Field
+		LoraTrainableModules respjson.Field
+		raw                  string
 	} `json:"-"`
 }
 
-func (u TrainingMethodSftTrainOnInputsUnion) AsBool() (v bool) {
+func (u FinetuneResponseTrainingTypeUnion) AsFinetuneResponseTrainingTypeFullTrainingType() (v FinetuneResponseTrainingTypeFullTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u TrainingMethodSftTrainOnInputsUnion) AsTrainingMethodSftTrainOnInputsString() (v string) {
+func (u FinetuneResponseTrainingTypeUnion) AsFinetuneResponseTrainingTypeLoRaTrainingType() (v FinetuneResponseTrainingTypeLoRaTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
 // Returns the unmodified JSON received from the API
-func (u TrainingMethodSftTrainOnInputsUnion) RawJSON() string { return u.JSON.raw }
+func (u FinetuneResponseTrainingTypeUnion) RawJSON() string { return u.JSON.raw }
 
-func (r *TrainingMethodSftTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
+func (r *FinetuneResponseTrainingTypeUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type TrainingMethodSftTrainOnInputsString string
-
-const (
-	TrainingMethodSftTrainOnInputsStringAuto TrainingMethodSftTrainOnInputsString = "auto"
-)
-
-// The properties Method, TrainOnInputs are required.
-type TrainingMethodSftParam struct {
-	// Any of "sft".
-	Method TrainingMethodSftMethod `json:"method,omitzero,required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
-	TrainOnInputs TrainingMethodSftTrainOnInputsUnionParam `json:"train_on_inputs,omitzero,required"`
-	paramObj
+type FinetuneResponseTrainingTypeFullTrainingType struct {
+	// Any of "Full".
+	Type string `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-func (r TrainingMethodSftParam) MarshalJSON() (data []byte, err error) {
-	type shadow TrainingMethodSftParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *TrainingMethodSftParam) UnmarshalJSON(data []byte) error {
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseTrainingTypeFullTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponseTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Only one field can be non-zero.
-//
-// Use [param.IsOmitted] to confirm if a field is set.
-type TrainingMethodSftTrainOnInputsUnionParam struct {
-	OfBool param.Opt[bool] `json:",omitzero,inline"`
-	// Check if union is this variant with
-	// !param.IsOmitted(union.OfTrainingMethodSftTrainOnInputsString)
-	OfTrainingMethodSftTrainOnInputsString param.Opt[string] `json:",omitzero,inline"`
-	paramUnion
+type FinetuneResponseTrainingTypeLoRaTrainingType struct {
+	LoraAlpha int64 `json:"lora_alpha,required"`
+	LoraR     int64 `json:"lora_r,required"`
+	// Any of "Lora".
+	Type                 string  `json:"type,required"`
+	LoraDropout          float64 `json:"lora_dropout"`
+	LoraTrainableModules string  `json:"lora_trainable_modules"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LoraAlpha            respjson.Field
+		LoraR                respjson.Field
+		Type                 respjson.Field
+		LoraDropout          respjson.Field
+		LoraTrainableModules respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
 }
 
-func (u TrainingMethodSftTrainOnInputsUnionParam) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfBool, u.OfTrainingMethodSftTrainOnInputsString)
-}
-func (u *TrainingMethodSftTrainOnInputsUnionParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, u)
-}
-
-func (u *TrainingMethodSftTrainOnInputsUnionParam) asAny() any {
-	if !param.IsOmitted(u.OfBool) {
-		return &u.OfBool.Value
-	} else if !param.IsOmitted(u.OfTrainingMethodSftTrainOnInputsString) {
-		return &u.OfTrainingMethodSftTrainOnInputsString
-	}
-	return nil
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseTrainingTypeLoRaTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
 
 // A truncated version of the fine-tune response, used for POST /fine-tunes, GET
@@ -1018,7 +747,7 @@ type FineTuningNewResponse struct {
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Events related to this fine-tune job
-	Events []FineTuneEvent `json:"events"`
+	Events []FinetuneEvent `json:"events"`
 	// Checkpoint used to continue training
 	FromCheckpoint string `json:"from_checkpoint"`
 	// Hugging Face Hub repo to start training from
@@ -1028,7 +757,7 @@ type FineTuningNewResponse struct {
 	// Learning rate used for training
 	LearningRate float64 `json:"learning_rate"`
 	// Learning rate scheduler configuration
-	LrScheduler LrScheduler `json:"lr_scheduler"`
+	LrScheduler FineTuningNewResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
 	// Base model used for fine-tuning
@@ -1123,23 +852,126 @@ const (
 	FineTuningNewResponseStatusCompleted       FineTuningNewResponseStatus = "completed"
 )
 
+// Learning rate scheduler configuration
+type FineTuningNewResponseLrScheduler struct {
+	// Any of "linear", "cosine".
+	LrSchedulerType string                                               `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LrSchedulerType respjson.Field
+		LrSchedulerArgs respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseLrScheduler) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningNewResponseLrScheduler) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion contains all possible
+// properties and values from
+// [FineTuningNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion struct {
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// This field is from variant
+	// [FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+	NumCycles float64 `json:"num_cycles"`
+	JSON      struct {
+		MinLrRatio respjson.Field
+		NumCycles  respjson.Field
+		raw        string
+	} `json:"-"`
+}
+
+func (u FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion) AsFineTuningNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs() (v FineTuningNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion) AsFineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs() (v FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64 `json:"num_cycles,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		NumCycles   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // FineTuningNewResponseTrainingMethodUnion contains all possible properties and
-// values from [TrainingMethodSft], [TrainingMethodDpo].
+// values from [FineTuningNewResponseTrainingMethodTrainingMethodSft],
+// [FineTuningNewResponseTrainingMethodTrainingMethodDpo].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 type FineTuningNewResponseTrainingMethodUnion struct {
 	Method string `json:"method"`
-	// This field is from variant [TrainingMethodSft].
-	TrainOnInputs TrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningNewResponseTrainingMethodTrainingMethodSft].
+	TrainOnInputs FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
+	// This field is from variant
+	// [FineTuningNewResponseTrainingMethodTrainingMethodDpo].
 	DpoBeta float64 `json:"dpo_beta"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningNewResponseTrainingMethodTrainingMethodDpo].
 	DpoNormalizeLogratiosByLength bool `json:"dpo_normalize_logratios_by_length"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningNewResponseTrainingMethodTrainingMethodDpo].
 	DpoReferenceFree bool `json:"dpo_reference_free"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningNewResponseTrainingMethodTrainingMethodDpo].
 	RpoAlpha float64 `json:"rpo_alpha"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningNewResponseTrainingMethodTrainingMethodDpo].
 	SimpoGamma float64 `json:"simpo_gamma"`
 	JSON       struct {
 		Method                        respjson.Field
@@ -1153,12 +985,12 @@ type FineTuningNewResponseTrainingMethodUnion struct {
 	} `json:"-"`
 }
 
-func (u FineTuningNewResponseTrainingMethodUnion) AsTrainingMethodSft() (v TrainingMethodSft) {
+func (u FineTuningNewResponseTrainingMethodUnion) AsFineTuningNewResponseTrainingMethodTrainingMethodSft() (v FineTuningNewResponseTrainingMethodTrainingMethodSft) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuningNewResponseTrainingMethodUnion) AsTrainingMethodDpo() (v TrainingMethodDpo) {
+func (u FineTuningNewResponseTrainingMethodUnion) AsFineTuningNewResponseTrainingMethodTrainingMethodDpo() (v FineTuningNewResponseTrainingMethodTrainingMethodDpo) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -1170,19 +1002,113 @@ func (r *FineTuningNewResponseTrainingMethodUnion) UnmarshalJSON(data []byte) er
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type FineTuningNewResponseTrainingMethodTrainingMethodSft struct {
+	// Any of "sft".
+	Method string `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Method        respjson.Field
+		TrainOnInputs respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseTrainingMethodTrainingMethodSft) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningNewResponseTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion contains
+// all possible properties and values from [bool], [string].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfBool
+// OfFineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString]
+type FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion struct {
+	// This field will be present if the value is a [bool] instead of an object.
+	OfBool bool `json:",inline"`
+	// This field will be present if the value is a [string] instead of an object.
+	OfFineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString string `json:",inline"`
+	JSON                                                                      struct {
+		OfBool                                                                    respjson.Field
+		OfFineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString respjson.Field
+		raw                                                                       string
+	} `json:"-"`
+}
+
+func (u FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsBool() (v bool) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsFineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString() (v string) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) RawJSON() string {
+	return u.JSON.raw
+}
+
+func (r *FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+type FineTuningNewResponseTrainingMethodTrainingMethodDpo struct {
+	// Any of "dpo".
+	Method                        string  `json:"method,required"`
+	DpoBeta                       float64 `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool    `json:"dpo_reference_free"`
+	RpoAlpha                      float64 `json:"rpo_alpha"`
+	SimpoGamma                    float64 `json:"simpo_gamma"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Method                        respjson.Field
+		DpoBeta                       respjson.Field
+		DpoNormalizeLogratiosByLength respjson.Field
+		DpoReferenceFree              respjson.Field
+		RpoAlpha                      respjson.Field
+		SimpoGamma                    respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseTrainingMethodTrainingMethodDpo) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningNewResponseTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // FineTuningNewResponseTrainingTypeUnion contains all possible properties and
-// values from [FullTrainingType], [LoRaTrainingType].
+// values from [FineTuningNewResponseTrainingTypeFullTrainingType],
+// [FineTuningNewResponseTrainingTypeLoRaTrainingType].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 type FineTuningNewResponseTrainingTypeUnion struct {
 	Type string `json:"type"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant [FineTuningNewResponseTrainingTypeLoRaTrainingType].
 	LoraAlpha int64 `json:"lora_alpha"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant [FineTuningNewResponseTrainingTypeLoRaTrainingType].
 	LoraR int64 `json:"lora_r"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant [FineTuningNewResponseTrainingTypeLoRaTrainingType].
 	LoraDropout float64 `json:"lora_dropout"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant [FineTuningNewResponseTrainingTypeLoRaTrainingType].
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	JSON                 struct {
 		Type                 respjson.Field
@@ -1194,12 +1120,12 @@ type FineTuningNewResponseTrainingTypeUnion struct {
 	} `json:"-"`
 }
 
-func (u FineTuningNewResponseTrainingTypeUnion) AsFullTrainingType() (v FullTrainingType) {
+func (u FineTuningNewResponseTrainingTypeUnion) AsFineTuningNewResponseTrainingTypeFullTrainingType() (v FineTuningNewResponseTrainingTypeFullTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuningNewResponseTrainingTypeUnion) AsLoRaTrainingType() (v LoRaTrainingType) {
+func (u FineTuningNewResponseTrainingTypeUnion) AsFineTuningNewResponseTrainingTypeLoRaTrainingType() (v FineTuningNewResponseTrainingTypeLoRaTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -1208,6 +1134,48 @@ func (u FineTuningNewResponseTrainingTypeUnion) AsLoRaTrainingType() (v LoRaTrai
 func (u FineTuningNewResponseTrainingTypeUnion) RawJSON() string { return u.JSON.raw }
 
 func (r *FineTuningNewResponseTrainingTypeUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningNewResponseTrainingTypeFullTrainingType struct {
+	// Any of "Full".
+	Type string `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseTrainingTypeFullTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningNewResponseTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningNewResponseTrainingTypeLoRaTrainingType struct {
+	LoraAlpha int64 `json:"lora_alpha,required"`
+	LoraR     int64 `json:"lora_r,required"`
+	// Any of "Lora".
+	Type                 string  `json:"type,required"`
+	LoraDropout          float64 `json:"lora_dropout"`
+	LoraTrainableModules string  `json:"lora_trainable_modules"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LoraAlpha            respjson.Field
+		LoraR                respjson.Field
+		Type                 respjson.Field
+		LoraDropout          respjson.Field
+		LoraTrainableModules respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseTrainingTypeLoRaTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningNewResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1242,7 +1210,7 @@ type FineTuningListResponseData struct {
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Events related to this fine-tune job
-	Events []FineTuneEvent `json:"events"`
+	Events []FinetuneEvent `json:"events"`
 	// Checkpoint used to continue training
 	FromCheckpoint string `json:"from_checkpoint"`
 	// Hugging Face Hub repo to start training from
@@ -1252,7 +1220,7 @@ type FineTuningListResponseData struct {
 	// Learning rate used for training
 	LearningRate float64 `json:"learning_rate"`
 	// Learning rate scheduler configuration
-	LrScheduler LrScheduler `json:"lr_scheduler"`
+	LrScheduler FineTuningListResponseDataLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
 	// Base model used for fine-tuning
@@ -1333,23 +1301,128 @@ func (r *FineTuningListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Learning rate scheduler configuration
+type FineTuningListResponseDataLrScheduler struct {
+	// Any of "linear", "cosine".
+	LrSchedulerType string                                                    `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LrSchedulerType respjson.Field
+		LrSchedulerArgs respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataLrScheduler) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningListResponseDataLrScheduler) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion contains all possible
+// properties and values from
+// [FineTuningListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion struct {
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// This field is from variant
+	// [FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+	NumCycles float64 `json:"num_cycles"`
+	JSON      struct {
+		MinLrRatio respjson.Field
+		NumCycles  respjson.Field
+		raw        string
+	} `json:"-"`
+}
+
+func (u FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion) AsFineTuningListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs() (v FineTuningListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion) AsFineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs() (v FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion) RawJSON() string {
+	return u.JSON.raw
+}
+
+func (r *FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64 `json:"num_cycles,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		NumCycles   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // FineTuningListResponseDataTrainingMethodUnion contains all possible properties
-// and values from [TrainingMethodSft], [TrainingMethodDpo].
+// and values from [FineTuningListResponseDataTrainingMethodTrainingMethodSft],
+// [FineTuningListResponseDataTrainingMethodTrainingMethodDpo].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 type FineTuningListResponseDataTrainingMethodUnion struct {
 	Method string `json:"method"`
-	// This field is from variant [TrainingMethodSft].
-	TrainOnInputs TrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingMethodTrainingMethodSft].
+	TrainOnInputs FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingMethodTrainingMethodDpo].
 	DpoBeta float64 `json:"dpo_beta"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingMethodTrainingMethodDpo].
 	DpoNormalizeLogratiosByLength bool `json:"dpo_normalize_logratios_by_length"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingMethodTrainingMethodDpo].
 	DpoReferenceFree bool `json:"dpo_reference_free"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingMethodTrainingMethodDpo].
 	RpoAlpha float64 `json:"rpo_alpha"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingMethodTrainingMethodDpo].
 	SimpoGamma float64 `json:"simpo_gamma"`
 	JSON       struct {
 		Method                        respjson.Field
@@ -1363,12 +1436,12 @@ type FineTuningListResponseDataTrainingMethodUnion struct {
 	} `json:"-"`
 }
 
-func (u FineTuningListResponseDataTrainingMethodUnion) AsTrainingMethodSft() (v TrainingMethodSft) {
+func (u FineTuningListResponseDataTrainingMethodUnion) AsFineTuningListResponseDataTrainingMethodTrainingMethodSft() (v FineTuningListResponseDataTrainingMethodTrainingMethodSft) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuningListResponseDataTrainingMethodUnion) AsTrainingMethodDpo() (v TrainingMethodDpo) {
+func (u FineTuningListResponseDataTrainingMethodUnion) AsFineTuningListResponseDataTrainingMethodTrainingMethodDpo() (v FineTuningListResponseDataTrainingMethodTrainingMethodDpo) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -1380,19 +1453,121 @@ func (r *FineTuningListResponseDataTrainingMethodUnion) UnmarshalJSON(data []byt
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type FineTuningListResponseDataTrainingMethodTrainingMethodSft struct {
+	// Any of "sft".
+	Method string `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Method        respjson.Field
+		TrainOnInputs respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataTrainingMethodTrainingMethodSft) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningListResponseDataTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion
+// contains all possible properties and values from [bool], [string].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfBool
+// OfFineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString]
+type FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion struct {
+	// This field will be present if the value is a [bool] instead of an object.
+	OfBool bool `json:",inline"`
+	// This field will be present if the value is a [string] instead of an object.
+	OfFineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString string `json:",inline"`
+	JSON                                                                           struct {
+		OfBool                                                                         respjson.Field
+		OfFineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString respjson.Field
+		raw                                                                            string
+	} `json:"-"`
+}
+
+func (u FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsBool() (v bool) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsFineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString() (v string) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion) RawJSON() string {
+	return u.JSON.raw
+}
+
+func (r *FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+type FineTuningListResponseDataTrainingMethodTrainingMethodDpo struct {
+	// Any of "dpo".
+	Method                        string  `json:"method,required"`
+	DpoBeta                       float64 `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool    `json:"dpo_reference_free"`
+	RpoAlpha                      float64 `json:"rpo_alpha"`
+	SimpoGamma                    float64 `json:"simpo_gamma"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Method                        respjson.Field
+		DpoBeta                       respjson.Field
+		DpoNormalizeLogratiosByLength respjson.Field
+		DpoReferenceFree              respjson.Field
+		RpoAlpha                      respjson.Field
+		SimpoGamma                    respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataTrainingMethodTrainingMethodDpo) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningListResponseDataTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // FineTuningListResponseDataTrainingTypeUnion contains all possible properties and
-// values from [FullTrainingType], [LoRaTrainingType].
+// values from [FineTuningListResponseDataTrainingTypeFullTrainingType],
+// [FineTuningListResponseDataTrainingTypeLoRaTrainingType].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 type FineTuningListResponseDataTrainingTypeUnion struct {
 	Type string `json:"type"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingTypeLoRaTrainingType].
 	LoraAlpha int64 `json:"lora_alpha"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingTypeLoRaTrainingType].
 	LoraR int64 `json:"lora_r"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingTypeLoRaTrainingType].
 	LoraDropout float64 `json:"lora_dropout"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningListResponseDataTrainingTypeLoRaTrainingType].
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	JSON                 struct {
 		Type                 respjson.Field
@@ -1404,12 +1579,12 @@ type FineTuningListResponseDataTrainingTypeUnion struct {
 	} `json:"-"`
 }
 
-func (u FineTuningListResponseDataTrainingTypeUnion) AsFullTrainingType() (v FullTrainingType) {
+func (u FineTuningListResponseDataTrainingTypeUnion) AsFineTuningListResponseDataTrainingTypeFullTrainingType() (v FineTuningListResponseDataTrainingTypeFullTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuningListResponseDataTrainingTypeUnion) AsLoRaTrainingType() (v LoRaTrainingType) {
+func (u FineTuningListResponseDataTrainingTypeUnion) AsFineTuningListResponseDataTrainingTypeLoRaTrainingType() (v FineTuningListResponseDataTrainingTypeLoRaTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -1418,6 +1593,48 @@ func (u FineTuningListResponseDataTrainingTypeUnion) AsLoRaTrainingType() (v LoR
 func (u FineTuningListResponseDataTrainingTypeUnion) RawJSON() string { return u.JSON.raw }
 
 func (r *FineTuningListResponseDataTrainingTypeUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningListResponseDataTrainingTypeFullTrainingType struct {
+	// Any of "Full".
+	Type string `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataTrainingTypeFullTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningListResponseDataTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningListResponseDataTrainingTypeLoRaTrainingType struct {
+	LoraAlpha int64 `json:"lora_alpha,required"`
+	LoraR     int64 `json:"lora_r,required"`
+	// Any of "Lora".
+	Type                 string  `json:"type,required"`
+	LoraDropout          float64 `json:"lora_dropout"`
+	LoraTrainableModules string  `json:"lora_trainable_modules"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LoraAlpha            respjson.Field
+		LoraR                respjson.Field
+		Type                 respjson.Field
+		LoraDropout          respjson.Field
+		LoraTrainableModules respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataTrainingTypeLoRaTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningListResponseDataTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1453,7 +1670,7 @@ type FineTuningCancelResponse struct {
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Events related to this fine-tune job
-	Events []FineTuneEvent `json:"events"`
+	Events []FinetuneEvent `json:"events"`
 	// Checkpoint used to continue training
 	FromCheckpoint string `json:"from_checkpoint"`
 	// Hugging Face Hub repo to start training from
@@ -1463,7 +1680,7 @@ type FineTuningCancelResponse struct {
 	// Learning rate used for training
 	LearningRate float64 `json:"learning_rate"`
 	// Learning rate scheduler configuration
-	LrScheduler LrScheduler `json:"lr_scheduler"`
+	LrScheduler FineTuningCancelResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
 	// Base model used for fine-tuning
@@ -1558,23 +1775,126 @@ const (
 	FineTuningCancelResponseStatusCompleted       FineTuningCancelResponseStatus = "completed"
 )
 
+// Learning rate scheduler configuration
+type FineTuningCancelResponseLrScheduler struct {
+	// Any of "linear", "cosine".
+	LrSchedulerType string                                                  `json:"lr_scheduler_type,required"`
+	LrSchedulerArgs FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LrSchedulerType respjson.Field
+		LrSchedulerArgs respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseLrScheduler) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningCancelResponseLrScheduler) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion contains all possible
+// properties and values from
+// [FineTuningCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs],
+// [FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion struct {
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// This field is from variant
+	// [FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs].
+	NumCycles float64 `json:"num_cycles"`
+	JSON      struct {
+		MinLrRatio respjson.Field
+		NumCycles  respjson.Field
+		raw        string
+	} `json:"-"`
+}
+
+func (u FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion) AsFineTuningCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs() (v FineTuningCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion) AsFineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs() (v FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64 `json:"num_cycles,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MinLrRatio  respjson.Field
+		NumCycles   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // FineTuningCancelResponseTrainingMethodUnion contains all possible properties and
-// values from [TrainingMethodSft], [TrainingMethodDpo].
+// values from [FineTuningCancelResponseTrainingMethodTrainingMethodSft],
+// [FineTuningCancelResponseTrainingMethodTrainingMethodDpo].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 type FineTuningCancelResponseTrainingMethodUnion struct {
 	Method string `json:"method"`
-	// This field is from variant [TrainingMethodSft].
-	TrainOnInputs TrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingMethodTrainingMethodSft].
+	TrainOnInputs FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs"`
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingMethodTrainingMethodDpo].
 	DpoBeta float64 `json:"dpo_beta"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingMethodTrainingMethodDpo].
 	DpoNormalizeLogratiosByLength bool `json:"dpo_normalize_logratios_by_length"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingMethodTrainingMethodDpo].
 	DpoReferenceFree bool `json:"dpo_reference_free"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingMethodTrainingMethodDpo].
 	RpoAlpha float64 `json:"rpo_alpha"`
-	// This field is from variant [TrainingMethodDpo].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingMethodTrainingMethodDpo].
 	SimpoGamma float64 `json:"simpo_gamma"`
 	JSON       struct {
 		Method                        respjson.Field
@@ -1588,12 +1908,12 @@ type FineTuningCancelResponseTrainingMethodUnion struct {
 	} `json:"-"`
 }
 
-func (u FineTuningCancelResponseTrainingMethodUnion) AsTrainingMethodSft() (v TrainingMethodSft) {
+func (u FineTuningCancelResponseTrainingMethodUnion) AsFineTuningCancelResponseTrainingMethodTrainingMethodSft() (v FineTuningCancelResponseTrainingMethodTrainingMethodSft) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuningCancelResponseTrainingMethodUnion) AsTrainingMethodDpo() (v TrainingMethodDpo) {
+func (u FineTuningCancelResponseTrainingMethodUnion) AsFineTuningCancelResponseTrainingMethodTrainingMethodDpo() (v FineTuningCancelResponseTrainingMethodTrainingMethodDpo) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -1605,19 +1925,117 @@ func (r *FineTuningCancelResponseTrainingMethodUnion) UnmarshalJSON(data []byte)
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type FineTuningCancelResponseTrainingMethodTrainingMethodSft struct {
+	// Any of "sft".
+	Method string `json:"method,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Method        respjson.Field
+		TrainOnInputs respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseTrainingMethodTrainingMethodSft) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningCancelResponseTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion
+// contains all possible properties and values from [bool], [string].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+//
+// If the underlying value is not a json object, one of the following properties
+// will be valid: OfBool
+// OfFineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString]
+type FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion struct {
+	// This field will be present if the value is a [bool] instead of an object.
+	OfBool bool `json:",inline"`
+	// This field will be present if the value is a [string] instead of an object.
+	OfFineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString string `json:",inline"`
+	JSON                                                                         struct {
+		OfBool                                                                       respjson.Field
+		OfFineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString respjson.Field
+		raw                                                                          string
+	} `json:"-"`
+}
+
+func (u FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsBool() (v bool) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) AsFineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString() (v string) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) RawJSON() string {
+	return u.JSON.raw
+}
+
+func (r *FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+type FineTuningCancelResponseTrainingMethodTrainingMethodDpo struct {
+	// Any of "dpo".
+	Method                        string  `json:"method,required"`
+	DpoBeta                       float64 `json:"dpo_beta"`
+	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
+	DpoReferenceFree              bool    `json:"dpo_reference_free"`
+	RpoAlpha                      float64 `json:"rpo_alpha"`
+	SimpoGamma                    float64 `json:"simpo_gamma"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Method                        respjson.Field
+		DpoBeta                       respjson.Field
+		DpoNormalizeLogratiosByLength respjson.Field
+		DpoReferenceFree              respjson.Field
+		RpoAlpha                      respjson.Field
+		SimpoGamma                    respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseTrainingMethodTrainingMethodDpo) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningCancelResponseTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // FineTuningCancelResponseTrainingTypeUnion contains all possible properties and
-// values from [FullTrainingType], [LoRaTrainingType].
+// values from [FineTuningCancelResponseTrainingTypeFullTrainingType],
+// [FineTuningCancelResponseTrainingTypeLoRaTrainingType].
 //
 // Use the methods beginning with 'As' to cast the union to one of its variants.
 type FineTuningCancelResponseTrainingTypeUnion struct {
 	Type string `json:"type"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingTypeLoRaTrainingType].
 	LoraAlpha int64 `json:"lora_alpha"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingTypeLoRaTrainingType].
 	LoraR int64 `json:"lora_r"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingTypeLoRaTrainingType].
 	LoraDropout float64 `json:"lora_dropout"`
-	// This field is from variant [LoRaTrainingType].
+	// This field is from variant
+	// [FineTuningCancelResponseTrainingTypeLoRaTrainingType].
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	JSON                 struct {
 		Type                 respjson.Field
@@ -1629,12 +2047,12 @@ type FineTuningCancelResponseTrainingTypeUnion struct {
 	} `json:"-"`
 }
 
-func (u FineTuningCancelResponseTrainingTypeUnion) AsFullTrainingType() (v FullTrainingType) {
+func (u FineTuningCancelResponseTrainingTypeUnion) AsFineTuningCancelResponseTrainingTypeFullTrainingType() (v FineTuningCancelResponseTrainingTypeFullTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
 
-func (u FineTuningCancelResponseTrainingTypeUnion) AsLoRaTrainingType() (v LoRaTrainingType) {
+func (u FineTuningCancelResponseTrainingTypeUnion) AsFineTuningCancelResponseTrainingTypeLoRaTrainingType() (v FineTuningCancelResponseTrainingTypeLoRaTrainingType) {
 	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
 	return
 }
@@ -1643,6 +2061,48 @@ func (u FineTuningCancelResponseTrainingTypeUnion) AsLoRaTrainingType() (v LoRaT
 func (u FineTuningCancelResponseTrainingTypeUnion) RawJSON() string { return u.JSON.raw }
 
 func (r *FineTuningCancelResponseTrainingTypeUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningCancelResponseTrainingTypeFullTrainingType struct {
+	// Any of "Full".
+	Type string `json:"type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseTrainingTypeFullTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningCancelResponseTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningCancelResponseTrainingTypeLoRaTrainingType struct {
+	LoraAlpha int64 `json:"lora_alpha,required"`
+	LoraR     int64 `json:"lora_r,required"`
+	// Any of "Lora".
+	Type                 string  `json:"type,required"`
+	LoraDropout          float64 `json:"lora_dropout"`
+	LoraTrainableModules string  `json:"lora_trainable_modules"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LoraAlpha            respjson.Field
+		LoraR                respjson.Field
+		Type                 respjson.Field
+		LoraDropout          respjson.Field
+		LoraTrainableModules respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseTrainingTypeLoRaTrainingType) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningCancelResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1685,7 +2145,7 @@ func (r *FineTuningListCheckpointsResponseData) UnmarshalJSON(data []byte) error
 }
 
 type FineTuningListEventsResponse struct {
-	Data []FineTuneEvent `json:"data,required"`
+	Data []FinetuneEvent `json:"data,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -1758,7 +2218,7 @@ type FineTuningNewParams struct {
 	BatchSize FineTuningNewParamsBatchSizeUnion `json:"batch_size,omitzero"`
 	// The learning rate scheduler to use. It specifies how the learning rate is
 	// adjusted during training.
-	LrScheduler LrSchedulerParam `json:"lr_scheduler,omitzero"`
+	LrScheduler FineTuningNewParamsLrScheduler `json:"lr_scheduler,omitzero"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
 	TrainOnInputs FineTuningNewParamsTrainOnInputsUnion `json:"train_on_inputs,omitzero"`
@@ -1810,6 +2270,105 @@ const (
 	FineTuningNewParamsBatchSizeStringMax FineTuningNewParamsBatchSizeString = "max"
 )
 
+// The learning rate scheduler to use. It specifies how the learning rate is
+// adjusted during training.
+//
+// The property LrSchedulerType is required.
+type FineTuningNewParamsLrScheduler struct {
+	// Any of "linear", "cosine".
+	LrSchedulerType string                                             `json:"lr_scheduler_type,omitzero,required"`
+	LrSchedulerArgs FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args,omitzero"`
+	paramObj
+}
+
+func (r FineTuningNewParamsLrScheduler) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsLrScheduler
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsLrScheduler) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningNewParamsLrScheduler](
+		"lr_scheduler_type", "linear", "cosine",
+	)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion struct {
+	OfFineTuningNewsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs *FineTuningNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs `json:",omitzero,inline"`
+	OfFineTuningNewsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs *FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfFineTuningNewsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs, u.OfFineTuningNewsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs)
+}
+func (u *FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion) asAny() any {
+	if !param.IsOmitted(u.OfFineTuningNewsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) {
+		return u.OfFineTuningNewsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs
+	} else if !param.IsOmitted(u.OfFineTuningNewsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) {
+		return u.OfFineTuningNewsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion) GetNumCycles() *float64 {
+	if vt := u.OfFineTuningNewsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs; vt != nil {
+		return &vt.NumCycles
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion) GetMinLrRatio() *float64 {
+	if vt := u.OfFineTuningNewsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs; vt != nil && vt.MinLrRatio.Valid() {
+		return &vt.MinLrRatio.Value
+	} else if vt := u.OfFineTuningNewsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs; vt != nil {
+		return (*float64)(&vt.MinLrRatio)
+	}
+	return nil
+}
+
+type FineTuningNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio param.Opt[float64] `json:"min_lr_ratio,omitzero"`
+	paramObj
+}
+
+func (r FineTuningNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties MinLrRatio, NumCycles are required.
+type FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
+	// The ratio of the final learning rate to the peak learning rate
+	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	// Number or fraction of cycles for the cosine learning rate scheduler
+	NumCycles float64 `json:"num_cycles,required"`
+	paramObj
+}
+
+func (r FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Only one field can be non-zero.
 //
 // Use [param.IsOmitted] to confirm if a field is set.
@@ -1847,30 +2406,30 @@ const (
 //
 // Use [param.IsOmitted] to confirm if a field is set.
 type FineTuningNewParamsTrainingMethodUnion struct {
-	OfTrainingMethodSft *TrainingMethodSftParam `json:",omitzero,inline"`
-	OfTrainingMethodDpo *TrainingMethodDpoParam `json:",omitzero,inline"`
+	OfFineTuningNewsTrainingMethodTrainingMethodSft *FineTuningNewParamsTrainingMethodTrainingMethodSft `json:",omitzero,inline"`
+	OfFineTuningNewsTrainingMethodTrainingMethodDpo *FineTuningNewParamsTrainingMethodTrainingMethodDpo `json:",omitzero,inline"`
 	paramUnion
 }
 
 func (u FineTuningNewParamsTrainingMethodUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfTrainingMethodSft, u.OfTrainingMethodDpo)
+	return param.MarshalUnion(u, u.OfFineTuningNewsTrainingMethodTrainingMethodSft, u.OfFineTuningNewsTrainingMethodTrainingMethodDpo)
 }
 func (u *FineTuningNewParamsTrainingMethodUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, u)
 }
 
 func (u *FineTuningNewParamsTrainingMethodUnion) asAny() any {
-	if !param.IsOmitted(u.OfTrainingMethodSft) {
-		return u.OfTrainingMethodSft
-	} else if !param.IsOmitted(u.OfTrainingMethodDpo) {
-		return u.OfTrainingMethodDpo
+	if !param.IsOmitted(u.OfFineTuningNewsTrainingMethodTrainingMethodSft) {
+		return u.OfFineTuningNewsTrainingMethodTrainingMethodSft
+	} else if !param.IsOmitted(u.OfFineTuningNewsTrainingMethodTrainingMethodDpo) {
+		return u.OfFineTuningNewsTrainingMethodTrainingMethodDpo
 	}
 	return nil
 }
 
 // Returns a pointer to the underlying variant's property, if present.
-func (u FineTuningNewParamsTrainingMethodUnion) GetTrainOnInputs() *TrainingMethodSftTrainOnInputsUnionParam {
-	if vt := u.OfTrainingMethodSft; vt != nil {
+func (u FineTuningNewParamsTrainingMethodUnion) GetTrainOnInputs() *FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion {
+	if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodSft; vt != nil {
 		return &vt.TrainOnInputs
 	}
 	return nil
@@ -1878,7 +2437,7 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetTrainOnInputs() *TrainingMeth
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingMethodUnion) GetDpoBeta() *float64 {
-	if vt := u.OfTrainingMethodDpo; vt != nil && vt.DpoBeta.Valid() {
+	if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodDpo; vt != nil && vt.DpoBeta.Valid() {
 		return &vt.DpoBeta.Value
 	}
 	return nil
@@ -1886,7 +2445,7 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetDpoBeta() *float64 {
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingMethodUnion) GetDpoNormalizeLogratiosByLength() *bool {
-	if vt := u.OfTrainingMethodDpo; vt != nil && vt.DpoNormalizeLogratiosByLength.Valid() {
+	if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodDpo; vt != nil && vt.DpoNormalizeLogratiosByLength.Valid() {
 		return &vt.DpoNormalizeLogratiosByLength.Value
 	}
 	return nil
@@ -1894,7 +2453,7 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetDpoNormalizeLogratiosByLength
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingMethodUnion) GetDpoReferenceFree() *bool {
-	if vt := u.OfTrainingMethodDpo; vt != nil && vt.DpoReferenceFree.Valid() {
+	if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodDpo; vt != nil && vt.DpoReferenceFree.Valid() {
 		return &vt.DpoReferenceFree.Value
 	}
 	return nil
@@ -1902,7 +2461,7 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetDpoReferenceFree() *bool {
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingMethodUnion) GetRpoAlpha() *float64 {
-	if vt := u.OfTrainingMethodDpo; vt != nil && vt.RpoAlpha.Valid() {
+	if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodDpo; vt != nil && vt.RpoAlpha.Valid() {
 		return &vt.RpoAlpha.Value
 	}
 	return nil
@@ -1910,7 +2469,7 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetRpoAlpha() *float64 {
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingMethodUnion) GetSimpoGamma() *float64 {
-	if vt := u.OfTrainingMethodDpo; vt != nil && vt.SimpoGamma.Valid() {
+	if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodDpo; vt != nil && vt.SimpoGamma.Valid() {
 		return &vt.SimpoGamma.Value
 	}
 	return nil
@@ -1918,42 +2477,125 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetSimpoGamma() *float64 {
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingMethodUnion) GetMethod() *string {
-	if vt := u.OfTrainingMethodSft; vt != nil {
+	if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodSft; vt != nil {
 		return (*string)(&vt.Method)
-	} else if vt := u.OfTrainingMethodDpo; vt != nil {
+	} else if vt := u.OfFineTuningNewsTrainingMethodTrainingMethodDpo; vt != nil {
 		return (*string)(&vt.Method)
 	}
 	return nil
+}
+
+// The properties Method, TrainOnInputs are required.
+type FineTuningNewParamsTrainingMethodTrainingMethodSft struct {
+	// Any of "sft".
+	Method string `json:"method,omitzero,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero,required"`
+	paramObj
+}
+
+func (r FineTuningNewParamsTrainingMethodTrainingMethodSft) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsTrainingMethodTrainingMethodSft
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningNewParamsTrainingMethodTrainingMethodSft](
+		"method", "sft",
+	)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion struct {
+	OfBool param.Opt[bool] `json:",omitzero,inline"`
+	// Check if union is this variant with
+	// !param.IsOmitted(union.OfFineTuningNewsTrainingMethodTrainingMethodSftTrainOnInputsString)
+	OfFineTuningNewsTrainingMethodTrainingMethodSftTrainOnInputsString param.Opt[string] `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfBool, u.OfFineTuningNewsTrainingMethodTrainingMethodSftTrainOnInputsString)
+}
+func (u *FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion) asAny() any {
+	if !param.IsOmitted(u.OfBool) {
+		return &u.OfBool.Value
+	} else if !param.IsOmitted(u.OfFineTuningNewsTrainingMethodTrainingMethodSftTrainOnInputsString) {
+		return &u.OfFineTuningNewsTrainingMethodTrainingMethodSftTrainOnInputsString
+	}
+	return nil
+}
+
+type FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+// The property Method is required.
+type FineTuningNewParamsTrainingMethodTrainingMethodDpo struct {
+	// Any of "dpo".
+	Method                        string             `json:"method,omitzero,required"`
+	DpoBeta                       param.Opt[float64] `json:"dpo_beta,omitzero"`
+	DpoNormalizeLogratiosByLength param.Opt[bool]    `json:"dpo_normalize_logratios_by_length,omitzero"`
+	DpoReferenceFree              param.Opt[bool]    `json:"dpo_reference_free,omitzero"`
+	RpoAlpha                      param.Opt[float64] `json:"rpo_alpha,omitzero"`
+	SimpoGamma                    param.Opt[float64] `json:"simpo_gamma,omitzero"`
+	paramObj
+}
+
+func (r FineTuningNewParamsTrainingMethodTrainingMethodDpo) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsTrainingMethodTrainingMethodDpo
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningNewParamsTrainingMethodTrainingMethodDpo](
+		"method", "dpo",
+	)
 }
 
 // Only one field can be non-zero.
 //
 // Use [param.IsOmitted] to confirm if a field is set.
 type FineTuningNewParamsTrainingTypeUnion struct {
-	OfFullTrainingType *FullTrainingTypeParam `json:",omitzero,inline"`
-	OfLoRaTrainingType *LoRaTrainingTypeParam `json:",omitzero,inline"`
+	OfFineTuningNewsTrainingTypeFullTrainingType *FineTuningNewParamsTrainingTypeFullTrainingType `json:",omitzero,inline"`
+	OfFineTuningNewsTrainingTypeLoRaTrainingType *FineTuningNewParamsTrainingTypeLoRaTrainingType `json:",omitzero,inline"`
 	paramUnion
 }
 
 func (u FineTuningNewParamsTrainingTypeUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfFullTrainingType, u.OfLoRaTrainingType)
+	return param.MarshalUnion(u, u.OfFineTuningNewsTrainingTypeFullTrainingType, u.OfFineTuningNewsTrainingTypeLoRaTrainingType)
 }
 func (u *FineTuningNewParamsTrainingTypeUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, u)
 }
 
 func (u *FineTuningNewParamsTrainingTypeUnion) asAny() any {
-	if !param.IsOmitted(u.OfFullTrainingType) {
-		return u.OfFullTrainingType
-	} else if !param.IsOmitted(u.OfLoRaTrainingType) {
-		return u.OfLoRaTrainingType
+	if !param.IsOmitted(u.OfFineTuningNewsTrainingTypeFullTrainingType) {
+		return u.OfFineTuningNewsTrainingTypeFullTrainingType
+	} else if !param.IsOmitted(u.OfFineTuningNewsTrainingTypeLoRaTrainingType) {
+		return u.OfFineTuningNewsTrainingTypeLoRaTrainingType
 	}
 	return nil
 }
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingTypeUnion) GetLoraAlpha() *int64 {
-	if vt := u.OfLoRaTrainingType; vt != nil {
+	if vt := u.OfFineTuningNewsTrainingTypeLoRaTrainingType; vt != nil {
 		return &vt.LoraAlpha
 	}
 	return nil
@@ -1961,7 +2603,7 @@ func (u FineTuningNewParamsTrainingTypeUnion) GetLoraAlpha() *int64 {
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingTypeUnion) GetLoraR() *int64 {
-	if vt := u.OfLoRaTrainingType; vt != nil {
+	if vt := u.OfFineTuningNewsTrainingTypeLoRaTrainingType; vt != nil {
 		return &vt.LoraR
 	}
 	return nil
@@ -1969,7 +2611,7 @@ func (u FineTuningNewParamsTrainingTypeUnion) GetLoraR() *int64 {
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingTypeUnion) GetLoraDropout() *float64 {
-	if vt := u.OfLoRaTrainingType; vt != nil && vt.LoraDropout.Valid() {
+	if vt := u.OfFineTuningNewsTrainingTypeLoRaTrainingType; vt != nil && vt.LoraDropout.Valid() {
 		return &vt.LoraDropout.Value
 	}
 	return nil
@@ -1977,7 +2619,7 @@ func (u FineTuningNewParamsTrainingTypeUnion) GetLoraDropout() *float64 {
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingTypeUnion) GetLoraTrainableModules() *string {
-	if vt := u.OfLoRaTrainingType; vt != nil && vt.LoraTrainableModules.Valid() {
+	if vt := u.OfFineTuningNewsTrainingTypeLoRaTrainingType; vt != nil && vt.LoraTrainableModules.Valid() {
 		return &vt.LoraTrainableModules.Value
 	}
 	return nil
@@ -1985,12 +2627,58 @@ func (u FineTuningNewParamsTrainingTypeUnion) GetLoraTrainableModules() *string 
 
 // Returns a pointer to the underlying variant's property, if present.
 func (u FineTuningNewParamsTrainingTypeUnion) GetType() *string {
-	if vt := u.OfFullTrainingType; vt != nil {
+	if vt := u.OfFineTuningNewsTrainingTypeFullTrainingType; vt != nil {
 		return (*string)(&vt.Type)
-	} else if vt := u.OfLoRaTrainingType; vt != nil {
+	} else if vt := u.OfFineTuningNewsTrainingTypeLoRaTrainingType; vt != nil {
 		return (*string)(&vt.Type)
 	}
 	return nil
+}
+
+// The property Type is required.
+type FineTuningNewParamsTrainingTypeFullTrainingType struct {
+	// Any of "Full".
+	Type string `json:"type,omitzero,required"`
+	paramObj
+}
+
+func (r FineTuningNewParamsTrainingTypeFullTrainingType) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsTrainingTypeFullTrainingType
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningNewParamsTrainingTypeFullTrainingType](
+		"type", "Full",
+	)
+}
+
+// The properties LoraAlpha, LoraR, Type are required.
+type FineTuningNewParamsTrainingTypeLoRaTrainingType struct {
+	LoraAlpha int64 `json:"lora_alpha,required"`
+	LoraR     int64 `json:"lora_r,required"`
+	// Any of "Lora".
+	Type                 string             `json:"type,omitzero,required"`
+	LoraDropout          param.Opt[float64] `json:"lora_dropout,omitzero"`
+	LoraTrainableModules param.Opt[string]  `json:"lora_trainable_modules,omitzero"`
+	paramObj
+}
+
+func (r FineTuningNewParamsTrainingTypeLoRaTrainingType) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsTrainingTypeLoRaTrainingType
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningNewParamsTrainingTypeLoRaTrainingType](
+		"type", "Lora",
+	)
 }
 
 type FineTuningDeleteParams struct {
