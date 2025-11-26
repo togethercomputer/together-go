@@ -93,7 +93,7 @@ func (r *FineTuningService) Cancel(ctx context.Context, id string, opts ...optio
 	return
 }
 
-// Download a compressed fine-tuned model or checkpoint.
+// Receive a compressed fine-tuned model or checkpoint.
 func (r *FineTuningService) Content(ctx context.Context, query FineTuningContentParams, opts ...option.RequestOption) (res *http.Response, err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
@@ -2682,7 +2682,7 @@ func init() {
 }
 
 type FineTuningDeleteParams struct {
-	Force bool `query:"force,required" json:"-"`
+	Force param.Opt[bool] `query:"force,omitzero" json:"-"`
 	paramObj
 }
 
