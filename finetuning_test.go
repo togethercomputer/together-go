@@ -131,7 +131,7 @@ func TestFineTuningList(t *testing.T) {
 	}
 }
 
-func TestFineTuningDelete(t *testing.T) {
+func TestFineTuningDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -147,7 +147,7 @@ func TestFineTuningDelete(t *testing.T) {
 		context.TODO(),
 		"id",
 		together.FineTuningDeleteParams{
-			Force: true,
+			Force: together.Bool(true),
 		},
 	)
 	if err != nil {
