@@ -965,11 +965,11 @@ func (u evalNewParamsParametersUnionModelToEvaluate) GetExternalAPIToken() *stri
 	switch vt := u.any.(type) {
 	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
 		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
-			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ExternalAPIToken))
+			return paramutil.AddrIfPresent(vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ExternalAPIToken)
 		}
 	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
 		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
-			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ExternalAPIToken))
+			return paramutil.AddrIfPresent(vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ExternalAPIToken)
 		}
 	}
 	return nil
@@ -980,11 +980,11 @@ func (u evalNewParamsParametersUnionModelToEvaluate) GetExternalBaseURL() *strin
 	switch vt := u.any.(type) {
 	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
 		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
-			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ExternalBaseURL))
+			return paramutil.AddrIfPresent(vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.ExternalBaseURL)
 		}
 	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
 		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
-			return paramutil.AddrIfPresent((*string)(vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ExternalBaseURL))
+			return paramutil.AddrIfPresent(vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.ExternalBaseURL)
 		}
 	}
 	return nil
