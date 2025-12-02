@@ -293,6 +293,12 @@ type AudioTranscriptionNewParams struct {
 	// Optional ISO 639-1 language code. If `auto` is provided, language is
 	// auto-detected.
 	Language param.Opt[string] `json:"language,omitzero"`
+	// Maximum number of speakers expected in the audio. Used to improve diarization
+	// accuracy when the approximate number of speakers is known.
+	MaxSpeakers param.Opt[int64] `json:"max_speakers,omitzero"`
+	// Minimum number of speakers expected in the audio. Used to improve diarization
+	// accuracy when the approximate number of speakers is known.
+	MinSpeakers param.Opt[int64] `json:"min_speakers,omitzero"`
 	// Optional text to bias decoding.
 	Prompt param.Opt[string] `json:"prompt,omitzero"`
 	// Sampling temperature between 0.0 and 1.0

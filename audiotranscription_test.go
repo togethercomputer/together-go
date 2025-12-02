@@ -31,6 +31,8 @@ func TestAudioTranscriptionNewWithOptionalParams(t *testing.T) {
 		File:           io.Reader(bytes.NewBuffer([]byte("some file contents"))),
 		Diarize:        together.Bool(true),
 		Language:       together.String("en"),
+		MaxSpeakers:    together.Int(0),
+		MinSpeakers:    together.Int(0),
 		Model:          together.AudioTranscriptionNewParamsModelOpenAIWhisperLargeV3,
 		Prompt:         together.String("prompt"),
 		ResponseFormat: together.AudioTranscriptionNewParamsResponseFormatJson,
