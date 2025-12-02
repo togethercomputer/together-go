@@ -35,14 +35,15 @@ func TestImageGenerateWithOptionalParams(t *testing.T) {
 			Path:  "path",
 			Scale: 0,
 		}},
-		ImageURL:       together.String("image_url"),
-		N:              together.Int(0),
-		NegativePrompt: together.String("negative_prompt"),
-		OutputFormat:   together.ImageGenerateParamsOutputFormatJpeg,
-		ResponseFormat: together.ImageGenerateParamsResponseFormatBase64,
-		Seed:           together.Int(0),
-		Steps:          together.Int(0),
-		Width:          together.Int(0),
+		ImageURL:        together.String("image_url"),
+		N:               together.Int(0),
+		NegativePrompt:  together.String("negative_prompt"),
+		OutputFormat:    together.ImageGenerateParamsOutputFormatJpeg,
+		ReferenceImages: []string{"string"},
+		ResponseFormat:  together.ImageGenerateParamsResponseFormatBase64,
+		Seed:            together.Int(0),
+		Steps:           together.Int(0),
+		Width:           together.Int(0),
 	})
 	if err != nil {
 		var apierr *together.Error

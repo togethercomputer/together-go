@@ -227,6 +227,10 @@ type ImageGenerateParams struct {
 	//
 	// Any of "jpeg", "png".
 	OutputFormat ImageGenerateParamsOutputFormat `json:"output_format,omitzero"`
+	// An array of image URLs that guide the overall appearance and style of the
+	// generated image. These reference images influence the visual characteristics
+	// consistently across the generation.
+	ReferenceImages []string `json:"reference_images,omitzero"`
 	// Format of the image response. Can be either a base64 string or a URL.
 	//
 	// Any of "base64", "url".
