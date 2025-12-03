@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.1.0-alpha.3 (2025-12-03)
+
+Full Changelog: [v0.1.0-alpha.2...v0.1.0-alpha.3](https://github.com/togethercomputer/together-go/compare/v0.1.0-alpha.2...v0.1.0-alpha.3)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** Change call signature for `audio.create` to `audio.speech.create` to match spec with python library and add space for future APIs
+* **api:** Update method signature for reranking to `rerank.create()`
+* **api:** Change Fine Tuning method name from `download()` to `content()` to align with other namespaces
+* **api:** For the TS SDK the `images.create` is now `images.generate`
+* **api:** Access to the api for listing checkpoints has changed its name to `list_checkpoints`
+* **api:** Access to fine tuning APIs namespace has changed from `fine_tune` to `fine_tuning`
+* **api:** The default max retries for api calls has changed from 5 to 2. This may result in more frequent non-200 responses.
+
+### Features
+
+* **api:** Add audio.voices.list sdk ([0aacf5d](https://github.com/togethercomputer/together-go/commit/0aacf5d6e75b326f74921d3c3dd2e88ed1f32b96))
+* **api:** Add batches.cancel API ([a8e2951](https://github.com/togethercomputer/together-go/commit/a8e29513556c09d803000fcdadb1a4604736f036))
+* **api:** Add endpoints.list_avzones ([c07fe49](https://github.com/togethercomputer/together-go/commit/c07fe49d9ea1202facfd0c4c6019e9119b636297))
+* **api:** Add fine_tune.delete API ([dceaf80](https://github.com/togethercomputer/together-go/commit/dceaf802fb93e5ef9e2fb7ed04b80ff4a6dbacec))
+* **api:** api update ([c2f758c](https://github.com/togethercomputer/together-go/commit/c2f758c8719cdb7a71b79edbdb53bef06c11df46))
+* **api:** api update ([b26c51b](https://github.com/togethercomputer/together-go/commit/b26c51ba708df330cf423e7e8718a8b1f1c4e62d))
+* **api:** api update ([be1a06c](https://github.com/togethercomputer/together-go/commit/be1a06c5a1fdbf6106d5bb288b2d1568aec85d2b))
+* **api:** api update ([638ebc7](https://github.com/togethercomputer/together-go/commit/638ebc7e0e5ce88228a4ffb6f6f1bd904bb09f8c))
+* **api:** api update ([5169921](https://github.com/togethercomputer/together-go/commit/51699214da2ce174e13634af5ca11ac9936cbd13))
+* **api:** api update ([48737a3](https://github.com/togethercomputer/together-go/commit/48737a323b7fb5f5272e5c208c7078084c8507ab))
+* **api:** api update ([5699d1a](https://github.com/togethercomputer/together-go/commit/5699d1ae3e6e40db16dc6ee1eb136c399e660d1d))
+* **api:** api update ([a51a5f3](https://github.com/togethercomputer/together-go/commit/a51a5f3c92661e87dcc2af8b86d709a0c755016e))
+* **api:** api update ([2c9ca33](https://github.com/togethercomputer/together-go/commit/2c9ca331f6de3549c4dedb5a78dbc50609d49cf7))
+* **api:** api update ([e53f0e7](https://github.com/togethercomputer/together-go/commit/e53f0e79fcf213f40e6537c07f18629d09d9302d))
+* **api:** api update ([c64fc6d](https://github.com/togethercomputer/together-go/commit/c64fc6db4e868f65c32d836636b91b65f03b0e8a))
+* **api:** Change fine tuning download method to `.create` ([faeb0f8](https://github.com/togethercomputer/together-go/commit/faeb0f8c877a78cf8c77395bf48f7dd55efc131b))
+* **api:** Change image creation signature to `images.generate` ([5ec73f1](https://github.com/togethercomputer/together-go/commit/5ec73f1b1f6ac90d705d2a4d03b21a607922eff7))
+* **api:** Change rerank method signature ([15519be](https://github.com/togethercomputer/together-go/commit/15519be8442800c3ddbfe1fa808f4d21027a91e1))
+* **api:** Change the default max retries from 5 to 2 ([becb776](https://github.com/togethercomputer/together-go/commit/becb77688fe7899159c09a34df6061c0a46716f1))
+* **api:** Change TTS call signature ([f906b2e](https://github.com/togethercomputer/together-go/commit/f906b2e51c2a043cdf1bc6e5d057d25787dc9bfb))
+* **api:** Fix internal references for VideoJob spec ([bbf9a21](https://github.com/togethercomputer/together-go/commit/bbf9a21463c634a490c389d407f1f07fc098dc7a))
+* **api:** manual updates ([651e447](https://github.com/togethercomputer/together-go/commit/651e4473bdc16002ec4fc12374b6d445eaf70bdd))
+* **api:** Update Eval APIs ([a2baaa3](https://github.com/togethercomputer/together-go/commit/a2baaa3a41e18d0d9356ffd0f46ae5558a5048a4))
+
+
+### Bug Fixes
+
+* **client:** correctly specify Accept header with */* instead of empty ([6d504e0](https://github.com/togethercomputer/together-go/commit/6d504e008ed150736cf1e3498d603f9bd9782418))
+* remove invalid cast ([72d5d52](https://github.com/togethercomputer/together-go/commit/72d5d521cd2fa88dbf31edb4e5dd9fc9fd195ed4))
+
+
+### Chores
+
+* **api:** Cleanup some exported types ([aade2f0](https://github.com/togethercomputer/together-go/commit/aade2f06b3c4c705e08fdec6dd4847aec4c8409a))
+* **api:** Remove API that is not intended to be public. ([df90a15](https://github.com/togethercomputer/together-go/commit/df90a159de5d770e1e9049d9a9dc7b7befe66921))
+* bump gjson version ([704f413](https://github.com/togethercomputer/together-go/commit/704f413869dd157060e6cf96d9f1cfb6aa9cc424))
+* fix integration tests ([#106](https://github.com/togethercomputer/together-go/issues/106)) ([8f2d317](https://github.com/togethercomputer/together-go/commit/8f2d317d03fcfff195ae96bfde59d06f39380c17))
+* **internal:** grammar fix (it's -&gt; its) ([97b3fc5](https://github.com/togethercomputer/together-go/commit/97b3fc5382b8e4d36340516f06b6c60c7daeb95e))
+
+
+### Styles
+
+* **api:** Change fine tuning method `retrieve_checkpoints` to `list_checkpoints` ([7e12276](https://github.com/togethercomputer/together-go/commit/7e1227697c594718cedaa70e55be4b7ffd08e836))
+* **api:** Change fine tuning namespace to `fine_tuning` ([cfb8297](https://github.com/togethercomputer/together-go/commit/cfb82976c6e84cba4cab24fbe07616fa7d8e561f))
+
 ## 0.1.0-alpha.2 (2025-10-30)
 
 Full Changelog: [v0.1.0-alpha.1...v0.1.0-alpha.2](https://github.com/togethercomputer/together-go/compare/v0.1.0-alpha.1...v0.1.0-alpha.2)
