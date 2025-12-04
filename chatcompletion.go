@@ -13,6 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
 	"github.com/togethercomputer/together-go/packages/ssestream"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // ChatCompletionService contains methods and other services that help with
@@ -471,7 +472,15 @@ type ChatCompletionNewParams struct {
 	// Any of "low", "medium", "high".
 	ReasoningEffort ChatCompletionNewParamsReasoningEffort `json:"reasoning_effort,omitzero"`
 	// An object specifying the format that the model must output.
-	ResponseFormat ChatCompletionNewParamsResponseFormat `json:"response_format,omitzero"`
+	//
+	// Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+	// Outputs which ensures the model will match your supplied JSON schema. Learn more
+	// in the [Structured Outputs guide](https://docs.together.ai/docs/json-mode).
+	//
+	// Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+	// ensures the message the model generates is valid JSON. Using `json_schema` is
+	// preferred for models that support it.
+	ResponseFormat ChatCompletionNewParamsResponseFormatUnion `json:"response_format,omitzero"`
 	// A list of string sequences that will truncate (stop) inference text output. For
 	// example, "</s>" will stop generation as soon as the model generates the given
 	// token.
@@ -1046,20 +1055,162 @@ const (
 	ChatCompletionNewParamsReasoningEffortHigh   ChatCompletionNewParamsReasoningEffort = "high"
 )
 
-// An object specifying the format that the model must output.
-type ChatCompletionNewParamsResponseFormat struct {
-	// The type of the response format.
-	Type param.Opt[string] `json:"type,omitzero"`
-	// The schema of the response format.
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type ChatCompletionNewParamsResponseFormatUnion struct {
+	OfText       *ChatCompletionNewParamsResponseFormatText       `json:",omitzero,inline"`
+	OfJsonSchema *ChatCompletionNewParamsResponseFormatJsonSchema `json:",omitzero,inline"`
+	OfJsonObject *ChatCompletionNewParamsResponseFormatJsonObject `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u ChatCompletionNewParamsResponseFormatUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfText, u.OfJsonSchema, u.OfJsonObject)
+}
+func (u *ChatCompletionNewParamsResponseFormatUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *ChatCompletionNewParamsResponseFormatUnion) asAny() any {
+	if !param.IsOmitted(u.OfText) {
+		return u.OfText
+	} else if !param.IsOmitted(u.OfJsonSchema) {
+		return u.OfJsonSchema
+	} else if !param.IsOmitted(u.OfJsonObject) {
+		return u.OfJsonObject
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionNewParamsResponseFormatUnion) GetJsonSchema() *ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema {
+	if vt := u.OfJsonSchema; vt != nil {
+		return &vt.JsonSchema
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionNewParamsResponseFormatUnion) GetType() *string {
+	if vt := u.OfText; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfJsonSchema; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfJsonObject; vt != nil {
+		return (*string)(&vt.Type)
+	}
+	return nil
+}
+
+func init() {
+	apijson.RegisterUnion[ChatCompletionNewParamsResponseFormatUnion](
+		"type",
+		apijson.Discriminator[ChatCompletionNewParamsResponseFormatText]("text"),
+		apijson.Discriminator[ChatCompletionNewParamsResponseFormatJsonSchema]("json_schema"),
+		apijson.Discriminator[ChatCompletionNewParamsResponseFormatJsonObject]("json_object"),
+	)
+}
+
+func NewChatCompletionNewParamsResponseFormatText() ChatCompletionNewParamsResponseFormatText {
+	return ChatCompletionNewParamsResponseFormatText{
+		Type: "text",
+	}
+}
+
+// Default response format. Used to generate text responses.
+//
+// This struct has a constant value, construct it with
+// [NewChatCompletionNewParamsResponseFormatText].
+type ChatCompletionNewParamsResponseFormatText struct {
+	// The type of response format being defined. Always `text`.
+	Type constant.Text `json:"type,required"`
+	paramObj
+}
+
+func (r ChatCompletionNewParamsResponseFormatText) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionNewParamsResponseFormatText
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionNewParamsResponseFormatText) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// JSON Schema response format. Used to generate structured JSON responses. Learn
+// more about [Structured Outputs](https://docs.together.ai/docs/json-mode).
+//
+// The properties JsonSchema, Type are required.
+type ChatCompletionNewParamsResponseFormatJsonSchema struct {
+	// Structured Outputs configuration options, including a JSON Schema.
+	JsonSchema ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema `json:"json_schema,omitzero,required"`
+	// The type of response format being defined. Always `json_schema`.
+	//
+	// This field can be elided, and will marshal its zero value as "json_schema".
+	Type constant.JsonSchema `json:"type,required"`
+	paramObj
+}
+
+func (r ChatCompletionNewParamsResponseFormatJsonSchema) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionNewParamsResponseFormatJsonSchema
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionNewParamsResponseFormatJsonSchema) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Structured Outputs configuration options, including a JSON Schema.
+//
+// The property Name is required.
+type ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema struct {
+	// The name of the response format. Must be a-z, A-Z, 0-9, or contain underscores
+	// and dashes, with a maximum length of 64.
+	Name string `json:"name,required"`
+	// Whether to enable strict schema adherence when generating the output. If set to
+	// true, the model will always follow the exact schema defined in the `schema`
+	// field. Only a subset of JSON Schema is supported when `strict` is `true`. To
+	// learn more, read the
+	// [Structured Outputs guide](https://docs.together.ai/docs/json-mode).
+	Strict param.Opt[bool] `json:"strict,omitzero"`
+	// A description of what the response format is for, used by the model to determine
+	// how to respond in the format.
+	Description param.Opt[string] `json:"description,omitzero"`
+	// The schema for the response format, described as a JSON Schema object. Learn how
+	// to build JSON schemas [here](https://json-schema.org/).
 	Schema map[string]any `json:"schema,omitzero"`
 	paramObj
 }
 
-func (r ChatCompletionNewParamsResponseFormat) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsResponseFormat
+func (r ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ChatCompletionNewParamsResponseFormat) UnmarshalJSON(data []byte) error {
+func (r *ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func NewChatCompletionNewParamsResponseFormatJsonObject() ChatCompletionNewParamsResponseFormatJsonObject {
+	return ChatCompletionNewParamsResponseFormatJsonObject{
+		Type: "json_object",
+	}
+}
+
+// JSON object response format. An older method of generating JSON responses. Using
+// `json_schema` is recommended for models that support it. Note that the model
+// will not generate JSON without a system or user message instructing it to do so.
+//
+// This struct has a constant value, construct it with
+// [NewChatCompletionNewParamsResponseFormatJsonObject].
+type ChatCompletionNewParamsResponseFormatJsonObject struct {
+	// The type of response format being defined. Always `json_object`.
+	Type constant.JsonObject `json:"type,required"`
+	paramObj
+}
+
+func (r ChatCompletionNewParamsResponseFormatJsonObject) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionNewParamsResponseFormatJsonObject
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionNewParamsResponseFormatJsonObject) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
