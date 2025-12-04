@@ -51,11 +51,8 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 		PresencePenalty:   together.Float(0),
 		ReasoningEffort:   together.ChatCompletionNewParamsReasoningEffortMedium,
 		RepetitionPenalty: together.Float(0),
-		ResponseFormat: together.ChatCompletionNewParamsResponseFormat{
-			Schema: map[string]any{
-				"foo": "bar",
-			},
-			Type: together.String("json"),
+		ResponseFormat: together.ChatCompletionNewParamsResponseFormatUnion{
+			OfText: &together.ChatCompletionNewParamsResponseFormatText{},
 		},
 		SafetyModel: together.String("safety_model_name"),
 		Seed:        together.Int(42),
