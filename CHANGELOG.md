@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.1 (2025-12-05)
+
+Full Changelog: [v0.1.0...v0.1.1](https://github.com/togethercomputer/together-go/compare/v0.1.0...v0.1.1)
+
+### Bug Fixes
+
+* **mcp:** correct code tool API endpoint ([895a603](https://github.com/togethercomputer/together-go/commit/895a60327fc7a1143124988e2cb11afbf555b2da))
+* rename param to avoid collision ([0e29655](https://github.com/togethercomputer/together-go/commit/0e29655600600ea2f8852e4ed8fc59dfe6a8170a))
+
+
+### Chores
+
+* elide duplicate aliases ([b75b29f](https://github.com/togethercomputer/together-go/commit/b75b29f189639c8e6f7bf2e0518fe3569e96d98d))
+* **internal:** codegen related update ([0d6799b](https://github.com/togethercomputer/together-go/commit/0d6799b6e759b37a402a2b52cf6bdd75afc634e7))
+
 ## 0.1.0 (2025-12-05)
 
 Full Changelog: [v0.1.0-alpha.3...v0.1.0](https://github.com/togethercomputer/together-go/compare/v0.1.0-alpha.3...v0.1.0)
