@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0 (2025-12-05)
+
+Full Changelog: [v0.1.0-alpha.3...v0.1.0](https://github.com/togethercomputer/together-go/compare/v0.1.0-alpha.3...v0.1.0)
+
+### Features
+
+* **api:** api update ([347416a](https://github.com/togethercomputer/together-go/commit/347416ad531f8b85153407c59cb094bf7debf6d8))
+
 ## 0.1.0-alpha.3 (2025-12-03)
 
 Full Changelog: [v0.1.0-alpha.2...v0.1.0-alpha.3](https://github.com/togethercomputer/together-go/compare/v0.1.0-alpha.2...v0.1.0-alpha.3)
