@@ -102,6 +102,14 @@ func (r *FineTuningService) Content(ctx context.Context, query FineTuningContent
 	return
 }
 
+// Estimate the price of a fine-tuning job.
+func (r *FineTuningService) EstimatePrice(ctx context.Context, body FineTuningEstimatePriceParams, opts ...option.RequestOption) (res *FineTuningEstimatePriceResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "fine-tunes/estimate-price"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}
+
 // List the checkpoints for a single fine-tuning job.
 func (r *FineTuningService) ListCheckpoints(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuningListCheckpointsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
@@ -2106,6 +2114,35 @@ func (r *FineTuningCancelResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(dat
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type FineTuningEstimatePriceResponse struct {
+	// Whether the user is allowed to proceed with the fine-tuning job
+	AllowedToProceed bool `json:"allowed_to_proceed"`
+	// The estimated number of tokens for evaluation
+	EstimatedEvalTokenCount float64 `json:"estimated_eval_token_count"`
+	// The price of the fine-tuning job
+	EstimatedTotalPrice float64 `json:"estimated_total_price"`
+	// The estimated number of tokens to be trained
+	EstimatedTrainTokenCount float64 `json:"estimated_train_token_count"`
+	// The user's credit limit in dollars
+	UserLimit float64 `json:"user_limit"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AllowedToProceed         respjson.Field
+		EstimatedEvalTokenCount  respjson.Field
+		EstimatedTotalPrice      respjson.Field
+		EstimatedTrainTokenCount respjson.Field
+		UserLimit                respjson.Field
+		ExtraFields              map[string]respjson.Field
+		raw                      string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningEstimatePriceResponse) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningEstimatePriceResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type FineTuningListCheckpointsResponse struct {
 	Data []FineTuningListCheckpointsResponseData `json:"data,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -2726,3 +2763,309 @@ const (
 	FineTuningContentParamsCheckpointAdapter         FineTuningContentParamsCheckpoint = "adapter"
 	FineTuningContentParamsCheckpointModelOutputPath FineTuningContentParamsCheckpoint = "model_output_path"
 )
+
+type FineTuningEstimatePriceParams struct {
+	// Name of the base model to run fine-tune job on
+	Model string `json:"model,required"`
+	// File-ID of a training file uploaded to the Together API
+	TrainingFile string `json:"training_file,required"`
+	// Number of complete passes through the training dataset (higher values may
+	// improve results but increase cost and risk of overfitting)
+	NEpochs param.Opt[int64] `json:"n_epochs,omitzero"`
+	// Number of evaluations to be run on a given validation set during training
+	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
+	// File-ID of a validation file uploaded to the Together API
+	ValidationFile param.Opt[string] `json:"validation_file,omitzero"`
+	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
+	// Preference Optimization.
+	TrainingMethod FineTuningEstimatePriceParamsTrainingMethodUnion `json:"training_method,omitzero"`
+	TrainingType   FineTuningEstimatePriceParamsTrainingTypeUnion   `json:"training_type,omitzero"`
+	paramObj
+}
+
+func (r FineTuningEstimatePriceParams) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningEstimatePriceParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningEstimatePriceParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type FineTuningEstimatePriceParamsTrainingMethodUnion struct {
+	OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft *FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft `json:",omitzero,inline"`
+	OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo *FineTuningEstimatePriceParamsTrainingMethodTrainingMethodDpo `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft, u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo)
+}
+func (u *FineTuningEstimatePriceParamsTrainingMethodUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *FineTuningEstimatePriceParamsTrainingMethodUnion) asAny() any {
+	if !param.IsOmitted(u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft) {
+		return u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft
+	} else if !param.IsOmitted(u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo) {
+		return u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetTrainOnInputs() *FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion {
+	if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft; vt != nil {
+		return &vt.TrainOnInputs
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetDpoBeta() *float64 {
+	if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo; vt != nil && vt.DpoBeta.Valid() {
+		return &vt.DpoBeta.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetDpoNormalizeLogratiosByLength() *bool {
+	if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo; vt != nil && vt.DpoNormalizeLogratiosByLength.Valid() {
+		return &vt.DpoNormalizeLogratiosByLength.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetDpoReferenceFree() *bool {
+	if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo; vt != nil && vt.DpoReferenceFree.Valid() {
+		return &vt.DpoReferenceFree.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetRpoAlpha() *float64 {
+	if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo; vt != nil && vt.RpoAlpha.Valid() {
+		return &vt.RpoAlpha.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetSimpoGamma() *float64 {
+	if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo; vt != nil && vt.SimpoGamma.Valid() {
+		return &vt.SimpoGamma.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetMethod() *string {
+	if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft; vt != nil {
+		return (*string)(&vt.Method)
+	} else if vt := u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodDpo; vt != nil {
+		return (*string)(&vt.Method)
+	}
+	return nil
+}
+
+// The properties Method, TrainOnInputs are required.
+type FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft struct {
+	// Any of "sft".
+	Method string `json:"method,omitzero,required"`
+	// Whether to mask the user messages in conversational data or prompts in
+	// instruction data.
+	TrainOnInputs FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero,required"`
+	paramObj
+}
+
+func (r FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft](
+		"method", "sft",
+	)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion struct {
+	OfBool param.Opt[bool] `json:",omitzero,inline"`
+	// Check if union is this variant with
+	// !param.IsOmitted(union.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSftTrainOnInputsString)
+	OfFineTuningEstimatePricesTrainingMethodTrainingMethodSftTrainOnInputsString param.Opt[string] `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfBool, u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSftTrainOnInputsString)
+}
+func (u *FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion) asAny() any {
+	if !param.IsOmitted(u.OfBool) {
+		return &u.OfBool.Value
+	} else if !param.IsOmitted(u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSftTrainOnInputsString) {
+		return &u.OfFineTuningEstimatePricesTrainingMethodTrainingMethodSftTrainOnInputsString
+	}
+	return nil
+}
+
+type FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsString string
+
+const (
+	FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsStringAuto FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsString = "auto"
+)
+
+// The property Method is required.
+type FineTuningEstimatePriceParamsTrainingMethodTrainingMethodDpo struct {
+	// Any of "dpo".
+	Method                        string             `json:"method,omitzero,required"`
+	DpoBeta                       param.Opt[float64] `json:"dpo_beta,omitzero"`
+	DpoNormalizeLogratiosByLength param.Opt[bool]    `json:"dpo_normalize_logratios_by_length,omitzero"`
+	DpoReferenceFree              param.Opt[bool]    `json:"dpo_reference_free,omitzero"`
+	RpoAlpha                      param.Opt[float64] `json:"rpo_alpha,omitzero"`
+	SimpoGamma                    param.Opt[float64] `json:"simpo_gamma,omitzero"`
+	paramObj
+}
+
+func (r FineTuningEstimatePriceParamsTrainingMethodTrainingMethodDpo) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningEstimatePriceParamsTrainingMethodTrainingMethodDpo
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningEstimatePriceParamsTrainingMethodTrainingMethodDpo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningEstimatePriceParamsTrainingMethodTrainingMethodDpo](
+		"method", "dpo",
+	)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type FineTuningEstimatePriceParamsTrainingTypeUnion struct {
+	OfFineTuningEstimatePricesTrainingTypeFullTrainingType *FineTuningEstimatePriceParamsTrainingTypeFullTrainingType `json:",omitzero,inline"`
+	OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType *FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u FineTuningEstimatePriceParamsTrainingTypeUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfFineTuningEstimatePricesTrainingTypeFullTrainingType, u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType)
+}
+func (u *FineTuningEstimatePriceParamsTrainingTypeUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *FineTuningEstimatePriceParamsTrainingTypeUnion) asAny() any {
+	if !param.IsOmitted(u.OfFineTuningEstimatePricesTrainingTypeFullTrainingType) {
+		return u.OfFineTuningEstimatePricesTrainingTypeFullTrainingType
+	} else if !param.IsOmitted(u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType) {
+		return u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingTypeUnion) GetLoraAlpha() *int64 {
+	if vt := u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType; vt != nil {
+		return &vt.LoraAlpha
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingTypeUnion) GetLoraR() *int64 {
+	if vt := u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType; vt != nil {
+		return &vt.LoraR
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingTypeUnion) GetLoraDropout() *float64 {
+	if vt := u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType; vt != nil && vt.LoraDropout.Valid() {
+		return &vt.LoraDropout.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingTypeUnion) GetLoraTrainableModules() *string {
+	if vt := u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType; vt != nil && vt.LoraTrainableModules.Valid() {
+		return &vt.LoraTrainableModules.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u FineTuningEstimatePriceParamsTrainingTypeUnion) GetType() *string {
+	if vt := u.OfFineTuningEstimatePricesTrainingTypeFullTrainingType; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfFineTuningEstimatePricesTrainingTypeLoRaTrainingType; vt != nil {
+		return (*string)(&vt.Type)
+	}
+	return nil
+}
+
+// The property Type is required.
+type FineTuningEstimatePriceParamsTrainingTypeFullTrainingType struct {
+	// Any of "Full".
+	Type string `json:"type,omitzero,required"`
+	paramObj
+}
+
+func (r FineTuningEstimatePriceParamsTrainingTypeFullTrainingType) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningEstimatePriceParamsTrainingTypeFullTrainingType
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningEstimatePriceParamsTrainingTypeFullTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningEstimatePriceParamsTrainingTypeFullTrainingType](
+		"type", "Full",
+	)
+}
+
+// The properties LoraAlpha, LoraR, Type are required.
+type FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType struct {
+	LoraAlpha int64 `json:"lora_alpha,required"`
+	LoraR     int64 `json:"lora_r,required"`
+	// Any of "Lora".
+	Type                 string             `json:"type,omitzero,required"`
+	LoraDropout          param.Opt[float64] `json:"lora_dropout,omitzero"`
+	LoraTrainableModules param.Opt[string]  `json:"lora_trainable_modules,omitzero"`
+	paramObj
+}
+
+func (r FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType](
+		"type", "Lora",
+	)
+}
