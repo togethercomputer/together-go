@@ -219,6 +219,47 @@ func TestFineTuningContentWithOptionalParams(t *testing.T) {
 	}
 }
 
+func TestFineTuningEstimatePriceWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.FineTuning.EstimatePrice(context.TODO(), together.FineTuningEstimatePriceParams{
+		Model:        "model",
+		TrainingFile: "training_file",
+		NEpochs:      together.Int(0),
+		NEvals:       together.Int(0),
+		TrainingMethod: together.FineTuningEstimatePriceParamsTrainingMethodUnion{
+			OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft: &together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft{
+				Method: "sft",
+				TrainOnInputs: together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion{
+					OfBool: together.Bool(true),
+				},
+			},
+		},
+		TrainingType: together.FineTuningEstimatePriceParamsTrainingTypeUnion{
+			OfFineTuningEstimatePricesTrainingTypeFullTrainingType: &together.FineTuningEstimatePriceParamsTrainingTypeFullTrainingType{
+				Type: "Full",
+			},
+		},
+		ValidationFile: together.String("validation_file"),
+	})
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
 func TestFineTuningListCheckpoints(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
