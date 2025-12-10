@@ -2765,10 +2765,15 @@ const (
 )
 
 type FineTuningEstimatePriceParams struct {
-	// Name of the base model to run fine-tune job on
-	Model string `json:"model,required"`
 	// File-ID of a training file uploaded to the Together API
 	TrainingFile string `json:"training_file,required"`
+	// The checkpoint identifier to continue training from a previous fine-tuning job.
+	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
+	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
+	// final checkpoint will be used.
+	FromCheckpoint param.Opt[string] `json:"from_checkpoint,omitzero"`
+	// Name of the base model to run fine-tune job on
+	Model param.Opt[string] `json:"model,omitzero"`
 	// Number of complete passes through the training dataset (higher values may
 	// improve results but increase cost and risk of overfitting)
 	NEpochs param.Opt[int64] `json:"n_epochs,omitzero"`

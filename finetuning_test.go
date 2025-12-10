@@ -232,10 +232,11 @@ func TestFineTuningEstimatePriceWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTuning.EstimatePrice(context.TODO(), together.FineTuningEstimatePriceParams{
-		Model:        "model",
-		TrainingFile: "training_file",
-		NEpochs:      together.Int(0),
-		NEvals:       together.Int(0),
+		TrainingFile:   "training_file",
+		FromCheckpoint: together.String("from_checkpoint"),
+		Model:          together.String("model"),
+		NEpochs:        together.Int(0),
+		NEvals:         together.Int(0),
 		TrainingMethod: together.FineTuningEstimatePriceParamsTrainingMethodUnion{
 			OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft: &together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
