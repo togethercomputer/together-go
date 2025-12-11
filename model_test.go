@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestModelList(t *testing.T) {
+func TestModelListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,7 +25,9 @@ func TestModelList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.List(context.TODO())
+	_, err := client.Models.List(context.TODO(), together.ModelListParams{
+		Dedicated: together.Bool(true),
+	})
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

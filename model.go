@@ -5,9 +5,11 @@ package together
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
+	"github.com/togethercomputer/together-go/internal/apiquery"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
@@ -34,10 +36,10 @@ func NewModelService(opts ...option.RequestOption) (r ModelService) {
 }
 
 // Lists all of Together's open-source models
-func (r *ModelService) List(ctx context.Context, opts ...option.RequestOption) (res *[]ModelObject, err error) {
+func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...option.RequestOption) (res *[]ModelObject, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return
 }
 
@@ -158,6 +160,20 @@ type ModelUploadResponseData struct {
 func (r ModelUploadResponseData) RawJSON() string { return r.JSON.raw }
 func (r *ModelUploadResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+type ModelListParams struct {
+	// Filter models to only return dedicated models
+	Dedicated param.Opt[bool] `query:"dedicated,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [ModelListParams]'s query parameters as `url.Values`.
+func (r ModelListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 type ModelUploadParams struct {
