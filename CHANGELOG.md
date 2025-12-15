@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.2.0 (2025-12-15)
+
+Full Changelog: [v0.1.0...v0.2.0](https://github.com/togethercomputer/together-go/compare/v0.1.0...v0.2.0)
+
+### Features
+
+* **api:** Add fine_tuning.estimate_price api ([b6e4290](https://github.com/togethercomputer/together-go/commit/b6e4290ad67ad0ef0fb13c1dea0e0c10cb4b759d))
+* **api:** api update ([be27aa0](https://github.com/togethercomputer/together-go/commit/be27aa07d615dae3f1d5134f25713af1cbc6f6e9))
+* **api:** api update ([4431915](https://github.com/togethercomputer/together-go/commit/443191564fd2b856e8ad024f06d5cc20954dc32f))
+* **api:** api update ([53b002f](https://github.com/togethercomputer/together-go/commit/53b002f2b43da5c0feb8622783bdef9150b07b81))
+* **api:** api update ([68e2d56](https://github.com/togethercomputer/together-go/commit/68e2d565b2db089b39dfa66b7f99e42aa430c157))
+* **encoder:** support bracket encoding form-data object members ([9388a38](https://github.com/togethercomputer/together-go/commit/9388a380b64304e89df132c10edf376072c1dc0e))
+
+
+### Bug Fixes
+
+* **mcp:** correct code tool API endpoint ([895a603](https://github.com/togethercomputer/together-go/commit/895a60327fc7a1143124988e2cb11afbf555b2da))
+* rename param to avoid collision ([0e29655](https://github.com/togethercomputer/together-go/commit/0e29655600600ea2f8852e4ed8fc59dfe6a8170a))
+
+
+### Chores
+
+* elide duplicate aliases ([b75b29f](https://github.com/togethercomputer/together-go/commit/b75b29f189639c8e6f7bf2e0518fe3569e96d98d))
+* **internal:** codegen related update ([0d6799b](https://github.com/togethercomputer/together-go/commit/0d6799b6e759b37a402a2b52cf6bdd75afc634e7))
+
 ## 0.1.0 (2025-12-05)
 
 Full Changelog: [v0.1.0-alpha.3...v0.1.0](https://github.com/togethercomputer/together-go/compare/v0.1.0-alpha.3...v0.1.0)
