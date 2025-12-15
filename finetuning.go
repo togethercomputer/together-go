@@ -238,26 +238,28 @@ type FinetuneResponse struct {
 	ID string `json:"id,required" format:"uuid"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status               FinetuneResponseStatus              `json:"status,required"`
-	BatchSize            FinetuneResponseBatchSizeUnion      `json:"batch_size"`
-	CreatedAt            string                              `json:"created_at"`
-	EpochsCompleted      int64                               `json:"epochs_completed"`
-	EvalSteps            int64                               `json:"eval_steps"`
-	Events               []FinetuneEvent                     `json:"events"`
-	FromCheckpoint       string                              `json:"from_checkpoint"`
-	FromHfModel          string                              `json:"from_hf_model"`
-	HfModelRevision      string                              `json:"hf_model_revision"`
-	JobID                string                              `json:"job_id"`
-	LearningRate         float64                             `json:"learning_rate"`
-	LrScheduler          FinetuneResponseLrScheduler         `json:"lr_scheduler"`
-	MaxGradNorm          float64                             `json:"max_grad_norm"`
-	Model                string                              `json:"model"`
-	ModelOutputName      string                              `json:"model_output_name"`
-	ModelOutputPath      string                              `json:"model_output_path"`
-	NCheckpoints         int64                               `json:"n_checkpoints"`
-	NEpochs              int64                               `json:"n_epochs"`
-	NEvals               int64                               `json:"n_evals"`
-	ParamCount           int64                               `json:"param_count"`
+	Status          FinetuneResponseStatus         `json:"status,required"`
+	BatchSize       FinetuneResponseBatchSizeUnion `json:"batch_size"`
+	CreatedAt       string                         `json:"created_at"`
+	EpochsCompleted int64                          `json:"epochs_completed"`
+	EvalSteps       int64                          `json:"eval_steps"`
+	Events          []FinetuneEvent                `json:"events"`
+	FromCheckpoint  string                         `json:"from_checkpoint"`
+	FromHfModel     string                         `json:"from_hf_model"`
+	HfModelRevision string                         `json:"hf_model_revision"`
+	JobID           string                         `json:"job_id"`
+	LearningRate    float64                        `json:"learning_rate"`
+	LrScheduler     FinetuneResponseLrScheduler    `json:"lr_scheduler"`
+	MaxGradNorm     float64                        `json:"max_grad_norm"`
+	Model           string                         `json:"model"`
+	ModelOutputName string                         `json:"model_output_name"`
+	ModelOutputPath string                         `json:"model_output_path"`
+	NCheckpoints    int64                          `json:"n_checkpoints"`
+	NEpochs         int64                          `json:"n_epochs"`
+	NEvals          int64                          `json:"n_evals"`
+	ParamCount      int64                          `json:"param_count"`
+	// Progress information for a fine-tuning job
+	Progress             FinetuneResponseProgress            `json:"progress"`
 	QueueDepth           int64                               `json:"queue_depth"`
 	TokenCount           int64                               `json:"token_count"`
 	TotalPrice           int64                               `json:"total_price"`
@@ -296,6 +298,7 @@ type FinetuneResponse struct {
 		NEpochs              respjson.Field
 		NEvals               respjson.Field
 		ParamCount           respjson.Field
+		Progress             respjson.Field
 		QueueDepth           respjson.Field
 		TokenCount           respjson.Field
 		TotalPrice           respjson.Field
@@ -470,6 +473,27 @@ func (r FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) RawJSON
 	return r.JSON.raw
 }
 func (r *FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Progress information for a fine-tuning job
+type FinetuneResponseProgress struct {
+	// Whether time estimate is available
+	EstimateAvailable bool `json:"estimate_available,required"`
+	// Estimated time remaining in seconds for the fine-tuning job to next state
+	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EstimateAvailable respjson.Field
+		SecondsRemaining  respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseProgress) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponseProgress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -779,6 +803,8 @@ type FineTuningNewResponse struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Progress information for the fine-tuning job
+	Progress FineTuningNewResponseProgress `json:"progress"`
 	// Suffix added to the fine-tuned model name
 	Suffix string `json:"suffix"`
 	// Count of tokens processed
@@ -823,6 +849,7 @@ type FineTuningNewResponse struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Progress         respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
 		TotalPrice       respjson.Field
@@ -953,6 +980,27 @@ func (r FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) Ra
 	return r.JSON.raw
 }
 func (r *FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Progress information for the fine-tuning job
+type FineTuningNewResponseProgress struct {
+	// Whether time estimate is available
+	EstimateAvailable bool `json:"estimate_available,required"`
+	// Estimated time remaining in seconds for the fine-tuning job to next state
+	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EstimateAvailable respjson.Field
+		SecondsRemaining  respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningNewResponseProgress) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningNewResponseProgress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1242,6 +1290,8 @@ type FineTuningListResponseData struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Progress information for the fine-tuning job
+	Progress FineTuningListResponseDataProgress `json:"progress"`
 	// Suffix added to the fine-tuned model name
 	Suffix string `json:"suffix"`
 	// Count of tokens processed
@@ -1286,6 +1336,7 @@ type FineTuningListResponseData struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Progress         respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
 		TotalPrice       respjson.Field
@@ -1404,6 +1455,27 @@ func (r FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArg
 	return r.JSON.raw
 }
 func (r *FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Progress information for the fine-tuning job
+type FineTuningListResponseDataProgress struct {
+	// Whether time estimate is available
+	EstimateAvailable bool `json:"estimate_available,required"`
+	// Estimated time remaining in seconds for the fine-tuning job to next state
+	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EstimateAvailable respjson.Field
+		SecondsRemaining  respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningListResponseDataProgress) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningListResponseDataProgress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1702,6 +1774,8 @@ type FineTuningCancelResponse struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Progress information for the fine-tuning job
+	Progress FineTuningCancelResponseProgress `json:"progress"`
 	// Suffix added to the fine-tuned model name
 	Suffix string `json:"suffix"`
 	// Count of tokens processed
@@ -1746,6 +1820,7 @@ type FineTuningCancelResponse struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Progress         respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
 		TotalPrice       respjson.Field
@@ -1876,6 +1951,27 @@ func (r FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs)
 	return r.JSON.raw
 }
 func (r *FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Progress information for the fine-tuning job
+type FineTuningCancelResponseProgress struct {
+	// Whether time estimate is available
+	EstimateAvailable bool `json:"estimate_available,required"`
+	// Estimated time remaining in seconds for the fine-tuning job to next state
+	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EstimateAvailable respjson.Field
+		SecondsRemaining  respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningCancelResponseProgress) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningCancelResponseProgress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
