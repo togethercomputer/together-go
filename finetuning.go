@@ -240,7 +240,7 @@ type FinetuneResponse struct {
 	// "cancel_requested", "cancelled", "error", "completed".
 	Status          FinetuneResponseStatus         `json:"status,required"`
 	BatchSize       FinetuneResponseBatchSizeUnion `json:"batch_size"`
-	CreatedAt       string                         `json:"created_at"`
+	CreatedAt       time.Time                      `json:"created_at" format:"date-time"`
 	EpochsCompleted int64                          `json:"epochs_completed"`
 	EvalSteps       int64                          `json:"eval_steps"`
 	Events          []FinetuneEvent                `json:"events"`
@@ -269,7 +269,7 @@ type FinetuneResponse struct {
 	TrainingType         FinetuneResponseTrainingTypeUnion   `json:"training_type"`
 	TrainingfileNumlines int64                               `json:"trainingfile_numlines"`
 	TrainingfileSize     int64                               `json:"trainingfile_size"`
-	UpdatedAt            string                              `json:"updated_at"`
+	UpdatedAt            time.Time                           `json:"updated_at" format:"date-time"`
 	ValidationFile       string                              `json:"validation_file"`
 	WandbProjectName     string                              `json:"wandb_project_name"`
 	WandbURL             string                              `json:"wandb_url"`
