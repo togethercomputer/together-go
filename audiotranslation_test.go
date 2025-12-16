@@ -28,7 +28,9 @@ func TestAudioTranslationNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Audio.Translations.New(context.TODO(), together.AudioTranslationNewParams{
-		File:           io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		File: together.AudioTranslationNewParamsFileUnion{
+			OfFile: io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		},
 		Language:       together.String("en"),
 		Model:          together.AudioTranslationNewParamsModelOpenAIWhisperLargeV3,
 		Prompt:         together.String("prompt"),

@@ -277,8 +277,9 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord)
 }
 
 type AudioTranscriptionNewParams struct {
-	// Audio file to transcribe
-	File io.Reader `json:"file,omitzero,required" format:"binary"`
+	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
+	// .webm, .flac.
+	File AudioTranscriptionNewParamsFileUnion `json:"file,omitzero,required" format:"binary"`
 	// Whether to enable speaker diarization. When enabled, you will get the speaker id
 	// for each word in the transcription. In the response, in the words array, you
 	// will get the speaker id for each word. In addition, we also return the
@@ -334,6 +335,31 @@ func (r AudioTranscriptionNewParams) MarshalMultipart() (data []byte, contentTyp
 		return nil, "", err
 	}
 	return buf.Bytes(), writer.FormDataContentType(), nil
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type AudioTranscriptionNewParamsFileUnion struct {
+	OfFile   io.Reader         `json:",omitzero,inline"`
+	OfString param.Opt[string] `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u AudioTranscriptionNewParamsFileUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfFile, u.OfString)
+}
+func (u *AudioTranscriptionNewParamsFileUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *AudioTranscriptionNewParamsFileUnion) asAny() any {
+	if !param.IsOmitted(u.OfFile) {
+		return &u.OfFile
+	} else if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	}
+	return nil
 }
 
 // Model to use for transcription

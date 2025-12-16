@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 (2025-12-16)
+
+Full Changelog: [v0.2.0...v0.3.0](https://github.com/togethercomputer/together-go/compare/v0.2.0...v0.3.0)
+
+### Features
+
+* **files:** add support for string alternative to file upload type ([07c6a44](https://github.com/togethercomputer/together-go/commit/07c6a44da0e74c3331698b517cc5e26aec5461e4))
+
 ## 0.2.0 (2025-12-15)
 
 Full Changelog: [v0.1.0...v0.2.0](https://github.com/togethercomputer/together-go/compare/v0.1.0...v0.2.0)

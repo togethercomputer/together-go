@@ -28,7 +28,9 @@ func TestAudioTranscriptionNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Audio.Transcriptions.New(context.TODO(), together.AudioTranscriptionNewParams{
-		File:           io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		File: together.AudioTranscriptionNewParamsFileUnion{
+			OfFile: io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+		},
 		Diarize:        together.Bool(true),
 		Language:       together.String("en"),
 		MaxSpeakers:    together.Int(0),
