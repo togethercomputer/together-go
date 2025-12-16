@@ -206,8 +206,9 @@ func (r *AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord) Unm
 }
 
 type AudioTranslationNewParams struct {
-	// Audio file to translate
-	File io.Reader `json:"file,omitzero,required" format:"binary"`
+	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
+	// .webm, .flac.
+	File AudioTranslationNewParamsFileUnion `json:"file,omitzero,required" format:"binary"`
 	// Target output language. Optional ISO 639-1 language code. If omitted, language
 	// is set to English.
 	Language param.Opt[string] `json:"language,omitzero"`
@@ -246,6 +247,31 @@ func (r AudioTranslationNewParams) MarshalMultipart() (data []byte, contentType 
 		return nil, "", err
 	}
 	return buf.Bytes(), writer.FormDataContentType(), nil
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type AudioTranslationNewParamsFileUnion struct {
+	OfFile   io.Reader         `json:",omitzero,inline"`
+	OfString param.Opt[string] `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u AudioTranslationNewParamsFileUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfFile, u.OfString)
+}
+func (u *AudioTranslationNewParamsFileUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *AudioTranslationNewParamsFileUnion) asAny() any {
+	if !param.IsOmitted(u.OfFile) {
+		return &u.OfFile
+	} else if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	}
+	return nil
 }
 
 // Model to use for translation
