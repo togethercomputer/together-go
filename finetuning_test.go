@@ -49,7 +49,10 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 				},
 			},
 		},
-		MaxGradNorm:  together.Float(0),
+		MaxGradNorm: together.Float(0),
+		MultimodalParams: together.FineTuningNewParamsMultimodalParams{
+			TrainVision: together.Bool(true),
+		},
 		NCheckpoints: together.Int(0),
 		NEpochs:      together.Int(0),
 		NEvals:       together.Int(0),
@@ -235,8 +238,11 @@ func TestFineTuningEstimatePriceWithOptionalParams(t *testing.T) {
 		TrainingFile:   "training_file",
 		FromCheckpoint: together.String("from_checkpoint"),
 		Model:          together.String("model"),
-		NEpochs:        together.Int(0),
-		NEvals:         together.Int(0),
+		MultimodalParams: together.FineTuningEstimatePriceParamsMultimodalParams{
+			TrainVision: together.Bool(true),
+		},
+		NEpochs: together.Int(0),
+		NEvals:  together.Int(0),
 		TrainingMethod: together.FineTuningEstimatePriceParamsTrainingMethodUnion{
 			OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft: &together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
