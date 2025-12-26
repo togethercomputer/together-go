@@ -2912,8 +2912,7 @@ type FineTuningEstimatePriceParams struct {
 	// Number of evaluations to be run on a given validation set during training
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
 	// File-ID of a validation file uploaded to the Together API
-	ValidationFile   param.Opt[string]                             `json:"validation_file,omitzero"`
-	MultimodalParams FineTuningEstimatePriceParamsMultimodalParams `json:"multimodal_params,omitzero"`
+	ValidationFile param.Opt[string] `json:"validation_file,omitzero"`
 	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 	// Preference Optimization.
 	TrainingMethod FineTuningEstimatePriceParamsTrainingMethodUnion `json:"training_method,omitzero"`
@@ -2926,21 +2925,6 @@ func (r FineTuningEstimatePriceParams) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *FineTuningEstimatePriceParams) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type FineTuningEstimatePriceParamsMultimodalParams struct {
-	// Whether to train the vision encoder of the model. Only available for multimodal
-	// models.
-	TrainVision param.Opt[bool] `json:"train_vision,omitzero"`
-	paramObj
-}
-
-func (r FineTuningEstimatePriceParamsMultimodalParams) MarshalJSON() (data []byte, err error) {
-	type shadow FineTuningEstimatePriceParamsMultimodalParams
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *FineTuningEstimatePriceParamsMultimodalParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

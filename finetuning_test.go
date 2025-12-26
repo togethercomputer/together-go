@@ -238,11 +238,8 @@ func TestFineTuningEstimatePriceWithOptionalParams(t *testing.T) {
 		TrainingFile:   "training_file",
 		FromCheckpoint: together.String("from_checkpoint"),
 		Model:          together.String("model"),
-		MultimodalParams: together.FineTuningEstimatePriceParamsMultimodalParams{
-			TrainVision: together.Bool(true),
-		},
-		NEpochs: together.Int(0),
-		NEvals:  together.Int(0),
+		NEpochs:        together.Int(0),
+		NEvals:         together.Int(0),
 		TrainingMethod: together.FineTuningEstimatePriceParamsTrainingMethodUnion{
 			OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft: &together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
