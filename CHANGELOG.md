@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.0 (2025-12-26)
+
+Full Changelog: [v0.3.0...v0.4.0](https://github.com/togethercomputer/together-go/compare/v0.3.0...v0.4.0)
+
+### Features
+
+* Support VLM finetuning ([5368df6](https://github.com/togethercomputer/together-go/commit/5368df638a2af2cb5d75dc78bb0cc3f078b78d59))
+* VLM Support update ([8979fd6](https://github.com/togethercomputer/together-go/commit/8979fd638b1fad9437ae75c8bcbaae4ede154e2e))
+
+
+### Chores
+
+* add float64 to valid types for RegisterFieldValidator ([934b198](https://github.com/togethercomputer/together-go/commit/934b1989093957486d579f4b183055ed4c67a8c9))
+
 ## 0.3.0 (2025-12-16)
 
 Full Changelog: [v0.2.0...v0.3.0](https://github.com/togethercomputer/together-go/compare/v0.2.0...v0.3.0)

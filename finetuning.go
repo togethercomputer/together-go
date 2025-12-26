@@ -238,26 +238,27 @@ type FinetuneResponse struct {
 	ID string `json:"id,required" format:"uuid"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status          FinetuneResponseStatus         `json:"status,required"`
-	BatchSize       FinetuneResponseBatchSizeUnion `json:"batch_size"`
-	CreatedAt       time.Time                      `json:"created_at" format:"date-time"`
-	EpochsCompleted int64                          `json:"epochs_completed"`
-	EvalSteps       int64                          `json:"eval_steps"`
-	Events          []FinetuneEvent                `json:"events"`
-	FromCheckpoint  string                         `json:"from_checkpoint"`
-	FromHfModel     string                         `json:"from_hf_model"`
-	HfModelRevision string                         `json:"hf_model_revision"`
-	JobID           string                         `json:"job_id"`
-	LearningRate    float64                        `json:"learning_rate"`
-	LrScheduler     FinetuneResponseLrScheduler    `json:"lr_scheduler"`
-	MaxGradNorm     float64                        `json:"max_grad_norm"`
-	Model           string                         `json:"model"`
-	ModelOutputName string                         `json:"model_output_name"`
-	ModelOutputPath string                         `json:"model_output_path"`
-	NCheckpoints    int64                          `json:"n_checkpoints"`
-	NEpochs         int64                          `json:"n_epochs"`
-	NEvals          int64                          `json:"n_evals"`
-	ParamCount      int64                          `json:"param_count"`
+	Status           FinetuneResponseStatus           `json:"status,required"`
+	BatchSize        FinetuneResponseBatchSizeUnion   `json:"batch_size"`
+	CreatedAt        time.Time                        `json:"created_at" format:"date-time"`
+	EpochsCompleted  int64                            `json:"epochs_completed"`
+	EvalSteps        int64                            `json:"eval_steps"`
+	Events           []FinetuneEvent                  `json:"events"`
+	FromCheckpoint   string                           `json:"from_checkpoint"`
+	FromHfModel      string                           `json:"from_hf_model"`
+	HfModelRevision  string                           `json:"hf_model_revision"`
+	JobID            string                           `json:"job_id"`
+	LearningRate     float64                          `json:"learning_rate"`
+	LrScheduler      FinetuneResponseLrScheduler      `json:"lr_scheduler"`
+	MaxGradNorm      float64                          `json:"max_grad_norm"`
+	Model            string                           `json:"model"`
+	ModelOutputName  string                           `json:"model_output_name"`
+	ModelOutputPath  string                           `json:"model_output_path"`
+	MultimodalParams FinetuneResponseMultimodalParams `json:"multimodal_params"`
+	NCheckpoints     int64                            `json:"n_checkpoints"`
+	NEpochs          int64                            `json:"n_epochs"`
+	NEvals           int64                            `json:"n_evals"`
+	ParamCount       int64                            `json:"param_count"`
 	// Progress information for a fine-tuning job
 	Progress             FinetuneResponseProgress            `json:"progress"`
 	QueueDepth           int64                               `json:"queue_depth"`
@@ -294,6 +295,7 @@ type FinetuneResponse struct {
 		Model                respjson.Field
 		ModelOutputName      respjson.Field
 		ModelOutputPath      respjson.Field
+		MultimodalParams     respjson.Field
 		NCheckpoints         respjson.Field
 		NEpochs              respjson.Field
 		NEvals               respjson.Field
@@ -473,6 +475,24 @@ func (r FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) RawJSON
 	return r.JSON.raw
 }
 func (r *FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FinetuneResponseMultimodalParams struct {
+	// Whether to train the vision encoder of the model. Only available for multimodal
+	// models.
+	TrainVision bool `json:"train_vision"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		TrainVision respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneResponseMultimodalParams) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneResponseMultimodalParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -2351,7 +2371,8 @@ type FineTuningNewParams struct {
 	BatchSize FineTuningNewParamsBatchSizeUnion `json:"batch_size,omitzero"`
 	// The learning rate scheduler to use. It specifies how the learning rate is
 	// adjusted during training.
-	LrScheduler FineTuningNewParamsLrScheduler `json:"lr_scheduler,omitzero"`
+	LrScheduler      FineTuningNewParamsLrScheduler      `json:"lr_scheduler,omitzero"`
+	MultimodalParams FineTuningNewParamsMultimodalParams `json:"multimodal_params,omitzero"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
 	TrainOnInputs FineTuningNewParamsTrainOnInputsUnion `json:"train_on_inputs,omitzero"`
@@ -2499,6 +2520,21 @@ func (r FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) Mars
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningNewParamsMultimodalParams struct {
+	// Whether to train the vision encoder of the model. Only available for multimodal
+	// models.
+	TrainVision param.Opt[bool] `json:"train_vision,omitzero"`
+	paramObj
+}
+
+func (r FineTuningNewParamsMultimodalParams) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningNewParamsMultimodalParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningNewParamsMultimodalParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

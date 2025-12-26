@@ -49,7 +49,10 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 				},
 			},
 		},
-		MaxGradNorm:  together.Float(0),
+		MaxGradNorm: together.Float(0),
+		MultimodalParams: together.FineTuningNewParamsMultimodalParams{
+			TrainVision: together.Bool(true),
+		},
 		NCheckpoints: together.Int(0),
 		NEpochs:      together.Int(0),
 		NEvals:       together.Int(0),
