@@ -29,7 +29,7 @@ func TestEmbeddingNew(t *testing.T) {
 		Input: together.EmbeddingNewParamsInputUnion{
 			OfString: together.String("Our solar system orbits the Milky Way galaxy at about 515,000 mph"),
 		},
-		Model: together.EmbeddingNewParamsModelWhereIsAIUaeLargeV1,
+		Model: together.EmbeddingNewParamsModelTogethercomputerM2Bert80M8kRetrieval,
 	})
 	if err != nil {
 		var apierr *together.Error

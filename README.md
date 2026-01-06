@@ -65,7 +65,7 @@ func main() {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
 	})
 	if err != nil {
 		panic(err.Error())
@@ -316,7 +316,7 @@ _, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNew
 			},
 		},
 	}},
-	Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+	Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
 })
 if err != nil {
 	var apierr *together.Error
@@ -353,7 +353,7 @@ client.Chat.Completions.New(
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
 	},
 	// This sets the per-retry timeout
 	option.WithRequestTimeout(20*time.Second),
@@ -423,7 +423,7 @@ client.Chat.Completions.New(
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
 	},
 	option.WithMaxRetries(5),
 )
@@ -448,7 +448,7 @@ chatCompletion, err := client.Chat.Completions.New(
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
 	},
 	option.WithResponseInto(&response),
 )
