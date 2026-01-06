@@ -26,7 +26,7 @@ func TestImageGenerateWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Images.Generate(context.TODO(), together.ImageGenerateParams{
-		Model:                together.ImageGenerateParamsModelBlackForestLabsFlux1SchnellFree,
+		Model:                together.ImageGenerateParamsModelBlackForestLabsFlux1Schnell,
 		Prompt:               "cat floating in space, cinematic",
 		DisableSafetyChecker: together.Bool(true),
 		GuidanceScale:        together.Float(0),

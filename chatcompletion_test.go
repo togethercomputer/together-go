@@ -33,7 +33,7 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 				Name:    together.String("name"),
 			},
 		}},
-		Model:                         together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		Model:                         together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
 		ContextLengthExceededBehavior: together.ChatCompletionNewParamsContextLengthExceededBehaviorTruncate,
 		Echo:                          together.Bool(true),
 		FrequencyPenalty:              together.Float(0),

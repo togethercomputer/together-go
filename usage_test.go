@@ -33,7 +33,7 @@ func TestUsage(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
 	})
 	if err != nil {
 		t.Fatalf("err should be nil: %s", err.Error())

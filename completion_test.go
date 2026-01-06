@@ -26,7 +26,7 @@ func TestCompletionNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Completions.New(context.TODO(), together.CompletionNewParams{
-		Model:            together.CompletionNewParamsModelMetaLlamaLlama2_70bHf,
+		Model:            together.CompletionNewParamsModel("mistralai/Mixtral-8x7B-Instruct-v0.1"),
 		Prompt:           "<s>[INST] What is the capital of France? [/INST]",
 		Echo:             together.Bool(true),
 		FrequencyPenalty: together.Float(0),
@@ -40,7 +40,7 @@ func TestCompletionNewWithOptionalParams(t *testing.T) {
 		N:                 together.Int(1),
 		PresencePenalty:   together.Float(0),
 		RepetitionPenalty: together.Float(0),
-		SafetyModel:       together.CompletionNewParamsSafetyModelMetaLlamaLlamaGuard7b,
+		SafetyModel:       together.CompletionNewParamsSafetyModel("safety_model_name"),
 		Seed:              together.Int(42),
 		Stop:              []string{"string"},
 		Temperature:       together.Float(0),
