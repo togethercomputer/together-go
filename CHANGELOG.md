@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 (2026-01-06)
+
+Full Changelog: [v0.3.0...v0.4.0](https://github.com/togethercomputer/together-go/compare/v0.3.0...v0.4.0)
+
+### Features
+
+* Add compliance and chat_template_kwargs to chat completions spec ([46c9a08](https://github.com/togethercomputer/together-go/commit/46c9a08159c5dd224befc67b311924ee3dc895f5))
+* Support VLM finetuning ([5368df6](https://github.com/togethercomputer/together-go/commit/5368df638a2af2cb5d75dc78bb0cc3f078b78d59))
+* VLM Support update ([8979fd6](https://github.com/togethercomputer/together-go/commit/8979fd638b1fad9437ae75c8bcbaae4ede154e2e))
+
+
+### Chores
+
+* add float64 to valid types for RegisterFieldValidator ([934b198](https://github.com/togethercomputer/together-go/commit/934b1989093957486d579f4b183055ed4c67a8c9))
+* Add Instant Clusters to OpenAPI spec ([94d3cbd](https://github.com/togethercomputer/together-go/commit/94d3cbd49b592448e028cae8cc1d20ecb7f2306c))
+* **internal:** codegen related update ([310bb8b](https://github.com/togethercomputer/together-go/commit/310bb8b88fb2db3f83995ea20b99c656d500c5b2))
+* **internal:** use different example values for some enums ([397c345](https://github.com/togethercomputer/together-go/commit/397c345369b0218bd9df8d1c19b55ad0925086b7))
+
 ## 0.3.0 (2025-12-16)
 
 Full Changelog: [v0.2.0...v0.3.0](https://github.com/togethercomputer/together-go/compare/v0.2.0...v0.3.0)
