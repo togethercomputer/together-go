@@ -17,6 +17,7 @@ import (
 // directly, and instead use the [NewClient] method instead.
 type Client struct {
 	Options         []option.RequestOption
+	Beta            BetaService
 	Chat            ChatService
 	Completions     CompletionService
 	Embeddings      EmbeddingService
@@ -57,6 +58,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 
 	r = Client{Options: opts}
 
+	r.Beta = NewBetaService(opts...)
 	r.Chat = NewChatService(opts...)
 	r.Completions = NewCompletionService(opts...)
 	r.Embeddings = NewEmbeddingService(opts...)
