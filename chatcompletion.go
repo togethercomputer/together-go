@@ -454,7 +454,10 @@ type ChatCompletionNewParams struct {
 	// probabilities. It specifies a probability threshold below which all less likely
 	// tokens are filtered out. This technique helps maintain diversity and generate
 	// more fluent and natural-sounding text.
-	TopP param.Opt[float64] `json:"top_p,omitzero"`
+	TopP               param.Opt[float64] `json:"top_p,omitzero"`
+	ChatTemplateKwargs any                `json:"chat_template_kwargs,omitzero"`
+	// Any of "hipaa".
+	Compliance ChatCompletionNewParamsCompliance `json:"compliance,omitzero"`
 	// Defined the behavior of the API when max_tokens exceed the maximum context
 	// length of the model. When set to 'error', API will return 400 with appropriate
 	// error message. When set to 'truncate', override the max_tokens with maximum
@@ -983,6 +986,12 @@ const (
 	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_405BInstructTurbo ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo"
 	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_70BInstructTurbo  ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
 	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo   ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+)
+
+type ChatCompletionNewParamsCompliance string
+
+const (
+	ChatCompletionNewParamsComplianceHipaa ChatCompletionNewParamsCompliance = "hipaa"
 )
 
 // Defined the behavior of the API when max_tokens exceed the maximum context
