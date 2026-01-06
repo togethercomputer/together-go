@@ -34,6 +34,8 @@ func TestChatCompletionNewWithOptionalParams(t *testing.T) {
 			},
 		}},
 		Model:                         together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		ChatTemplateKwargs:            map[string]any{},
+		Compliance:                    together.ChatCompletionNewParamsComplianceHipaa,
 		ContextLengthExceededBehavior: together.ChatCompletionNewParamsContextLengthExceededBehaviorTruncate,
 		Echo:                          together.Bool(true),
 		FrequencyPenalty:              together.Float(0),
