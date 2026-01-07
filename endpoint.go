@@ -27,7 +27,8 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewEndpointService] method instead.
 type EndpointService struct {
-	Options []option.RequestOption
+	Options  []option.RequestOption
+	Storages EndpointStorageService
 }
 
 // NewEndpointService generates a new service that applies the given options to
@@ -36,6 +37,7 @@ type EndpointService struct {
 func NewEndpointService(opts ...option.RequestOption) (r EndpointService) {
 	r = EndpointService{}
 	r.Options = opts
+	r.Storages = NewEndpointStorageService(opts...)
 	return
 }
 
@@ -97,11 +99,71 @@ func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ..
 	return
 }
 
+// Create GPU Cluster
+func (r *EndpointService) NewCluster(ctx context.Context, body EndpointNewClusterParams, opts ...option.RequestOption) (res *EndpointNewClusterResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "clusters"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return
+}
+
+// Delete GPU cluster by cluster ID
+func (r *EndpointService) DeleteCluster(ctx context.Context, clusterID string, opts ...option.RequestOption) (res *EndpointDeleteClusterResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if clusterID == "" {
+		err = errors.New("missing required cluster_id parameter")
+		return
+	}
+	path := fmt.Sprintf("clusters/%s", clusterID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
+	return
+}
+
 // List all available availability zones.
 func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.RequestOption) (res *EndpointListAvzonesResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters/availability-zones"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// List all GPU clusters.
+func (r *EndpointService) ListClusters(ctx context.Context, opts ...option.RequestOption) (res *EndpointListClustersResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "clusters"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// List regions and corresponding supported driver versions
+func (r *EndpointService) ListRegions(ctx context.Context, opts ...option.RequestOption) (res *EndpointListRegionsResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "clusters/regions"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Get GPU cluster by cluster ID
+func (r *EndpointService) GetCluster(ctx context.Context, clusterID string, opts ...option.RequestOption) (res *Cluster, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if clusterID == "" {
+		err = errors.New("missing required cluster_id parameter")
+		return
+	}
+	path := fmt.Sprintf("clusters/%s", clusterID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
+// Update a GPU Cluster.
+func (r *EndpointService) UpdateCluster(ctx context.Context, clusterID string, body EndpointUpdateClusterParams, opts ...option.RequestOption) (res *EndpointUpdateClusterResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if clusterID == "" {
+		err = errors.New("missing required cluster_id parameter")
+		return
+	}
+	path := fmt.Sprintf("clusters/%s", clusterID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
 	return
 }
 
@@ -304,6 +366,38 @@ const (
 	EndpointListResponseObjectList EndpointListResponseObject = "list"
 )
 
+type EndpointNewClusterResponse struct {
+	ClusterID string `json:"cluster_id,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ClusterID   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointNewClusterResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointNewClusterResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointDeleteClusterResponse struct {
+	ClusterID string `json:"cluster_id,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ClusterID   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointDeleteClusterResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointDeleteClusterResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // List of unique availability zones
 type EndpointListAvzonesResponse struct {
 	Avzones []string `json:"avzones,required"`
@@ -318,6 +412,76 @@ type EndpointListAvzonesResponse struct {
 // Returns the unmodified JSON received from the API
 func (r EndpointListAvzonesResponse) RawJSON() string { return r.JSON.raw }
 func (r *EndpointListAvzonesResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointListClustersResponse struct {
+	Clusters []Cluster `json:"clusters,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Clusters    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListClustersResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListClustersResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointListRegionsResponse struct {
+	Regions []EndpointListRegionsResponseRegion `json:"regions,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Regions     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListRegionsResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListRegionsResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointListRegionsResponseRegion struct {
+	ID                string   `json:"id,required"`
+	AvailabilityZones []string `json:"availability_zones,required"`
+	DriverVersions    []string `json:"driver_versions,required"`
+	Name              string   `json:"name,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID                respjson.Field
+		AvailabilityZones respjson.Field
+		DriverVersions    respjson.Field
+		Name              respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListRegionsResponseRegion) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListRegionsResponseRegion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointUpdateClusterResponse struct {
+	ClusterID string `json:"cluster_id,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ClusterID   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointUpdateClusterResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointUpdateClusterResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -430,4 +594,128 @@ type EndpointListParamsUsageType string
 const (
 	EndpointListParamsUsageTypeOnDemand EndpointListParamsUsageType = "on-demand"
 	EndpointListParamsUsageTypeReserved EndpointListParamsUsageType = "reserved"
+)
+
+type EndpointNewClusterParams struct {
+	// Any of "RESERVED", "ON_DEMAND".
+	BillingType EndpointNewClusterParamsBillingType `json:"billing_type,omitzero,required"`
+	// Name of the GPU cluster.
+	ClusterName string `json:"cluster_name,required"`
+	// NVIDIA driver version to use in the cluster.
+	//
+	// Any of "CUDA_12_5_555", "CUDA_12_6_560", "CUDA_12_6_565", "CUDA_12_8_570".
+	DriverVersion EndpointNewClusterParamsDriverVersion `json:"driver_version,omitzero,required"`
+	// Duration in days to keep the cluster running.
+	DurationDays int64 `json:"duration_days,required"`
+	// Type of GPU to use in the cluster
+	//
+	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
+	// "H100_SXM_INF".
+	GPUType EndpointNewClusterParamsGPUType `json:"gpu_type,omitzero,required"`
+	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
+	// example, 8, 16 or 24
+	NumGPUs int64 `json:"num_gpus,required"`
+	// Region to create the GPU cluster in. Valid values are us-central-8 and
+	// us-central-4.
+	//
+	// Any of "us-central-8", "us-central-4".
+	Region   EndpointNewClusterParamsRegion `json:"region,omitzero,required"`
+	VolumeID param.Opt[string]              `json:"volume_id,omitzero"`
+	// Any of "KUBERNETES", "SLURM".
+	ClusterType  EndpointNewClusterParamsClusterType  `json:"cluster_type,omitzero"`
+	SharedVolume EndpointNewClusterParamsSharedVolume `json:"shared_volume,omitzero"`
+	paramObj
+}
+
+func (r EndpointNewClusterParams) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointNewClusterParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EndpointNewClusterParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointNewClusterParamsBillingType string
+
+const (
+	EndpointNewClusterParamsBillingTypeReserved EndpointNewClusterParamsBillingType = "RESERVED"
+	EndpointNewClusterParamsBillingTypeOnDemand EndpointNewClusterParamsBillingType = "ON_DEMAND"
+)
+
+// NVIDIA driver version to use in the cluster.
+type EndpointNewClusterParamsDriverVersion string
+
+const (
+	EndpointNewClusterParamsDriverVersionCuda12_5_555 EndpointNewClusterParamsDriverVersion = "CUDA_12_5_555"
+	EndpointNewClusterParamsDriverVersionCuda12_6_560 EndpointNewClusterParamsDriverVersion = "CUDA_12_6_560"
+	EndpointNewClusterParamsDriverVersionCuda12_6_565 EndpointNewClusterParamsDriverVersion = "CUDA_12_6_565"
+	EndpointNewClusterParamsDriverVersionCuda12_8_570 EndpointNewClusterParamsDriverVersion = "CUDA_12_8_570"
+)
+
+// Type of GPU to use in the cluster
+type EndpointNewClusterParamsGPUType string
+
+const (
+	EndpointNewClusterParamsGPUTypeH100Sxm    EndpointNewClusterParamsGPUType = "H100_SXM"
+	EndpointNewClusterParamsGPUTypeH200Sxm    EndpointNewClusterParamsGPUType = "H200_SXM"
+	EndpointNewClusterParamsGPUTypeRtx6000Pci EndpointNewClusterParamsGPUType = "RTX_6000_PCI"
+	EndpointNewClusterParamsGPUTypeL40Pcie    EndpointNewClusterParamsGPUType = "L40_PCIE"
+	EndpointNewClusterParamsGPUTypeB200Sxm    EndpointNewClusterParamsGPUType = "B200_SXM"
+	EndpointNewClusterParamsGPUTypeH100SxmInf EndpointNewClusterParamsGPUType = "H100_SXM_INF"
+)
+
+// Region to create the GPU cluster in. Valid values are us-central-8 and
+// us-central-4.
+type EndpointNewClusterParamsRegion string
+
+const (
+	EndpointNewClusterParamsRegionUsCentral8 EndpointNewClusterParamsRegion = "us-central-8"
+	EndpointNewClusterParamsRegionUsCentral4 EndpointNewClusterParamsRegion = "us-central-4"
+)
+
+type EndpointNewClusterParamsClusterType string
+
+const (
+	EndpointNewClusterParamsClusterTypeKubernetes EndpointNewClusterParamsClusterType = "KUBERNETES"
+	EndpointNewClusterParamsClusterTypeSlurm      EndpointNewClusterParamsClusterType = "SLURM"
+)
+
+// The properties Region, SizeTib, VolumeName are required.
+type EndpointNewClusterParamsSharedVolume struct {
+	// Region name. Usable regions can be found from `client.clusters.list_regions()`
+	Region string `json:"region,required"`
+	// Volume size in whole tebibytes (TiB).
+	SizeTib    int64  `json:"size_tib,required"`
+	VolumeName string `json:"volume_name,required"`
+	paramObj
+}
+
+func (r EndpointNewClusterParamsSharedVolume) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointNewClusterParamsSharedVolume
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EndpointNewClusterParamsSharedVolume) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointUpdateClusterParams struct {
+	NumGPUs param.Opt[int64] `json:"num_gpus,omitzero"`
+	// Any of "KUBERNETES", "SLURM".
+	ClusterType EndpointUpdateClusterParamsClusterType `json:"cluster_type,omitzero"`
+	paramObj
+}
+
+func (r EndpointUpdateClusterParams) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointUpdateClusterParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *EndpointUpdateClusterParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointUpdateClusterParamsClusterType string
+
+const (
+	EndpointUpdateClusterParamsClusterTypeKubernetes EndpointUpdateClusterParamsClusterType = "KUBERNETES"
+	EndpointUpdateClusterParamsClusterTypeSlurm      EndpointUpdateClusterParamsClusterType = "SLURM"
 )
