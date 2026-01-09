@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0 (2026-01-09)
+
+Full Changelog: [v0.4.0...v0.5.0](https://github.com/togethercomputer/together-go/compare/v0.4.0...v0.5.0)
+
+### Features
+
+* [wip] ([d677d1f](https://github.com/togethercomputer/together-go/commit/d677d1f8649a16ea8d9572c6e5cf5c78862681c8))
+* Add started_at timestamp to fix time estimation ([774f5af](https://github.com/togethercomputer/together-go/commit/774f5af4676523508c208b84d598a593ff02eaa6))
+
+
+### Chores
+
+* **api:** Remove APIs that were accidentally added in the wrong namespace ([051991e](https://github.com/togethercomputer/together-go/commit/051991e96f317b5b39ee6965551b3079f28b66eb))
+
 ## 0.4.0 (2026-01-06)
 
 Full Changelog: [v0.3.0...v0.4.0](https://github.com/togethercomputer/together-go/compare/v0.3.0...v0.4.0)

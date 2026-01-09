@@ -262,6 +262,7 @@ type FinetuneResponse struct {
 	// Progress information for a fine-tuning job
 	Progress             FinetuneResponseProgress            `json:"progress"`
 	QueueDepth           int64                               `json:"queue_depth"`
+	StartedAt            time.Time                           `json:"started_at" format:"date-time"`
 	TokenCount           int64                               `json:"token_count"`
 	TotalPrice           int64                               `json:"total_price"`
 	TrainOnInputs        FinetuneResponseTrainOnInputsUnion  `json:"train_on_inputs"`
@@ -302,6 +303,7 @@ type FinetuneResponse struct {
 		ParamCount           respjson.Field
 		Progress             respjson.Field
 		QueueDepth           respjson.Field
+		StartedAt            respjson.Field
 		TokenCount           respjson.Field
 		TotalPrice           respjson.Field
 		TrainOnInputs        respjson.Field
@@ -825,6 +827,8 @@ type FineTuningNewResponse struct {
 	OwnerAddress string `json:"owner_address"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningNewResponseProgress `json:"progress"`
+	// Start timestamp of the current stage of the fine-tune job
+	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
 	Suffix string `json:"suffix"`
 	// Count of tokens processed
@@ -870,6 +874,7 @@ type FineTuningNewResponse struct {
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
 		Progress         respjson.Field
+		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
 		TotalPrice       respjson.Field
@@ -1312,6 +1317,8 @@ type FineTuningListResponseData struct {
 	OwnerAddress string `json:"owner_address"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningListResponseDataProgress `json:"progress"`
+	// Start timestamp of the current stage of the fine-tune job
+	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
 	Suffix string `json:"suffix"`
 	// Count of tokens processed
@@ -1357,6 +1364,7 @@ type FineTuningListResponseData struct {
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
 		Progress         respjson.Field
+		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
 		TotalPrice       respjson.Field
@@ -1796,6 +1804,8 @@ type FineTuningCancelResponse struct {
 	OwnerAddress string `json:"owner_address"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningCancelResponseProgress `json:"progress"`
+	// Start timestamp of the current stage of the fine-tune job
+	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
 	Suffix string `json:"suffix"`
 	// Count of tokens processed
@@ -1841,6 +1851,7 @@ type FineTuningCancelResponse struct {
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
 		Progress         respjson.Field
+		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
 		TotalPrice       respjson.Field
