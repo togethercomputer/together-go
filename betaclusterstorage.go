@@ -35,7 +35,11 @@ func NewBetaClusterStorageService(opts ...option.RequestOption) (r BetaClusterSt
 	return
 }
 
-// Create a shared volume.
+// Instant Clusters supports long-lived, resizable in-DC shared storage with user
+// data persistence. You can dynamically create and attach volumes to your cluster
+// at cluster creation time, and resize as your data grows. All shared storage is
+// backed by multi-NIC bare metal paths, ensuring high-throughput and low-latency
+// performance for shared storage.
 func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterStorageNewParams, opts ...option.RequestOption) (res *BetaClusterStorageNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters/storages"
@@ -43,7 +47,7 @@ func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterSto
 	return
 }
 
-// Get shared volume by volume Id.
+// Retrieve information about a specific shared volume.
 func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
@@ -55,7 +59,7 @@ func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, op
 	return
 }
 
-// Update a shared volume.
+// Update the configuration of an existing shared volume.
 func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaClusterStorageUpdateParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters/storages"
@@ -71,7 +75,8 @@ func (r *BetaClusterStorageService) List(ctx context.Context, opts ...option.Req
 	return
 }
 
-// Delete shared volume by volume id.
+// Delete a shared volume. Note that if this volume is attached to a cluster,
+// deleting will fail.
 func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string, opts ...option.RequestOption) (res *BetaClusterStorageDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
