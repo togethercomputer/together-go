@@ -37,7 +37,11 @@ func NewBetaClusterService(opts ...option.RequestOption) (r BetaClusterService) 
 	return
 }
 
-// Create GPU Cluster
+// Create an Instant Cluster on Together's high-performance GPU clusters. With
+// features like on-demand scaling, long-lived resizable high-bandwidth shared
+// DC-local storage, Kubernetes and Slurm cluster flavors, a REST API, and
+// Terraform support, you can run workloads flexibly without complex infrastructure
+// management.
 func (r *BetaClusterService) New(ctx context.Context, body BetaClusterNewParams, opts ...option.RequestOption) (res *BetaClusterNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters"
@@ -45,7 +49,7 @@ func (r *BetaClusterService) New(ctx context.Context, body BetaClusterNewParams,
 	return
 }
 
-// Get GPU cluster by cluster ID
+// Retrieve information about a specific GPU cluster.
 func (r *BetaClusterService) Get(ctx context.Context, clusterID string, opts ...option.RequestOption) (res *Cluster, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
@@ -57,7 +61,7 @@ func (r *BetaClusterService) Get(ctx context.Context, clusterID string, opts ...
 	return
 }
 
-// Update a GPU Cluster.
+// Update the configuration of an existing GPU cluster.
 func (r *BetaClusterService) Update(ctx context.Context, clusterID string, body BetaClusterUpdateParams, opts ...option.RequestOption) (res *BetaClusterUpdateResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
@@ -77,7 +81,7 @@ func (r *BetaClusterService) List(ctx context.Context, opts ...option.RequestOpt
 	return
 }
 
-// Delete GPU cluster by cluster ID
+// Delete a GPU cluster by cluster ID.
 func (r *BetaClusterService) Delete(ctx context.Context, clusterID string, opts ...option.RequestOption) (res *BetaClusterDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
