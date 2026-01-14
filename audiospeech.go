@@ -49,7 +49,8 @@ func (r *AudioSpeechService) NewStreaming(ctx context.Context, body AudioSpeechN
 		err error
 	)
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream"), option.WithJSONSet("stream", true)}, opts...)
+	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
+	opts = append(opts, option.WithJSONSet("stream", true))
 	path := "audio/speech"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
 	return ssestream.NewStream[AudioSpeechStreamChunk](ssestream.NewDecoder(raw), err)
