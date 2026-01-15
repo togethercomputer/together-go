@@ -40,7 +40,7 @@ func NewBetaClusterStorageService(opts ...option.RequestOption) (r BetaClusterSt
 // at cluster creation time, and resize as your data grows. All shared storage is
 // backed by multi-NIC bare metal paths, ensuring high-throughput and low-latency
 // performance for shared storage.
-func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterStorageNewParams, opts ...option.RequestOption) (res *BetaClusterStorageNewResponse, err error) {
+func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterStorageNewParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters/storages"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -89,12 +89,15 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 }
 
 type ClusterStorage struct {
-	SizeTib    int64  `json:"size_tib,required"`
-	VolumeID   string `json:"volume_id,required"`
-	VolumeName string `json:"volume_name,required"`
+	SizeTib int64 `json:"size_tib,required"`
+	// Any of "available", "bound", "provisioning".
+	Status     ClusterStorageStatus `json:"status,required"`
+	VolumeID   string               `json:"volume_id,required"`
+	VolumeName string               `json:"volume_name,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SizeTib     respjson.Field
+		Status      respjson.Field
 		VolumeID    respjson.Field
 		VolumeName  respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -108,21 +111,13 @@ func (r *ClusterStorage) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaClusterStorageNewResponse struct {
-	VolumeID string `json:"volume_id,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		VolumeID    respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
+type ClusterStorageStatus string
 
-// Returns the unmodified JSON received from the API
-func (r BetaClusterStorageNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterStorageNewResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	ClusterStorageStatusAvailable    ClusterStorageStatus = "available"
+	ClusterStorageStatusBound        ClusterStorageStatus = "bound"
+	ClusterStorageStatusProvisioning ClusterStorageStatus = "provisioning"
+)
 
 type BetaClusterStorageListResponse struct {
 	Volumes []ClusterStorage `json:"volumes,required"`

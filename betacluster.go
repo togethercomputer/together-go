@@ -42,7 +42,7 @@ func NewBetaClusterService(opts ...option.RequestOption) (r BetaClusterService) 
 // DC-local storage, Kubernetes and Slurm cluster flavors, a REST API, and
 // Terraform support, you can run workloads flexibly without complex infrastructure
 // management.
-func (r *BetaClusterService) New(ctx context.Context, body BetaClusterNewParams, opts ...option.RequestOption) (res *BetaClusterNewResponse, err error) {
+func (r *BetaClusterService) New(ctx context.Context, body BetaClusterNewParams, opts ...option.RequestOption) (res *Cluster, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -62,7 +62,7 @@ func (r *BetaClusterService) Get(ctx context.Context, clusterID string, opts ...
 }
 
 // Update the configuration of an existing GPU cluster.
-func (r *BetaClusterService) Update(ctx context.Context, clusterID string, body BetaClusterUpdateParams, opts ...option.RequestOption) (res *BetaClusterUpdateResponse, err error) {
+func (r *BetaClusterService) Update(ctx context.Context, clusterID string, body BetaClusterUpdateParams, opts ...option.RequestOption) (res *Cluster, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
@@ -275,38 +275,6 @@ func (r *ClusterVolume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaClusterNewResponse struct {
-	ClusterID string `json:"cluster_id,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ClusterID   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaClusterNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterNewResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type BetaClusterUpdateResponse struct {
-	ClusterID string `json:"cluster_id,required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ClusterID   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaClusterUpdateResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterUpdateResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 type BetaClusterListResponse struct {
 	Clusters []Cluster `json:"clusters,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -386,8 +354,6 @@ type BetaClusterNewParams struct {
 	//
 	// Any of "CUDA_12_5_555", "CUDA_12_6_560", "CUDA_12_6_565", "CUDA_12_8_570".
 	DriverVersion BetaClusterNewParamsDriverVersion `json:"driver_version,omitzero,required"`
-	// Duration in days to keep the cluster running.
-	DurationDays int64 `json:"duration_days,required"`
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
@@ -400,8 +366,10 @@ type BetaClusterNewParams struct {
 	// us-central-4.
 	//
 	// Any of "us-central-8", "us-central-4".
-	Region   BetaClusterNewParamsRegion `json:"region,omitzero,required"`
-	VolumeID param.Opt[string]          `json:"volume_id,omitzero"`
+	Region BetaClusterNewParamsRegion `json:"region,omitzero,required"`
+	// Duration in days to keep the cluster running.
+	DurationDays param.Opt[int64]  `json:"duration_days,omitzero"`
+	VolumeID     param.Opt[string] `json:"volume_id,omitzero"`
 	// Any of "KUBERNETES", "SLURM".
 	ClusterType  BetaClusterNewParamsClusterType  `json:"cluster_type,omitzero"`
 	SharedVolume BetaClusterNewParamsSharedVolume `json:"shared_volume,omitzero"`
