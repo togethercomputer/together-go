@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.5.0 (2026-01-21)
+
+Full Changelog: [v0.4.0...v0.5.0](https://github.com/togethercomputer/together-go/compare/v0.4.0...v0.5.0)
+
+### Features
+
+* [wip] ([d677d1f](https://github.com/togethercomputer/together-go/commit/d677d1f8649a16ea8d9572c6e5cf5c78862681c8))
+* Add started_at timestamp to fix time estimation ([774f5af](https://github.com/togethercomputer/together-go/commit/774f5af4676523508c208b84d598a593ff02eaa6))
+* **client:** add a StreamError type to access raw events from sse streams ([e1bbd04](https://github.com/togethercomputer/together-go/commit/e1bbd04960e7983c589fdc9e486f69c1278dad82))
+
+
+### Bug Fixes
+
+* **client:** retain streaming when user sets request body ([7824476](https://github.com/togethercomputer/together-go/commit/7824476d76e43d2c96eab88c7668b12a2d3b71ac))
+* **docs:** add missing pointer prefix to api.md return types ([22ac5e5](https://github.com/togethercomputer/together-go/commit/22ac5e589d1a4c39894b60143647898c6b42b7a1))
+
+
+### Chores
+
+* Add code samples and descriptions to instant cluster apis ([24bd713](https://github.com/togethercomputer/together-go/commit/24bd713e6caa21c1a3b350af72f6d8424fc67b3c))
+* **api:** Remove APIs that were accidentally added in the wrong namespace ([051991e](https://github.com/togethercomputer/together-go/commit/051991e96f317b5b39ee6965551b3079f28b66eb))
+* **internal:** update `actions/checkout` version ([4c69157](https://github.com/togethercomputer/together-go/commit/4c691577cd2a00a307db2e8e9c902ae3a0b69f51))
+* Mark disable_prompt_cache as deprecated for endpoint creation ([d086fd1](https://github.com/togethercomputer/together-go/commit/d086fd1914a460e6c364c3b85ee1c129f972b8a7))
+* Update cluster apis to reflect their new response shape ([ff8489a](https://github.com/togethercomputer/together-go/commit/ff8489acd3c071c1fef43f70908420aef88c6da2))
+
 ## 0.4.0 (2026-01-06)
 
 Full Changelog: [v0.3.0...v0.4.0](https://github.com/togethercomputer/together-go/compare/v0.3.0...v0.4.0)
