@@ -334,7 +334,7 @@ type EndpointNewParams struct {
 	InactiveTimeout param.Opt[int64] `json:"inactive_timeout,omitzero"`
 	// Create the endpoint in a specified availability zone (e.g., us-central-4b)
 	AvailabilityZone param.Opt[string] `json:"availability_zone,omitzero"`
-	// Whether to disable the prompt cache for this endpoint
+	// This parameter is deprecated and no longer has any effect.
 	DisablePromptCache param.Opt[bool] `json:"disable_prompt_cache,omitzero"`
 	// Whether to disable speculative decoding for this endpoint
 	DisableSpeculativeDecoding param.Opt[bool] `json:"disable_speculative_decoding,omitzero"`
