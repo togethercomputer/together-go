@@ -63,6 +63,14 @@ func (r *BetaJigService) Update(ctx context.Context, id string, body BetaJigUpda
 	return
 }
 
+// Get a list of all deployments in your project
+func (r *BetaJigService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaJigListResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "deployments"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return
+}
+
 // Create a new deployment with specified configuration
 func (r *BetaJigService) Deploy(ctx context.Context, body BetaJigDeployParams, opts ...option.RequestOption) (res *BetaJigDeployResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
@@ -662,6 +670,298 @@ type BetaJigUpdateResponseVolume struct {
 // Returns the unmodified JSON received from the API
 func (r BetaJigUpdateResponseVolume) RawJSON() string { return r.JSON.raw }
 func (r *BetaJigUpdateResponseVolume) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaJigListResponse struct {
+	// Data is the array of deployment items
+	Data []BetaJigListResponseData `json:"data"`
+	// Object is the type identifier for this response (always "list")
+	Object string `json:"object"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Object      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigListResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigListResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaJigListResponseData struct {
+	// ID is the unique identifier of the deployment
+	ID string `json:"id"`
+	// Args are the arguments passed to the container's command
+	Args []string `json:"args"`
+	// Autoscaling contains autoscaling configuration parameters for this deployment
+	Autoscaling map[string]string `json:"autoscaling"`
+	// Command is the entrypoint command run in the container
+	Command []string `json:"command"`
+	// CPU is the amount of CPU resource allocated to each replica in cores (fractional
+	// value is allowed)
+	CPU float64 `json:"cpu"`
+	// CreatedAt is the ISO8601 timestamp when this deployment was created
+	CreatedAt string `json:"created_at"`
+	// Description provides a human-readable explanation of the deployment's purpose or
+	// content
+	Description string `json:"description"`
+	// DesiredReplicas is the number of replicas that the orchestrator is targeting
+	DesiredReplicas int64 `json:"desired_replicas"`
+	// EnvironmentVariables is a list of environment variables set in the container
+	EnvironmentVariables []BetaJigListResponseDataEnvironmentVariable `json:"environment_variables"`
+	// GPUCount is the number of GPUs allocated to each replica in this deployment
+	GPUCount int64 `json:"gpu_count"`
+	// GPUType specifies the type of GPU requested (if any) for this deployment
+	//
+	// Any of "h100-80gb", " a100-80gb".
+	GPUType string `json:"gpu_type"`
+	// HealthCheckPath is the HTTP path used for health checks of the application
+	HealthCheckPath string `json:"health_check_path"`
+	// Image specifies the container image used for this deployment
+	Image string `json:"image"`
+	// MaxReplicas is the maximum number of replicas to run for this deployment
+	MaxReplicas int64 `json:"max_replicas"`
+	// Memory is the amount of memory allocated to each replica in GiB (fractional
+	// value is allowed)
+	Memory float64 `json:"memory"`
+	// MinReplicas is the minimum number of replicas to run for this deployment
+	MinReplicas int64 `json:"min_replicas"`
+	// Name is the name of the deployment
+	Name string `json:"name"`
+	// Object is the type identifier for this response (always "deployment")
+	Object string `json:"object"`
+	// Port is the container port that the deployment exposes
+	Port int64 `json:"port"`
+	// ReadyReplicas is the current number of replicas that are in the Ready state
+	ReadyReplicas int64 `json:"ready_replicas"`
+	// ReplicaEvents is a mapping of replica names or IDs to their status events
+	ReplicaEvents map[string]BetaJigListResponseDataReplicaEvent `json:"replica_events"`
+	// Status represents the overall status of the deployment (e.g., Updating, Scaling,
+	// Ready, Failed)
+	//
+	// Any of "Updating", "Scaling", "Ready", "Failed".
+	Status string `json:"status"`
+	// Storage is the amount of storage (in MB or units as defined by the platform)
+	// allocated to each replica
+	Storage int64 `json:"storage"`
+	// UpdatedAt is the ISO8601 timestamp when this deployment was last updated
+	UpdatedAt string `json:"updated_at"`
+	// Volumes is a list of volume mounts for this deployment
+	Volumes []BetaJigListResponseDataVolume `json:"volumes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID                   respjson.Field
+		Args                 respjson.Field
+		Autoscaling          respjson.Field
+		Command              respjson.Field
+		CPU                  respjson.Field
+		CreatedAt            respjson.Field
+		Description          respjson.Field
+		DesiredReplicas      respjson.Field
+		EnvironmentVariables respjson.Field
+		GPUCount             respjson.Field
+		GPUType              respjson.Field
+		HealthCheckPath      respjson.Field
+		Image                respjson.Field
+		MaxReplicas          respjson.Field
+		Memory               respjson.Field
+		MinReplicas          respjson.Field
+		Name                 respjson.Field
+		Object               respjson.Field
+		Port                 respjson.Field
+		ReadyReplicas        respjson.Field
+		ReplicaEvents        respjson.Field
+		Status               respjson.Field
+		Storage              respjson.Field
+		UpdatedAt            respjson.Field
+		Volumes              respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigListResponseData) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigListResponseData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaJigListResponseDataEnvironmentVariable struct {
+	// Name is the environment variable name (e.g., "DATABASE_URL"). Must start with a
+	// letter or underscore, followed by letters, numbers, or underscores
+	Name string `json:"name,required"`
+	// Value is the plain text value for the environment variable. Use this for
+	// non-sensitive values. Either Value or ValueFromSecret must be set, but not both
+	Value string `json:"value"`
+	// ValueFromSecret references a secret by name or ID to use as the value. Use this
+	// for sensitive values like API keys or passwords. Either Value or ValueFromSecret
+	// must be set, but not both
+	ValueFromSecret string `json:"value_from_secret"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name            respjson.Field
+		Value           respjson.Field
+		ValueFromSecret respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigListResponseDataEnvironmentVariable) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigListResponseDataEnvironmentVariable) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaJigListResponseDataReplicaEvent struct {
+	// ContainerStatus provides detailed status information about the container within
+	// this replica
+	ContainerStatus BetaJigListResponseDataReplicaEventContainerStatus `json:"container_status"`
+	// Events is a list of Kubernetes events related to this replica for
+	// troubleshooting
+	Events []BetaJigListResponseDataReplicaEventEvent `json:"events"`
+	// ReplicaCompletedAt is the timestamp when the replica finished execution
+	ReplicaCompletedAt string `json:"replica_completed_at"`
+	// ReplicaMarkedForTerminationAt is the timestamp when the replica was marked for
+	// termination
+	ReplicaMarkedForTerminationAt string `json:"replica_marked_for_termination_at"`
+	// ReplicaReadySince is the timestamp when the replica became ready to serve
+	// traffic
+	ReplicaReadySince string `json:"replica_ready_since"`
+	// ReplicaRunningSince is the timestamp when the replica entered the running state
+	ReplicaRunningSince string `json:"replica_running_since"`
+	// ReplicaStartedAt is the timestamp when the replica was created
+	ReplicaStartedAt string `json:"replica_started_at"`
+	// ReplicaStatus is the current status of the replica (e.g., "Running", "Pending",
+	// "Failed")
+	ReplicaStatus string `json:"replica_status"`
+	// ReplicaStatusMessage provides a human-readable message explaining the replica's
+	// status
+	ReplicaStatusMessage string `json:"replica_status_message"`
+	// ReplicaStatusReason provides a brief machine-readable reason for the replica's
+	// status
+	ReplicaStatusReason string `json:"replica_status_reason"`
+	// ScheduledOnCluster identifies which cluster this replica is scheduled on
+	ScheduledOnCluster string `json:"scheduled_on_cluster"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ContainerStatus               respjson.Field
+		Events                        respjson.Field
+		ReplicaCompletedAt            respjson.Field
+		ReplicaMarkedForTerminationAt respjson.Field
+		ReplicaReadySince             respjson.Field
+		ReplicaRunningSince           respjson.Field
+		ReplicaStartedAt              respjson.Field
+		ReplicaStatus                 respjson.Field
+		ReplicaStatusMessage          respjson.Field
+		ReplicaStatusReason           respjson.Field
+		ScheduledOnCluster            respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigListResponseDataReplicaEvent) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigListResponseDataReplicaEvent) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ContainerStatus provides detailed status information about the container within
+// this replica
+type BetaJigListResponseDataReplicaEventContainerStatus struct {
+	// FinishedAt is the timestamp when the container finished execution (if
+	// terminated)
+	FinishedAt string `json:"finishedAt"`
+	// Message provides a human-readable message with details about the container's
+	// status
+	Message string `json:"message"`
+	// Name is the name of the container
+	Name string `json:"name"`
+	// Reason provides a brief machine-readable reason for the container's current
+	// status
+	Reason string `json:"reason"`
+	// StartedAt is the timestamp when the container started execution
+	StartedAt string `json:"startedAt"`
+	// Status is the current state of the container (e.g., "Running", "Terminated",
+	// "Waiting")
+	Status string `json:"status"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		FinishedAt  respjson.Field
+		Message     respjson.Field
+		Name        respjson.Field
+		Reason      respjson.Field
+		StartedAt   respjson.Field
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigListResponseDataReplicaEventContainerStatus) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigListResponseDataReplicaEventContainerStatus) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaJigListResponseDataReplicaEventEvent struct {
+	// Action is the action taken or reported by this event
+	Action string `json:"action"`
+	// Count is the number of times this event has occurred
+	Count int64 `json:"count"`
+	// FirstSeen is the timestamp when this event was first observed
+	FirstSeen string `json:"first_seen"`
+	// LastSeen is the timestamp when this event was last observed
+	LastSeen string `json:"last_seen"`
+	// Message is a human-readable description of the event
+	Message string `json:"message"`
+	// Reason is a brief machine-readable reason for this event (e.g., "Pulling",
+	// "Started", "Failed")
+	Reason string `json:"reason"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Action      respjson.Field
+		Count       respjson.Field
+		FirstSeen   respjson.Field
+		LastSeen    respjson.Field
+		Message     respjson.Field
+		Reason      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigListResponseDataReplicaEventEvent) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigListResponseDataReplicaEventEvent) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaJigListResponseDataVolume struct {
+	// MountPath is the path in the container where the volume will be mounted (e.g.,
+	// "/data")
+	MountPath string `json:"mount_path,required"`
+	// Name is the name of the volume to mount. Must reference an existing volume by
+	// name or ID
+	Name string `json:"name,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MountPath   respjson.Field
+		Name        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigListResponseDataVolume) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigListResponseDataVolume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
