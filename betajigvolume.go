@@ -36,7 +36,7 @@ func NewBetaJigVolumeService(opts ...option.RequestOption) (r BetaJigVolumeServi
 }
 
 // Create a new volume to preload files in deployments
-func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewParams, opts ...option.RequestOption) (res *BetaJigVolumeNewResponse, err error) {
+func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewParams, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -44,7 +44,7 @@ func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewPar
 }
 
 // Retrieve details of a specific volume by its ID or name
-func (r *BetaJigVolumeService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *BetaJigVolumeGetResponse, err error) {
+func (r *BetaJigVolumeService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -56,7 +56,7 @@ func (r *BetaJigVolumeService) Get(ctx context.Context, id string, opts ...optio
 }
 
 // Update an existing volume's configuration or contents
-func (r *BetaJigVolumeService) Update(ctx context.Context, id string, body BetaJigVolumeUpdateParams, opts ...option.RequestOption) (res *BetaJigVolumeUpdateResponse, err error) {
+func (r *BetaJigVolumeService) Update(ctx context.Context, id string, body BetaJigVolumeUpdateParams, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -87,11 +87,11 @@ func (r *BetaJigVolumeService) Delete(ctx context.Context, id string, opts ...op
 	return
 }
 
-type BetaJigVolumeNewResponse struct {
+type Volume struct {
 	// ID is the unique identifier for this volume
 	ID string `json:"id"`
 	// Content specifies the content that will be preloaded to this volume
-	Content BetaJigVolumeNewResponseContent `json:"content"`
+	Content VolumeContent `json:"content"`
 	// CreatedAt is the ISO8601 timestamp when this volume was created
 	CreatedAt string `json:"created_at"`
 	// Name is the name of the volume
@@ -101,7 +101,7 @@ type BetaJigVolumeNewResponse struct {
 	// Type is the volume type (e.g., "readOnly")
 	//
 	// Any of "readOnly".
-	Type BetaJigVolumeNewResponseType `json:"type"`
+	Type VolumeType `json:"type"`
 	// UpdatedAt is the ISO8601 timestamp when this volume was last updated
 	UpdatedAt string `json:"updated_at"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -119,13 +119,13 @@ type BetaJigVolumeNewResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaJigVolumeNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeNewResponse) UnmarshalJSON(data []byte) error {
+func (r Volume) RawJSON() string { return r.JSON.raw }
+func (r *Volume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Content specifies the content that will be preloaded to this volume
-type BetaJigVolumeNewResponseContent struct {
+type VolumeContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
 	SourcePrefix string `json:"source_prefix"`
@@ -144,159 +144,21 @@ type BetaJigVolumeNewResponseContent struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaJigVolumeNewResponseContent) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeNewResponseContent) UnmarshalJSON(data []byte) error {
+func (r VolumeContent) RawJSON() string { return r.JSON.raw }
+func (r *VolumeContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Type is the volume type (e.g., "readOnly")
-type BetaJigVolumeNewResponseType string
+type VolumeType string
 
 const (
-	BetaJigVolumeNewResponseTypeReadOnly BetaJigVolumeNewResponseType = "readOnly"
-)
-
-type BetaJigVolumeGetResponse struct {
-	// ID is the unique identifier for this volume
-	ID string `json:"id"`
-	// Content specifies the content that will be preloaded to this volume
-	Content BetaJigVolumeGetResponseContent `json:"content"`
-	// CreatedAt is the ISO8601 timestamp when this volume was created
-	CreatedAt string `json:"created_at"`
-	// Name is the name of the volume
-	Name string `json:"name"`
-	// Object is the type identifier for this response (always "volume")
-	Object string `json:"object"`
-	// Type is the volume type (e.g., "readOnly")
-	//
-	// Any of "readOnly".
-	Type BetaJigVolumeGetResponseType `json:"type"`
-	// UpdatedAt is the ISO8601 timestamp when this volume was last updated
-	UpdatedAt string `json:"updated_at"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID          respjson.Field
-		Content     respjson.Field
-		CreatedAt   respjson.Field
-		Name        respjson.Field
-		Object      respjson.Field
-		Type        respjson.Field
-		UpdatedAt   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigVolumeGetResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeGetResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Content specifies the content that will be preloaded to this volume
-type BetaJigVolumeGetResponseContent struct {
-	// SourcePrefix is the file path prefix for the content to be preloaded into the
-	// volume
-	SourcePrefix string `json:"source_prefix"`
-	// Type is the content type (currently only "files" is supported which allows
-	// preloading files uploaded via Files API into the volume)
-	//
-	// Any of "files".
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		SourcePrefix respjson.Field
-		Type         respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigVolumeGetResponseContent) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeGetResponseContent) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Type is the volume type (e.g., "readOnly")
-type BetaJigVolumeGetResponseType string
-
-const (
-	BetaJigVolumeGetResponseTypeReadOnly BetaJigVolumeGetResponseType = "readOnly"
-)
-
-type BetaJigVolumeUpdateResponse struct {
-	// ID is the unique identifier for this volume
-	ID string `json:"id"`
-	// Content specifies the content that will be preloaded to this volume
-	Content BetaJigVolumeUpdateResponseContent `json:"content"`
-	// CreatedAt is the ISO8601 timestamp when this volume was created
-	CreatedAt string `json:"created_at"`
-	// Name is the name of the volume
-	Name string `json:"name"`
-	// Object is the type identifier for this response (always "volume")
-	Object string `json:"object"`
-	// Type is the volume type (e.g., "readOnly")
-	//
-	// Any of "readOnly".
-	Type BetaJigVolumeUpdateResponseType `json:"type"`
-	// UpdatedAt is the ISO8601 timestamp when this volume was last updated
-	UpdatedAt string `json:"updated_at"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID          respjson.Field
-		Content     respjson.Field
-		CreatedAt   respjson.Field
-		Name        respjson.Field
-		Object      respjson.Field
-		Type        respjson.Field
-		UpdatedAt   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigVolumeUpdateResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeUpdateResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Content specifies the content that will be preloaded to this volume
-type BetaJigVolumeUpdateResponseContent struct {
-	// SourcePrefix is the file path prefix for the content to be preloaded into the
-	// volume
-	SourcePrefix string `json:"source_prefix"`
-	// Type is the content type (currently only "files" is supported which allows
-	// preloading files uploaded via Files API into the volume)
-	//
-	// Any of "files".
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		SourcePrefix respjson.Field
-		Type         respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigVolumeUpdateResponseContent) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeUpdateResponseContent) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Type is the volume type (e.g., "readOnly")
-type BetaJigVolumeUpdateResponseType string
-
-const (
-	BetaJigVolumeUpdateResponseTypeReadOnly BetaJigVolumeUpdateResponseType = "readOnly"
+	VolumeTypeReadOnly VolumeType = "readOnly"
 )
 
 type BetaJigVolumeListResponse struct {
 	// Data is the array of volume items
-	Data []BetaJigVolumeListResponseData `json:"data"`
+	Data []Volume `json:"data"`
 	// Object is the type identifier for this response (always "list")
 	Object string `json:"object"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -311,68 +173,6 @@ type BetaJigVolumeListResponse struct {
 // Returns the unmodified JSON received from the API
 func (r BetaJigVolumeListResponse) RawJSON() string { return r.JSON.raw }
 func (r *BetaJigVolumeListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type BetaJigVolumeListResponseData struct {
-	// ID is the unique identifier for this volume
-	ID string `json:"id"`
-	// Content specifies the content that will be preloaded to this volume
-	Content BetaJigVolumeListResponseDataContent `json:"content"`
-	// CreatedAt is the ISO8601 timestamp when this volume was created
-	CreatedAt string `json:"created_at"`
-	// Name is the name of the volume
-	Name string `json:"name"`
-	// Object is the type identifier for this response (always "volume")
-	Object string `json:"object"`
-	// Type is the volume type (e.g., "readOnly")
-	//
-	// Any of "readOnly".
-	Type string `json:"type"`
-	// UpdatedAt is the ISO8601 timestamp when this volume was last updated
-	UpdatedAt string `json:"updated_at"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID          respjson.Field
-		Content     respjson.Field
-		CreatedAt   respjson.Field
-		Name        respjson.Field
-		Object      respjson.Field
-		Type        respjson.Field
-		UpdatedAt   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigVolumeListResponseData) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeListResponseData) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Content specifies the content that will be preloaded to this volume
-type BetaJigVolumeListResponseDataContent struct {
-	// SourcePrefix is the file path prefix for the content to be preloaded into the
-	// volume
-	SourcePrefix string `json:"source_prefix"`
-	// Type is the content type (currently only "files" is supported which allows
-	// preloading files uploaded via Files API into the volume)
-	//
-	// Any of "files".
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		SourcePrefix respjson.Field
-		Type         respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigVolumeListResponseDataContent) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigVolumeListResponseDataContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

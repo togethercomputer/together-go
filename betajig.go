@@ -95,7 +95,7 @@ func (r *BetaJigService) Destroy(ctx context.Context, id string, opts ...option.
 
 // Retrieve logs from a deployment, optionally filtered by replica ID. Use
 // follow=true to stream logs in real-time.
-func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGetLogsParams, opts ...option.RequestOption) (res *BetaJigGetLogsResponse, err error) {
+func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGetLogsParams, opts ...option.RequestOption) (res *DeploymentLogs, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -397,6 +397,22 @@ func (r *DeploymentVolume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type DeploymentLogs struct {
+	Lines []string `json:"lines"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Lines       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentLogs) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentLogs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type BetaJigListResponse struct {
 	// Data is the array of deployment items
 	Data []Deployment `json:"data"`
@@ -418,22 +434,6 @@ func (r *BetaJigListResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaJigDestroyResponse = any
-
-type BetaJigGetLogsResponse struct {
-	Lines []string `json:"lines"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Lines       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigGetLogsResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigGetLogsResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
 
 type BetaJigUpdateParams struct {
 	// CPU is the number of CPU cores to allocate per container instance (e.g., 0.1 =
