@@ -36,7 +36,7 @@ func NewBetaJigSecretService(opts ...option.RequestOption) (r BetaJigSecretServi
 }
 
 // Create a new secret to store sensitive configuration values
-func (r *BetaJigSecretService) New(ctx context.Context, body BetaJigSecretNewParams, opts ...option.RequestOption) (res *BetaJigSecretNewResponse, err error) {
+func (r *BetaJigSecretService) New(ctx context.Context, body BetaJigSecretNewParams, opts ...option.RequestOption) (res *Secret, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "secrets"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -44,7 +44,7 @@ func (r *BetaJigSecretService) New(ctx context.Context, body BetaJigSecretNewPar
 }
 
 // Retrieve details of a specific secret by its ID or name
-func (r *BetaJigSecretService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *BetaJigSecretGetResponse, err error) {
+func (r *BetaJigSecretService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *Secret, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -56,7 +56,7 @@ func (r *BetaJigSecretService) Get(ctx context.Context, id string, opts ...optio
 }
 
 // Update an existing secret's value or metadata
-func (r *BetaJigSecretService) Update(ctx context.Context, id string, body BetaJigSecretUpdateParams, opts ...option.RequestOption) (res *BetaJigSecretUpdateResponse, err error) {
+func (r *BetaJigSecretService) Update(ctx context.Context, id string, body BetaJigSecretUpdateParams, opts ...option.RequestOption) (res *Secret, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -87,7 +87,7 @@ func (r *BetaJigSecretService) Delete(ctx context.Context, id string, opts ...op
 	return
 }
 
-type BetaJigSecretNewResponse struct {
+type Secret struct {
 	// ID is the unique identifier for this secret
 	ID string `json:"id"`
 	// CreatedAt is the ISO8601 timestamp when this secret was created
@@ -120,90 +120,14 @@ type BetaJigSecretNewResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaJigSecretNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigSecretNewResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type BetaJigSecretGetResponse struct {
-	// ID is the unique identifier for this secret
-	ID string `json:"id"`
-	// CreatedAt is the ISO8601 timestamp when this secret was created
-	CreatedAt string `json:"created_at"`
-	// CreatedBy is the identifier of the user who created this secret
-	CreatedBy string `json:"created_by"`
-	// Description is a human-readable description of the secret's purpose
-	Description string `json:"description"`
-	// LastUpdatedBy is the identifier of the user who last updated this secret
-	LastUpdatedBy string `json:"last_updated_by"`
-	// Name is the name/key of the secret
-	Name string `json:"name"`
-	// Object is the type identifier for this response (always "secret")
-	Object string `json:"object"`
-	// UpdatedAt is the ISO8601 timestamp when this secret was last updated
-	UpdatedAt string `json:"updated_at"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID            respjson.Field
-		CreatedAt     respjson.Field
-		CreatedBy     respjson.Field
-		Description   respjson.Field
-		LastUpdatedBy respjson.Field
-		Name          respjson.Field
-		Object        respjson.Field
-		UpdatedAt     respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigSecretGetResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigSecretGetResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type BetaJigSecretUpdateResponse struct {
-	// ID is the unique identifier for this secret
-	ID string `json:"id"`
-	// CreatedAt is the ISO8601 timestamp when this secret was created
-	CreatedAt string `json:"created_at"`
-	// CreatedBy is the identifier of the user who created this secret
-	CreatedBy string `json:"created_by"`
-	// Description is a human-readable description of the secret's purpose
-	Description string `json:"description"`
-	// LastUpdatedBy is the identifier of the user who last updated this secret
-	LastUpdatedBy string `json:"last_updated_by"`
-	// Name is the name/key of the secret
-	Name string `json:"name"`
-	// Object is the type identifier for this response (always "secret")
-	Object string `json:"object"`
-	// UpdatedAt is the ISO8601 timestamp when this secret was last updated
-	UpdatedAt string `json:"updated_at"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID            respjson.Field
-		CreatedAt     respjson.Field
-		CreatedBy     respjson.Field
-		Description   respjson.Field
-		LastUpdatedBy respjson.Field
-		Name          respjson.Field
-		Object        respjson.Field
-		UpdatedAt     respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigSecretUpdateResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigSecretUpdateResponse) UnmarshalJSON(data []byte) error {
+func (r Secret) RawJSON() string { return r.JSON.raw }
+func (r *Secret) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 type BetaJigSecretListResponse struct {
 	// Data is the array of secret items
-	Data []BetaJigSecretListResponseData `json:"data"`
+	Data []Secret `json:"data"`
 	// Object is the type identifier for this response (always "list")
 	Object string `json:"object"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -218,44 +142,6 @@ type BetaJigSecretListResponse struct {
 // Returns the unmodified JSON received from the API
 func (r BetaJigSecretListResponse) RawJSON() string { return r.JSON.raw }
 func (r *BetaJigSecretListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type BetaJigSecretListResponseData struct {
-	// ID is the unique identifier for this secret
-	ID string `json:"id"`
-	// CreatedAt is the ISO8601 timestamp when this secret was created
-	CreatedAt string `json:"created_at"`
-	// CreatedBy is the identifier of the user who created this secret
-	CreatedBy string `json:"created_by"`
-	// Description is a human-readable description of the secret's purpose
-	Description string `json:"description"`
-	// LastUpdatedBy is the identifier of the user who last updated this secret
-	LastUpdatedBy string `json:"last_updated_by"`
-	// Name is the name/key of the secret
-	Name string `json:"name"`
-	// Object is the type identifier for this response (always "secret")
-	Object string `json:"object"`
-	// UpdatedAt is the ISO8601 timestamp when this secret was last updated
-	UpdatedAt string `json:"updated_at"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID            respjson.Field
-		CreatedAt     respjson.Field
-		CreatedBy     respjson.Field
-		Description   respjson.Field
-		LastUpdatedBy respjson.Field
-		Name          respjson.Field
-		Object        respjson.Field
-		UpdatedAt     respjson.Field
-		ExtraFields   map[string]respjson.Field
-		raw           string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigSecretListResponseData) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigSecretListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
