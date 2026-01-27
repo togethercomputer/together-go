@@ -38,7 +38,7 @@ func NewBetaJigSecretService(opts ...option.RequestOption) (r BetaJigSecretServi
 // Create a new secret to store sensitive configuration values
 func (r *BetaJigSecretService) New(ctx context.Context, body BetaJigSecretNewParams, opts ...option.RequestOption) (res *Secret, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "secrets"
+	path := "deployments/secrets"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
@@ -50,7 +50,7 @@ func (r *BetaJigSecretService) Get(ctx context.Context, id string, opts ...optio
 		err = errors.New("missing required id parameter")
 		return
 	}
-	path := fmt.Sprintf("secrets/%s", id)
+	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
@@ -62,7 +62,7 @@ func (r *BetaJigSecretService) Update(ctx context.Context, id string, body BetaJ
 		err = errors.New("missing required id parameter")
 		return
 	}
-	path := fmt.Sprintf("secrets/%s", id)
+	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
 	return
 }
@@ -70,7 +70,7 @@ func (r *BetaJigSecretService) Update(ctx context.Context, id string, body BetaJ
 // Retrieve all secrets in your project
 func (r *BetaJigSecretService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaJigSecretListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "secrets"
+	path := "deployments/secrets"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
@@ -82,7 +82,7 @@ func (r *BetaJigSecretService) Delete(ctx context.Context, id string, opts ...op
 		err = errors.New("missing required id parameter")
 		return
 	}
-	path := fmt.Sprintf("secrets/%s", id)
+	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return
 }
