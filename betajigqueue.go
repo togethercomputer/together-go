@@ -16,28 +16,28 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// QueueService contains methods and other services that help with interacting with
-// the together API.
+// BetaJigQueueService contains methods and other services that help with
+// interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewQueueService] method instead.
-type QueueService struct {
+// the [NewBetaJigQueueService] method instead.
+type BetaJigQueueService struct {
 	Options []option.RequestOption
 }
 
-// NewQueueService generates a new service that applies the given options to each
-// request. These options are applied after the parent client's options (if there
-// is one), and before any request-specific options.
-func NewQueueService(opts ...option.RequestOption) (r QueueService) {
-	r = QueueService{}
+// NewBetaJigQueueService generates a new service that applies the given options to
+// each request. These options are applied after the parent client's options (if
+// there is one), and before any request-specific options.
+func NewBetaJigQueueService(opts ...option.RequestOption) (r BetaJigQueueService) {
+	r = BetaJigQueueService{}
 	r.Options = opts
 	return
 }
 
 // Cancel a pending or running job. Returns the job status after the cancellation
 // attempt.
-func (r *QueueService) Cancel(ctx context.Context, body QueueCancelParams, opts ...option.RequestOption) (res *QueueCancelResponse, err error) {
+func (r *BetaJigQueueService) Cancel(ctx context.Context, body BetaJigQueueCancelParams, opts ...option.RequestOption) (res *BetaJigQueueCancelResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/cancel"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -45,7 +45,7 @@ func (r *QueueService) Cancel(ctx context.Context, body QueueCancelParams, opts 
 }
 
 // Get the current queue statistics including pending and running job counts.
-func (r *QueueService) GetMetrics(ctx context.Context, query QueueGetMetricsParams, opts ...option.RequestOption) (res *QueueGetMetricsResponse, err error) {
+func (r *BetaJigQueueService) GetMetrics(ctx context.Context, query BetaJigQueueGetMetricsParams, opts ...option.RequestOption) (res *BetaJigQueueGetMetricsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/metrics"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
@@ -53,7 +53,7 @@ func (r *QueueService) GetMetrics(ctx context.Context, query QueueGetMetricsPara
 }
 
 // Check the status of a job using request_id and model query parameters.
-func (r *QueueService) GetStatus(ctx context.Context, query QueueGetStatusParams, opts ...option.RequestOption) (res *QueueGetStatusResponse, err error) {
+func (r *BetaJigQueueService) GetStatus(ctx context.Context, query BetaJigQueueGetStatusParams, opts ...option.RequestOption) (res *BetaJigQueueGetStatusResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/status"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
@@ -62,14 +62,14 @@ func (r *QueueService) GetStatus(ctx context.Context, query QueueGetStatusParams
 
 // Submit a new job to the queue. Returns a request ID that can be used to check
 // status.
-func (r *QueueService) Submit(ctx context.Context, body QueueSubmitParams, opts ...option.RequestOption) (res *QueueSubmitResponse, err error) {
+func (r *BetaJigQueueService) Submit(ctx context.Context, body BetaJigQueueSubmitParams, opts ...option.RequestOption) (res *BetaJigQueueSubmitResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/submit"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
 
-type QueueCancelResponse struct {
+type BetaJigQueueCancelResponse struct {
 	Status string `json:"status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -80,14 +80,14 @@ type QueueCancelResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r QueueCancelResponse) RawJSON() string { return r.JSON.raw }
-func (r *QueueCancelResponse) UnmarshalJSON(data []byte) error {
+func (r BetaJigQueueCancelResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigQueueCancelResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type QueueGetMetricsResponse map[string]any
+type BetaJigQueueGetMetricsResponse map[string]any
 
-type QueueGetStatusResponse struct {
+type BetaJigQueueGetStatusResponse struct {
 	ClaimedAt string         `json:"claimed_at"`
 	CreatedAt string         `json:"created_at"`
 	DoneAt    string         `json:"done_at"`
@@ -122,14 +122,14 @@ type QueueGetStatusResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r QueueGetStatusResponse) RawJSON() string { return r.JSON.raw }
-func (r *QueueGetStatusResponse) UnmarshalJSON(data []byte) error {
+func (r BetaJigQueueGetStatusResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigQueueGetStatusResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type QueueSubmitResponse struct {
-	Error     QueueSubmitResponseError `json:"error"`
-	RequestID string                   `json:"requestId"`
+type BetaJigQueueSubmitResponse struct {
+	Error     BetaJigQueueSubmitResponseError `json:"error"`
+	RequestID string                          `json:"requestId"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Error       respjson.Field
@@ -140,12 +140,12 @@ type QueueSubmitResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r QueueSubmitResponse) RawJSON() string { return r.JSON.raw }
-func (r *QueueSubmitResponse) UnmarshalJSON(data []byte) error {
+func (r BetaJigQueueSubmitResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigQueueSubmitResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type QueueSubmitResponseError struct {
+type BetaJigQueueSubmitResponseError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 	Param   string `json:"param"`
@@ -162,40 +162,41 @@ type QueueSubmitResponseError struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r QueueSubmitResponseError) RawJSON() string { return r.JSON.raw }
-func (r *QueueSubmitResponseError) UnmarshalJSON(data []byte) error {
+func (r BetaJigQueueSubmitResponseError) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigQueueSubmitResponseError) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type QueueCancelParams struct {
+type BetaJigQueueCancelParams struct {
 	Model     string `json:"model,required"`
 	RequestID string `json:"request_id,required"`
 	paramObj
 }
 
-func (r QueueCancelParams) MarshalJSON() (data []byte, err error) {
-	type shadow QueueCancelParams
+func (r BetaJigQueueCancelParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigQueueCancelParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *QueueCancelParams) UnmarshalJSON(data []byte) error {
+func (r *BetaJigQueueCancelParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type QueueGetMetricsParams struct {
+type BetaJigQueueGetMetricsParams struct {
 	// Model name to get metrics for
 	Model string `query:"model,required" json:"-"`
 	paramObj
 }
 
-// URLQuery serializes [QueueGetMetricsParams]'s query parameters as `url.Values`.
-func (r QueueGetMetricsParams) URLQuery() (v url.Values, err error) {
+// URLQuery serializes [BetaJigQueueGetMetricsParams]'s query parameters as
+// `url.Values`.
+func (r BetaJigQueueGetMetricsParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type QueueGetStatusParams struct {
+type BetaJigQueueGetStatusParams struct {
 	// Model name
 	Model string `query:"model,required" json:"-"`
 	// Request ID
@@ -203,15 +204,16 @@ type QueueGetStatusParams struct {
 	paramObj
 }
 
-// URLQuery serializes [QueueGetStatusParams]'s query parameters as `url.Values`.
-func (r QueueGetStatusParams) URLQuery() (v url.Values, err error) {
+// URLQuery serializes [BetaJigQueueGetStatusParams]'s query parameters as
+// `url.Values`.
+func (r BetaJigQueueGetStatusParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type QueueSubmitParams struct {
+type BetaJigQueueSubmitParams struct {
 	// Required model identifier
 	Model    string           `json:"model,required"`
 	Payload  map[string]any   `json:"payload,omitzero,required"`
@@ -220,10 +222,10 @@ type QueueSubmitParams struct {
 	paramObj
 }
 
-func (r QueueSubmitParams) MarshalJSON() (data []byte, err error) {
-	type shadow QueueSubmitParams
+func (r BetaJigQueueSubmitParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigQueueSubmitParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *QueueSubmitParams) UnmarshalJSON(data []byte) error {
+func (r *BetaJigQueueSubmitParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }

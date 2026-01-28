@@ -33,7 +33,6 @@ type Client struct {
 	Rerank          RerankService
 	Batches         BatchService
 	Evals           EvalService
-	Queue           QueueService
 }
 
 // DefaultClientOptions read from the environment (TOGETHER_API_KEY,
@@ -74,7 +73,6 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Rerank = NewRerankService(opts...)
 	r.Batches = NewBatchService(opts...)
 	r.Evals = NewEvalService(opts...)
-	r.Queue = NewQueueService(opts...)
 
 	return
 }

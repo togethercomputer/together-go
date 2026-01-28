@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestQueueCancel(t *testing.T) {
+func TestBetaJigQueueCancel(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,7 +25,7 @@ func TestQueueCancel(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Queue.Cancel(context.TODO(), together.QueueCancelParams{
+	_, err := client.Beta.Jig.Queue.Cancel(context.TODO(), together.BetaJigQueueCancelParams{
 		Model:     "model",
 		RequestID: "request_id",
 	})
@@ -38,7 +38,7 @@ func TestQueueCancel(t *testing.T) {
 	}
 }
 
-func TestQueueGetMetrics(t *testing.T) {
+func TestBetaJigQueueGetMetrics(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -50,7 +50,7 @@ func TestQueueGetMetrics(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Queue.GetMetrics(context.TODO(), together.QueueGetMetricsParams{
+	_, err := client.Beta.Jig.Queue.GetMetrics(context.TODO(), together.BetaJigQueueGetMetricsParams{
 		Model: "model",
 	})
 	if err != nil {
@@ -62,7 +62,7 @@ func TestQueueGetMetrics(t *testing.T) {
 	}
 }
 
-func TestQueueGetStatus(t *testing.T) {
+func TestBetaJigQueueGetStatus(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -74,7 +74,7 @@ func TestQueueGetStatus(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Queue.GetStatus(context.TODO(), together.QueueGetStatusParams{
+	_, err := client.Beta.Jig.Queue.GetStatus(context.TODO(), together.BetaJigQueueGetStatusParams{
 		Model:     "model",
 		RequestID: "request_id",
 	})
@@ -87,7 +87,7 @@ func TestQueueGetStatus(t *testing.T) {
 	}
 }
 
-func TestQueueSubmitWithOptionalParams(t *testing.T) {
+func TestBetaJigQueueSubmitWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -99,7 +99,7 @@ func TestQueueSubmitWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Queue.Submit(context.TODO(), together.QueueSubmitParams{
+	_, err := client.Beta.Jig.Queue.Submit(context.TODO(), together.BetaJigQueueSubmitParams{
 		Model: "model",
 		Payload: map[string]any{
 			"foo": "bar",
