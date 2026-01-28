@@ -13,6 +13,31 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
+func TestBetaJigQueueGet(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Beta.Jig.Queue.Get(context.TODO(), together.BetaJigQueueGetParams{
+		Model:     "model",
+		RequestID: "request_id",
+	})
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
 func TestBetaJigQueueCancel(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -38,7 +63,7 @@ func TestBetaJigQueueCancel(t *testing.T) {
 	}
 }
 
-func TestBetaJigQueueGetMetrics(t *testing.T) {
+func TestBetaJigQueueMetrics(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -50,33 +75,8 @@ func TestBetaJigQueueGetMetrics(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Jig.Queue.GetMetrics(context.TODO(), together.BetaJigQueueGetMetricsParams{
+	_, err := client.Beta.Jig.Queue.Metrics(context.TODO(), together.BetaJigQueueMetricsParams{
 		Model: "model",
-	})
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestBetaJigQueueGetStatus(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Beta.Jig.Queue.GetStatus(context.TODO(), together.BetaJigQueueGetStatusParams{
-		Model:     "model",
-		RequestID: "request_id",
 	})
 	if err != nil {
 		var apierr *together.Error
