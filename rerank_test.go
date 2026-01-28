@@ -41,7 +41,7 @@ func TestRerankNewWithOptionalParams(t *testing.T) {
 				"text":  "bar",
 			}},
 		},
-		Model:           together.RerankNewParamsModel("Salesforce/Llama-Rank-V1"),
+		Model:           together.RerankNewParamsModelSalesforceLlamaRankV1,
 		Query:           "What animals can I find near Peru?",
 		RankFields:      []string{"title", "text"},
 		ReturnDocuments: together.Bool(true),
