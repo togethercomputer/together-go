@@ -467,7 +467,8 @@ type ChatCompletionNewParams struct {
 	ContextLengthExceededBehavior ChatCompletionNewParamsContextLengthExceededBehavior `json:"context_length_exceeded_behavior,omitzero"`
 	FunctionCall                  ChatCompletionNewParamsFunctionCallUnion             `json:"function_call,omitzero"`
 	// Adjusts the likelihood of specific tokens appearing in the generated output.
-	LogitBias map[string]float64 `json:"logit_bias,omitzero"`
+	LogitBias map[string]float64               `json:"logit_bias,omitzero"`
+	Reasoning ChatCompletionNewParamsReasoning `json:"reasoning,omitzero"`
 	// Controls the level of reasoning effort the model should apply when generating
 	// responses. Higher values may result in more thoughtful and detailed responses
 	// but may take longer to generate.
@@ -1050,6 +1051,21 @@ func (r ChatCompletionNewParamsFunctionCallName) MarshalJSON() (data []byte, err
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ChatCompletionNewParamsFunctionCallName) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ChatCompletionNewParamsReasoning struct {
+	// For models that support toggling reasoning functionality, this object can be
+	// used to control that functionality.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ChatCompletionNewParamsReasoning) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionNewParamsReasoning
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionNewParamsReasoning) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
