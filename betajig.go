@@ -26,7 +26,6 @@ import (
 // the [NewBetaJigService] method instead.
 type BetaJigService struct {
 	Options []option.RequestOption
-	Queue   BetaJigQueueService
 	Volumes BetaJigVolumeService
 	Secrets BetaJigSecretService
 }
@@ -37,7 +36,6 @@ type BetaJigService struct {
 func NewBetaJigService(opts ...option.RequestOption) (r BetaJigService) {
 	r = BetaJigService{}
 	r.Options = opts
-	r.Queue = NewBetaJigQueueService(opts...)
 	r.Volumes = NewBetaJigVolumeService(opts...)
 	r.Secrets = NewBetaJigSecretService(opts...)
 	return
