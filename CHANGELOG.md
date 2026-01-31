@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.6.0 (2026-01-31)
+
+Full Changelog: [v0.5.0...v0.6.0](https://github.com/togethercomputer/together-go/compare/v0.5.0...v0.6.0)
+
+### Features
+
+* Add chat completion support for reasoning.enabled ([9d821b1](https://github.com/togethercomputer/together-go/commit/9d821b19e7eab5361ca9bb62d13279bfe5cb7ddf))
+* **api:** Add API for listing deployments ([7ae9e4d](https://github.com/togethercomputer/together-go/commit/7ae9e4d53e7f35c116411bebcd28f851fa8a1e3b))
+* **api:** Add beta sdks for jig features ([f80bbfb](https://github.com/togethercomputer/together-go/commit/f80bbfb5bed41d6c08d36c772e14ee7b11fa1060))
+* **api:** Move jobs apis to nest under model uploads per their use case ([b3eec48](https://github.com/togethercomputer/together-go/commit/b3eec48cd07506f2a1668b598b5424d3dba55b88))
+* **api:** Move queue out of jig namespace ([a8e9ed4](https://github.com/togethercomputer/together-go/commit/a8e9ed46061dd0f65fe67c7b43f20071b85d8b34))
+* **api:** Update Jig types and add retrieve_logs api to jig ([bb63107](https://github.com/togethercomputer/together-go/commit/bb631076f433d47b2f9cabd86e39b9e7ed2f2172))
+* **client:** add a convenient param.SetJSON helper ([b8673c7](https://github.com/togethercomputer/together-go/commit/b8673c714b3a42bad6bdc8182a29141d026683e9))
+* internal: Add code samples to deployments features ([c0f96ad](https://github.com/togethercomputer/together-go/commit/c0f96ad3aac9815b8ea88392c6a75aceb3aa7dab))
+* internal: Update to new cluster api routing ([553f81b](https://github.com/togethercomputer/together-go/commit/553f81b2f1b1aa2cae645debc49ba4f22cb2bf9c))
+* move byoc features under /deployments route ([0b9b31e](https://github.com/togethercomputer/together-go/commit/0b9b31e611f82bf02bf4fddfc3a85f09b018b547))
+
+
+### Chores
+
+* **api:** Improve type names for jig volumes and logs ([b18ce77](https://github.com/togethercomputer/together-go/commit/b18ce7728007f6d3b71ff1251fc49c2cffaa06f6))
+* **api:** move hardware listing feature under endpoints resource. ([1b438c0](https://github.com/togethercomputer/together-go/commit/1b438c0fafa3c9f25dc44e42a00ca98b9e21f9e4))
+* **api:** Move Queue SDK methods into Jig namespace ([21a6462](https://github.com/togethercomputer/together-go/commit/21a6462c289096dc18e75a84b6e55595d7d41dd9))
+* **api:** Rename jig queue apis ([76aef2c](https://github.com/togethercomputer/together-go/commit/76aef2cb7bd3fd59de5700f1f7a356cb551878d4))
+* **client:** improve example values ([0d7c1e5](https://github.com/togethercomputer/together-go/commit/0d7c1e5988caef53a71570193c2bb7ba5021d783))
+
+
+### Documentation
+
+* **axle-queue:** added axle-queue endpoints ([f4809ad](https://github.com/togethercomputer/together-go/commit/f4809adf111711752d2ed781fd696b567e51b46f))
+
 ## 0.5.0 (2026-01-21)
 
 Full Changelog: [v0.4.0...v0.5.0](https://github.com/togethercomputer/together-go/compare/v0.4.0...v0.5.0)
