@@ -318,6 +318,7 @@ Response Types:
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#DedicatedEndpoint">DedicatedEndpoint</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListResponse">EndpointListResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListAvzonesResponse">EndpointListAvzonesResponse</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListHardwareResponse">EndpointListHardwareResponse</a>
 
 Methods:
 
@@ -327,16 +328,7 @@ Methods:
 - <code title="get /endpoints">client.Endpoints.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListParams">EndpointListParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListResponse">EndpointListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /endpoints/{endpointId}">client.Endpoints.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, endpointID <a href="https://pkg.go.dev/builtin#string">string</a>) <a href="https://pkg.go.dev/builtin#error">error</a></code>
 - <code title="get /clusters/availability-zones">client.Endpoints.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointService.ListAvzones">ListAvzones</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListAvzonesResponse">EndpointListAvzonesResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-# Hardware
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#HardwareListResponse">HardwareListResponse</a>
-
-Methods:
-
-- <code title="get /hardware">client.Hardware.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#HardwareService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#HardwareListParams">HardwareListParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#HardwareListResponse">HardwareListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+- <code title="get /hardware">client.Endpoints.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointService.ListHardware">ListHardware</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListHardwareParams">EndpointListHardwareParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointListHardwareResponse">EndpointListHardwareResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # Rerank
 
