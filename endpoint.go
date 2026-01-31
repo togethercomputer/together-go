@@ -105,6 +105,16 @@ func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.Reques
 	return
 }
 
+// Returns a list of available hardware configurations for deploying models. When a
+// model parameter is provided, it returns only hardware configurations compatible
+// with that model, including their current availability status.
+func (r *EndpointService) ListHardware(ctx context.Context, query EndpointListHardwareParams, opts ...option.RequestOption) (res *EndpointListHardwareResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "hardware"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return
+}
+
 // Configuration for automatic scaling of replicas based on demand.
 type Autoscaling struct {
 	// The maximum number of replicas to scale up to under load
@@ -321,6 +331,129 @@ func (r *EndpointListAvzonesResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type EndpointListHardwareResponse struct {
+	Data []EndpointListHardwareResponseData `json:"data,required"`
+	// Any of "list".
+	Object EndpointListHardwareResponseObject `json:"object,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Object      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListHardwareResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListHardwareResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Hardware configuration details with optional availability status
+type EndpointListHardwareResponseData struct {
+	// Unique identifier for the hardware configuration
+	ID string `json:"id,required"`
+	// Any of "hardware".
+	Object string `json:"object,required"`
+	// Pricing details for using an endpoint
+	Pricing EndpointListHardwareResponseDataPricing `json:"pricing,required"`
+	// Detailed specifications of a hardware configuration
+	Specs EndpointListHardwareResponseDataSpecs `json:"specs,required"`
+	// Timestamp of when the hardware status was last updated
+	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	// Indicates the current availability status of a hardware configuration
+	Availability EndpointListHardwareResponseDataAvailability `json:"availability"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ID           respjson.Field
+		Object       respjson.Field
+		Pricing      respjson.Field
+		Specs        respjson.Field
+		UpdatedAt    respjson.Field
+		Availability respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListHardwareResponseData) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListHardwareResponseData) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pricing details for using an endpoint
+type EndpointListHardwareResponseDataPricing struct {
+	// Cost per minute of endpoint uptime in cents
+	CentsPerMinute float64 `json:"cents_per_minute,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CentsPerMinute respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListHardwareResponseDataPricing) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListHardwareResponseDataPricing) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Detailed specifications of a hardware configuration
+type EndpointListHardwareResponseDataSpecs struct {
+	// Number of GPUs in this configuration
+	GPUCount int64 `json:"gpu_count,required"`
+	// The GPU interconnect technology
+	GPULink string `json:"gpu_link,required"`
+	// Amount of GPU memory in GB
+	GPUMemory float64 `json:"gpu_memory,required"`
+	// The type/model of GPU
+	GPUType string `json:"gpu_type,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		GPUCount    respjson.Field
+		GPULink     respjson.Field
+		GPUMemory   respjson.Field
+		GPUType     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListHardwareResponseDataSpecs) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListHardwareResponseDataSpecs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Indicates the current availability status of a hardware configuration
+type EndpointListHardwareResponseDataAvailability struct {
+	// The availability status of the hardware configuration
+	//
+	// Any of "available", "unavailable", "insufficient".
+	Status string `json:"status,required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Status      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r EndpointListHardwareResponseDataAvailability) RawJSON() string { return r.JSON.raw }
+func (r *EndpointListHardwareResponseDataAvailability) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type EndpointListHardwareResponseObject string
+
+const (
+	EndpointListHardwareResponseObjectList EndpointListHardwareResponseObject = "list"
+)
+
 type EndpointNewParams struct {
 	// Configuration for automatic scaling of the endpoint
 	Autoscaling AutoscalingParam `json:"autoscaling,omitzero,required"`
@@ -431,3 +564,19 @@ const (
 	EndpointListParamsUsageTypeOnDemand EndpointListParamsUsageType = "on-demand"
 	EndpointListParamsUsageTypeReserved EndpointListParamsUsageType = "reserved"
 )
+
+type EndpointListHardwareParams struct {
+	// Filter hardware configurations by model compatibility. When provided, the
+	// response includes availability status for each compatible configuration.
+	Model param.Opt[string] `query:"model,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [EndpointListHardwareParams]'s query parameters as
+// `url.Values`.
+func (r EndpointListHardwareParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}

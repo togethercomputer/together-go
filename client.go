@@ -29,7 +29,6 @@ type Client struct {
 	Audio           AudioService
 	Models          ModelService
 	Endpoints       EndpointService
-	Hardware        HardwareService
 	Rerank          RerankService
 	Batches         BatchService
 	Evals           EvalService
@@ -69,7 +68,6 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r.Audio = NewAudioService(opts...)
 	r.Models = NewModelService(opts...)
 	r.Endpoints = NewEndpointService(opts...)
-	r.Hardware = NewHardwareService(opts...)
 	r.Rerank = NewRerankService(opts...)
 	r.Batches = NewBatchService(opts...)
 	r.Evals = NewEvalService(opts...)
