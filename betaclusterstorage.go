@@ -42,7 +42,7 @@ func NewBetaClusterStorageService(opts ...option.RequestOption) (r BetaClusterSt
 // performance for shared storage.
 func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterStorageNewParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "clusters/storages"
+	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return
 }
@@ -54,7 +54,7 @@ func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, op
 		err = errors.New("missing required volume_id parameter")
 		return
 	}
-	path := fmt.Sprintf("clusters/storages/%s", volumeID)
+	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
@@ -62,7 +62,7 @@ func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, op
 // Update the configuration of an existing shared volume.
 func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaClusterStorageUpdateParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "clusters/storages"
+	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
 	return
 }
@@ -70,7 +70,7 @@ func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaCluster
 // List all shared volumes.
 func (r *BetaClusterStorageService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaClusterStorageListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "clusters/storages"
+	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return
 }
@@ -83,7 +83,7 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 		err = errors.New("missing required volume_id parameter")
 		return
 	}
-	path := fmt.Sprintf("clusters/storages/%s", volumeID)
+	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return
 }

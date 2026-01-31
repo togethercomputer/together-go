@@ -15,7 +15,6 @@ import (
 type BetaService struct {
 	Options  []option.RequestOption
 	Jig      BetaJigService
-	Queue    BetaQueueService
 	Clusters BetaClusterService
 }
 
@@ -26,7 +25,6 @@ func NewBetaService(opts ...option.RequestOption) (r BetaService) {
 	r = BetaService{}
 	r.Options = opts
 	r.Jig = NewBetaJigService(opts...)
-	r.Queue = NewBetaQueueService(opts...)
 	r.Clusters = NewBetaClusterService(opts...)
 	return
 }
