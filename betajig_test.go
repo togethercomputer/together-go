@@ -199,7 +199,6 @@ func TestBetaJigGetLogsWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"id",
 		together.BetaJigGetLogsParams{
-			Follow:    together.Bool(true),
 			ReplicaID: together.String("replica_id"),
 		},
 	)
