@@ -95,8 +95,7 @@ func (r *BetaJigService) Destroy(ctx context.Context, id string, opts ...option.
 	return
 }
 
-// Retrieve logs from a deployment, optionally filtered by replica ID. Use
-// follow=true to stream logs in real-time.
+// Retrieve logs from a deployment, optionally filtered by replica ID.
 func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGetLogsParams, opts ...option.RequestOption) (res *DeploymentLogs, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
@@ -552,7 +551,7 @@ func (r *BetaJigUpdateParamsVolume) UnmarshalJSON(data []byte) error {
 type BetaJigDeployParams struct {
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb").
 	//
-	// Any of "h100-80gb", " a100-80gb".
+	// Any of "h100-80gb", "a100-80gb".
 	GPUType BetaJigDeployParamsGPUType `json:"gpu_type,omitzero,required"`
 	// Image is the container image to deploy from registry.together.ai.
 	Image string `json:"image,required"`
@@ -619,7 +618,7 @@ type BetaJigDeployParamsGPUType string
 
 const (
 	BetaJigDeployParamsGPUTypeH100_80gb BetaJigDeployParamsGPUType = "h100-80gb"
-	BetaJigDeployParamsGPUTypeA100_80gb BetaJigDeployParamsGPUType = " a100-80gb"
+	BetaJigDeployParamsGPUTypeA100_80gb BetaJigDeployParamsGPUType = "a100-80gb"
 )
 
 // The property Name is required.
@@ -665,8 +664,6 @@ func (r *BetaJigDeployParamsVolume) UnmarshalJSON(data []byte) error {
 }
 
 type BetaJigGetLogsParams struct {
-	// Stream logs in real-time (ndjson format)
-	Follow param.Opt[bool] `query:"follow,omitzero" json:"-"`
 	// Replica ID to filter logs
 	ReplicaID param.Opt[string] `query:"replica_id,omitzero" json:"-"`
 	paramObj
