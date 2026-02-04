@@ -241,26 +241,13 @@ const (
 )
 
 type DeploymentReplicaEvent struct {
-	// ContainerStatus provides detailed status information about the container within
-	// this replica
-	ContainerStatus DeploymentReplicaEventContainerStatus `json:"container_status"`
-	// Events is a list of Kubernetes events related to this replica for
-	// troubleshooting
-	Events []DeploymentReplicaEventEvent `json:"events"`
-	// ReplicaCompletedAt is the timestamp when the replica finished execution
-	ReplicaCompletedAt string `json:"replica_completed_at"`
-	// ReplicaMarkedForTerminationAt is the timestamp when the replica was marked for
-	// termination
-	ReplicaMarkedForTerminationAt string `json:"replica_marked_for_termination_at"`
+	// Image is the container image used for this replica
+	Image string `json:"image"`
 	// ReplicaReadySince is the timestamp when the replica became ready to serve
 	// traffic
 	ReplicaReadySince string `json:"replica_ready_since"`
-	// ReplicaRunningSince is the timestamp when the replica entered the running state
-	ReplicaRunningSince string `json:"replica_running_since"`
-	// ReplicaStartedAt is the timestamp when the replica was created
-	ReplicaStartedAt string `json:"replica_started_at"`
-	// ReplicaStatus is the current status of the replica (e.g., "Running", "Pending",
-	// "Failed")
+	// ReplicaStatus is the current status of the replica (e.g., "Running", "Waiting",
+	// "Terminated")
 	ReplicaStatus string `json:"replica_status"`
 	// ReplicaStatusMessage provides a human-readable message explaining the replica's
 	// status
@@ -268,100 +255,34 @@ type DeploymentReplicaEvent struct {
 	// ReplicaStatusReason provides a brief machine-readable reason for the replica's
 	// status
 	ReplicaStatusReason string `json:"replica_status_reason"`
-	// ScheduledOnCluster identifies which cluster this replica is scheduled on
-	ScheduledOnCluster string `json:"scheduled_on_cluster"`
+	// RevisionID is the deployment revision ID associated with this replica
+	RevisionID string `json:"revision_id"`
+	// VolumePreloadCompletedAt is the timestamp when the volume preload completed
+	VolumePreloadCompletedAt string `json:"volume_preload_completed_at"`
+	// VolumePreloadStartedAt is the timestamp when the volume preload started
+	VolumePreloadStartedAt string `json:"volume_preload_started_at"`
+	// VolumePreloadStatus is the status of the volume preload (e.g., "InProgress",
+	// "Completed", "Failed")
+	VolumePreloadStatus string `json:"volume_preload_status"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ContainerStatus               respjson.Field
-		Events                        respjson.Field
-		ReplicaCompletedAt            respjson.Field
-		ReplicaMarkedForTerminationAt respjson.Field
-		ReplicaReadySince             respjson.Field
-		ReplicaRunningSince           respjson.Field
-		ReplicaStartedAt              respjson.Field
-		ReplicaStatus                 respjson.Field
-		ReplicaStatusMessage          respjson.Field
-		ReplicaStatusReason           respjson.Field
-		ScheduledOnCluster            respjson.Field
-		ExtraFields                   map[string]respjson.Field
-		raw                           string
+		Image                    respjson.Field
+		ReplicaReadySince        respjson.Field
+		ReplicaStatus            respjson.Field
+		ReplicaStatusMessage     respjson.Field
+		ReplicaStatusReason      respjson.Field
+		RevisionID               respjson.Field
+		VolumePreloadCompletedAt respjson.Field
+		VolumePreloadStartedAt   respjson.Field
+		VolumePreloadStatus      respjson.Field
+		ExtraFields              map[string]respjson.Field
+		raw                      string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
 func (r DeploymentReplicaEvent) RawJSON() string { return r.JSON.raw }
 func (r *DeploymentReplicaEvent) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// ContainerStatus provides detailed status information about the container within
-// this replica
-type DeploymentReplicaEventContainerStatus struct {
-	// FinishedAt is the timestamp when the container finished execution (if
-	// terminated)
-	FinishedAt string `json:"finishedAt"`
-	// Message provides a human-readable message with details about the container's
-	// status
-	Message string `json:"message"`
-	// Name is the name of the container
-	Name string `json:"name"`
-	// Reason provides a brief machine-readable reason for the container's current
-	// status
-	Reason string `json:"reason"`
-	// StartedAt is the timestamp when the container started execution
-	StartedAt string `json:"startedAt"`
-	// Status is the current state of the container (e.g., "Running", "Terminated",
-	// "Waiting")
-	Status string `json:"status"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		FinishedAt  respjson.Field
-		Message     respjson.Field
-		Name        respjson.Field
-		Reason      respjson.Field
-		StartedAt   respjson.Field
-		Status      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DeploymentReplicaEventContainerStatus) RawJSON() string { return r.JSON.raw }
-func (r *DeploymentReplicaEventContainerStatus) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type DeploymentReplicaEventEvent struct {
-	// Action is the action taken or reported by this event
-	Action string `json:"action"`
-	// Count is the number of times this event has occurred
-	Count int64 `json:"count"`
-	// FirstSeen is the timestamp when this event was first observed
-	FirstSeen string `json:"first_seen"`
-	// LastSeen is the timestamp when this event was last observed
-	LastSeen string `json:"last_seen"`
-	// Message is a human-readable description of the event
-	Message string `json:"message"`
-	// Reason is a brief machine-readable reason for this event (e.g., "Pulling",
-	// "Started", "Failed")
-	Reason string `json:"reason"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Action      respjson.Field
-		Count       respjson.Field
-		FirstSeen   respjson.Field
-		LastSeen    respjson.Field
-		Message     respjson.Field
-		Reason      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DeploymentReplicaEventEvent) RawJSON() string { return r.JSON.raw }
-func (r *DeploymentReplicaEventEvent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
