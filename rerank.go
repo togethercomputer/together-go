@@ -33,7 +33,8 @@ func NewRerankService(opts ...option.RequestOption) (r RerankService) {
 	return
 }
 
-// Query a reranker model
+// Rerank a list of documents by relevance to a query. Returns a relevance score
+// and ordering index for each document.
 func (r *RerankService) New(ctx context.Context, body RerankNewParams, opts ...option.RequestOption) (res *RerankNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "rerank"

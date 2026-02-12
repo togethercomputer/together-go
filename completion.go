@@ -35,7 +35,8 @@ func NewCompletionService(opts ...option.RequestOption) (r CompletionService) {
 	return
 }
 
-// Query a language, code, or image model.
+// Generate text completions for a given prompt using a language, code, or image
+// model.
 func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (res *Completion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "completions"
@@ -43,7 +44,8 @@ func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, o
 	return
 }
 
-// Query a language, code, or image model.
+// Generate text completions for a given prompt using a language, code, or image
+// model.
 func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[CompletionChunk]) {
 	var (
 		raw *http.Response
