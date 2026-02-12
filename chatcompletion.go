@@ -35,7 +35,8 @@ func NewChatCompletionService(opts ...option.RequestOption) (r ChatCompletionSer
 	return
 }
 
-// Query a chat model.
+// Generate a model response for a given chat conversation. Supports single queries
+// and multi-turn conversations with system, user, and assistant messages.
 func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (res *ChatCompletion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "chat/completions"
@@ -43,7 +44,8 @@ func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewP
 	return
 }
 
-// Query a chat model.
+// Generate a model response for a given chat conversation. Supports single queries
+// and multi-turn conversations with system, user, and assistant messages.
 func (r *ChatCompletionService) NewStreaming(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[ChatCompletionChunk]) {
 	var (
 		raw *http.Response
