@@ -89,11 +89,16 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 }
 
 type ClusterStorage struct {
+	// Size of the volume in whole tebibytes (TiB).
 	SizeTib int64 `json:"size_tib,required"`
+	// Deployment status of the volume.
+	//
 	// Any of "available", "bound", "provisioning".
-	Status     ClusterStorageStatus `json:"status,required"`
-	VolumeID   string               `json:"volume_id,required"`
-	VolumeName string               `json:"volume_name,required"`
+	Status ClusterStorageStatus `json:"status,required"`
+	// ID of the volume.
+	VolumeID string `json:"volume_id,required"`
+	// Provided name of the volume.
+	VolumeName string `json:"volume_name,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SizeTib     respjson.Field
@@ -111,6 +116,7 @@ func (r *ClusterStorage) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Deployment status of the volume.
 type ClusterStorageStatus string
 
 const (
@@ -155,7 +161,8 @@ type BetaClusterStorageNewParams struct {
 	// Region name. Usable regions can be found from `client.clusters.list_regions()`
 	Region string `json:"region,required"`
 	// Volume size in whole tebibytes (TiB).
-	SizeTib    int64  `json:"size_tib,required"`
+	SizeTib int64 `json:"size_tib,required"`
+	// Customizable name of the volume to create.
 	VolumeName string `json:"volume_name,required"`
 	paramObj
 }
@@ -169,7 +176,9 @@ func (r *BetaClusterStorageNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageUpdateParams struct {
-	SizeTib  param.Opt[int64]  `json:"size_tib,omitzero"`
+	// Size of the volume in whole tebibytes (TiB).
+	SizeTib param.Opt[int64] `json:"size_tib,omitzero"`
+	// ID of the volume to update.
 	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
 	paramObj
 }

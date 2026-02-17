@@ -104,6 +104,8 @@ func (r *BetaClusterService) ListRegions(ctx context.Context, opts ...option.Req
 type Cluster struct {
 	ClusterID   string `json:"cluster_id,required"`
 	ClusterName string `json:"cluster_name,required"`
+	// Type of cluster.
+	//
 	// Any of "KUBERNETES", "SLURM".
 	ClusterType       ClusterClusterType        `json:"cluster_type,required"`
 	ControlPlaneNodes []ClusterControlPlaneNode `json:"control_plane_nodes,required"`
@@ -151,6 +153,7 @@ func (r *Cluster) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Type of cluster.
 type ClusterClusterType string
 
 const (
@@ -324,18 +327,19 @@ func (r *BetaClusterListRegionsResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterListRegionsResponseRegion struct {
-	ID                string   `json:"id,required"`
-	AvailabilityZones []string `json:"availability_zones,required"`
-	DriverVersions    []string `json:"driver_versions,required"`
-	Name              string   `json:"name,required"`
+	// List of supported identifiable driver versions available in the region.
+	DriverVersions []string `json:"driver_versions,required"`
+	// Identifiable name of the region.
+	Name string `json:"name,required"`
+	// List of supported identifiable gpus available in the region.
+	SupportedInstanceTypes []string `json:"supported_instance_types"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID                respjson.Field
-		AvailabilityZones respjson.Field
-		DriverVersions    respjson.Field
-		Name              respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
+		DriverVersions         respjson.Field
+		Name                   respjson.Field
+		SupportedInstanceTypes respjson.Field
+		ExtraFields            map[string]respjson.Field
+		raw                    string
 	} `json:"-"`
 }
 
@@ -346,6 +350,10 @@ func (r *BetaClusterListRegionsResponseRegion) UnmarshalJSON(data []byte) error 
 }
 
 type BetaClusterNewParams struct {
+	// RESERVED billing types allow you to specify the duration of the cluster
+	// reservation via the duration_days field. ON_DEMAND billing types will give you
+	// ownership of the cluster until you delete it.
+	//
 	// Any of "RESERVED", "ON_DEMAND".
 	BillingType BetaClusterNewParamsBillingType `json:"billing_type,omitzero,required"`
 	// Name of the GPU cluster.
@@ -362,16 +370,18 @@ type BetaClusterNewParams struct {
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
 	NumGPUs int64 `json:"num_gpus,required"`
-	// Region to create the GPU cluster in. Valid values are us-central-8 and
-	// us-central-4.
-	//
-	// Any of "us-central-8", "us-central-4".
-	Region BetaClusterNewParamsRegion `json:"region,omitzero,required"`
+	// Region to create the GPU cluster in. Usable regions can be found from
+	// `client.clusters.list_regions()`
+	Region string `json:"region,required"`
 	// Duration in days to keep the cluster running.
-	DurationDays param.Opt[int64]  `json:"duration_days,omitzero"`
-	VolumeID     param.Opt[string] `json:"volume_id,omitzero"`
+	DurationDays param.Opt[int64] `json:"duration_days,omitzero"`
+	// ID of an existing volume to use with the cluster creation.
+	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
+	// Type of cluster to create.
+	//
 	// Any of "KUBERNETES", "SLURM".
-	ClusterType  BetaClusterNewParamsClusterType  `json:"cluster_type,omitzero"`
+	ClusterType BetaClusterNewParamsClusterType `json:"cluster_type,omitzero"`
+	// Inline configuration to create a shared volume with the cluster creation.
 	SharedVolume BetaClusterNewParamsSharedVolume `json:"shared_volume,omitzero"`
 	paramObj
 }
@@ -384,6 +394,9 @@ func (r *BetaClusterNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// RESERVED billing types allow you to specify the duration of the cluster
+// reservation via the duration_days field. ON_DEMAND billing types will give you
+// ownership of the cluster until you delete it.
 type BetaClusterNewParamsBillingType string
 
 const (
@@ -413,15 +426,7 @@ const (
 	BetaClusterNewParamsGPUTypeH100SxmInf BetaClusterNewParamsGPUType = "H100_SXM_INF"
 )
 
-// Region to create the GPU cluster in. Valid values are us-central-8 and
-// us-central-4.
-type BetaClusterNewParamsRegion string
-
-const (
-	BetaClusterNewParamsRegionUsCentral8 BetaClusterNewParamsRegion = "us-central-8"
-	BetaClusterNewParamsRegionUsCentral4 BetaClusterNewParamsRegion = "us-central-4"
-)
-
+// Type of cluster to create.
 type BetaClusterNewParamsClusterType string
 
 const (
@@ -429,12 +434,15 @@ const (
 	BetaClusterNewParamsClusterTypeSlurm      BetaClusterNewParamsClusterType = "SLURM"
 )
 
+// Inline configuration to create a shared volume with the cluster creation.
+//
 // The properties Region, SizeTib, VolumeName are required.
 type BetaClusterNewParamsSharedVolume struct {
 	// Region name. Usable regions can be found from `client.clusters.list_regions()`
 	Region string `json:"region,required"`
 	// Volume size in whole tebibytes (TiB).
-	SizeTib    int64  `json:"size_tib,required"`
+	SizeTib int64 `json:"size_tib,required"`
+	// Customizable name of the volume to create.
 	VolumeName string `json:"volume_name,required"`
 	paramObj
 }
@@ -448,7 +456,11 @@ func (r *BetaClusterNewParamsSharedVolume) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterUpdateParams struct {
+	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
+	// example, 8, 16 or 24
 	NumGPUs param.Opt[int64] `json:"num_gpus,omitzero"`
+	// Type of cluster to update.
+	//
 	// Any of "KUBERNETES", "SLURM".
 	ClusterType BetaClusterUpdateParamsClusterType `json:"cluster_type,omitzero"`
 	paramObj
@@ -462,6 +474,7 @@ func (r *BetaClusterUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Type of cluster to update.
 type BetaClusterUpdateParamsClusterType string
 
 const (

@@ -92,7 +92,6 @@ func TestEvalListWithOptionalParams(t *testing.T) {
 	_, err := client.Evals.List(context.TODO(), together.EvalListParams{
 		Limit:  together.Int(0),
 		Status: together.String("status"),
-		UserID: together.String("userId"),
 	})
 	if err != nil {
 		var apierr *together.Error

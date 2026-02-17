@@ -12,6 +12,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // RerankService contains methods and other services that help with interacting
@@ -45,10 +46,8 @@ func (r *RerankService) New(ctx context.Context, body RerankNewParams, opts ...o
 type RerankNewResponse struct {
 	// The model to be used for the rerank request.
 	Model string `json:"model,required"`
-	// Object type
-	//
-	// Any of "rerank".
-	Object  RerankNewResponseObject   `json:"object,required"`
+	// The object type, which is always `rerank`.
+	Object  constant.Rerank           `json:"object,required"`
 	Results []RerankNewResponseResult `json:"results,required"`
 	// Request ID
 	ID    string              `json:"id"`
@@ -70,13 +69,6 @@ func (r RerankNewResponse) RawJSON() string { return r.JSON.raw }
 func (r *RerankNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-// Object type
-type RerankNewResponseObject string
-
-const (
-	RerankNewResponseObjectRerank RerankNewResponseObject = "rerank"
-)
 
 type RerankNewResponseResult struct {
 	Document       RerankNewResponseResultDocument `json:"document,required"`

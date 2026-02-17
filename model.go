@@ -14,6 +14,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // ModelService contains methods and other services that help with interacting with
@@ -56,7 +57,8 @@ func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts 
 type ModelObject struct {
 	ID      string `json:"id,required"`
 	Created int64  `json:"created,required"`
-	Object  string `json:"object,required"`
+	// The object type, which is always `model`.
+	Object constant.Model `json:"object,required"`
 	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank".
 	Type          ModelObjectType    `json:"type,required"`
 	ContextLength int64              `json:"context_length"`

@@ -100,8 +100,10 @@ type Secret struct {
 	LastUpdatedBy string `json:"last_updated_by"`
 	// Name is the name/key of the secret
 	Name string `json:"name"`
-	// Object is the type identifier for this response (always "secret")
-	Object string `json:"object"`
+	// The object type, which is always `secret`.
+	//
+	// Any of "secret".
+	Object SecretObject `json:"object"`
 	// UpdatedAt is the ISO8601 timestamp when this secret was last updated
 	UpdatedAt string `json:"updated_at"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -125,11 +127,20 @@ func (r *Secret) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// The object type, which is always `secret`.
+type SecretObject string
+
+const (
+	SecretObjectSecret SecretObject = "secret"
+)
+
 type BetaJigSecretListResponse struct {
 	// Data is the array of secret items
 	Data []Secret `json:"data"`
-	// Object is the type identifier for this response (always "list")
-	Object string `json:"object"`
+	// The object type, which is always `list`.
+	//
+	// Any of "list".
+	Object BetaJigSecretListResponseObject `json:"object"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -144,6 +155,13 @@ func (r BetaJigSecretListResponse) RawJSON() string { return r.JSON.raw }
 func (r *BetaJigSecretListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// The object type, which is always `list`.
+type BetaJigSecretListResponseObject string
+
+const (
+	BetaJigSecretListResponseObjectList BetaJigSecretListResponseObject = "list"
+)
 
 type BetaJigSecretDeleteResponse = any
 

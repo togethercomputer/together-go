@@ -17,6 +17,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // FileService contains methods and other services that help with interacting with
@@ -38,7 +39,7 @@ func NewFileService(opts ...option.RequestOption) (r FileService) {
 	return
 }
 
-// List the metadata for a single uploaded data file.
+// Retrieve the metadata for a single uploaded data file.
 func (r *FileService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FileResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
@@ -120,19 +121,27 @@ const (
 	FilePurposeBatchAPI       FilePurpose = "batch-api"
 )
 
+// Structured information describing a file uploaded to Together.
 type FileResponse struct {
-	ID        string `json:"id,required"`
-	Bytes     int64  `json:"bytes,required"`
-	CreatedAt int64  `json:"created_at,required"`
-	Filename  string `json:"filename,required"`
-	// The type of the file
+	// ID of the file.
+	ID string `json:"id,required"`
+	// The number of bytes in the file.
+	Bytes int64 `json:"bytes,required"`
+	// The timestamp when the file was created.
+	CreatedAt int64 `json:"created_at,required"`
+	// The name of the file as it was uploaded.
+	Filename string `json:"filename,required"`
+	// The type of the file such as `jsonl`, `csv`, or `parquet`.
 	//
 	// Any of "csv", "jsonl", "parquet".
-	FileType  FileType `json:"FileType,required"`
-	LineCount int64    `json:"LineCount,required"`
-	Object    string   `json:"object,required"`
-	Processed bool     `json:"Processed,required"`
-	// The purpose of the file
+	FileType FileType `json:"FileType,required"`
+	// The number of lines in the file.
+	LineCount int64 `json:"LineCount,required"`
+	// The object type, which is always `file`.
+	Object constant.File `json:"object,required"`
+	// Whether the file has been parsed and analyzed for correctness for fine-tuning.
+	Processed bool `json:"Processed,required"`
+	// The purpose of the file as it was uploaded.
 	//
 	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
 	// "batch-generated", "batch-api".

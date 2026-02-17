@@ -187,7 +187,7 @@ func TestEndpointListHardwareWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Endpoints.ListHardware(context.TODO(), together.EndpointListHardwareParams{
-		Model: together.String("model"),
+		Model: together.String("meta-llama/Llama-3-70b-chat-hf"),
 	})
 	if err != nil {
 		var apierr *together.Error
