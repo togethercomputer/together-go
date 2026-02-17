@@ -147,8 +147,10 @@ type Deployment struct {
 	MinReplicas int64 `json:"min_replicas"`
 	// Name is the name of the deployment
 	Name string `json:"name"`
-	// Object is the type identifier for this response (always "deployment")
-	Object string `json:"object"`
+	// The object type, which is always `deployment`.
+	//
+	// Any of "deployment".
+	Object DeploymentObject `json:"object"`
 	// Port is the container port that the deployment exposes
 	Port int64 `json:"port"`
 	// ReadyReplicas is the current number of replicas that are in the Ready state
@@ -238,6 +240,13 @@ type DeploymentGPUType string
 const (
 	DeploymentGPUTypeH100_80gb DeploymentGPUType = "h100-80gb"
 	DeploymentGPUTypeA100_80gb DeploymentGPUType = " a100-80gb"
+)
+
+// The object type, which is always `deployment`.
+type DeploymentObject string
+
+const (
+	DeploymentObjectDeployment DeploymentObject = "deployment"
 )
 
 type DeploymentReplicaEvent struct {
@@ -338,8 +347,10 @@ func (r *DeploymentLogs) UnmarshalJSON(data []byte) error {
 type BetaJigListResponse struct {
 	// Data is the array of deployment items
 	Data []Deployment `json:"data"`
-	// Object is the type identifier for this response (always "list")
-	Object string `json:"object"`
+	// The object type, which is always `list`.
+	//
+	// Any of "list".
+	Object BetaJigListResponseObject `json:"object"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -354,6 +365,13 @@ func (r BetaJigListResponse) RawJSON() string { return r.JSON.raw }
 func (r *BetaJigListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// The object type, which is always `list`.
+type BetaJigListResponseObject string
+
+const (
+	BetaJigListResponseObjectList BetaJigListResponseObject = "list"
+)
 
 type BetaJigDestroyResponse = any
 

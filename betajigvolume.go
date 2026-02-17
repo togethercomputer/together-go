@@ -96,8 +96,10 @@ type Volume struct {
 	CreatedAt string `json:"created_at"`
 	// Name is the name of the volume
 	Name string `json:"name"`
-	// Object is the type identifier for this response (always "volume")
-	Object string `json:"object"`
+	// The object type, which is always `volume`.
+	//
+	// Any of "volume".
+	Object VolumeObject `json:"object"`
 	// Type is the volume type (e.g., "readOnly")
 	//
 	// Any of "readOnly".
@@ -149,6 +151,13 @@ func (r *VolumeContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// The object type, which is always `volume`.
+type VolumeObject string
+
+const (
+	VolumeObjectVolume VolumeObject = "volume"
+)
+
 // Type is the volume type (e.g., "readOnly")
 type VolumeType string
 
@@ -159,8 +168,10 @@ const (
 type BetaJigVolumeListResponse struct {
 	// Data is the array of volume items
 	Data []Volume `json:"data"`
-	// Object is the type identifier for this response (always "list")
-	Object string `json:"object"`
+	// The object type, which is always `list`.
+	//
+	// Any of "list".
+	Object BetaJigVolumeListResponseObject `json:"object"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -175,6 +186,13 @@ func (r BetaJigVolumeListResponse) RawJSON() string { return r.JSON.raw }
 func (r *BetaJigVolumeListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// The object type, which is always `list`.
+type BetaJigVolumeListResponseObject string
+
+const (
+	BetaJigVolumeListResponseObjectList BetaJigVolumeListResponseObject = "list"
+)
 
 type BetaJigVolumeDeleteResponse = any
 

@@ -18,6 +18,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // FineTuningService contains methods and other services that help with interacting
@@ -140,13 +141,13 @@ type FinetuneEvent struct {
 	Hash           string `json:"hash,required"`
 	Message        string `json:"message,required"`
 	ModelPath      string `json:"model_path,required"`
-	// Any of "fine-tune-event".
-	Object         FinetuneEventObject `json:"object,required"`
-	ParamCount     int64               `json:"param_count,required"`
-	Step           int64               `json:"step,required"`
-	TokenCount     int64               `json:"token_count,required"`
-	TotalSteps     int64               `json:"total_steps,required"`
-	TrainingOffset int64               `json:"training_offset,required"`
+	// The object type, which is always `fine-tune-event`.
+	Object         constant.FineTuneEvent `json:"object,required"`
+	ParamCount     int64                  `json:"param_count,required"`
+	Step           int64                  `json:"step,required"`
+	TokenCount     int64                  `json:"token_count,required"`
+	TotalSteps     int64                  `json:"total_steps,required"`
+	TrainingOffset int64                  `json:"training_offset,required"`
 	// Any of "job_pending", "job_start", "job_stopped", "model_downloading",
 	// "model_download_complete", "training_data_downloading",
 	// "training_data_download_complete", "validation_data_downloading",
@@ -186,12 +187,6 @@ func (r FinetuneEvent) RawJSON() string { return r.JSON.raw }
 func (r *FinetuneEvent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type FinetuneEventObject string
-
-const (
-	FinetuneEventObjectFineTuneEvent FinetuneEventObject = "fine-tune-event"
-)
 
 type FinetuneEventLevel string
 
@@ -2862,6 +2857,7 @@ func init() {
 }
 
 type FineTuningDeleteParams struct {
+	// Deprecated and unused parameter.
 	Force param.Opt[bool] `query:"force,omitzero" json:"-"`
 	paramObj
 }

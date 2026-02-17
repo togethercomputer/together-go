@@ -18,6 +18,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // EndpointService contains methods and other services that help with interacting
@@ -180,10 +181,8 @@ type DedicatedEndpoint struct {
 	Model string `json:"model,required"`
 	// System name for the endpoint
 	Name string `json:"name,required"`
-	// The type of object
-	//
-	// Any of "endpoint".
-	Object DedicatedEndpointObject `json:"object,required"`
+	// The object type, which is always `endpoint`.
+	Object constant.Endpoint `json:"object,required"`
 	// The owner of this endpoint
 	Owner string `json:"owner,required"`
 	// Current state of the endpoint
@@ -218,13 +217,6 @@ func (r *DedicatedEndpoint) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// The type of object
-type DedicatedEndpointObject string
-
-const (
-	DedicatedEndpointObjectEndpoint DedicatedEndpointObject = "endpoint"
-)
-
 // Current state of the endpoint
 type DedicatedEndpointState string
 
@@ -246,8 +238,8 @@ const (
 
 type EndpointListResponse struct {
 	Data []EndpointListResponseData `json:"data,required"`
-	// Any of "list".
-	Object EndpointListResponseObject `json:"object,required"`
+	// The object type, which is always `list`.
+	Object constant.List `json:"object,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -273,10 +265,8 @@ type EndpointListResponseData struct {
 	Model string `json:"model,required"`
 	// System name for the endpoint
 	Name string `json:"name,required"`
-	// The type of object
-	//
-	// Any of "endpoint".
-	Object string `json:"object,required"`
+	// The object type, which is always `endpoint`.
+	Object constant.Endpoint `json:"object,required"`
 	// The owner of this endpoint
 	Owner string `json:"owner,required"`
 	// Current state of the endpoint
@@ -308,12 +298,6 @@ func (r *EndpointListResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointListResponseObject string
-
-const (
-	EndpointListResponseObjectList EndpointListResponseObject = "list"
-)
-
 // List of unique availability zones
 type EndpointListAvzonesResponse struct {
 	Avzones []string `json:"avzones,required"`
@@ -333,8 +317,8 @@ func (r *EndpointListAvzonesResponse) UnmarshalJSON(data []byte) error {
 
 type EndpointListHardwareResponse struct {
 	Data []EndpointListHardwareResponseData `json:"data,required"`
-	// Any of "list".
-	Object EndpointListHardwareResponseObject `json:"object,required"`
+	// The object type, which is always `list`.
+	Object constant.List `json:"object,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -354,8 +338,8 @@ func (r *EndpointListHardwareResponse) UnmarshalJSON(data []byte) error {
 type EndpointListHardwareResponseData struct {
 	// Unique identifier for the hardware configuration
 	ID string `json:"id,required"`
-	// Any of "hardware".
-	Object string `json:"object,required"`
+	// The object type, which is always `hardware`.
+	Object constant.Hardware `json:"object,required"`
 	// Pricing details for using an endpoint
 	Pricing EndpointListHardwareResponseDataPricing `json:"pricing,required"`
 	// Detailed specifications of a hardware configuration
@@ -447,12 +431,6 @@ func (r EndpointListHardwareResponseDataAvailability) RawJSON() string { return 
 func (r *EndpointListHardwareResponseDataAvailability) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type EndpointListHardwareResponseObject string
-
-const (
-	EndpointListHardwareResponseObjectList EndpointListHardwareResponseObject = "list"
-)
 
 type EndpointNewParams struct {
 	// Configuration for automatic scaling of the endpoint

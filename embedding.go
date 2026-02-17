@@ -12,6 +12,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // EmbeddingService contains methods and other services that help with interacting
@@ -45,8 +46,8 @@ func (r *EmbeddingService) New(ctx context.Context, body EmbeddingNewParams, opt
 type Embedding struct {
 	Data  []EmbeddingData `json:"data,required"`
 	Model string          `json:"model,required"`
-	// Any of "list".
-	Object EmbeddingObject `json:"object,required"`
+	// The object type, which is always `list`.
+	Object constant.List `json:"object,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -66,8 +67,8 @@ func (r *Embedding) UnmarshalJSON(data []byte) error {
 type EmbeddingData struct {
 	Embedding []float64 `json:"embedding,required"`
 	Index     int64     `json:"index,required"`
-	// Any of "embedding".
-	Object string `json:"object,required"`
+	// The object type, which is always `embedding`.
+	Object constant.Embedding `json:"object,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Embedding   respjson.Field
@@ -83,12 +84,6 @@ func (r EmbeddingData) RawJSON() string { return r.JSON.raw }
 func (r *EmbeddingData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type EmbeddingObject string
-
-const (
-	EmbeddingObjectList EmbeddingObject = "list"
-)
 
 type EmbeddingNewParams struct {
 	// A string providing the text for the model to embed.

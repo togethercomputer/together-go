@@ -1412,11 +1412,10 @@ const (
 )
 
 type EvalListParams struct {
-	Limit  param.Opt[int64]  `query:"limit,omitzero" json:"-"`
+	// Limit the number of results
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Filter evaluation jobs by status
 	Status param.Opt[string] `query:"status,omitzero" json:"-"`
-	// Admin users can specify a user ID to filter jobs. Pass empty string to get all
-	// jobs.
-	UserID param.Opt[string] `query:"userId,omitzero" json:"-"`
 	paramObj
 }
 

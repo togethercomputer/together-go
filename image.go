@@ -13,6 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // ImageService contains methods and other services that help with interacting with
@@ -100,8 +101,8 @@ type ImageFile struct {
 	ID    string               `json:"id,required"`
 	Data  []ImageFileDataUnion `json:"data,required"`
 	Model string               `json:"model,required"`
-	// Any of "list".
-	Object ImageFileObject `json:"object,required"`
+	// The object type, which is always `list`.
+	Object constant.List `json:"object,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -185,12 +186,6 @@ func (u ImageFileDataUnion) RawJSON() string { return u.JSON.raw }
 func (r *ImageFileDataUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type ImageFileObject string
-
-const (
-	ImageFileObjectList ImageFileObject = "list"
-)
 
 type ImageGenerateParams struct {
 	// The model to use for image generation.

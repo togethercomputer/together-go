@@ -63,8 +63,8 @@ type ChatCompletion struct {
 	Choices []ChatCompletionChoice `json:"choices,required"`
 	Created int64                  `json:"created,required"`
 	Model   string                 `json:"model,required"`
-	// Any of "chat.completion".
-	Object   ChatCompletionObject    `json:"object,required"`
+	// The object type, which is always `chat.completion`.
+	Object   constant.ChatCompletion `json:"object,required"`
 	Usage    ChatCompletionUsage     `json:"usage,nullable"`
 	Warnings []ChatCompletionWarning `json:"warnings"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -159,22 +159,16 @@ func (r *ChatCompletionChoiceMessageFunctionCall) UnmarshalJSON(data []byte) err
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ChatCompletionObject string
-
-const (
-	ChatCompletionObjectChatCompletion ChatCompletionObject = "chat.completion"
-)
-
 type ChatCompletionChunk struct {
 	ID      string                      `json:"id,required"`
 	Choices []ChatCompletionChunkChoice `json:"choices,required"`
 	Created int64                       `json:"created,required"`
 	Model   string                      `json:"model,required"`
-	// Any of "chat.completion.chunk".
-	Object            ChatCompletionChunkObject `json:"object,required"`
-	SystemFingerprint string                    `json:"system_fingerprint"`
-	Usage             ChatCompletionUsage       `json:"usage,nullable"`
-	Warnings          []ChatCompletionWarning   `json:"warnings"`
+	// The object type, which is always `chat.completion.chunk`.
+	Object            constant.ChatCompletionChunk `json:"object,required"`
+	SystemFingerprint string                       `json:"system_fingerprint"`
+	Usage             ChatCompletionUsage          `json:"usage,nullable"`
+	Warnings          []ChatCompletionWarning      `json:"warnings"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID                respjson.Field
@@ -267,12 +261,6 @@ func (r ChatCompletionChunkChoiceDeltaFunctionCall) RawJSON() string { return r.
 func (r *ChatCompletionChunkChoiceDeltaFunctionCall) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type ChatCompletionChunkObject string
-
-const (
-	ChatCompletionChunkObjectChatCompletionChunk ChatCompletionChunkObject = "chat.completion.chunk"
-)
 
 type ChatCompletionStructuredMessageImageURLParam struct {
 	ImageURL ChatCompletionStructuredMessageImageURLImageURLParam `json:"image_url,omitzero"`
@@ -456,8 +444,9 @@ type ChatCompletionNewParams struct {
 	// probabilities. It specifies a probability threshold below which all less likely
 	// tokens are filtered out. This technique helps maintain diversity and generate
 	// more fluent and natural-sounding text.
-	TopP               param.Opt[float64] `json:"top_p,omitzero"`
-	ChatTemplateKwargs any                `json:"chat_template_kwargs,omitzero"`
+	TopP param.Opt[float64] `json:"top_p,omitzero"`
+	// Additional configuration to pass to model engine.
+	ChatTemplateKwargs any `json:"chat_template_kwargs,omitzero"`
 	// Any of "hipaa".
 	Compliance ChatCompletionNewParamsCompliance `json:"compliance,omitzero"`
 	// Defined the behavior of the API when max_tokens exceed the maximum context
@@ -469,7 +458,9 @@ type ChatCompletionNewParams struct {
 	ContextLengthExceededBehavior ChatCompletionNewParamsContextLengthExceededBehavior `json:"context_length_exceeded_behavior,omitzero"`
 	FunctionCall                  ChatCompletionNewParamsFunctionCallUnion             `json:"function_call,omitzero"`
 	// Adjusts the likelihood of specific tokens appearing in the generated output.
-	LogitBias map[string]float64               `json:"logit_bias,omitzero"`
+	LogitBias map[string]float64 `json:"logit_bias,omitzero"`
+	// For models that support toggling reasoning functionality, this object can be
+	// used to control that functionality.
 	Reasoning ChatCompletionNewParamsReasoning `json:"reasoning,omitzero"`
 	// Controls the level of reasoning effort the model should apply when generating
 	// responses. Higher values may result in more thoughtful and detailed responses
@@ -1056,9 +1047,9 @@ func (r *ChatCompletionNewParamsFunctionCallName) UnmarshalJSON(data []byte) err
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// For models that support toggling reasoning functionality, this object can be
+// used to control that functionality.
 type ChatCompletionNewParamsReasoning struct {
-	// For models that support toggling reasoning functionality, this object can be
-	// used to control that functionality.
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }

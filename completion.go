@@ -14,6 +14,7 @@ import (
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
 	"github.com/togethercomputer/together-go/packages/ssestream"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // CompletionService contains methods and other services that help with interacting
@@ -63,10 +64,10 @@ type Completion struct {
 	Choices []CompletionChoice `json:"choices,required"`
 	Created int64              `json:"created,required"`
 	Model   string             `json:"model,required"`
-	// Any of "text.completion".
-	Object CompletionObject    `json:"object,required"`
-	Usage  ChatCompletionUsage `json:"usage,required"`
-	Prompt []CompletionPrompt  `json:"prompt"`
+	// The object type, which is always `text.completion`.
+	Object constant.TextCompletion `json:"object,required"`
+	Usage  ChatCompletionUsage     `json:"usage,required"`
+	Prompt []CompletionPrompt      `json:"prompt"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -110,12 +111,6 @@ func (r *CompletionChoice) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type CompletionObject string
-
-const (
-	CompletionObjectTextCompletion CompletionObject = "text.completion"
-)
-
 type CompletionPrompt struct {
 	Logprobs LogProbs `json:"logprobs"`
 	Text     string   `json:"text"`
@@ -142,6 +137,8 @@ type CompletionChunk struct {
 	FinishReason CompletionChunkFinishReason `json:"finish_reason,required"`
 	Usage        ChatCompletionUsage         `json:"usage,required"`
 	Created      int64                       `json:"created"`
+	// The object type, which is always `completion.chunk`.
+	//
 	// Any of "completion.chunk".
 	Object CompletionChunkObject `json:"object"`
 	Seed   int64                 `json:"seed"`
@@ -265,6 +262,7 @@ const (
 	CompletionChunkFinishReasonFunctionCall CompletionChunkFinishReason = "function_call"
 )
 
+// The object type, which is always `completion.chunk`.
 type CompletionChunkObject string
 
 const (

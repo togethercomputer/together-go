@@ -59,7 +59,9 @@ func (r *AudioVoiceListResponse) UnmarshalJSON(data []byte) error {
 
 // Represents a model with its available voices.
 type AudioVoiceListResponseData struct {
-	Model  string                            `json:"model,required"`
+	// Model name.
+	Model string `json:"model,required"`
+	// List of available voices for the model.
 	Voices []AudioVoiceListResponseDataVoice `json:"voices,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -77,7 +79,8 @@ func (r *AudioVoiceListResponseData) UnmarshalJSON(data []byte) error {
 }
 
 type AudioVoiceListResponseDataVoice struct {
-	ID   string `json:"id,required"`
+	ID string `json:"id,required"`
+	// Voice name to be used for audio inference.
 	Name string `json:"name,required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
