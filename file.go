@@ -135,8 +135,6 @@ type FileResponse struct {
 	//
 	// Any of "csv", "jsonl", "parquet".
 	FileType FileType `json:"FileType,required"`
-	// The number of lines in the file.
-	LineCount int64 `json:"LineCount,required"`
 	// The object type, which is always `file`.
 	Object constant.File `json:"object,required"`
 	// Whether the file has been parsed and analyzed for correctness for fine-tuning.
@@ -153,7 +151,6 @@ type FileResponse struct {
 		CreatedAt   respjson.Field
 		Filename    respjson.Field
 		FileType    respjson.Field
-		LineCount   respjson.Field
 		Object      respjson.Field
 		Processed   respjson.Field
 		Purpose     respjson.Field
