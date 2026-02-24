@@ -169,10 +169,10 @@ type BetaJigSecretNewParams struct {
 	// Name is the unique identifier for the secret. Can contain alphanumeric
 	// characters, underscores, hyphens, forward slashes, and periods (1-100
 	// characters)
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Value is the sensitive data to store securely (e.g., API keys, passwords,
 	// tokens). This value will be encrypted at rest
-	Value string `json:"value,required"`
+	Value string `json:"value" api:"required"`
 	// Description is an optional human-readable description of the secret's purpose
 	// (max 500 characters)
 	Description param.Opt[string] `json:"description,omitzero"`

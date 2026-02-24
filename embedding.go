@@ -44,10 +44,10 @@ func (r *EmbeddingService) New(ctx context.Context, body EmbeddingNewParams, opt
 }
 
 type Embedding struct {
-	Data  []EmbeddingData `json:"data,required"`
-	Model string          `json:"model,required"`
+	Data  []EmbeddingData `json:"data" api:"required"`
+	Model string          `json:"model" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object,required"`
+	Object constant.List `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -65,10 +65,10 @@ func (r *Embedding) UnmarshalJSON(data []byte) error {
 }
 
 type EmbeddingData struct {
-	Embedding []float64 `json:"embedding,required"`
-	Index     int64     `json:"index,required"`
+	Embedding []float64 `json:"embedding" api:"required"`
+	Index     int64     `json:"index" api:"required"`
 	// The object type, which is always `embedding`.
-	Object constant.Embedding `json:"object,required"`
+	Object constant.Embedding `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Embedding   respjson.Field
@@ -87,11 +87,11 @@ func (r *EmbeddingData) UnmarshalJSON(data []byte) error {
 
 type EmbeddingNewParams struct {
 	// A string providing the text for the model to embed.
-	Input EmbeddingNewParamsInputUnion `json:"input,omitzero,required"`
+	Input EmbeddingNewParamsInputUnion `json:"input,omitzero" api:"required"`
 	// The name of the embedding model to use.
 	//
 	// [See all of Together AI's embedding models](https://docs.together.ai/docs/serverless-models#embedding-models)
-	Model EmbeddingNewParamsModel `json:"model,omitzero,required"`
+	Model EmbeddingNewParamsModel `json:"model,omitzero" api:"required"`
 	paramObj
 }
 

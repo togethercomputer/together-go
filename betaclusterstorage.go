@@ -90,15 +90,15 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 
 type ClusterStorage struct {
 	// Size of the volume in whole tebibytes (TiB).
-	SizeTib int64 `json:"size_tib,required"`
+	SizeTib int64 `json:"size_tib" api:"required"`
 	// Deployment status of the volume.
 	//
 	// Any of "available", "bound", "provisioning".
-	Status ClusterStorageStatus `json:"status,required"`
+	Status ClusterStorageStatus `json:"status" api:"required"`
 	// ID of the volume.
-	VolumeID string `json:"volume_id,required"`
+	VolumeID string `json:"volume_id" api:"required"`
 	// Provided name of the volume.
-	VolumeName string `json:"volume_name,required"`
+	VolumeName string `json:"volume_name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SizeTib     respjson.Field
@@ -126,7 +126,7 @@ const (
 )
 
 type BetaClusterStorageListResponse struct {
-	Volumes []ClusterStorage `json:"volumes,required"`
+	Volumes []ClusterStorage `json:"volumes" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Volumes     respjson.Field
@@ -142,7 +142,7 @@ func (r *BetaClusterStorageListResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageDeleteResponse struct {
-	Success bool `json:"success,required"`
+	Success bool `json:"success" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Success     respjson.Field
@@ -159,11 +159,11 @@ func (r *BetaClusterStorageDeleteResponse) UnmarshalJSON(data []byte) error {
 
 type BetaClusterStorageNewParams struct {
 	// Region name. Usable regions can be found from `client.clusters.list_regions()`
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	// Volume size in whole tebibytes (TiB).
-	SizeTib int64 `json:"size_tib,required"`
+	SizeTib int64 `json:"size_tib" api:"required"`
 	// Customizable name of the volume to create.
-	VolumeName string `json:"volume_name,required"`
+	VolumeName string `json:"volume_name" api:"required"`
 	paramObj
 }
 

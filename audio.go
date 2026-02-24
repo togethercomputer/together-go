@@ -38,10 +38,10 @@ func NewAudioService(opts ...option.RequestOption) (r AudioService) {
 
 type AudioSpeechStreamChunk struct {
 	// base64 encoded audio stream
-	B64   string `json:"b64,required"`
-	Model string `json:"model,required"`
+	B64   string `json:"b64" api:"required"`
+	Model string `json:"model" api:"required"`
 	// The object type, which is always `audio.tts.chunk`.
-	Object constant.AudioTtsChunk `json:"object,required"`
+	Object constant.AudioTtsChunk `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		B64         respjson.Field

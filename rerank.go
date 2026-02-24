@@ -45,13 +45,13 @@ func (r *RerankService) New(ctx context.Context, body RerankNewParams, opts ...o
 
 type RerankNewResponse struct {
 	// The model to be used for the rerank request.
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// The object type, which is always `rerank`.
-	Object  constant.Rerank           `json:"object,required"`
-	Results []RerankNewResponseResult `json:"results,required"`
+	Object  constant.Rerank           `json:"object" api:"required"`
+	Results []RerankNewResponseResult `json:"results" api:"required"`
 	// Request ID
 	ID    string              `json:"id"`
-	Usage ChatCompletionUsage `json:"usage,nullable"`
+	Usage ChatCompletionUsage `json:"usage" api:"nullable"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Model       respjson.Field
@@ -71,9 +71,9 @@ func (r *RerankNewResponse) UnmarshalJSON(data []byte) error {
 }
 
 type RerankNewResponseResult struct {
-	Document       RerankNewResponseResultDocument `json:"document,required"`
-	Index          int64                           `json:"index,required"`
-	RelevanceScore float64                         `json:"relevance_score,required"`
+	Document       RerankNewResponseResultDocument `json:"document" api:"required"`
+	Index          int64                           `json:"index" api:"required"`
+	RelevanceScore float64                         `json:"relevance_score" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Document       respjson.Field
@@ -91,7 +91,7 @@ func (r *RerankNewResponseResult) UnmarshalJSON(data []byte) error {
 }
 
 type RerankNewResponseResultDocument struct {
-	Text string `json:"text,nullable"`
+	Text string `json:"text" api:"nullable"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Text        respjson.Field
@@ -108,13 +108,13 @@ func (r *RerankNewResponseResultDocument) UnmarshalJSON(data []byte) error {
 
 type RerankNewParams struct {
 	// List of documents, which can be either strings or objects.
-	Documents RerankNewParamsDocumentsUnion `json:"documents,omitzero,required"`
+	Documents RerankNewParamsDocumentsUnion `json:"documents,omitzero" api:"required"`
 	// The model to be used for the rerank request.
 	//
 	// [See all of Together AI's rerank models](https://docs.together.ai/docs/serverless-models#rerank-models)
-	Model RerankNewParamsModel `json:"model,omitzero,required"`
+	Model RerankNewParamsModel `json:"model,omitzero" api:"required"`
 	// The search query to be used for ranking.
-	Query string `json:"query,required"`
+	Query string `json:"query" api:"required"`
 	// Whether to return supplied documents with the response.
 	ReturnDocuments param.Opt[bool] `json:"return_documents,omitzero"`
 	// The number of top results to return.

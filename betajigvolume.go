@@ -198,13 +198,13 @@ type BetaJigVolumeDeleteResponse = any
 
 type BetaJigVolumeNewParams struct {
 	// Content specifies the content configuration for this volume
-	Content BetaJigVolumeNewParamsContent `json:"content,omitzero,required"`
+	Content BetaJigVolumeNewParamsContent `json:"content,omitzero" api:"required"`
 	// Name is the unique identifier for the volume within the project
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Type is the volume type (currently only "readOnly" is supported)
 	//
 	// Any of "readOnly".
-	Type BetaJigVolumeNewParamsType `json:"type,omitzero,required"`
+	Type BetaJigVolumeNewParamsType `json:"type,omitzero" api:"required"`
 	paramObj
 }
 

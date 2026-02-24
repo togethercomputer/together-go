@@ -48,14 +48,14 @@ func (r *ModelUploadService) Status(ctx context.Context, jobID string, opts ...o
 }
 
 type ModelUploadStatusResponse struct {
-	Args      ModelUploadStatusResponseArgs `json:"args,required"`
-	CreatedAt time.Time                     `json:"created_at,required" format:"date-time"`
-	JobID     string                        `json:"job_id,required"`
+	Args      ModelUploadStatusResponseArgs `json:"args" api:"required"`
+	CreatedAt time.Time                     `json:"created_at" api:"required" format:"date-time"`
+	JobID     string                        `json:"job_id" api:"required"`
 	// Any of "Queued", "Running", "Complete", "Failed".
-	Status        ModelUploadStatusResponseStatus         `json:"status,required"`
-	StatusUpdates []ModelUploadStatusResponseStatusUpdate `json:"status_updates,required"`
-	Type          string                                  `json:"type,required"`
-	UpdatedAt     time.Time                               `json:"updated_at,required" format:"date-time"`
+	Status        ModelUploadStatusResponseStatus         `json:"status" api:"required"`
+	StatusUpdates []ModelUploadStatusResponseStatusUpdate `json:"status_updates" api:"required"`
+	Type          string                                  `json:"type" api:"required"`
+	UpdatedAt     time.Time                               `json:"updated_at" api:"required" format:"date-time"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Args          respjson.Field
@@ -106,9 +106,9 @@ const (
 )
 
 type ModelUploadStatusResponseStatusUpdate struct {
-	Message   string    `json:"message,required"`
-	Status    string    `json:"status,required"`
-	Timestamp time.Time `json:"timestamp,required" format:"date-time"`
+	Message   string    `json:"message" api:"required"`
+	Status    string    `json:"status" api:"required"`
+	Timestamp time.Time `json:"timestamp" api:"required" format:"date-time"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Message     respjson.Field

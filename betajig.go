@@ -210,7 +210,7 @@ func (r *Deployment) UnmarshalJSON(data []byte) error {
 type DeploymentEnvironmentVariable struct {
 	// Name is the environment variable name (e.g., "DATABASE_URL"). Must start with a
 	// letter or underscore, followed by letters, numbers, or underscores
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Value is the plain text value for the environment variable. Use this for
 	// non-sensitive values. Either Value or ValueFromSecret must be set, but not both
 	Value string `json:"value"`
@@ -309,10 +309,10 @@ const (
 type DeploymentVolume struct {
 	// MountPath is the path in the container where the volume will be mounted (e.g.,
 	// "/data")
-	MountPath string `json:"mount_path,required"`
+	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MountPath   respjson.Field
@@ -441,7 +441,7 @@ func (r *BetaJigUpdateParams) UnmarshalJSON(data []byte) error {
 type BetaJigUpdateParamsEnvironmentVariable struct {
 	// Name is the environment variable name (e.g., "DATABASE_URL"). Must start with a
 	// letter or underscore, followed by letters, numbers, or underscores
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Value is the plain text value for the environment variable. Use this for
 	// non-sensitive values. Either Value or ValueFromSecret must be set, but not both
 	Value param.Opt[string] `json:"value,omitzero"`
@@ -472,10 +472,10 @@ const (
 type BetaJigUpdateParamsVolume struct {
 	// MountPath is the path in the container where the volume will be mounted (e.g.,
 	// "/data")
-	MountPath string `json:"mount_path,required"`
+	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	paramObj
 }
 
@@ -491,12 +491,12 @@ type BetaJigDeployParams struct {
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb").
 	//
 	// Any of "h100-80gb", "a100-80gb".
-	GPUType BetaJigDeployParamsGPUType `json:"gpu_type,omitzero,required"`
+	GPUType BetaJigDeployParamsGPUType `json:"gpu_type,omitzero" api:"required"`
 	// Image is the container image to deploy from registry.together.ai.
-	Image string `json:"image,required"`
+	Image string `json:"image" api:"required"`
 	// Name is the unique identifier for your deployment. Must contain only
 	// alphanumeric characters, underscores, or hyphens (1-100 characters)
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// CPU is the number of CPU cores to allocate per container instance (e.g., 0.1 =
 	// 100 milli cores)
 	CPU param.Opt[float64] `json:"cpu,omitzero"`
@@ -564,7 +564,7 @@ const (
 type BetaJigDeployParamsEnvironmentVariable struct {
 	// Name is the environment variable name (e.g., "DATABASE_URL"). Must start with a
 	// letter or underscore, followed by letters, numbers, or underscores
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Value is the plain text value for the environment variable. Use this for
 	// non-sensitive values. Either Value or ValueFromSecret must be set, but not both
 	Value param.Opt[string] `json:"value,omitzero"`
@@ -587,10 +587,10 @@ func (r *BetaJigDeployParamsEnvironmentVariable) UnmarshalJSON(data []byte) erro
 type BetaJigDeployParamsVolume struct {
 	// MountPath is the path in the container where the volume will be mounted (e.g.,
 	// "/data")
-	MountPath string `json:"mount_path,required"`
+	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	paramObj
 }
 

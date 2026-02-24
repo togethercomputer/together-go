@@ -61,7 +61,7 @@ func (r *SessionListResponse) UnmarshalJSON(data []byte) error {
 }
 
 type SessionListResponseData struct {
-	Sessions []SessionListResponseDataSession `json:"sessions,required"`
+	Sessions []SessionListResponseDataSession `json:"sessions" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Sessions    respjson.Field
@@ -78,11 +78,11 @@ func (r *SessionListResponseData) UnmarshalJSON(data []byte) error {
 
 type SessionListResponseDataSession struct {
 	// Session Identifier. Used to make follow-up calls.
-	ID            string    `json:"id,required"`
-	ExecuteCount  int64     `json:"execute_count,required"`
-	ExpiresAt     time.Time `json:"expires_at,required" format:"date-time"`
-	LastExecuteAt time.Time `json:"last_execute_at,required" format:"date-time"`
-	StartedAt     time.Time `json:"started_at,required" format:"date-time"`
+	ID            string    `json:"id" api:"required"`
+	ExecuteCount  int64     `json:"execute_count" api:"required"`
+	ExpiresAt     time.Time `json:"expires_at" api:"required" format:"date-time"`
+	LastExecuteAt time.Time `json:"last_execute_at" api:"required" format:"date-time"`
+	StartedAt     time.Time `json:"started_at" api:"required" format:"date-time"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID            respjson.Field

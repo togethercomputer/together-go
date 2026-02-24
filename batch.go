@@ -157,9 +157,9 @@ func (r *BatchNewResponse) UnmarshalJSON(data []byte) error {
 
 type BatchNewParams struct {
 	// The endpoint to use for batch processing
-	Endpoint string `json:"endpoint,required"`
+	Endpoint string `json:"endpoint" api:"required"`
 	// ID of the uploaded input file containing batch requests
-	InputFileID string `json:"input_file_id,required"`
+	InputFileID string `json:"input_file_id" api:"required"`
 	// Time window for batch completion (optional)
 	CompletionWindow param.Opt[string] `json:"completion_window,omitzero"`
 	// Model to use for processing batch requests
