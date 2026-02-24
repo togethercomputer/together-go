@@ -136,18 +136,18 @@ func (r *FineTuningService) ListEvents(ctx context.Context, id string, opts ...o
 }
 
 type FinetuneEvent struct {
-	CheckpointPath string `json:"checkpoint_path,required"`
-	CreatedAt      string `json:"created_at,required"`
-	Hash           string `json:"hash,required"`
-	Message        string `json:"message,required"`
-	ModelPath      string `json:"model_path,required"`
+	CheckpointPath string `json:"checkpoint_path" api:"required"`
+	CreatedAt      string `json:"created_at" api:"required"`
+	Hash           string `json:"hash" api:"required"`
+	Message        string `json:"message" api:"required"`
+	ModelPath      string `json:"model_path" api:"required"`
 	// The object type, which is always `fine-tune-event`.
-	Object         constant.FineTuneEvent `json:"object,required"`
-	ParamCount     int64                  `json:"param_count,required"`
-	Step           int64                  `json:"step,required"`
-	TokenCount     int64                  `json:"token_count,required"`
-	TotalSteps     int64                  `json:"total_steps,required"`
-	TrainingOffset int64                  `json:"training_offset,required"`
+	Object         constant.FineTuneEvent `json:"object" api:"required"`
+	ParamCount     int64                  `json:"param_count" api:"required"`
+	Step           int64                  `json:"step" api:"required"`
+	TokenCount     int64                  `json:"token_count" api:"required"`
+	TotalSteps     int64                  `json:"total_steps" api:"required"`
+	TrainingOffset int64                  `json:"training_offset" api:"required"`
 	// Any of "job_pending", "job_start", "job_stopped", "model_downloading",
 	// "model_download_complete", "training_data_downloading",
 	// "training_data_download_complete", "validation_data_downloading",
@@ -156,11 +156,11 @@ type FinetuneEvent struct {
 	// "model_compressing", "model_compression_complete", "model_uploading",
 	// "model_upload_complete", "job_complete", "job_error", "cancel_requested",
 	// "job_restarted", "refund", "warning".
-	Type     FinetuneEventType `json:"type,required"`
-	WandbURL string            `json:"wandb_url,required"`
+	Type     FinetuneEventType `json:"type" api:"required"`
+	WandbURL string            `json:"wandb_url" api:"required"`
 	// Any of "info", "warning", "error", "legacy_info", "legacy_iwarning",
 	// "legacy_ierror".
-	Level FinetuneEventLevel `json:"level,nullable"`
+	Level FinetuneEventLevel `json:"level" api:"nullable"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CheckpointPath respjson.Field
@@ -230,10 +230,10 @@ const (
 )
 
 type FinetuneResponse struct {
-	ID string `json:"id,required" format:"uuid"`
+	ID string `json:"id" api:"required" format:"uuid"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status           FinetuneResponseStatus           `json:"status,required"`
+	Status           FinetuneResponseStatus           `json:"status" api:"required"`
 	BatchSize        FinetuneResponseBatchSizeUnion   `json:"batch_size"`
 	CreatedAt        time.Time                        `json:"created_at" format:"date-time"`
 	EpochsCompleted  int64                            `json:"epochs_completed"`
@@ -382,7 +382,7 @@ const (
 
 type FinetuneResponseLrScheduler struct {
 	// Any of "linear", "cosine".
-	LrSchedulerType string                                          `json:"lr_scheduler_type,required"`
+	LrSchedulerType string                                          `json:"lr_scheduler_type" api:"required"`
 	LrSchedulerArgs FinetuneResponseLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -455,9 +455,9 @@ func (r *FinetuneResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) Unmars
 
 type FinetuneResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
 	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	MinLrRatio float64 `json:"min_lr_ratio" api:"required"`
 	// Number or fraction of cycles for the cosine learning rate scheduler
-	NumCycles float64 `json:"num_cycles,required"`
+	NumCycles float64 `json:"num_cycles" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MinLrRatio  respjson.Field
@@ -496,9 +496,9 @@ func (r *FinetuneResponseMultimodalParams) UnmarshalJSON(data []byte) error {
 // Progress information for a fine-tuning job
 type FinetuneResponseProgress struct {
 	// Whether time estimate is available
-	EstimateAvailable bool `json:"estimate_available,required"`
+	EstimateAvailable bool `json:"estimate_available" api:"required"`
 	// Estimated time remaining in seconds for the fine-tuning job to next state
-	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	SecondsRemaining int64 `json:"seconds_remaining" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		EstimateAvailable respjson.Field
@@ -606,10 +606,10 @@ func (r *FinetuneResponseTrainingMethodUnion) UnmarshalJSON(data []byte) error {
 
 type FinetuneResponseTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
-	Method string `json:"method,required"`
+	Method string `json:"method" api:"required"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
-	TrainOnInputs FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	TrainOnInputs FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Method        respjson.Field
@@ -672,7 +672,7 @@ const (
 
 type FinetuneResponseTrainingMethodTrainingMethodDpo struct {
 	// Any of "dpo".
-	Method                        string  `json:"method,required"`
+	Method                        string  `json:"method" api:"required"`
 	DpoBeta                       float64 `json:"dpo_beta"`
 	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
 	DpoReferenceFree              bool    `json:"dpo_reference_free"`
@@ -741,7 +741,7 @@ func (r *FinetuneResponseTrainingTypeUnion) UnmarshalJSON(data []byte) error {
 
 type FinetuneResponseTrainingTypeFullTrainingType struct {
 	// Any of "Full".
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Type        respjson.Field
@@ -757,10 +757,10 @@ func (r *FinetuneResponseTrainingTypeFullTrainingType) UnmarshalJSON(data []byte
 }
 
 type FinetuneResponseTrainingTypeLoRaTrainingType struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
+	LoraAlpha int64 `json:"lora_alpha" api:"required"`
+	LoraR     int64 `json:"lora_r" api:"required"`
 	// Any of "Lora".
-	Type                 string  `json:"type,required"`
+	Type                 string  `json:"type" api:"required"`
 	LoraDropout          float64 `json:"lora_dropout"`
 	LoraTrainableModules string  `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -785,14 +785,14 @@ func (r *FinetuneResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(data []byte
 // /fine-tunes and POST /fine-tunes/{id}/cancel endpoints
 type FineTuningNewResponse struct {
 	// Unique identifier for the fine-tune job
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// Creation timestamp of the fine-tune job
-	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" api:"required" format:"date-time"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status FineTuningNewResponseStatus `json:"status,required"`
+	Status FineTuningNewResponseStatus `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
-	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Events related to this fine-tune job
@@ -910,7 +910,7 @@ const (
 // Learning rate scheduler configuration
 type FineTuningNewResponseLrScheduler struct {
 	// Any of "linear", "cosine".
-	LrSchedulerType string                                               `json:"lr_scheduler_type,required"`
+	LrSchedulerType string                                               `json:"lr_scheduler_type" api:"required"`
 	LrSchedulerArgs FineTuningNewResponseLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -983,9 +983,9 @@ func (r *FineTuningNewResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) U
 
 type FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
 	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	MinLrRatio float64 `json:"min_lr_ratio" api:"required"`
 	// Number or fraction of cycles for the cosine learning rate scheduler
-	NumCycles float64 `json:"num_cycles,required"`
+	NumCycles float64 `json:"num_cycles" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MinLrRatio  respjson.Field
@@ -1006,9 +1006,9 @@ func (r *FineTuningNewResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs) U
 // Progress information for the fine-tuning job
 type FineTuningNewResponseProgress struct {
 	// Whether time estimate is available
-	EstimateAvailable bool `json:"estimate_available,required"`
+	EstimateAvailable bool `json:"estimate_available" api:"required"`
 	// Estimated time remaining in seconds for the fine-tuning job to next state
-	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	SecondsRemaining int64 `json:"seconds_remaining" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		EstimateAvailable respjson.Field
@@ -1080,10 +1080,10 @@ func (r *FineTuningNewResponseTrainingMethodUnion) UnmarshalJSON(data []byte) er
 
 type FineTuningNewResponseTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
-	Method string `json:"method,required"`
+	Method string `json:"method" api:"required"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
-	TrainOnInputs FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	TrainOnInputs FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Method        respjson.Field
@@ -1146,7 +1146,7 @@ const (
 
 type FineTuningNewResponseTrainingMethodTrainingMethodDpo struct {
 	// Any of "dpo".
-	Method                        string  `json:"method,required"`
+	Method                        string  `json:"method" api:"required"`
 	DpoBeta                       float64 `json:"dpo_beta"`
 	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
 	DpoReferenceFree              bool    `json:"dpo_reference_free"`
@@ -1215,7 +1215,7 @@ func (r *FineTuningNewResponseTrainingTypeUnion) UnmarshalJSON(data []byte) erro
 
 type FineTuningNewResponseTrainingTypeFullTrainingType struct {
 	// Any of "Full".
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Type        respjson.Field
@@ -1231,10 +1231,10 @@ func (r *FineTuningNewResponseTrainingTypeFullTrainingType) UnmarshalJSON(data [
 }
 
 type FineTuningNewResponseTrainingTypeLoRaTrainingType struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
+	LoraAlpha int64 `json:"lora_alpha" api:"required"`
+	LoraR     int64 `json:"lora_r" api:"required"`
 	// Any of "Lora".
-	Type                 string  `json:"type,required"`
+	Type                 string  `json:"type" api:"required"`
 	LoraDropout          float64 `json:"lora_dropout"`
 	LoraTrainableModules string  `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -1256,7 +1256,7 @@ func (r *FineTuningNewResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(data [
 }
 
 type FineTuningListResponse struct {
-	Data []FineTuningListResponseData `json:"data,required"`
+	Data []FineTuningListResponseData `json:"data" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -1275,14 +1275,14 @@ func (r *FineTuningListResponse) UnmarshalJSON(data []byte) error {
 // /fine-tunes and POST /fine-tunes/{id}/cancel endpoints
 type FineTuningListResponseData struct {
 	// Unique identifier for the fine-tune job
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// Creation timestamp of the fine-tune job
-	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" api:"required" format:"date-time"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status string `json:"status,required"`
+	Status string `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
-	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Events related to this fine-tune job
@@ -1386,7 +1386,7 @@ func (r *FineTuningListResponseData) UnmarshalJSON(data []byte) error {
 // Learning rate scheduler configuration
 type FineTuningListResponseDataLrScheduler struct {
 	// Any of "linear", "cosine".
-	LrSchedulerType string                                                    `json:"lr_scheduler_type,required"`
+	LrSchedulerType string                                                    `json:"lr_scheduler_type" api:"required"`
 	LrSchedulerArgs FineTuningListResponseDataLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1461,9 +1461,9 @@ func (r *FineTuningListResponseDataLrSchedulerLrSchedulerArgsLinearLrSchedulerAr
 
 type FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
 	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	MinLrRatio float64 `json:"min_lr_ratio" api:"required"`
 	// Number or fraction of cycles for the cosine learning rate scheduler
-	NumCycles float64 `json:"num_cycles,required"`
+	NumCycles float64 `json:"num_cycles" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MinLrRatio  respjson.Field
@@ -1484,9 +1484,9 @@ func (r *FineTuningListResponseDataLrSchedulerLrSchedulerArgsCosineLrSchedulerAr
 // Progress information for the fine-tuning job
 type FineTuningListResponseDataProgress struct {
 	// Whether time estimate is available
-	EstimateAvailable bool `json:"estimate_available,required"`
+	EstimateAvailable bool `json:"estimate_available" api:"required"`
 	// Estimated time remaining in seconds for the fine-tuning job to next state
-	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	SecondsRemaining int64 `json:"seconds_remaining" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		EstimateAvailable respjson.Field
@@ -1558,10 +1558,10 @@ func (r *FineTuningListResponseDataTrainingMethodUnion) UnmarshalJSON(data []byt
 
 type FineTuningListResponseDataTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
-	Method string `json:"method,required"`
+	Method string `json:"method" api:"required"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
-	TrainOnInputs FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	TrainOnInputs FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Method        respjson.Field
@@ -1626,7 +1626,7 @@ const (
 
 type FineTuningListResponseDataTrainingMethodTrainingMethodDpo struct {
 	// Any of "dpo".
-	Method                        string  `json:"method,required"`
+	Method                        string  `json:"method" api:"required"`
 	DpoBeta                       float64 `json:"dpo_beta"`
 	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
 	DpoReferenceFree              bool    `json:"dpo_reference_free"`
@@ -1701,7 +1701,7 @@ func (r *FineTuningListResponseDataTrainingTypeUnion) UnmarshalJSON(data []byte)
 
 type FineTuningListResponseDataTrainingTypeFullTrainingType struct {
 	// Any of "Full".
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Type        respjson.Field
@@ -1717,10 +1717,10 @@ func (r *FineTuningListResponseDataTrainingTypeFullTrainingType) UnmarshalJSON(d
 }
 
 type FineTuningListResponseDataTrainingTypeLoRaTrainingType struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
+	LoraAlpha int64 `json:"lora_alpha" api:"required"`
+	LoraR     int64 `json:"lora_r" api:"required"`
 	// Any of "Lora".
-	Type                 string  `json:"type,required"`
+	Type                 string  `json:"type" api:"required"`
 	LoraDropout          float64 `json:"lora_dropout"`
 	LoraTrainableModules string  `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -1762,14 +1762,14 @@ func (r *FineTuningDeleteResponse) UnmarshalJSON(data []byte) error {
 // /fine-tunes and POST /fine-tunes/{id}/cancel endpoints
 type FineTuningCancelResponse struct {
 	// Unique identifier for the fine-tune job
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// Creation timestamp of the fine-tune job
-	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" api:"required" format:"date-time"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status FineTuningCancelResponseStatus `json:"status,required"`
+	Status FineTuningCancelResponseStatus `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
-	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Events related to this fine-tune job
@@ -1887,7 +1887,7 @@ const (
 // Learning rate scheduler configuration
 type FineTuningCancelResponseLrScheduler struct {
 	// Any of "linear", "cosine".
-	LrSchedulerType string                                                  `json:"lr_scheduler_type,required"`
+	LrSchedulerType string                                                  `json:"lr_scheduler_type" api:"required"`
 	LrSchedulerArgs FineTuningCancelResponseLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1960,9 +1960,9 @@ func (r *FineTuningCancelResponseLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs
 
 type FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
 	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	MinLrRatio float64 `json:"min_lr_ratio" api:"required"`
 	// Number or fraction of cycles for the cosine learning rate scheduler
-	NumCycles float64 `json:"num_cycles,required"`
+	NumCycles float64 `json:"num_cycles" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MinLrRatio  respjson.Field
@@ -1983,9 +1983,9 @@ func (r *FineTuningCancelResponseLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs
 // Progress information for the fine-tuning job
 type FineTuningCancelResponseProgress struct {
 	// Whether time estimate is available
-	EstimateAvailable bool `json:"estimate_available,required"`
+	EstimateAvailable bool `json:"estimate_available" api:"required"`
 	// Estimated time remaining in seconds for the fine-tuning job to next state
-	SecondsRemaining int64 `json:"seconds_remaining,required"`
+	SecondsRemaining int64 `json:"seconds_remaining" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		EstimateAvailable respjson.Field
@@ -2057,10 +2057,10 @@ func (r *FineTuningCancelResponseTrainingMethodUnion) UnmarshalJSON(data []byte)
 
 type FineTuningCancelResponseTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
-	Method string `json:"method,required"`
+	Method string `json:"method" api:"required"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
-	TrainOnInputs FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,required"`
+	TrainOnInputs FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Method        respjson.Field
@@ -2123,7 +2123,7 @@ const (
 
 type FineTuningCancelResponseTrainingMethodTrainingMethodDpo struct {
 	// Any of "dpo".
-	Method                        string  `json:"method,required"`
+	Method                        string  `json:"method" api:"required"`
 	DpoBeta                       float64 `json:"dpo_beta"`
 	DpoNormalizeLogratiosByLength bool    `json:"dpo_normalize_logratios_by_length"`
 	DpoReferenceFree              bool    `json:"dpo_reference_free"`
@@ -2196,7 +2196,7 @@ func (r *FineTuningCancelResponseTrainingTypeUnion) UnmarshalJSON(data []byte) e
 
 type FineTuningCancelResponseTrainingTypeFullTrainingType struct {
 	// Any of "Full".
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Type        respjson.Field
@@ -2212,10 +2212,10 @@ func (r *FineTuningCancelResponseTrainingTypeFullTrainingType) UnmarshalJSON(dat
 }
 
 type FineTuningCancelResponseTrainingTypeLoRaTrainingType struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
+	LoraAlpha int64 `json:"lora_alpha" api:"required"`
+	LoraR     int64 `json:"lora_r" api:"required"`
 	// Any of "Lora".
-	Type                 string  `json:"type,required"`
+	Type                 string  `json:"type" api:"required"`
 	LoraDropout          float64 `json:"lora_dropout"`
 	LoraTrainableModules string  `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -2266,7 +2266,7 @@ func (r *FineTuningEstimatePriceResponse) UnmarshalJSON(data []byte) error {
 }
 
 type FineTuningListCheckpointsResponse struct {
-	Data []FineTuningListCheckpointsResponseData `json:"data,required"`
+	Data []FineTuningListCheckpointsResponseData `json:"data" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -2282,10 +2282,10 @@ func (r *FineTuningListCheckpointsResponse) UnmarshalJSON(data []byte) error {
 }
 
 type FineTuningListCheckpointsResponseData struct {
-	CheckpointType string `json:"checkpoint_type,required"`
-	CreatedAt      string `json:"created_at,required"`
-	Path           string `json:"path,required"`
-	Step           int64  `json:"step,required"`
+	CheckpointType string `json:"checkpoint_type" api:"required"`
+	CreatedAt      string `json:"created_at" api:"required"`
+	Path           string `json:"path" api:"required"`
+	Step           int64  `json:"step" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CheckpointType respjson.Field
@@ -2304,7 +2304,7 @@ func (r *FineTuningListCheckpointsResponseData) UnmarshalJSON(data []byte) error
 }
 
 type FineTuningListEventsResponse struct {
-	Data []FinetuneEvent `json:"data,required"`
+	Data []FinetuneEvent `json:"data" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -2321,9 +2321,9 @@ func (r *FineTuningListEventsResponse) UnmarshalJSON(data []byte) error {
 
 type FineTuningNewParams struct {
 	// Name of the base model to run fine-tune job on
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// File-ID of a training file uploaded to the Together API
-	TrainingFile string `json:"training_file,required"`
+	TrainingFile string `json:"training_file" api:"required"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
 	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
@@ -2436,7 +2436,7 @@ const (
 // The property LrSchedulerType is required.
 type FineTuningNewParamsLrScheduler struct {
 	// Any of "linear", "cosine".
-	LrSchedulerType string                                             `json:"lr_scheduler_type,omitzero,required"`
+	LrSchedulerType string                                             `json:"lr_scheduler_type,omitzero" api:"required"`
 	LrSchedulerArgs FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion `json:"lr_scheduler_args,omitzero"`
 	paramObj
 }
@@ -2515,9 +2515,9 @@ func (r *FineTuningNewParamsLrSchedulerLrSchedulerArgsLinearLrSchedulerArgs) Unm
 // The properties MinLrRatio, NumCycles are required.
 type FineTuningNewParamsLrSchedulerLrSchedulerArgsCosineLrSchedulerArgs struct {
 	// The ratio of the final learning rate to the peak learning rate
-	MinLrRatio float64 `json:"min_lr_ratio,required"`
+	MinLrRatio float64 `json:"min_lr_ratio" api:"required"`
 	// Number or fraction of cycles for the cosine learning rate scheduler
-	NumCycles float64 `json:"num_cycles,required"`
+	NumCycles float64 `json:"num_cycles" api:"required"`
 	paramObj
 }
 
@@ -2663,10 +2663,10 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetMethod() *string {
 // The properties Method, TrainOnInputs are required.
 type FineTuningNewParamsTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
-	Method string `json:"method,omitzero,required"`
+	Method string `json:"method,omitzero" api:"required"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
-	TrainOnInputs FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero,required"`
+	TrainOnInputs FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero" api:"required"`
 	paramObj
 }
 
@@ -2720,7 +2720,7 @@ const (
 // The property Method is required.
 type FineTuningNewParamsTrainingMethodTrainingMethodDpo struct {
 	// Any of "dpo".
-	Method                        string             `json:"method,omitzero,required"`
+	Method                        string             `json:"method,omitzero" api:"required"`
 	DpoBeta                       param.Opt[float64] `json:"dpo_beta,omitzero"`
 	DpoNormalizeLogratiosByLength param.Opt[bool]    `json:"dpo_normalize_logratios_by_length,omitzero"`
 	DpoReferenceFree              param.Opt[bool]    `json:"dpo_reference_free,omitzero"`
@@ -2813,7 +2813,7 @@ func (u FineTuningNewParamsTrainingTypeUnion) GetType() *string {
 // The property Type is required.
 type FineTuningNewParamsTrainingTypeFullTrainingType struct {
 	// Any of "Full".
-	Type string `json:"type,omitzero,required"`
+	Type string `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -2833,10 +2833,10 @@ func init() {
 
 // The properties LoraAlpha, LoraR, Type are required.
 type FineTuningNewParamsTrainingTypeLoRaTrainingType struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
+	LoraAlpha int64 `json:"lora_alpha" api:"required"`
+	LoraR     int64 `json:"lora_r" api:"required"`
 	// Any of "Lora".
-	Type                 string             `json:"type,omitzero,required"`
+	Type                 string             `json:"type,omitzero" api:"required"`
 	LoraDropout          param.Opt[float64] `json:"lora_dropout,omitzero"`
 	LoraTrainableModules param.Opt[string]  `json:"lora_trainable_modules,omitzero"`
 	paramObj
@@ -2872,7 +2872,7 @@ func (r FineTuningDeleteParams) URLQuery() (v url.Values, err error) {
 
 type FineTuningContentParams struct {
 	// Fine-tune ID to download. A string that starts with `ft-`.
-	FtID string `query:"ft_id,required" json:"-"`
+	FtID string `query:"ft_id" api:"required" json:"-"`
 	// Specifies step number for checkpoint to download. Ignores `checkpoint` value if
 	// set.
 	CheckpointStep param.Opt[int64] `query:"checkpoint_step,omitzero" json:"-"`
@@ -2905,7 +2905,7 @@ const (
 
 type FineTuningEstimatePriceParams struct {
 	// File-ID of a training file uploaded to the Together API
-	TrainingFile string `json:"training_file,required"`
+	TrainingFile string `json:"training_file" api:"required"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
 	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
@@ -3021,10 +3021,10 @@ func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetMethod() *string {
 // The properties Method, TrainOnInputs are required.
 type FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
-	Method string `json:"method,omitzero,required"`
+	Method string `json:"method,omitzero" api:"required"`
 	// Whether to mask the user messages in conversational data or prompts in
 	// instruction data.
-	TrainOnInputs FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero,required"`
+	TrainOnInputs FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero" api:"required"`
 	paramObj
 }
 
@@ -3078,7 +3078,7 @@ const (
 // The property Method is required.
 type FineTuningEstimatePriceParamsTrainingMethodTrainingMethodDpo struct {
 	// Any of "dpo".
-	Method                        string             `json:"method,omitzero,required"`
+	Method                        string             `json:"method,omitzero" api:"required"`
 	DpoBeta                       param.Opt[float64] `json:"dpo_beta,omitzero"`
 	DpoNormalizeLogratiosByLength param.Opt[bool]    `json:"dpo_normalize_logratios_by_length,omitzero"`
 	DpoReferenceFree              param.Opt[bool]    `json:"dpo_reference_free,omitzero"`
@@ -3171,7 +3171,7 @@ func (u FineTuningEstimatePriceParamsTrainingTypeUnion) GetType() *string {
 // The property Type is required.
 type FineTuningEstimatePriceParamsTrainingTypeFullTrainingType struct {
 	// Any of "Full".
-	Type string `json:"type,omitzero,required"`
+	Type string `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -3191,10 +3191,10 @@ func init() {
 
 // The properties LoraAlpha, LoraR, Type are required.
 type FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType struct {
-	LoraAlpha int64 `json:"lora_alpha,required"`
-	LoraR     int64 `json:"lora_r,required"`
+	LoraAlpha int64 `json:"lora_alpha" api:"required"`
+	LoraR     int64 `json:"lora_r" api:"required"`
 	// Any of "Lora".
-	Type                 string             `json:"type,omitzero,required"`
+	Type                 string             `json:"type,omitzero" api:"required"`
 	LoraDropout          param.Opt[float64] `json:"lora_dropout,omitzero"`
 	LoraTrainableModules param.Opt[string]  `json:"lora_trainable_modules,omitzero"`
 	paramObj

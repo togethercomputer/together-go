@@ -44,10 +44,10 @@ func (r *ImageService) Generate(ctx context.Context, body ImageGenerateParams, o
 }
 
 type ImageDataB64 struct {
-	B64Json string `json:"b64_json,required"`
-	Index   int64  `json:"index,required"`
+	B64Json string `json:"b64_json" api:"required"`
+	Index   int64  `json:"index" api:"required"`
 	// Any of "b64_json".
-	Type ImageDataB64Type `json:"type,required"`
+	Type ImageDataB64Type `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		B64Json     respjson.Field
@@ -71,10 +71,10 @@ const (
 )
 
 type ImageDataURL struct {
-	Index int64 `json:"index,required"`
+	Index int64 `json:"index" api:"required"`
 	// Any of "url".
-	Type ImageDataURLType `json:"type,required"`
-	URL  string           `json:"url,required"`
+	Type ImageDataURLType `json:"type" api:"required"`
+	URL  string           `json:"url" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Index       respjson.Field
@@ -98,11 +98,11 @@ const (
 )
 
 type ImageFile struct {
-	ID    string               `json:"id,required"`
-	Data  []ImageFileDataUnion `json:"data,required"`
-	Model string               `json:"model,required"`
+	ID    string               `json:"id" api:"required"`
+	Data  []ImageFileDataUnion `json:"data" api:"required"`
+	Model string               `json:"model" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object,required"`
+	Object constant.List `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -191,9 +191,9 @@ type ImageGenerateParams struct {
 	// The model to use for image generation.
 	//
 	// [See all of Together AI's image models](https://docs.together.ai/docs/serverless-models#image-models)
-	Model ImageGenerateParamsModel `json:"model,omitzero,required"`
+	Model ImageGenerateParamsModel `json:"model,omitzero" api:"required"`
 	// A description of the desired images. Maximum length varies by model.
-	Prompt string `json:"prompt,required"`
+	Prompt string `json:"prompt" api:"required"`
 	// If true, disables the safety checker for image generation.
 	DisableSafetyChecker param.Opt[bool] `json:"disable_safety_checker,omitzero"`
 	// Adjusts the alignment of the generated image with the input prompt. Higher
@@ -256,9 +256,9 @@ const (
 type ImageGenerateParamsImageLora struct {
 	// The URL of the LoRA to apply (e.g.
 	// https://huggingface.co/strangerzonehf/Flux-Midjourney-Mix2-LoRA).
-	Path string `json:"path,required"`
+	Path string `json:"path" api:"required"`
 	// The strength of the LoRA's influence. Most LoRA's recommend a value of 1.
-	Scale float64 `json:"scale,required"`
+	Scale float64 `json:"scale" api:"required"`
 	paramObj
 }
 

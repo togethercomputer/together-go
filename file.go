@@ -93,7 +93,7 @@ func (r *FileService) Upload(ctx context.Context, body FileUploadParams, opts ..
 }
 
 type FileList struct {
-	Data []FileResponse `json:"data,required"`
+	Data []FileResponse `json:"data" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -124,26 +124,26 @@ const (
 // Structured information describing a file uploaded to Together.
 type FileResponse struct {
 	// ID of the file.
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// The number of bytes in the file.
-	Bytes int64 `json:"bytes,required"`
+	Bytes int64 `json:"bytes" api:"required"`
 	// The timestamp when the file was created.
-	CreatedAt int64 `json:"created_at,required"`
+	CreatedAt int64 `json:"created_at" api:"required"`
 	// The name of the file as it was uploaded.
-	Filename string `json:"filename,required"`
+	Filename string `json:"filename" api:"required"`
 	// The type of the file such as `jsonl`, `csv`, or `parquet`.
 	//
 	// Any of "csv", "jsonl", "parquet".
-	FileType FileType `json:"FileType,required"`
+	FileType FileType `json:"FileType" api:"required"`
 	// The object type, which is always `file`.
-	Object constant.File `json:"object,required"`
+	Object constant.File `json:"object" api:"required"`
 	// Whether the file has been parsed and analyzed for correctness for fine-tuning.
-	Processed bool `json:"Processed,required"`
+	Processed bool `json:"Processed" api:"required"`
 	// The purpose of the file as it was uploaded.
 	//
 	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
 	// "batch-generated", "batch-api".
-	Purpose FilePurpose `json:"purpose,required"`
+	Purpose FilePurpose `json:"purpose" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -194,14 +194,14 @@ func (r *FileDeleteResponse) UnmarshalJSON(data []byte) error {
 
 type FileUploadParams struct {
 	// The content of the file being uploaded
-	File io.Reader `json:"file,omitzero,required" format:"binary"`
+	File io.Reader `json:"file,omitzero" api:"required" format:"binary"`
 	// The name of the file being uploaded
-	FileName string `json:"file_name,required"`
+	FileName string `json:"file_name" api:"required"`
 	// The purpose of the file
 	//
 	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
 	// "batch-generated", "batch-api".
-	Purpose FilePurpose `json:"purpose,omitzero,required"`
+	Purpose FilePurpose `json:"purpose,omitzero" api:"required"`
 	// The type of the file
 	//
 	// Any of "csv", "jsonl", "parquet".

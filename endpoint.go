@@ -119,9 +119,9 @@ func (r *EndpointService) ListHardware(ctx context.Context, query EndpointListHa
 // Configuration for automatic scaling of replicas based on demand.
 type Autoscaling struct {
 	// The maximum number of replicas to scale up to under load
-	MaxReplicas int64 `json:"max_replicas,required"`
+	MaxReplicas int64 `json:"max_replicas" api:"required"`
 	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas int64 `json:"min_replicas,required"`
+	MinReplicas int64 `json:"min_replicas" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MaxReplicas respjson.Field
@@ -151,9 +151,9 @@ func (r Autoscaling) ToParam() AutoscalingParam {
 // The properties MaxReplicas, MinReplicas are required.
 type AutoscalingParam struct {
 	// The maximum number of replicas to scale up to under load
-	MaxReplicas int64 `json:"max_replicas,required"`
+	MaxReplicas int64 `json:"max_replicas" api:"required"`
 	// The minimum number of replicas to maintain, even when there is no load
-	MinReplicas int64 `json:"min_replicas,required"`
+	MinReplicas int64 `json:"min_replicas" api:"required"`
 	paramObj
 }
 
@@ -168,31 +168,31 @@ func (r *AutoscalingParam) UnmarshalJSON(data []byte) error {
 // Details about a dedicated endpoint deployment
 type DedicatedEndpoint struct {
 	// Unique identifier for the endpoint
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// Configuration for automatic scaling of the endpoint
-	Autoscaling Autoscaling `json:"autoscaling,required"`
+	Autoscaling Autoscaling `json:"autoscaling" api:"required"`
 	// Timestamp when the endpoint was created
-	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" api:"required" format:"date-time"`
 	// Human-readable name for the endpoint
-	DisplayName string `json:"display_name,required"`
+	DisplayName string `json:"display_name" api:"required"`
 	// The hardware configuration used for this endpoint
-	Hardware string `json:"hardware,required"`
+	Hardware string `json:"hardware" api:"required"`
 	// The model deployed on this endpoint
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// System name for the endpoint
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The object type, which is always `endpoint`.
-	Object constant.Endpoint `json:"object,required"`
+	Object constant.Endpoint `json:"object" api:"required"`
 	// The owner of this endpoint
-	Owner string `json:"owner,required"`
+	Owner string `json:"owner" api:"required"`
 	// Current state of the endpoint
 	//
 	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
-	State DedicatedEndpointState `json:"state,required"`
+	State DedicatedEndpointState `json:"state" api:"required"`
 	// The type of endpoint
 	//
 	// Any of "dedicated".
-	Type DedicatedEndpointType `json:"type,required"`
+	Type DedicatedEndpointType `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -237,9 +237,9 @@ const (
 )
 
 type EndpointListResponse struct {
-	Data []EndpointListResponseData `json:"data,required"`
+	Data []EndpointListResponseData `json:"data" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object,required"`
+	Object constant.List `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -258,25 +258,25 @@ func (r *EndpointListResponse) UnmarshalJSON(data []byte) error {
 // Details about an endpoint when listed via the list endpoint
 type EndpointListResponseData struct {
 	// Unique identifier for the endpoint
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// Timestamp when the endpoint was created
-	CreatedAt time.Time `json:"created_at,required" format:"date-time"`
+	CreatedAt time.Time `json:"created_at" api:"required" format:"date-time"`
 	// The model deployed on this endpoint
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// System name for the endpoint
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// The object type, which is always `endpoint`.
-	Object constant.Endpoint `json:"object,required"`
+	Object constant.Endpoint `json:"object" api:"required"`
 	// The owner of this endpoint
-	Owner string `json:"owner,required"`
+	Owner string `json:"owner" api:"required"`
 	// Current state of the endpoint
 	//
 	// Any of "PENDING", "STARTING", "STARTED", "STOPPING", "STOPPED", "ERROR".
-	State string `json:"state,required"`
+	State string `json:"state" api:"required"`
 	// The type of endpoint
 	//
 	// Any of "serverless", "dedicated".
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -300,7 +300,7 @@ func (r *EndpointListResponseData) UnmarshalJSON(data []byte) error {
 
 // List of unique availability zones
 type EndpointListAvzonesResponse struct {
-	Avzones []string `json:"avzones,required"`
+	Avzones []string `json:"avzones" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Avzones     respjson.Field
@@ -316,9 +316,9 @@ func (r *EndpointListAvzonesResponse) UnmarshalJSON(data []byte) error {
 }
 
 type EndpointListHardwareResponse struct {
-	Data []EndpointListHardwareResponseData `json:"data,required"`
+	Data []EndpointListHardwareResponseData `json:"data" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object,required"`
+	Object constant.List `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -337,15 +337,15 @@ func (r *EndpointListHardwareResponse) UnmarshalJSON(data []byte) error {
 // Hardware configuration details with optional availability status
 type EndpointListHardwareResponseData struct {
 	// Unique identifier for the hardware configuration
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// The object type, which is always `hardware`.
-	Object constant.Hardware `json:"object,required"`
+	Object constant.Hardware `json:"object" api:"required"`
 	// Pricing details for using an endpoint
-	Pricing EndpointListHardwareResponseDataPricing `json:"pricing,required"`
+	Pricing EndpointListHardwareResponseDataPricing `json:"pricing" api:"required"`
 	// Detailed specifications of a hardware configuration
-	Specs EndpointListHardwareResponseDataSpecs `json:"specs,required"`
+	Specs EndpointListHardwareResponseDataSpecs `json:"specs" api:"required"`
 	// Timestamp of when the hardware status was last updated
-	UpdatedAt time.Time `json:"updated_at,required" format:"date-time"`
+	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
 	// Indicates the current availability status of a hardware configuration
 	Availability EndpointListHardwareResponseDataAvailability `json:"availability"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -370,7 +370,7 @@ func (r *EndpointListHardwareResponseData) UnmarshalJSON(data []byte) error {
 // Pricing details for using an endpoint
 type EndpointListHardwareResponseDataPricing struct {
 	// Cost per minute of endpoint uptime in cents
-	CentsPerMinute float64 `json:"cents_per_minute,required"`
+	CentsPerMinute float64 `json:"cents_per_minute" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CentsPerMinute respjson.Field
@@ -388,13 +388,13 @@ func (r *EndpointListHardwareResponseDataPricing) UnmarshalJSON(data []byte) err
 // Detailed specifications of a hardware configuration
 type EndpointListHardwareResponseDataSpecs struct {
 	// Number of GPUs in this configuration
-	GPUCount int64 `json:"gpu_count,required"`
+	GPUCount int64 `json:"gpu_count" api:"required"`
 	// The GPU interconnect technology
-	GPULink string `json:"gpu_link,required"`
+	GPULink string `json:"gpu_link" api:"required"`
 	// Amount of GPU memory in GB
-	GPUMemory float64 `json:"gpu_memory,required"`
+	GPUMemory float64 `json:"gpu_memory" api:"required"`
 	// The type/model of GPU
-	GPUType string `json:"gpu_type,required"`
+	GPUType string `json:"gpu_type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		GPUCount    respjson.Field
@@ -417,7 +417,7 @@ type EndpointListHardwareResponseDataAvailability struct {
 	// The availability status of the hardware configuration
 	//
 	// Any of "available", "unavailable", "insufficient".
-	Status string `json:"status,required"`
+	Status string `json:"status" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Status      respjson.Field
@@ -434,11 +434,11 @@ func (r *EndpointListHardwareResponseDataAvailability) UnmarshalJSON(data []byte
 
 type EndpointNewParams struct {
 	// Configuration for automatic scaling of the endpoint
-	Autoscaling AutoscalingParam `json:"autoscaling,omitzero,required"`
+	Autoscaling AutoscalingParam `json:"autoscaling,omitzero" api:"required"`
 	// The hardware configuration to use for this endpoint
-	Hardware string `json:"hardware,required"`
+	Hardware string `json:"hardware" api:"required"`
 	// The model to deploy on this endpoint
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// The number of minutes of inactivity after which the endpoint will be
 	// automatically stopped. Set to null, omit or set to 0 to disable automatic
 	// timeout.
