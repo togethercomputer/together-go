@@ -313,10 +313,14 @@ type DeploymentVolume struct {
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
 	Name string `json:"name" api:"required"`
+	// Version is the volume version to mount. On create, defaults to the latest
+	// version. On update, defaults to the currently mounted version.
+	Version int64 `json:"version"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MountPath   respjson.Field
 		Name        respjson.Field
+		Version     respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -476,6 +480,9 @@ type BetaJigUpdateParamsVolume struct {
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
 	Name string `json:"name" api:"required"`
+	// Version is the volume version to mount. On create, defaults to the latest
+	// version. On update, defaults to the currently mounted version.
+	Version param.Opt[int64] `json:"version,omitzero"`
 	paramObj
 }
 
@@ -591,6 +598,9 @@ type BetaJigDeployParamsVolume struct {
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
 	Name string `json:"name" api:"required"`
+	// Version is the volume version to mount. On create, defaults to the latest
+	// version. On update, defaults to the currently mounted version.
+	Version param.Opt[int64] `json:"version,omitzero"`
 	paramObj
 }
 

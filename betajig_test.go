@@ -77,6 +77,7 @@ func TestBetaJigUpdateWithOptionalParams(t *testing.T) {
 			Volumes: []together.BetaJigUpdateParamsVolume{{
 				MountPath: "mount_path",
 				Name:      "name",
+				Version:   together.Int(0),
 			}},
 		},
 	)
@@ -150,6 +151,7 @@ func TestBetaJigDeployWithOptionalParams(t *testing.T) {
 		Volumes: []together.BetaJigDeployParamsVolume{{
 			MountPath: "mount_path",
 			Name:      "name",
+			Version:   together.Int(0),
 		}},
 	})
 	if err != nil {
