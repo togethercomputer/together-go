@@ -66,8 +66,11 @@ type Completion struct {
 	Model   string             `json:"model" api:"required"`
 	// The object type, which is always `text.completion`.
 	Object constant.TextCompletion `json:"object" api:"required"`
-	Usage  ChatCompletionUsage     `json:"usage" api:"required"`
-	Prompt []CompletionPrompt      `json:"prompt"`
+	// When `echo` is true, the prompt is included in the response. Additionally, when
+	// `logprobs` is also provided, log probability information is provided on the
+	// prompt.
+	Prompt []CompletionPrompt  `json:"prompt" api:"required"`
+	Usage  ChatCompletionUsage `json:"usage" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -75,8 +78,8 @@ type Completion struct {
 		Created     respjson.Field
 		Model       respjson.Field
 		Object      respjson.Field
-		Usage       respjson.Field
 		Prompt      respjson.Field
+		Usage       respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -276,11 +279,14 @@ type LogProbs struct {
 	TokenLogprobs []float64 `json:"token_logprobs"`
 	// List of token strings
 	Tokens []string `json:"tokens"`
+	// Top log probabilities for the tokens.
+	TopLogprobs map[string]float64 `json:"top_logprobs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		TokenIDs      respjson.Field
 		TokenLogprobs respjson.Field
 		Tokens        respjson.Field
+		TopLogprobs   respjson.Field
 		ExtraFields   map[string]respjson.Field
 		raw           string
 	} `json:"-"`
