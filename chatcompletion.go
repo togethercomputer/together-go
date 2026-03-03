@@ -64,7 +64,11 @@ type ChatCompletion struct {
 	Created int64                  `json:"created" api:"required"`
 	Model   string                 `json:"model" api:"required"`
 	// The object type, which is always `chat.completion`.
-	Object   constant.ChatCompletion `json:"object" api:"required"`
+	Object constant.ChatCompletion `json:"object" api:"required"`
+	// When `echo` is true, the prompt is included in the response. Additionally, when
+	// `logprobs` is also provided, log probability information is provided on the
+	// prompt.
+	Prompt   []ChatCompletionPrompt  `json:"prompt" api:"required"`
 	Usage    ChatCompletionUsage     `json:"usage" api:"nullable"`
 	Warnings []ChatCompletionWarning `json:"warnings"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -74,6 +78,7 @@ type ChatCompletion struct {
 		Created     respjson.Field
 		Model       respjson.Field
 		Object      respjson.Field
+		Prompt      respjson.Field
 		Usage       respjson.Field
 		Warnings    respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -95,6 +100,8 @@ type ChatCompletionChoice struct {
 	Message      ChatCompletionChoiceMessage `json:"message"`
 	Seed         int64                       `json:"seed"`
 	Text         string                      `json:"text"`
+	// Top log probabilities for the tokens.
+	TopLogprobs map[string]float64 `json:"top_logprobs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		FinishReason respjson.Field
@@ -103,6 +110,7 @@ type ChatCompletionChoice struct {
 		Message      respjson.Field
 		Seed         respjson.Field
 		Text         respjson.Field
+		TopLogprobs  respjson.Field
 		ExtraFields  map[string]respjson.Field
 		raw          string
 	} `json:"-"`
@@ -159,6 +167,24 @@ func (r *ChatCompletionChoiceMessageFunctionCall) UnmarshalJSON(data []byte) err
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type ChatCompletionPrompt struct {
+	Logprobs LogProbs `json:"logprobs"`
+	Text     string   `json:"text"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Logprobs    respjson.Field
+		Text        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ChatCompletionPrompt) RawJSON() string { return r.JSON.raw }
+func (r *ChatCompletionPrompt) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type ChatCompletionChunk struct {
 	ID      string                      `json:"id" api:"required"`
 	Choices []ChatCompletionChunkChoice `json:"choices" api:"required"`
@@ -197,6 +223,8 @@ type ChatCompletionChunkChoice struct {
 	Index        int64   `json:"index" api:"required"`
 	Logprobs     float64 `json:"logprobs" api:"nullable"`
 	Seed         int64   `json:"seed" api:"nullable"`
+	// Top log probabilities for the tokens.
+	TopLogprobs map[string]float64 `json:"top_logprobs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Delta        respjson.Field
@@ -204,6 +232,7 @@ type ChatCompletionChunkChoice struct {
 		Index        respjson.Field
 		Logprobs     respjson.Field
 		Seed         respjson.Field
+		TopLogprobs  respjson.Field
 		ExtraFields  map[string]respjson.Field
 		raw          string
 	} `json:"-"`
