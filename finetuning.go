@@ -2361,6 +2361,8 @@ type FineTuningNewParams struct {
 	WandbAPIKey param.Opt[string] `json:"wandb_api_key,omitzero"`
 	// The base URL of a dedicated Weights & Biases instance.
 	WandbBaseURL param.Opt[string] `json:"wandb_base_url,omitzero"`
+	// The Weights & Biases entity for your run.
+	WandbEntity param.Opt[string] `json:"wandb_entity,omitzero"`
 	// The Weights & Biases name for your run.
 	WandbName param.Opt[string] `json:"wandb_name,omitzero"`
 	// The Weights & Biases project for your run. If not specified, will use `together`
