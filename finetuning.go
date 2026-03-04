@@ -2927,7 +2927,9 @@ type FineTuningEstimatePriceParams struct {
 	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 	// Preference Optimization.
 	TrainingMethod FineTuningEstimatePriceParamsTrainingMethodUnion `json:"training_method,omitzero"`
-	TrainingType   FineTuningEstimatePriceParamsTrainingTypeUnion   `json:"training_type,omitzero"`
+	// The training type to use. If not provided, the job will default to LoRA training
+	// type.
+	TrainingType FineTuningEstimatePriceParamsTrainingTypeUnion `json:"training_type,omitzero"`
 	paramObj
 }
 
