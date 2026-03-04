@@ -2361,8 +2361,6 @@ type FineTuningNewParams struct {
 	WandbAPIKey param.Opt[string] `json:"wandb_api_key,omitzero"`
 	// The base URL of a dedicated Weights & Biases instance.
 	WandbBaseURL param.Opt[string] `json:"wandb_base_url,omitzero"`
-	// The Weights & Biases entity for your run.
-	WandbEntity param.Opt[string] `json:"wandb_entity,omitzero"`
 	// The Weights & Biases name for your run.
 	WandbName param.Opt[string] `json:"wandb_name,omitzero"`
 	// The Weights & Biases project for your run. If not specified, will use `together`
@@ -2373,6 +2371,9 @@ type FineTuningNewParams struct {
 	WarmupRatio param.Opt[float64] `json:"warmup_ratio,omitzero"`
 	// Weight decay. Regularization parameter for the optimizer.
 	WeightDecay param.Opt[float64] `json:"weight_decay,omitzero"`
+	// The training type to use. If not provided, the job will default to LoRA training
+	// type.
+	TrainingType FineTuningNewParamsTrainingTypeUnion `json:"training_type,omitzero"`
 	// Number of training examples processed together (larger batches use more memory
 	// but may train faster). Defaults to "max". We use training optimizations like
 	// packing, so the effective batch size may be different than the value you set.
@@ -2387,9 +2388,6 @@ type FineTuningNewParams struct {
 	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 	// Preference Optimization.
 	TrainingMethod FineTuningNewParamsTrainingMethodUnion `json:"training_method,omitzero"`
-	// The training type to use. If not provided, the job will default to LoRA training
-	// type.
-	TrainingType FineTuningNewParamsTrainingTypeUnion `json:"training_type,omitzero"`
 	paramObj
 }
 
@@ -2924,12 +2922,12 @@ type FineTuningEstimatePriceParams struct {
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Opt[string] `json:"validation_file,omitzero"`
-	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
-	// Preference Optimization.
-	TrainingMethod FineTuningEstimatePriceParamsTrainingMethodUnion `json:"training_method,omitzero"`
 	// The training type to use. If not provided, the job will default to LoRA training
 	// type.
 	TrainingType FineTuningEstimatePriceParamsTrainingTypeUnion `json:"training_type,omitzero"`
+	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
+	// Preference Optimization.
+	TrainingMethod FineTuningEstimatePriceParamsTrainingMethodUnion `json:"training_method,omitzero"`
 	paramObj
 }
 
