@@ -76,6 +76,7 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		ValidationFile:   together.String("validation_file"),
 		WandbAPIKey:      together.String("wandb_api_key"),
 		WandbBaseURL:     together.String("wandb_base_url"),
+		WandbEntity:      together.String("wandb_entity"),
 		WandbName:        together.String("wandb_name"),
 		WandbProjectName: together.String("wandb_project_name"),
 		WarmupRatio:      together.Float(0),
