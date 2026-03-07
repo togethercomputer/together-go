@@ -29,7 +29,7 @@ func TestAudioTranslationNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Audio.Translations.New(context.TODO(), together.AudioTranslationNewParams{
 		File: together.AudioTranslationNewParamsFileUnion{
-			OfFile: io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+			OfFile: io.Reader(bytes.NewBuffer([]byte("Example data"))),
 		},
 		Language:       together.String("en"),
 		Model:          together.AudioTranslationNewParamsModelOpenAIWhisperLargeV3,
