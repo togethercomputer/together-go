@@ -52,8 +52,12 @@ func TestBetaJigUpdateWithOptionalParams(t *testing.T) {
 		"id",
 		together.BetaJigUpdateParams{
 			Args: []string{"string"},
-			Autoscaling: map[string]string{
-				"foo": "string",
+			Autoscaling: together.BetaJigUpdateParamsAutoscalingUnion{
+				OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig: &together.BetaJigUpdateParamsAutoscalingHTTPAutoscalingConfig{
+					Metric:              "HTTPTotalRequests",
+					Target:              together.Float(100),
+					TimeIntervalMinutes: together.Int(10),
+				},
 			},
 			Command:     []string{"string"},
 			CPU:         together.Float(0.1),
@@ -129,8 +133,12 @@ func TestBetaJigDeployWithOptionalParams(t *testing.T) {
 		Image:   "image",
 		Name:    "x",
 		Args:    []string{"string"},
-		Autoscaling: map[string]string{
-			"foo": "string",
+		Autoscaling: together.BetaJigDeployParamsAutoscalingUnion{
+			OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig: &together.BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig{
+				Metric:              "HTTPTotalRequests",
+				Target:              together.Float(100),
+				TimeIntervalMinutes: together.Int(10),
+			},
 		},
 		Command:     []string{"string"},
 		CPU:         together.Float(0.1),

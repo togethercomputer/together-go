@@ -4,6 +4,7 @@ package together
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -112,8 +113,9 @@ type Deployment struct {
 	ID string `json:"id"`
 	// Args are the arguments passed to the container's command
 	Args []string `json:"args"`
-	// Autoscaling contains autoscaling configuration parameters for this deployment
-	Autoscaling map[string]string `json:"autoscaling"`
+	// Autoscaling contains autoscaling configuration parameters for this deployment.
+	// Omitted when autoscaling is disabled (nil)
+	Autoscaling DeploymentAutoscalingUnion `json:"autoscaling"`
 	// Command is the entrypoint command run in the container
 	Command []string `json:"command"`
 	// CPU is the amount of CPU resource allocated to each replica in cores (fractional
@@ -204,6 +206,134 @@ type Deployment struct {
 // Returns the unmodified JSON received from the API
 func (r Deployment) RawJSON() string { return r.JSON.raw }
 func (r *Deployment) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// DeploymentAutoscalingUnion contains all possible properties and values from
+// [DeploymentAutoscalingHTTPAutoscalingConfig],
+// [DeploymentAutoscalingQueueAutoscalingConfig],
+// [DeploymentAutoscalingCustomMetricAutoscalingConfig].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type DeploymentAutoscalingUnion struct {
+	Metric string  `json:"metric"`
+	Target float64 `json:"target"`
+	// This field is from variant [DeploymentAutoscalingHTTPAutoscalingConfig].
+	TimeIntervalMinutes int64 `json:"time_interval_minutes"`
+	// This field is from variant [DeploymentAutoscalingQueueAutoscalingConfig].
+	Model string `json:"model"`
+	// This field is from variant [DeploymentAutoscalingCustomMetricAutoscalingConfig].
+	CustomMetricName string `json:"custom_metric_name"`
+	JSON             struct {
+		Metric              respjson.Field
+		Target              respjson.Field
+		TimeIntervalMinutes respjson.Field
+		Model               respjson.Field
+		CustomMetricName    respjson.Field
+		raw                 string
+	} `json:"-"`
+}
+
+func (u DeploymentAutoscalingUnion) AsDeploymentAutoscalingHTTPAutoscalingConfig() (v DeploymentAutoscalingHTTPAutoscalingConfig) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u DeploymentAutoscalingUnion) AsDeploymentAutoscalingQueueAutoscalingConfig() (v DeploymentAutoscalingQueueAutoscalingConfig) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u DeploymentAutoscalingUnion) AsDeploymentAutoscalingCustomMetricAutoscalingConfig() (v DeploymentAutoscalingCustomMetricAutoscalingConfig) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u DeploymentAutoscalingUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *DeploymentAutoscalingUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Autoscaling config for HTTPTotalRequests and HTTPAvgRequestDuration metrics
+type DeploymentAutoscalingHTTPAutoscalingConfig struct {
+	// Metric must be HTTPTotalRequests or HTTPAvgRequestDuration
+	//
+	// Any of "HTTPTotalRequests", "HTTPAvgRequestDuration".
+	Metric string `json:"metric"`
+	// Target is the threshold value. Default: 100 for HTTPTotalRequests, 500 (ms) for
+	// HTTPAvgRequestDuration
+	Target float64 `json:"target"`
+	// TimeIntervalMinutes is the rate window in minutes. Default: 10
+	TimeIntervalMinutes int64 `json:"time_interval_minutes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metric              respjson.Field
+		Target              respjson.Field
+		TimeIntervalMinutes respjson.Field
+		ExtraFields         map[string]respjson.Field
+		raw                 string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentAutoscalingHTTPAutoscalingConfig) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentAutoscalingHTTPAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Autoscaling config for QueueBacklogPerWorker metric
+type DeploymentAutoscalingQueueAutoscalingConfig struct {
+	// Metric must be QueueBacklogPerWorker
+	//
+	// Any of "QueueBacklogPerWorker".
+	Metric string `json:"metric"`
+	// Model overrides the model name for queue status lookup. Defaults to the
+	// deployment app name
+	Model string `json:"model"`
+	// Target is the threshold value. Default: 1.01
+	Target float64 `json:"target"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metric      respjson.Field
+		Model       respjson.Field
+		Target      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentAutoscalingQueueAutoscalingConfig) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentAutoscalingQueueAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Autoscaling config for CustomMetric metric
+type DeploymentAutoscalingCustomMetricAutoscalingConfig struct {
+	// CustomMetricName is the Prometheus metric name. Required. Must match
+	// [a-zA-Z\_:][a-zA-Z0-9_:]\*
+	CustomMetricName string `json:"custom_metric_name"`
+	// Metric must be CustomMetric
+	//
+	// Any of "CustomMetric".
+	Metric string `json:"metric"`
+	// Target is the threshold value. Default: 500
+	Target float64 `json:"target"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CustomMetricName respjson.Field
+		Metric           respjson.Field
+		Target           respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentAutoscalingCustomMetricAutoscalingConfig) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentAutoscalingCustomMetricAutoscalingConfig) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -414,9 +544,9 @@ type BetaJigUpdateParams struct {
 	// Args overrides the container's CMD. Provide as an array of arguments (e.g.,
 	// ["python", "app.py"])
 	Args []string `json:"args,omitzero"`
-	// Autoscaling configuration as key-value pairs. Example: {"metric":
-	// "QueueBacklogPerWorker", "target": "10"} to scale based on queue backlog
-	Autoscaling map[string]string `json:"autoscaling,omitzero"`
+	// Autoscaling configuration for the deployment. Omit or set to null to disable
+	// autoscaling
+	Autoscaling BetaJigUpdateParamsAutoscalingUnion `json:"autoscaling,omitzero"`
 	// Command overrides the container's ENTRYPOINT. Provide as an array (e.g.,
 	// ["/bin/sh", "-c"])
 	Command []string `json:"command,omitzero"`
@@ -439,6 +569,166 @@ func (r BetaJigUpdateParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *BetaJigUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type BetaJigUpdateParamsAutoscalingUnion struct {
+	OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig         *BetaJigUpdateParamsAutoscalingHTTPAutoscalingConfig         `json:",omitzero,inline"`
+	OfBetaJigUpdatesAutoscalingQueueAutoscalingConfig        *BetaJigUpdateParamsAutoscalingQueueAutoscalingConfig        `json:",omitzero,inline"`
+	OfBetaJigUpdatesAutoscalingCustomMetricAutoscalingConfig *BetaJigUpdateParamsAutoscalingCustomMetricAutoscalingConfig `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u BetaJigUpdateParamsAutoscalingUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig, u.OfBetaJigUpdatesAutoscalingQueueAutoscalingConfig, u.OfBetaJigUpdatesAutoscalingCustomMetricAutoscalingConfig)
+}
+func (u *BetaJigUpdateParamsAutoscalingUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *BetaJigUpdateParamsAutoscalingUnion) asAny() any {
+	if !param.IsOmitted(u.OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig) {
+		return u.OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig
+	} else if !param.IsOmitted(u.OfBetaJigUpdatesAutoscalingQueueAutoscalingConfig) {
+		return u.OfBetaJigUpdatesAutoscalingQueueAutoscalingConfig
+	} else if !param.IsOmitted(u.OfBetaJigUpdatesAutoscalingCustomMetricAutoscalingConfig) {
+		return u.OfBetaJigUpdatesAutoscalingCustomMetricAutoscalingConfig
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigUpdateParamsAutoscalingUnion) GetTimeIntervalMinutes() *int64 {
+	if vt := u.OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig; vt != nil && vt.TimeIntervalMinutes.Valid() {
+		return &vt.TimeIntervalMinutes.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigUpdateParamsAutoscalingUnion) GetModel() *string {
+	if vt := u.OfBetaJigUpdatesAutoscalingQueueAutoscalingConfig; vt != nil && vt.Model.Valid() {
+		return &vt.Model.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigUpdateParamsAutoscalingUnion) GetCustomMetricName() *string {
+	if vt := u.OfBetaJigUpdatesAutoscalingCustomMetricAutoscalingConfig; vt != nil && vt.CustomMetricName.Valid() {
+		return &vt.CustomMetricName.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigUpdateParamsAutoscalingUnion) GetMetric() *string {
+	if vt := u.OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig; vt != nil {
+		return (*string)(&vt.Metric)
+	} else if vt := u.OfBetaJigUpdatesAutoscalingQueueAutoscalingConfig; vt != nil {
+		return (*string)(&vt.Metric)
+	} else if vt := u.OfBetaJigUpdatesAutoscalingCustomMetricAutoscalingConfig; vt != nil {
+		return (*string)(&vt.Metric)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigUpdateParamsAutoscalingUnion) GetTarget() *float64 {
+	if vt := u.OfBetaJigUpdatesAutoscalingHTTPAutoscalingConfig; vt != nil && vt.Target.Valid() {
+		return &vt.Target.Value
+	} else if vt := u.OfBetaJigUpdatesAutoscalingQueueAutoscalingConfig; vt != nil && vt.Target.Valid() {
+		return &vt.Target.Value
+	} else if vt := u.OfBetaJigUpdatesAutoscalingCustomMetricAutoscalingConfig; vt != nil && vt.Target.Valid() {
+		return &vt.Target.Value
+	}
+	return nil
+}
+
+// Autoscaling config for HTTPTotalRequests and HTTPAvgRequestDuration metrics
+type BetaJigUpdateParamsAutoscalingHTTPAutoscalingConfig struct {
+	// Target is the threshold value. Default: 100 for HTTPTotalRequests, 500 (ms) for
+	// HTTPAvgRequestDuration
+	Target param.Opt[float64] `json:"target,omitzero"`
+	// TimeIntervalMinutes is the rate window in minutes. Default: 10
+	TimeIntervalMinutes param.Opt[int64] `json:"time_interval_minutes,omitzero"`
+	// Metric must be HTTPTotalRequests or HTTPAvgRequestDuration
+	//
+	// Any of "HTTPTotalRequests", "HTTPAvgRequestDuration".
+	Metric string `json:"metric,omitzero"`
+	paramObj
+}
+
+func (r BetaJigUpdateParamsAutoscalingHTTPAutoscalingConfig) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigUpdateParamsAutoscalingHTTPAutoscalingConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigUpdateParamsAutoscalingHTTPAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[BetaJigUpdateParamsAutoscalingHTTPAutoscalingConfig](
+		"metric", "HTTPTotalRequests", "HTTPAvgRequestDuration",
+	)
+}
+
+// Autoscaling config for QueueBacklogPerWorker metric
+type BetaJigUpdateParamsAutoscalingQueueAutoscalingConfig struct {
+	// Model overrides the model name for queue status lookup. Defaults to the
+	// deployment app name
+	Model param.Opt[string] `json:"model,omitzero"`
+	// Target is the threshold value. Default: 1.01
+	Target param.Opt[float64] `json:"target,omitzero"`
+	// Metric must be QueueBacklogPerWorker
+	//
+	// Any of "QueueBacklogPerWorker".
+	Metric string `json:"metric,omitzero"`
+	paramObj
+}
+
+func (r BetaJigUpdateParamsAutoscalingQueueAutoscalingConfig) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigUpdateParamsAutoscalingQueueAutoscalingConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigUpdateParamsAutoscalingQueueAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[BetaJigUpdateParamsAutoscalingQueueAutoscalingConfig](
+		"metric", "QueueBacklogPerWorker",
+	)
+}
+
+// Autoscaling config for CustomMetric metric
+type BetaJigUpdateParamsAutoscalingCustomMetricAutoscalingConfig struct {
+	// CustomMetricName is the Prometheus metric name. Required. Must match
+	// [a-zA-Z\_:][a-zA-Z0-9_:]\*
+	CustomMetricName param.Opt[string] `json:"custom_metric_name,omitzero"`
+	// Target is the threshold value. Default: 500
+	Target param.Opt[float64] `json:"target,omitzero"`
+	// Metric must be CustomMetric
+	//
+	// Any of "CustomMetric".
+	Metric string `json:"metric,omitzero"`
+	paramObj
+}
+
+func (r BetaJigUpdateParamsAutoscalingCustomMetricAutoscalingConfig) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigUpdateParamsAutoscalingCustomMetricAutoscalingConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigUpdateParamsAutoscalingCustomMetricAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[BetaJigUpdateParamsAutoscalingCustomMetricAutoscalingConfig](
+		"metric", "CustomMetric",
+	)
 }
 
 // The property Name is required.
@@ -536,9 +826,10 @@ type BetaJigDeployParams struct {
 	// Args overrides the container's CMD. Provide as an array of arguments (e.g.,
 	// ["python", "app.py"])
 	Args []string `json:"args,omitzero"`
-	// Autoscaling configuration as key-value pairs. Example: {"metric":
-	// "QueueBacklogPerWorker", "target": "10"} to scale based on queue backlog
-	Autoscaling map[string]string `json:"autoscaling,omitzero"`
+	// Autoscaling configuration. Example: {"metric": "QueueBacklogPerWorker",
+	// "target": 1.01} to scale based on queue backlog. Omit or set to null to disable
+	// autoscaling
+	Autoscaling BetaJigDeployParamsAutoscalingUnion `json:"autoscaling,omitzero"`
 	// Command overrides the container's ENTRYPOINT. Provide as an array (e.g.,
 	// ["/bin/sh", "-c"])
 	Command []string `json:"command,omitzero"`
@@ -566,6 +857,166 @@ const (
 	BetaJigDeployParamsGPUTypeH100_80gb BetaJigDeployParamsGPUType = "h100-80gb"
 	BetaJigDeployParamsGPUTypeA100_80gb BetaJigDeployParamsGPUType = "a100-80gb"
 )
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type BetaJigDeployParamsAutoscalingUnion struct {
+	OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig         *BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig         `json:",omitzero,inline"`
+	OfBetaJigDeploysAutoscalingQueueAutoscalingConfig        *BetaJigDeployParamsAutoscalingQueueAutoscalingConfig        `json:",omitzero,inline"`
+	OfBetaJigDeploysAutoscalingCustomMetricAutoscalingConfig *BetaJigDeployParamsAutoscalingCustomMetricAutoscalingConfig `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u BetaJigDeployParamsAutoscalingUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig, u.OfBetaJigDeploysAutoscalingQueueAutoscalingConfig, u.OfBetaJigDeploysAutoscalingCustomMetricAutoscalingConfig)
+}
+func (u *BetaJigDeployParamsAutoscalingUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *BetaJigDeployParamsAutoscalingUnion) asAny() any {
+	if !param.IsOmitted(u.OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig) {
+		return u.OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig
+	} else if !param.IsOmitted(u.OfBetaJigDeploysAutoscalingQueueAutoscalingConfig) {
+		return u.OfBetaJigDeploysAutoscalingQueueAutoscalingConfig
+	} else if !param.IsOmitted(u.OfBetaJigDeploysAutoscalingCustomMetricAutoscalingConfig) {
+		return u.OfBetaJigDeploysAutoscalingCustomMetricAutoscalingConfig
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigDeployParamsAutoscalingUnion) GetTimeIntervalMinutes() *int64 {
+	if vt := u.OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig; vt != nil && vt.TimeIntervalMinutes.Valid() {
+		return &vt.TimeIntervalMinutes.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigDeployParamsAutoscalingUnion) GetModel() *string {
+	if vt := u.OfBetaJigDeploysAutoscalingQueueAutoscalingConfig; vt != nil && vt.Model.Valid() {
+		return &vt.Model.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigDeployParamsAutoscalingUnion) GetCustomMetricName() *string {
+	if vt := u.OfBetaJigDeploysAutoscalingCustomMetricAutoscalingConfig; vt != nil && vt.CustomMetricName.Valid() {
+		return &vt.CustomMetricName.Value
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigDeployParamsAutoscalingUnion) GetMetric() *string {
+	if vt := u.OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig; vt != nil {
+		return (*string)(&vt.Metric)
+	} else if vt := u.OfBetaJigDeploysAutoscalingQueueAutoscalingConfig; vt != nil {
+		return (*string)(&vt.Metric)
+	} else if vt := u.OfBetaJigDeploysAutoscalingCustomMetricAutoscalingConfig; vt != nil {
+		return (*string)(&vt.Metric)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u BetaJigDeployParamsAutoscalingUnion) GetTarget() *float64 {
+	if vt := u.OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig; vt != nil && vt.Target.Valid() {
+		return &vt.Target.Value
+	} else if vt := u.OfBetaJigDeploysAutoscalingQueueAutoscalingConfig; vt != nil && vt.Target.Valid() {
+		return &vt.Target.Value
+	} else if vt := u.OfBetaJigDeploysAutoscalingCustomMetricAutoscalingConfig; vt != nil && vt.Target.Valid() {
+		return &vt.Target.Value
+	}
+	return nil
+}
+
+// Autoscaling config for HTTPTotalRequests and HTTPAvgRequestDuration metrics
+type BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig struct {
+	// Target is the threshold value. Default: 100 for HTTPTotalRequests, 500 (ms) for
+	// HTTPAvgRequestDuration
+	Target param.Opt[float64] `json:"target,omitzero"`
+	// TimeIntervalMinutes is the rate window in minutes. Default: 10
+	TimeIntervalMinutes param.Opt[int64] `json:"time_interval_minutes,omitzero"`
+	// Metric must be HTTPTotalRequests or HTTPAvgRequestDuration
+	//
+	// Any of "HTTPTotalRequests", "HTTPAvgRequestDuration".
+	Metric string `json:"metric,omitzero"`
+	paramObj
+}
+
+func (r BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig](
+		"metric", "HTTPTotalRequests", "HTTPAvgRequestDuration",
+	)
+}
+
+// Autoscaling config for QueueBacklogPerWorker metric
+type BetaJigDeployParamsAutoscalingQueueAutoscalingConfig struct {
+	// Model overrides the model name for queue status lookup. Defaults to the
+	// deployment app name
+	Model param.Opt[string] `json:"model,omitzero"`
+	// Target is the threshold value. Default: 1.01
+	Target param.Opt[float64] `json:"target,omitzero"`
+	// Metric must be QueueBacklogPerWorker
+	//
+	// Any of "QueueBacklogPerWorker".
+	Metric string `json:"metric,omitzero"`
+	paramObj
+}
+
+func (r BetaJigDeployParamsAutoscalingQueueAutoscalingConfig) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigDeployParamsAutoscalingQueueAutoscalingConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigDeployParamsAutoscalingQueueAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[BetaJigDeployParamsAutoscalingQueueAutoscalingConfig](
+		"metric", "QueueBacklogPerWorker",
+	)
+}
+
+// Autoscaling config for CustomMetric metric
+type BetaJigDeployParamsAutoscalingCustomMetricAutoscalingConfig struct {
+	// CustomMetricName is the Prometheus metric name. Required. Must match
+	// [a-zA-Z\_:][a-zA-Z0-9_:]\*
+	CustomMetricName param.Opt[string] `json:"custom_metric_name,omitzero"`
+	// Target is the threshold value. Default: 500
+	Target param.Opt[float64] `json:"target,omitzero"`
+	// Metric must be CustomMetric
+	//
+	// Any of "CustomMetric".
+	Metric string `json:"metric,omitzero"`
+	paramObj
+}
+
+func (r BetaJigDeployParamsAutoscalingCustomMetricAutoscalingConfig) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigDeployParamsAutoscalingCustomMetricAutoscalingConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigDeployParamsAutoscalingCustomMetricAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[BetaJigDeployParamsAutoscalingCustomMetricAutoscalingConfig](
+		"metric", "CustomMetric",
+	)
+}
 
 // The property Name is required.
 type BetaJigDeployParamsEnvironmentVariable struct {
