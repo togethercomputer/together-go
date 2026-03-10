@@ -49,11 +49,11 @@ func (r *BetaJigService) Get(ctx context.Context, id string, opts ...option.Requ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update an existing deployment configuration
@@ -61,11 +61,11 @@ func (r *BetaJigService) Update(ctx context.Context, id string, body BetaJigUpda
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get a list of all deployments in your project
@@ -73,7 +73,7 @@ func (r *BetaJigService) List(ctx context.Context, opts ...option.RequestOption)
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Create a new deployment with specified configuration
@@ -81,7 +81,7 @@ func (r *BetaJigService) Deploy(ctx context.Context, body BetaJigDeployParams, o
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete an existing deployment
@@ -89,11 +89,11 @@ func (r *BetaJigService) Destroy(ctx context.Context, id string, opts ...option.
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve logs from a deployment, optionally filtered by replica ID.
@@ -101,11 +101,11 @@ func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGe
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/%s/logs", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 type Deployment struct {

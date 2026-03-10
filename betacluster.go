@@ -46,7 +46,7 @@ func (r *BetaClusterService) New(ctx context.Context, body BetaClusterNewParams,
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve information about a specific GPU cluster.
@@ -54,11 +54,11 @@ func (r *BetaClusterService) Get(ctx context.Context, clusterID string, opts ...
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update the configuration of an existing GPU cluster.
@@ -66,11 +66,11 @@ func (r *BetaClusterService) Update(ctx context.Context, clusterID string, body 
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // List all GPU clusters.
@@ -78,7 +78,7 @@ func (r *BetaClusterService) List(ctx context.Context, opts ...option.RequestOpt
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a GPU cluster by cluster ID.
@@ -86,11 +86,11 @@ func (r *BetaClusterService) Delete(ctx context.Context, clusterID string, opts 
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List regions and corresponding supported driver versions
@@ -98,7 +98,7 @@ func (r *BetaClusterService) ListRegions(ctx context.Context, opts ...option.Req
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/regions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Cluster struct {

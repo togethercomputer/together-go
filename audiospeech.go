@@ -39,7 +39,7 @@ func (r *AudioSpeechService) New(ctx context.Context, body AudioSpeechNewParams,
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
 	path := "audio/speech"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Generate audio from input text

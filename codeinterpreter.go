@@ -46,7 +46,7 @@ func (r *CodeInterpreterService) Execute(ctx context.Context, body CodeInterpret
 	opts = slices.Concat(r.Options, opts)
 	path := "tci/execute"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // ExecuteResponseUnion contains all possible properties and values from

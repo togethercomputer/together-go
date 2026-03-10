@@ -40,11 +40,11 @@ func (r *ModelUploadService) Status(ctx context.Context, jobID string, opts ...o
 	opts = slices.Concat(r.Options, opts)
 	if jobID == "" {
 		err = errors.New("missing required jobId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("jobs/%s", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type ModelUploadStatusResponse struct {

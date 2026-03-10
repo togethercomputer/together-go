@@ -44,7 +44,7 @@ func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterSto
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve information about a specific shared volume.
@@ -52,11 +52,11 @@ func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, op
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
 		err = errors.New("missing required volume_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update the configuration of an existing shared volume.
@@ -64,7 +64,7 @@ func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaCluster
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // List all shared volumes.
@@ -72,7 +72,7 @@ func (r *BetaClusterStorageService) List(ctx context.Context, opts ...option.Req
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a shared volume. Note that if this volume is attached to a cluster,
@@ -81,11 +81,11 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
 		err = errors.New("missing required volume_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type ClusterStorage struct {

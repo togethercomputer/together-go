@@ -45,7 +45,7 @@ func (r *EvalService) New(ctx context.Context, body EvalNewParams, opts ...optio
 	opts = slices.Concat(r.Options, opts)
 	path := "evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get evaluation job details
@@ -53,11 +53,11 @@ func (r *EvalService) Get(ctx context.Context, id string, opts ...option.Request
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("evaluation/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Get all evaluation jobs
@@ -65,7 +65,7 @@ func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	path := "evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Get evaluation job status and results
@@ -73,11 +73,11 @@ func (r *EvalService) Status(ctx context.Context, id string, opts ...option.Requ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("evaluation/%s/status", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type EvaluationJob struct {

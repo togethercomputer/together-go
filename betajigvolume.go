@@ -40,7 +40,7 @@ func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewPar
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve details of a specific volume by its ID or name
@@ -48,11 +48,11 @@ func (r *BetaJigVolumeService) Get(ctx context.Context, id string, opts ...optio
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update an existing volume's configuration or contents
@@ -60,11 +60,11 @@ func (r *BetaJigVolumeService) Update(ctx context.Context, id string, body BetaJ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve all volumes in your project
@@ -72,7 +72,7 @@ func (r *BetaJigVolumeService) List(ctx context.Context, opts ...option.RequestO
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete an existing volume
@@ -80,11 +80,11 @@ func (r *BetaJigVolumeService) Delete(ctx context.Context, id string, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Volume struct {
