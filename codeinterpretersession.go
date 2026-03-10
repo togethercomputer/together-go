@@ -39,7 +39,7 @@ func (r *CodeInterpreterSessionService) List(ctx context.Context, opts ...option
 	opts = slices.Concat(r.Options, opts)
 	path := "tci/sessions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type SessionListResponse struct {

@@ -40,7 +40,7 @@ func (r *RerankService) New(ctx context.Context, body RerankNewParams, opts ...o
 	opts = slices.Concat(r.Options, opts)
 	path := "rerank"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type RerankNewResponse struct {

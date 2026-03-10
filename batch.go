@@ -41,7 +41,7 @@ func (r *BatchService) New(ctx context.Context, body BatchNewParams, opts ...opt
 	opts = slices.Concat(r.Options, opts)
 	path := "batches"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get details of a batch job by ID
@@ -49,11 +49,11 @@ func (r *BatchService) Get(ctx context.Context, id string, opts ...option.Reques
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("batches/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List all batch jobs for the authenticated user
@@ -61,7 +61,7 @@ func (r *BatchService) List(ctx context.Context, opts ...option.RequestOption) (
 	opts = slices.Concat(r.Options, opts)
 	path := "batches"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Cancel a batch job by ID
@@ -69,11 +69,11 @@ func (r *BatchService) Cancel(ctx context.Context, id string, opts ...option.Req
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("batches/%s/cancel", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type BatchJob struct {

@@ -41,7 +41,7 @@ func (r *VideoService) New(ctx context.Context, body VideoNewParams, opts ...opt
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.xyz/v2/")}, opts...)
 	path := "videos"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Fetch video metadata
@@ -50,11 +50,11 @@ func (r *VideoService) Get(ctx context.Context, id string, opts ...option.Reques
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.xyz/v2/")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("videos/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Structured information describing a generated video job.

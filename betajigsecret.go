@@ -40,7 +40,7 @@ func (r *BetaJigSecretService) New(ctx context.Context, body BetaJigSecretNewPar
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/secrets"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve details of a specific secret by its ID or name
@@ -48,11 +48,11 @@ func (r *BetaJigSecretService) Get(ctx context.Context, id string, opts ...optio
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update an existing secret's value or metadata
@@ -60,11 +60,11 @@ func (r *BetaJigSecretService) Update(ctx context.Context, id string, body BetaJ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve all secrets in your project
@@ -72,7 +72,7 @@ func (r *BetaJigSecretService) List(ctx context.Context, opts ...option.RequestO
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/secrets"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete an existing secret
@@ -80,11 +80,11 @@ func (r *BetaJigSecretService) Delete(ctx context.Context, id string, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Secret struct {

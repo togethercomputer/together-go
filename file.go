@@ -44,11 +44,11 @@ func (r *FileService) Get(ctx context.Context, id string, opts ...option.Request
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("files/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List the metadata for all uploaded data files.
@@ -56,7 +56,7 @@ func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (r
 	opts = slices.Concat(r.Options, opts)
 	path := "files"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a previously uploaded data file.
@@ -64,11 +64,11 @@ func (r *FileService) Delete(ctx context.Context, id string, opts ...option.Requ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("files/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Get the contents of a single uploaded data file.
@@ -77,11 +77,11 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/binary")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("files/%s/content", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Upload a file with specified purpose, file name, and file type.
@@ -89,7 +89,7 @@ func (r *FileService) Upload(ctx context.Context, body FileUploadParams, opts ..
 	opts = slices.Concat(r.Options, opts)
 	path := "files/upload"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type FileList struct {

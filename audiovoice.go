@@ -37,7 +37,7 @@ func (r *AudioVoiceService) List(ctx context.Context, opts ...option.RequestOpti
 	opts = slices.Concat(r.Options, opts)
 	path := "voices"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Response containing a list of models and their available voices.

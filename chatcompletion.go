@@ -41,7 +41,7 @@ func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewP
 	opts = slices.Concat(r.Options, opts)
 	path := "chat/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Generate a model response for a given chat conversation. Supports single queries

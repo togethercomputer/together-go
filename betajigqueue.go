@@ -42,7 +42,7 @@ func (r *BetaJigQueueService) Get(ctx context.Context, query BetaJigQueueGetPara
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/status"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Cancel a pending job. Only jobs in pending status can be canceled. Running jobs
@@ -52,7 +52,7 @@ func (r *BetaJigQueueService) Cancel(ctx context.Context, body BetaJigQueueCance
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/cancel"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get the current queue statistics for a model, including pending and running job
@@ -61,7 +61,7 @@ func (r *BetaJigQueueService) Metrics(ctx context.Context, query BetaJigQueueMet
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/metrics"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Submit a new job to the queue for asynchronous processing. Jobs are processed in
@@ -71,7 +71,7 @@ func (r *BetaJigQueueService) Submit(ctx context.Context, body BetaJigQueueSubmi
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/submit"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type BetaJigQueueGetResponse struct {

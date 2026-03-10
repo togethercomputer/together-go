@@ -40,7 +40,7 @@ func (r *ImageService) Generate(ctx context.Context, body ImageGenerateParams, o
 	opts = slices.Concat(r.Options, opts)
 	path := "images/generations"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type ImageDataB64 struct {

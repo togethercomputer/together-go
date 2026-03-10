@@ -47,7 +47,7 @@ func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts 
 	opts = slices.Concat(r.Options, opts)
 	path := "endpoints"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieves details about a specific endpoint, including its current state,
@@ -56,11 +56,11 @@ func (r *EndpointService) Get(ctx context.Context, endpointID string, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("endpoints/%s", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Updates an existing endpoint's configuration. You can modify the display name,
@@ -69,11 +69,11 @@ func (r *EndpointService) Update(ctx context.Context, endpointID string, body En
 	opts = slices.Concat(r.Options, opts)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("endpoints/%s", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns a list of all endpoints associated with your account. You can filter the
@@ -82,7 +82,7 @@ func (r *EndpointService) List(ctx context.Context, query EndpointListParams, op
 	opts = slices.Concat(r.Options, opts)
 	path := "endpoints"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Permanently deletes an endpoint. This action cannot be undone.
@@ -91,11 +91,11 @@ func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ..
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "*/*")}, opts...)
 	if endpointID == "" {
 		err = errors.New("missing required endpointId parameter")
-		return
+		return err
 	}
 	path := fmt.Sprintf("endpoints/%s", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, nil, opts...)
-	return
+	return err
 }
 
 // List all available availability zones.
@@ -103,7 +103,7 @@ func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.Reques
 	opts = slices.Concat(r.Options, opts)
 	path := "clusters/availability-zones"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Returns a list of available hardware configurations for deploying models. When a
@@ -113,7 +113,7 @@ func (r *EndpointService) ListHardware(ctx context.Context, query EndpointListHa
 	opts = slices.Concat(r.Options, opts)
 	path := "hardware"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Configuration for automatic scaling of replicas based on demand.
