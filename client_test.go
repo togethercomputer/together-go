@@ -39,7 +39,7 @@ func TestUserAgentHeader(t *testing.T) {
 			},
 		}),
 	)
-	client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
+	_, _ = client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
 		Messages: []together.ChatCompletionNewParamsMessageUnion{{
 			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
