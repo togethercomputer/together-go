@@ -48,7 +48,7 @@ func TestUserAgentHeader(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 	})
 	if userAgent != fmt.Sprintf("Together/Go %s", internal.PackageVersion) {
 		t.Errorf("Expected User-Agent to be correct, but got: %#v", userAgent)
@@ -82,7 +82,7 @@ func TestRetryAfter(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -127,7 +127,7 @@ func TestDeleteRetryCountHeader(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -167,7 +167,7 @@ func TestOverwriteRetryCountHeader(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -206,7 +206,7 @@ func TestRetryAfterMs(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -239,7 +239,7 @@ func TestContextCancel(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 	})
 	if err == nil {
 		t.Error("Expected there to be a cancel error")
@@ -269,7 +269,7 @@ func TestContextCancelDelay(t *testing.T) {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 	})
 	if err == nil {
 		t.Error("expected there to be a cancel error")
@@ -305,7 +305,7 @@ func TestContextDeadline(t *testing.T) {
 					},
 				},
 			}},
-			Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+			Model: together.ChatCompletionNewParamsModel("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
 		})
 		if err == nil {
 			t.Error("expected there to be a deadline error")
@@ -358,7 +358,7 @@ func TestContextDeadlineStreaming(t *testing.T) {
 					Role:    "system",
 				},
 			}},
-			Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+			Model: together.ChatCompletionNewParamsModelQwenQwen3_5_9B,
 		})
 		for stream.Next() {
 			_ = stream.Current()
@@ -413,7 +413,7 @@ func TestContextDeadlineStreamingWithRequestTimeout(t *testing.T) {
 						Role:    "system",
 					},
 				}},
-				Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+				Model: together.ChatCompletionNewParamsModelQwenQwen3_5_9B,
 			},
 			option.WithRequestTimeout((100 * time.Millisecond)),
 		)

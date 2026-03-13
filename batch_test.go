@@ -29,7 +29,7 @@ func TestBatchNewWithOptionalParams(t *testing.T) {
 		Endpoint:         "/v1/chat/completions",
 		InputFileID:      "file-abc123def456ghi789",
 		CompletionWindow: together.String("24h"),
-		ModelID:          together.String("meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"),
+		ModelID:          together.String("Qwen/Qwen3.5-9B"),
 		Priority:         together.Int(1),
 	})
 	if err != nil {
