@@ -1006,9 +1006,9 @@ type ChatCompletionNewParamsModel string
 const (
 	ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo            ChatCompletionNewParamsModel = "Qwen/Qwen2.5-72B-Instruct-Turbo"
 	ChatCompletionNewParamsModelQwenQwen2_5_7BInstructTurbo             ChatCompletionNewParamsModel = "Qwen/Qwen2.5-7B-Instruct-Turbo"
+	ChatCompletionNewParamsModelQwenQwen3_5_9B                          ChatCompletionNewParamsModel = "Qwen/Qwen3.5-9B"
 	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_405BInstructTurbo ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo"
 	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_70BInstructTurbo  ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
-	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo   ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
 )
 
 type ChatCompletionNewParamsCompliance string
