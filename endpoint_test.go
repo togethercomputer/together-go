@@ -31,7 +31,7 @@ func TestEndpointNewWithOptionalParams(t *testing.T) {
 			MinReplicas: 2,
 		},
 		Hardware:                   "1x_nvidia_a100_80gb_sxm",
-		Model:                      "meta-llama/Llama-3-8b-chat-hf",
+		Model:                      "deepseek-ai/DeepSeek-R1",
 		AvailabilityZone:           together.String("availability_zone"),
 		DisablePromptCache:         together.Bool(true),
 		DisableSpeculativeDecoding: together.Bool(true),
@@ -187,7 +187,7 @@ func TestEndpointListHardwareWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Endpoints.ListHardware(context.TODO(), together.EndpointListHardwareParams{
-		Model: together.String("meta-llama/Llama-3-70b-chat-hf"),
+		Model: together.String("deepseek-ai/DeepSeek-R1"),
 	})
 	if err != nil {
 		var apierr *together.Error

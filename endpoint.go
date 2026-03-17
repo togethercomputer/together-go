@@ -546,6 +546,7 @@ const (
 type EndpointListHardwareParams struct {
 	// Filter hardware configurations by model compatibility. When provided, the
 	// response includes availability status for each compatible configuration.
+	// [See all of Together AI's dedicated models](https://docs.together.ai/docs/dedicated-models)
 	Model param.Opt[string] `query:"model,omitzero" json:"-"`
 	paramObj
 }
