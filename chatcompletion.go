@@ -68,7 +68,7 @@ type ChatCompletion struct {
 	// When `echo` is true, the prompt is included in the response. Additionally, when
 	// `logprobs` is also provided, log probability information is provided on the
 	// prompt.
-	Prompt   []ChatCompletionPrompt  `json:"prompt" api:"required"`
+	Prompt   ChatCompletionPrompt    `json:"prompt" api:"required"`
 	Usage    ChatCompletionUsage     `json:"usage" api:"nullable"`
 	Warnings []ChatCompletionWarning `json:"warnings"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -164,24 +164,6 @@ type ChatCompletionChoiceMessageFunctionCall struct {
 // Returns the unmodified JSON received from the API
 func (r ChatCompletionChoiceMessageFunctionCall) RawJSON() string { return r.JSON.raw }
 func (r *ChatCompletionChoiceMessageFunctionCall) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type ChatCompletionPrompt struct {
-	Logprobs LogProbs `json:"logprobs"`
-	Text     string   `json:"text"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Logprobs    respjson.Field
-		Text        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ChatCompletionPrompt) RawJSON() string { return r.JSON.raw }
-func (r *ChatCompletionPrompt) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -288,6 +270,26 @@ type ChatCompletionChunkChoiceDeltaFunctionCall struct {
 // Returns the unmodified JSON received from the API
 func (r ChatCompletionChunkChoiceDeltaFunctionCall) RawJSON() string { return r.JSON.raw }
 func (r *ChatCompletionChunkChoiceDeltaFunctionCall) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ChatCompletionPrompt []ChatCompletionPromptItem
+
+type ChatCompletionPromptItem struct {
+	Logprobs LogProbs `json:"logprobs"`
+	Text     string   `json:"text"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Logprobs    respjson.Field
+		Text        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ChatCompletionPromptItem) RawJSON() string { return r.JSON.raw }
+func (r *ChatCompletionPromptItem) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
