@@ -40,10 +40,10 @@ func TestUserAgentHeader(t *testing.T) {
 		}),
 	)
 	_, _ = client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionMessageParamUnion{{
-			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -74,10 +74,10 @@ func TestRetryAfter(t *testing.T) {
 		}),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionMessageParamUnion{{
-			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -119,10 +119,10 @@ func TestDeleteRetryCountHeader(t *testing.T) {
 		option.WithHeaderDel("X-Stainless-Retry-Count"),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionMessageParamUnion{{
-			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -159,10 +159,10 @@ func TestOverwriteRetryCountHeader(t *testing.T) {
 		option.WithHeader("X-Stainless-Retry-Count", "42"),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionMessageParamUnion{{
-			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -198,10 +198,10 @@ func TestRetryAfterMs(t *testing.T) {
 		}),
 	)
 	_, err := client.Chat.Completions.New(context.Background(), together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionMessageParamUnion{{
-			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -231,10 +231,10 @@ func TestContextCancel(t *testing.T) {
 	cancelCtx, cancel := context.WithCancel(context.Background())
 	cancel()
 	_, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionMessageParamUnion{{
-			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -261,10 +261,10 @@ func TestContextCancelDelay(t *testing.T) {
 	cancelCtx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
 	defer cancel()
 	_, err := client.Chat.Completions.New(cancelCtx, together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionMessageParamUnion{{
-			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionNewParamsMessageUnion{{
+			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -297,10 +297,10 @@ func TestContextDeadline(t *testing.T) {
 			}),
 		)
 		_, err := client.Chat.Completions.New(deadlineCtx, together.ChatCompletionNewParams{
-			Messages: []together.ChatCompletionMessageParamUnion{{
-				OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
+			Messages: []together.ChatCompletionNewParamsMessageUnion{{
+				OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
 					Role: "user",
-					Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
+					Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
 						OfString: together.String("Say this is a test"),
 					},
 				},
@@ -352,10 +352,10 @@ func TestContextDeadlineStreaming(t *testing.T) {
 			}),
 		)
 		stream := client.Chat.Completions.NewStreaming(deadlineCtx, together.ChatCompletionNewParams{
-			Messages: []together.ChatCompletionMessageParamUnion{{
-				OfChatCompletionSystemMessage: &together.ChatCompletionSystemMessageParam{
+			Messages: []together.ChatCompletionNewParamsMessageUnion{{
+				OfChatCompletionNewsMessageChatCompletionSystemMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionSystemMessageParam{
 					Content: "content",
-					Role:    together.ChatCompletionSystemMessageParamRoleSystem,
+					Role:    "system",
 				},
 			}},
 			Model: "model",
@@ -407,10 +407,10 @@ func TestContextDeadlineStreamingWithRequestTimeout(t *testing.T) {
 		stream := client.Chat.Completions.NewStreaming(
 			context.Background(),
 			together.ChatCompletionNewParams{
-				Messages: []together.ChatCompletionMessageParamUnion{{
-					OfChatCompletionSystemMessage: &together.ChatCompletionSystemMessageParam{
+				Messages: []together.ChatCompletionNewParamsMessageUnion{{
+					OfChatCompletionNewsMessageChatCompletionSystemMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionSystemMessageParam{
 						Content: "content",
-						Role:    together.ChatCompletionSystemMessageParamRoleSystem,
+						Role:    "system",
 					},
 				}},
 				Model: "model",
