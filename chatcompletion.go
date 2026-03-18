@@ -94,12 +94,12 @@ func (r *ChatCompletion) UnmarshalJSON(data []byte) error {
 
 type ChatCompletionChoice struct {
 	// Any of "stop", "eos", "length", "tool_calls", "function_call".
-	FinishReason string                      `json:"finish_reason"`
-	Index        int64                       `json:"index"`
-	Logprobs     LogProbs                    `json:"logprobs" api:"nullable"`
-	Message      ChatCompletionChoiceMessage `json:"message"`
-	Seed         int64                       `json:"seed"`
-	Text         string                      `json:"text"`
+	FinishReason string                `json:"finish_reason"`
+	Index        int64                 `json:"index"`
+	Logprobs     LogProbs              `json:"logprobs" api:"nullable"`
+	Message      ChatCompletionMessage `json:"message"`
+	Seed         int64                 `json:"seed"`
+	Text         string                `json:"text"`
 	// Top log probabilities for the tokens.
 	TopLogprobs map[string]float64 `json:"top_logprobs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -119,51 +119,6 @@ type ChatCompletionChoice struct {
 // Returns the unmodified JSON received from the API
 func (r ChatCompletionChoice) RawJSON() string { return r.JSON.raw }
 func (r *ChatCompletionChoice) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type ChatCompletionChoiceMessage struct {
-	Content string `json:"content" api:"required"`
-	// Any of "assistant".
-	Role string `json:"role" api:"required"`
-	// Deprecated: deprecated
-	FunctionCall ChatCompletionChoiceMessageFunctionCall `json:"function_call"`
-	Reasoning    string                                  `json:"reasoning" api:"nullable"`
-	ToolCalls    []ToolChoice                            `json:"tool_calls"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Content      respjson.Field
-		Role         respjson.Field
-		FunctionCall respjson.Field
-		Reasoning    respjson.Field
-		ToolCalls    respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ChatCompletionChoiceMessage) RawJSON() string { return r.JSON.raw }
-func (r *ChatCompletionChoiceMessage) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Deprecated: deprecated
-type ChatCompletionChoiceMessageFunctionCall struct {
-	Arguments string `json:"arguments" api:"required"`
-	Name      string `json:"name" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Arguments   respjson.Field
-		Name        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ChatCompletionChoiceMessageFunctionCall) RawJSON() string { return r.JSON.raw }
-func (r *ChatCompletionChoiceMessageFunctionCall) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -270,6 +225,522 @@ type ChatCompletionChunkChoiceDeltaFunctionCall struct {
 // Returns the unmodified JSON received from the API
 func (r ChatCompletionChunkChoiceDeltaFunctionCall) RawJSON() string { return r.JSON.raw }
 func (r *ChatCompletionChunkChoiceDeltaFunctionCall) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Deprecated: deprecated
+//
+// The properties Content, Name, Role are required.
+type ChatCompletionFunctionMessageParam struct {
+	Content string `json:"content" api:"required"`
+	Name    string `json:"name" api:"required"`
+	// Any of "function".
+	Role ChatCompletionFunctionMessageParamRole `json:"role,omitzero" api:"required"`
+	paramObj
+}
+
+func (r ChatCompletionFunctionMessageParam) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionFunctionMessageParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionFunctionMessageParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ChatCompletionFunctionMessageParamRole string
+
+const (
+	ChatCompletionFunctionMessageParamRoleFunction ChatCompletionFunctionMessageParamRole = "function"
+)
+
+type ChatCompletionMessage struct {
+	Content string `json:"content" api:"required"`
+	// Any of "assistant".
+	Role ChatCompletionMessageRole `json:"role" api:"required"`
+	// Deprecated: deprecated
+	FunctionCall ChatCompletionMessageFunctionCall `json:"function_call"`
+	Reasoning    string                            `json:"reasoning" api:"nullable"`
+	ToolCalls    []ToolChoice                      `json:"tool_calls"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Content      respjson.Field
+		Role         respjson.Field
+		FunctionCall respjson.Field
+		Reasoning    respjson.Field
+		ToolCalls    respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ChatCompletionMessage) RawJSON() string { return r.JSON.raw }
+func (r *ChatCompletionMessage) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ChatCompletionMessageRole string
+
+const (
+	ChatCompletionMessageRoleAssistant ChatCompletionMessageRole = "assistant"
+)
+
+// Deprecated: deprecated
+type ChatCompletionMessageFunctionCall struct {
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Arguments   respjson.Field
+		Name        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ChatCompletionMessageFunctionCall) RawJSON() string { return r.JSON.raw }
+func (r *ChatCompletionMessageFunctionCall) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func ChatCompletionMessageParamOfChatCompletionSystemMessage(content string, role ChatCompletionSystemMessageParamRole) ChatCompletionMessageParamUnion {
+	var variant ChatCompletionSystemMessageParam
+	variant.Content = content
+	variant.Role = role
+	return ChatCompletionMessageParamUnion{OfChatCompletionSystemMessage: &variant}
+}
+
+func ChatCompletionMessageParamOfChatCompletionMessageChatCompletionUserMessageParam[
+	T string | []ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion,
+](content T, role string) ChatCompletionMessageParamUnion {
+	var variant ChatCompletionMessageParamChatCompletionUserMessageParam
+	switch v := any(content).(type) {
+	case string:
+		variant.Content.OfString = param.NewOpt(v)
+	case []ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion:
+		variant.Content.OfChatCompletionMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray = v
+	}
+	variant.Role = role
+	return ChatCompletionMessageParamUnion{OfChatCompletionMessageChatCompletionUserMessageParam: &variant}
+}
+
+func ChatCompletionMessageParamOfChatCompletionMessageChatCompletionAssistantMessageParam(role string) ChatCompletionMessageParamUnion {
+	var variant ChatCompletionMessageParamChatCompletionAssistantMessageParam
+	variant.Role = role
+	return ChatCompletionMessageParamUnion{OfChatCompletionMessageChatCompletionAssistantMessageParam: &variant}
+}
+
+func ChatCompletionMessageParamOfChatCompletionToolMessage(content string, role ChatCompletionToolMessageParamRole, toolCallID string) ChatCompletionMessageParamUnion {
+	var variant ChatCompletionToolMessageParam
+	variant.Content = content
+	variant.Role = role
+	variant.ToolCallID = toolCallID
+	return ChatCompletionMessageParamUnion{OfChatCompletionToolMessage: &variant}
+}
+
+func ChatCompletionMessageParamOfChatCompletionFunctionMessage(content string, name string, role ChatCompletionFunctionMessageParamRole) ChatCompletionMessageParamUnion {
+	var variant ChatCompletionFunctionMessageParam
+	variant.Content = content
+	variant.Name = name
+	variant.Role = role
+	return ChatCompletionMessageParamUnion{OfChatCompletionFunctionMessage: &variant}
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type ChatCompletionMessageParamUnion struct {
+	OfChatCompletionSystemMessage                              *ChatCompletionSystemMessageParam                              `json:",omitzero,inline"`
+	OfChatCompletionMessageChatCompletionUserMessageParam      *ChatCompletionMessageParamChatCompletionUserMessageParam      `json:",omitzero,inline"`
+	OfChatCompletionMessageChatCompletionAssistantMessageParam *ChatCompletionMessageParamChatCompletionAssistantMessageParam `json:",omitzero,inline"`
+	OfChatCompletionToolMessage                                *ChatCompletionToolMessageParam                                `json:",omitzero,inline"`
+	OfChatCompletionFunctionMessage                            *ChatCompletionFunctionMessageParam                            `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u ChatCompletionMessageParamUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfChatCompletionSystemMessage,
+		u.OfChatCompletionMessageChatCompletionUserMessageParam,
+		u.OfChatCompletionMessageChatCompletionAssistantMessageParam,
+		u.OfChatCompletionToolMessage,
+		u.OfChatCompletionFunctionMessage)
+}
+func (u *ChatCompletionMessageParamUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *ChatCompletionMessageParamUnion) asAny() any {
+	if !param.IsOmitted(u.OfChatCompletionSystemMessage) {
+		return u.OfChatCompletionSystemMessage
+	} else if !param.IsOmitted(u.OfChatCompletionMessageChatCompletionUserMessageParam) {
+		return u.OfChatCompletionMessageChatCompletionUserMessageParam
+	} else if !param.IsOmitted(u.OfChatCompletionMessageChatCompletionAssistantMessageParam) {
+		return u.OfChatCompletionMessageChatCompletionAssistantMessageParam
+	} else if !param.IsOmitted(u.OfChatCompletionToolMessage) {
+		return u.OfChatCompletionToolMessage
+	} else if !param.IsOmitted(u.OfChatCompletionFunctionMessage) {
+		return u.OfChatCompletionFunctionMessage
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamUnion) GetFunctionCall() *ChatCompletionMessageParamChatCompletionAssistantMessageParamFunctionCall {
+	if vt := u.OfChatCompletionMessageChatCompletionAssistantMessageParam; vt != nil {
+		return &vt.FunctionCall
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamUnion) GetToolCalls() []ToolChoiceParam {
+	if vt := u.OfChatCompletionMessageChatCompletionAssistantMessageParam; vt != nil {
+		return vt.ToolCalls
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamUnion) GetToolCallID() *string {
+	if vt := u.OfChatCompletionToolMessage; vt != nil {
+		return &vt.ToolCallID
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamUnion) GetRole() *string {
+	if vt := u.OfChatCompletionSystemMessage; vt != nil {
+		return (*string)(&vt.Role)
+	} else if vt := u.OfChatCompletionMessageChatCompletionUserMessageParam; vt != nil {
+		return (*string)(&vt.Role)
+	} else if vt := u.OfChatCompletionMessageChatCompletionAssistantMessageParam; vt != nil {
+		return (*string)(&vt.Role)
+	} else if vt := u.OfChatCompletionToolMessage; vt != nil {
+		return (*string)(&vt.Role)
+	} else if vt := u.OfChatCompletionFunctionMessage; vt != nil {
+		return (*string)(&vt.Role)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamUnion) GetName() *string {
+	if vt := u.OfChatCompletionSystemMessage; vt != nil && vt.Name.Valid() {
+		return &vt.Name.Value
+	} else if vt := u.OfChatCompletionMessageChatCompletionUserMessageParam; vt != nil && vt.Name.Valid() {
+		return &vt.Name.Value
+	} else if vt := u.OfChatCompletionMessageChatCompletionAssistantMessageParam; vt != nil && vt.Name.Valid() {
+		return &vt.Name.Value
+	} else if vt := u.OfChatCompletionToolMessage; vt != nil && vt.Name.Valid() {
+		return &vt.Name.Value
+	} else if vt := u.OfChatCompletionFunctionMessage; vt != nil {
+		return (*string)(&vt.Name)
+	}
+	return nil
+}
+
+// Returns a subunion which exports methods to access subproperties
+//
+// Or use AsAny() to get the underlying value
+func (u ChatCompletionMessageParamUnion) GetContent() (res chatCompletionMessageParamUnionContent) {
+	if vt := u.OfChatCompletionSystemMessage; vt != nil {
+		res.any = &vt.Content
+	} else if vt := u.OfChatCompletionMessageChatCompletionUserMessageParam; vt != nil {
+		res.any = vt.Content.asAny()
+	} else if vt := u.OfChatCompletionMessageChatCompletionAssistantMessageParam; vt != nil && vt.Content.Valid() {
+		res.any = &vt.Content.Value
+	} else if vt := u.OfChatCompletionToolMessage; vt != nil {
+		res.any = &vt.Content
+	} else if vt := u.OfChatCompletionFunctionMessage; vt != nil {
+		res.any = &vt.Content
+	}
+	return
+}
+
+// Can have the runtime types [*string],
+// [\*[]ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion]
+type chatCompletionMessageParamUnionContent struct{ any }
+
+// Use the following switch statement to get the type of the union:
+//
+//	switch u.AsAny().(type) {
+//	case *string:
+//	case *[]together.ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion:
+//	default:
+//	    fmt.Errorf("not present")
+//	}
+func (u chatCompletionMessageParamUnionContent) AsAny() any { return u.any }
+
+// The properties Content, Role are required.
+type ChatCompletionMessageParamChatCompletionUserMessageParam struct {
+	// The content of the message, which can either be a simple string or a structured
+	// format.
+	Content ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion `json:"content,omitzero" api:"required"`
+	// Any of "user".
+	Role string            `json:"role,omitzero" api:"required"`
+	Name param.Opt[string] `json:"name,omitzero"`
+	paramObj
+}
+
+func (r ChatCompletionMessageParamChatCompletionUserMessageParam) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionMessageParamChatCompletionUserMessageParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionMessageParamChatCompletionUserMessageParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ChatCompletionMessageParamChatCompletionUserMessageParam](
+		"role", "user",
+	)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion struct {
+	OfString                                                                                                    param.Opt[string]                                                                                                    `json:",omitzero,inline"`
+	OfChatCompletionMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray []ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfString, u.OfChatCompletionMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray)
+}
+func (u *ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion) asAny() any {
+	if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	} else if !param.IsOmitted(u.OfChatCompletionMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray) {
+		return &u.OfChatCompletionMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray
+	}
+	return nil
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion struct {
+	OfChatCompletionStructuredMessageText     *ChatCompletionStructuredMessageTextParam                                                                                `json:",omitzero,inline"`
+	OfChatCompletionStructuredMessageImageURL *ChatCompletionStructuredMessageImageURLParam                                                                            `json:",omitzero,inline"`
+	OfVideo                                   *ChatCompletionStructuredMessageVideoURLParam                                                                            `json:",omitzero,inline"`
+	OfAudio                                   *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio      `json:",omitzero,inline"`
+	OfInputAudio                              *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfChatCompletionStructuredMessageText,
+		u.OfChatCompletionStructuredMessageImageURL,
+		u.OfVideo,
+		u.OfAudio,
+		u.OfInputAudio)
+}
+func (u *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) asAny() any {
+	if !param.IsOmitted(u.OfChatCompletionStructuredMessageText) {
+		return u.OfChatCompletionStructuredMessageText
+	} else if !param.IsOmitted(u.OfChatCompletionStructuredMessageImageURL) {
+		return u.OfChatCompletionStructuredMessageImageURL
+	} else if !param.IsOmitted(u.OfVideo) {
+		return u.OfVideo
+	} else if !param.IsOmitted(u.OfAudio) {
+		return u.OfAudio
+	} else if !param.IsOmitted(u.OfInputAudio) {
+		return u.OfInputAudio
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetText() *string {
+	if vt := u.OfChatCompletionStructuredMessageText; vt != nil {
+		return &vt.Text
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetImageURL() *ChatCompletionStructuredMessageImageURLImageURLParam {
+	if vt := u.OfChatCompletionStructuredMessageImageURL; vt != nil {
+		return &vt.ImageURL
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetVideoURL() *ChatCompletionStructuredMessageVideoURLVideoURLParam {
+	if vt := u.OfVideo; vt != nil {
+		return &vt.VideoURL
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetAudioURL() *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL {
+	if vt := u.OfAudio; vt != nil {
+		return &vt.AudioURL
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetInputAudio() *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio {
+	if vt := u.OfInputAudio; vt != nil {
+		return &vt.InputAudio
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetType() *string {
+	if vt := u.OfChatCompletionStructuredMessageText; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfChatCompletionStructuredMessageImageURL; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfVideo; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfAudio; vt != nil {
+		return (*string)(&vt.Type)
+	} else if vt := u.OfInputAudio; vt != nil {
+		return (*string)(&vt.Type)
+	}
+	return nil
+}
+
+// The properties AudioURL, Type are required.
+type ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio struct {
+	AudioURL ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL `json:"audio_url,omitzero" api:"required"`
+	// Any of "audio_url".
+	Type string `json:"type,omitzero" api:"required"`
+	paramObj
+}
+
+func (r ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio](
+		"type", "audio_url",
+	)
+}
+
+// The property URL is required.
+type ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL struct {
+	// The URL of the audio
+	URL string `json:"url" api:"required"`
+	paramObj
+}
+
+func (r ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties InputAudio, Type are required.
+type ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio struct {
+	InputAudio ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio `json:"input_audio,omitzero" api:"required"`
+	// Any of "input_audio".
+	Type string `json:"type,omitzero" api:"required"`
+	paramObj
+}
+
+func (r ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio](
+		"type", "input_audio",
+	)
+}
+
+// The properties Data, Format are required.
+type ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio struct {
+	// The base64 encoded audio data
+	Data string `json:"data" api:"required"`
+	// The format of the audio data
+	//
+	// Any of "wav".
+	Format string `json:"format,omitzero" api:"required"`
+	paramObj
+}
+
+func (r ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ChatCompletionMessageParamChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio](
+		"format", "wav",
+	)
+}
+
+// The property Role is required.
+type ChatCompletionMessageParamChatCompletionAssistantMessageParam struct {
+	// Any of "assistant".
+	Role    string            `json:"role,omitzero" api:"required"`
+	Content param.Opt[string] `json:"content,omitzero"`
+	Name    param.Opt[string] `json:"name,omitzero"`
+	// Deprecated: deprecated
+	FunctionCall ChatCompletionMessageParamChatCompletionAssistantMessageParamFunctionCall `json:"function_call,omitzero"`
+	ToolCalls    []ToolChoiceParam                                                         `json:"tool_calls,omitzero"`
+	paramObj
+}
+
+func (r ChatCompletionMessageParamChatCompletionAssistantMessageParam) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionMessageParamChatCompletionAssistantMessageParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionMessageParamChatCompletionAssistantMessageParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ChatCompletionMessageParamChatCompletionAssistantMessageParam](
+		"role", "assistant",
+	)
+}
+
+// Deprecated: deprecated
+//
+// The properties Arguments, Name are required.
+type ChatCompletionMessageParamChatCompletionAssistantMessageParamFunctionCall struct {
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
+	paramObj
+}
+
+func (r ChatCompletionMessageParamChatCompletionAssistantMessageParamFunctionCall) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionMessageParamChatCompletionAssistantMessageParamFunctionCall
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionMessageParamChatCompletionAssistantMessageParamFunctionCall) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -388,6 +859,53 @@ func (r *ChatCompletionStructuredMessageVideoURLVideoURLParam) UnmarshalJSON(dat
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// The properties Content, Role are required.
+type ChatCompletionSystemMessageParam struct {
+	Content string `json:"content" api:"required"`
+	// Any of "system".
+	Role ChatCompletionSystemMessageParamRole `json:"role,omitzero" api:"required"`
+	Name param.Opt[string]                    `json:"name,omitzero"`
+	paramObj
+}
+
+func (r ChatCompletionSystemMessageParam) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionSystemMessageParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionSystemMessageParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ChatCompletionSystemMessageParamRole string
+
+const (
+	ChatCompletionSystemMessageParamRoleSystem ChatCompletionSystemMessageParamRole = "system"
+)
+
+// The properties Content, Role, ToolCallID are required.
+type ChatCompletionToolMessageParam struct {
+	Content string `json:"content" api:"required"`
+	// Any of "tool".
+	Role       ChatCompletionToolMessageParamRole `json:"role,omitzero" api:"required"`
+	ToolCallID string                             `json:"tool_call_id" api:"required"`
+	Name       param.Opt[string]                  `json:"name,omitzero"`
+	paramObj
+}
+
+func (r ChatCompletionToolMessageParam) MarshalJSON() (data []byte, err error) {
+	type shadow ChatCompletionToolMessageParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ChatCompletionToolMessageParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ChatCompletionToolMessageParamRole string
+
+const (
+	ChatCompletionToolMessageParamRoleTool ChatCompletionToolMessageParamRole = "tool"
+)
+
 type ChatCompletionUsage struct {
 	CompletionTokens int64 `json:"completion_tokens" api:"required"`
 	PromptTokens     int64 `json:"prompt_tokens" api:"required"`
@@ -426,7 +944,7 @@ func (r *ChatCompletionWarning) UnmarshalJSON(data []byte) error {
 
 type ChatCompletionNewParams struct {
 	// A list of messages comprising the conversation so far.
-	Messages []ChatCompletionNewParamsMessageUnion `json:"messages,omitzero" api:"required"`
+	Messages []ChatCompletionMessageParamUnion `json:"messages,omitzero" api:"required"`
 	// The name of the model to query.
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
@@ -529,475 +1047,6 @@ func (r ChatCompletionNewParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *ChatCompletionNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-// Only one field can be non-zero.
-//
-// Use [param.IsOmitted] to confirm if a field is set.
-type ChatCompletionNewParamsMessageUnion struct {
-	OfChatCompletionNewsMessageChatCompletionSystemMessageParam    *ChatCompletionNewParamsMessageChatCompletionSystemMessageParam    `json:",omitzero,inline"`
-	OfChatCompletionNewsMessageChatCompletionUserMessageParam      *ChatCompletionNewParamsMessageChatCompletionUserMessageParam      `json:",omitzero,inline"`
-	OfChatCompletionNewsMessageChatCompletionAssistantMessageParam *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam `json:",omitzero,inline"`
-	OfChatCompletionNewsMessageChatCompletionToolMessageParam      *ChatCompletionNewParamsMessageChatCompletionToolMessageParam      `json:",omitzero,inline"`
-	OfChatCompletionNewsMessageChatCompletionFunctionMessageParam  *ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam  `json:",omitzero,inline"`
-	paramUnion
-}
-
-func (u ChatCompletionNewParamsMessageUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionUserMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionToolMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam)
-}
-func (u *ChatCompletionNewParamsMessageUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, u)
-}
-
-func (u *ChatCompletionNewParamsMessageUnion) asAny() any {
-	if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam) {
-		return u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam
-	} else if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionUserMessageParam) {
-		return u.OfChatCompletionNewsMessageChatCompletionUserMessageParam
-	} else if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam) {
-		return u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam
-	} else if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionToolMessageParam) {
-		return u.OfChatCompletionNewsMessageChatCompletionToolMessageParam
-	} else if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam) {
-		return u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageUnion) GetFunctionCall() *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall {
-	if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil {
-		return &vt.FunctionCall
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageUnion) GetToolCalls() []ToolChoiceParam {
-	if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil {
-		return vt.ToolCalls
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageUnion) GetToolCallID() *string {
-	if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil {
-		return &vt.ToolCallID
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageUnion) GetRole() *string {
-	if vt := u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam; vt != nil {
-		return (*string)(&vt.Role)
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionUserMessageParam; vt != nil {
-		return (*string)(&vt.Role)
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil {
-		return (*string)(&vt.Role)
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil {
-		return (*string)(&vt.Role)
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam; vt != nil {
-		return (*string)(&vt.Role)
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageUnion) GetName() *string {
-	if vt := u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam; vt != nil && vt.Name.Valid() {
-		return &vt.Name.Value
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionUserMessageParam; vt != nil && vt.Name.Valid() {
-		return &vt.Name.Value
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil && vt.Name.Valid() {
-		return &vt.Name.Value
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil && vt.Name.Valid() {
-		return &vt.Name.Value
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam; vt != nil {
-		return (*string)(&vt.Name)
-	}
-	return nil
-}
-
-// Returns a subunion which exports methods to access subproperties
-//
-// Or use AsAny() to get the underlying value
-func (u ChatCompletionNewParamsMessageUnion) GetContent() (res chatCompletionNewParamsMessageUnionContent) {
-	if vt := u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam; vt != nil {
-		res.any = &vt.Content
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionUserMessageParam; vt != nil {
-		res.any = vt.Content.asAny()
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil && vt.Content.Valid() {
-		res.any = &vt.Content.Value
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil {
-		res.any = &vt.Content
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam; vt != nil {
-		res.any = &vt.Content
-	}
-	return
-}
-
-// Can have the runtime types [*string],
-// [\*[]ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion]
-type chatCompletionNewParamsMessageUnionContent struct{ any }
-
-// Use the following switch statement to get the type of the union:
-//
-//	switch u.AsAny().(type) {
-//	case *string:
-//	case *[]together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion:
-//	default:
-//	    fmt.Errorf("not present")
-//	}
-func (u chatCompletionNewParamsMessageUnionContent) AsAny() any { return u.any }
-
-// The properties Content, Role are required.
-type ChatCompletionNewParamsMessageChatCompletionSystemMessageParam struct {
-	Content string `json:"content" api:"required"`
-	// Any of "system".
-	Role string            `json:"role,omitzero" api:"required"`
-	Name param.Opt[string] `json:"name,omitzero"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionSystemMessageParam) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionSystemMessageParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionSystemMessageParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionSystemMessageParam](
-		"role", "system",
-	)
-}
-
-// The properties Content, Role are required.
-type ChatCompletionNewParamsMessageChatCompletionUserMessageParam struct {
-	// The content of the message, which can either be a simple string or a structured
-	// format.
-	Content ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion `json:"content,omitzero" api:"required"`
-	// Any of "user".
-	Role string            `json:"role,omitzero" api:"required"`
-	Name param.Opt[string] `json:"name,omitzero"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionUserMessageParam) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionUserMessageParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionUserMessageParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionUserMessageParam](
-		"role", "user",
-	)
-}
-
-// Only one field can be non-zero.
-//
-// Use [param.IsOmitted] to confirm if a field is set.
-type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion struct {
-	OfString                                                                                                        param.Opt[string]                                                                                                        `json:",omitzero,inline"`
-	OfChatCompletionNewsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray []ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion `json:",omitzero,inline"`
-	paramUnion
-}
-
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfString, u.OfChatCompletionNewsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray)
-}
-func (u *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, u)
-}
-
-func (u *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion) asAny() any {
-	if !param.IsOmitted(u.OfString) {
-		return &u.OfString.Value
-	} else if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray) {
-		return &u.OfChatCompletionNewsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalArray
-	}
-	return nil
-}
-
-// Only one field can be non-zero.
-//
-// Use [param.IsOmitted] to confirm if a field is set.
-type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion struct {
-	OfChatCompletionStructuredMessageText     *ChatCompletionStructuredMessageTextParam                                                                                    `json:",omitzero,inline"`
-	OfChatCompletionStructuredMessageImageURL *ChatCompletionStructuredMessageImageURLParam                                                                                `json:",omitzero,inline"`
-	OfVideo                                   *ChatCompletionStructuredMessageVideoURLParam                                                                                `json:",omitzero,inline"`
-	OfAudio                                   *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio      `json:",omitzero,inline"`
-	OfInputAudio                              *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio `json:",omitzero,inline"`
-	paramUnion
-}
-
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfChatCompletionStructuredMessageText,
-		u.OfChatCompletionStructuredMessageImageURL,
-		u.OfVideo,
-		u.OfAudio,
-		u.OfInputAudio)
-}
-func (u *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, u)
-}
-
-func (u *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) asAny() any {
-	if !param.IsOmitted(u.OfChatCompletionStructuredMessageText) {
-		return u.OfChatCompletionStructuredMessageText
-	} else if !param.IsOmitted(u.OfChatCompletionStructuredMessageImageURL) {
-		return u.OfChatCompletionStructuredMessageImageURL
-	} else if !param.IsOmitted(u.OfVideo) {
-		return u.OfVideo
-	} else if !param.IsOmitted(u.OfAudio) {
-		return u.OfAudio
-	} else if !param.IsOmitted(u.OfInputAudio) {
-		return u.OfInputAudio
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetText() *string {
-	if vt := u.OfChatCompletionStructuredMessageText; vt != nil {
-		return &vt.Text
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetImageURL() *ChatCompletionStructuredMessageImageURLImageURLParam {
-	if vt := u.OfChatCompletionStructuredMessageImageURL; vt != nil {
-		return &vt.ImageURL
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetVideoURL() *ChatCompletionStructuredMessageVideoURLVideoURLParam {
-	if vt := u.OfVideo; vt != nil {
-		return &vt.VideoURL
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetAudioURL() *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL {
-	if vt := u.OfAudio; vt != nil {
-		return &vt.AudioURL
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetInputAudio() *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio {
-	if vt := u.OfInputAudio; vt != nil {
-		return &vt.InputAudio
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemUnion) GetType() *string {
-	if vt := u.OfChatCompletionStructuredMessageText; vt != nil {
-		return (*string)(&vt.Type)
-	} else if vt := u.OfChatCompletionStructuredMessageImageURL; vt != nil {
-		return (*string)(&vt.Type)
-	} else if vt := u.OfVideo; vt != nil {
-		return (*string)(&vt.Type)
-	} else if vt := u.OfAudio; vt != nil {
-		return (*string)(&vt.Type)
-	} else if vt := u.OfInputAudio; vt != nil {
-		return (*string)(&vt.Type)
-	}
-	return nil
-}
-
-// The properties AudioURL, Type are required.
-type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio struct {
-	AudioURL ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL `json:"audio_url,omitzero" api:"required"`
-	// Any of "audio_url".
-	Type string `json:"type,omitzero" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio](
-		"type", "audio_url",
-	)
-}
-
-// The property URL is required.
-type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL struct {
-	// The URL of the audio
-	URL string `json:"url" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// The properties InputAudio, Type are required.
-type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio struct {
-	InputAudio ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio `json:"input_audio,omitzero" api:"required"`
-	// Any of "input_audio".
-	Type string `json:"type,omitzero" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio](
-		"type", "input_audio",
-	)
-}
-
-// The properties Data, Format are required.
-type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio struct {
-	// The base64 encoded audio data
-	Data string `json:"data" api:"required"`
-	// The format of the audio data
-	//
-	// Any of "wav".
-	Format string `json:"format,omitzero" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio](
-		"format", "wav",
-	)
-}
-
-// The property Role is required.
-type ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam struct {
-	// Any of "assistant".
-	Role    string            `json:"role,omitzero" api:"required"`
-	Content param.Opt[string] `json:"content,omitzero"`
-	Name    param.Opt[string] `json:"name,omitzero"`
-	// Deprecated: deprecated
-	FunctionCall ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall `json:"function_call,omitzero"`
-	ToolCalls    []ToolChoiceParam                                                             `json:"tool_calls,omitzero"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam](
-		"role", "assistant",
-	)
-}
-
-// Deprecated: deprecated
-//
-// The properties Arguments, Name are required.
-type ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall struct {
-	Arguments string `json:"arguments" api:"required"`
-	Name      string `json:"name" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// The properties Content, Role, ToolCallID are required.
-type ChatCompletionNewParamsMessageChatCompletionToolMessageParam struct {
-	Content string `json:"content" api:"required"`
-	// Any of "tool".
-	Role       string            `json:"role,omitzero" api:"required"`
-	ToolCallID string            `json:"tool_call_id" api:"required"`
-	Name       param.Opt[string] `json:"name,omitzero"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionToolMessageParam) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionToolMessageParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionToolMessageParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionToolMessageParam](
-		"role", "tool",
-	)
-}
-
-// Deprecated: deprecated
-//
-// The properties Content, Name, Role are required.
-type ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam struct {
-	Content string `json:"content" api:"required"`
-	Name    string `json:"name" api:"required"`
-	// Any of "function".
-	Role string `json:"role,omitzero" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam](
-		"role", "function",
-	)
 }
 
 type ChatCompletionNewParamsCompliance string
