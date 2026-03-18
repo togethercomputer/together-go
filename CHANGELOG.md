@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.7.0 (2026-03-18)
+
+Full Changelog: [v0.6.0...v0.7.0](https://github.com/togethercomputer/together-go/compare/v0.6.0...v0.7.0)
+
+### Features
+
+* Add FT models supported and limits ([c299db3](https://github.com/togethercomputer/together-go/commit/c299db32814c19794a9fd81fd7d14be71c65e509))
+* Add typing for completion responses related to logprobs ([ed0ae2e](https://github.com/togethercomputer/together-go/commit/ed0ae2eb91f3789476aeba3fbfeb691b1263ae12))
+* Add wandb_entity argument to OpenAPI definition ([e833437](https://github.com/togethercomputer/together-go/commit/e83343798d197bc69af5a50841be736ae4ead573))
+* Another try ([e584a5d](https://github.com/togethercomputer/together-go/commit/e584a5d7f560c34e6e496dc05f96d9ecc13c2068))
+* **api:** add prompt/logprobs, deployment autoscaling, volume versions, update types ([cdf2388](https://github.com/togethercomputer/together-go/commit/cdf23885bb432ae78460048efb795b0522cc799a))
+* **api:** manual updates ([ee38d2e](https://github.com/togethercomputer/together-go/commit/ee38d2e91cc9a47bc80135b25cd6a533767c7f86))
+* **api:** manual updates ([5cae13e](https://github.com/togethercomputer/together-go/commit/5cae13e3460ecf2f11769926aeb1ceb715c0a8c1))
+* Change TrainingType default to null ([86cc65b](https://github.com/togethercomputer/together-go/commit/86cc65bd1d94aeeb947d2b9dd7856c96305aa64f))
+* ENG-82904 - chore: update ReplicaEvent schema ([2815447](https://github.com/togethercomputer/together-go/commit/2815447a093c23cd243856f867da509fe15b0074))
+* update deployments schemas to include volume versions ([8399e2a](https://github.com/togethercomputer/together-go/commit/8399e2abe9961742265841d057a667135297da46))
+* Update descriptions for endpoints ([6bb2632](https://github.com/togethercomputer/together-go/commit/6bb26328effc8b75f0422d05ae5d0a9c41c2e68f))
+* Update llama 3.1 8b w/ qwen 3.5 9b ([ac9b739](https://github.com/togethercomputer/together-go/commit/ac9b7390d026e6381d0dd7b77347541c9065016c))
+* Update training type for price estimation too ([2b6ab8d](https://github.com/togethercomputer/together-go/commit/2b6ab8df9ded19ddf521661f142f906b8e1653dc))
+
+
+### Bug Fixes
+
+* allow canceling a request while it is waiting to retry ([10fc09d](https://github.com/togethercomputer/together-go/commit/10fc09d4d82fa9b820d183ab8446ad9ee581fb17))
+* **encoder:** correctly serialize NullStruct ([46324f4](https://github.com/togethercomputer/together-go/commit/46324f4f32d3dc27e146772dd381f5d3cb471af1))
+* fix request delays for retrying to be more respectful of high requested delays ([04d14ac](https://github.com/togethercomputer/together-go/commit/04d14ac6650516ac2e822fbf7e9c8cb83cd855c9))
+* fixed autoscaling configs in deployments api ([54f42d7](https://github.com/togethercomputer/together-go/commit/54f42d7d5c546bd5f9e2f798939d6e9982c038d7))
+* **types:** change model parameter from enum to string in chat completions ([af7e413](https://github.com/togethercomputer/together-go/commit/af7e41314ad39d913ee7e364575406eb25b33ad8))
+
+
+### Chores
+
+* **ci:** add build step ([55ef9b9](https://github.com/togethercomputer/together-go/commit/55ef9b9a01592f36c5c779b2082df0742ac4dccf))
+* **ci:** skip uploading artifacts on stainless-internal branches ([c76f6dd](https://github.com/togethercomputer/together-go/commit/c76f6dd501a1aa57424b9af2348457ea09eb3b27))
+* cleanup ([bdcc868](https://github.com/togethercomputer/together-go/commit/bdcc868555d20388ad10f32425f93ecf4fc67107))
+* configure new SDK language ([6c79829](https://github.com/togethercomputer/together-go/commit/6c79829db68f9ba8096eaa78b70169a67c0fc066))
+* Fix various docstrings ([073e049](https://github.com/togethercomputer/together-go/commit/073e049152b1bf1f71b6e3efaac5282a310b4264))
+* **internal:** minor cleanup ([8544de3](https://github.com/togethercomputer/together-go/commit/8544de3feca20a5bc68519e2a3cdf23af05803e7))
+* **internal:** move custom custom `json` tags to `api` ([2e475b1](https://github.com/togethercomputer/together-go/commit/2e475b10b3b0db0450d446a66aea6a32fd52f779))
+* **internal:** tweak CI branches ([3960386](https://github.com/togethercomputer/together-go/commit/3960386040050b52b5d136dfc8ac7c53bd2125c5))
+* **internal:** use explicit returns ([0f0700c](https://github.com/togethercomputer/together-go/commit/0f0700c3d23303b57c08ad49131d83dbd8241aa4))
+* **internal:** use explicit returns in more places ([e45f8bf](https://github.com/togethercomputer/together-go/commit/e45f8bfbfa3c26e537294b65373a5d25bffa72ef))
+* Remove broken field LineCount from FileResponse ([edc9a75](https://github.com/togethercomputer/together-go/commit/edc9a75292cc39418db21785dd9db1f340a1edba))
+* Revert adding mcp code. Code additions were unexpected. ([263b5e7](https://github.com/togethercomputer/together-go/commit/263b5e7d2be2cd85dc0ecf2553281ee3d6c22860))
+* **test:** do not count install time for mock server timeout ([cbdcb67](https://github.com/togethercomputer/together-go/commit/cbdcb6779ae735ff38b47914a4b5b3773dc4e64f))
+* Update descriptions for jig queue methods and properties ([a2b6f16](https://github.com/togethercomputer/together-go/commit/a2b6f1683ce80a5848048a2b8195cf7589bdf8ab))
+* update mock server docs ([7ba88b6](https://github.com/togethercomputer/together-go/commit/7ba88b6e87e8739c7a53741dea444708a2188e11))
+* update placeholder string ([635d478](https://github.com/togethercomputer/together-go/commit/635d478466ba8f3f7c9c422632707c186a06ff32))
+
 ## 0.6.0 (2026-01-31)
 
 Full Changelog: [v0.5.0...v0.6.0](https://github.com/togethercomputer/together-go/compare/v0.5.0...v0.6.0)
