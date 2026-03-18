@@ -69,8 +69,8 @@ type Completion struct {
 	// When `echo` is true, the prompt is included in the response. Additionally, when
 	// `logprobs` is also provided, log probability information is provided on the
 	// prompt.
-	Prompt []CompletionPrompt  `json:"prompt" api:"required"`
-	Usage  ChatCompletionUsage `json:"usage" api:"required"`
+	Prompt ChatCompletionPrompt `json:"prompt" api:"required"`
+	Usage  ChatCompletionUsage  `json:"usage" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -111,24 +111,6 @@ type CompletionChoice struct {
 // Returns the unmodified JSON received from the API
 func (r CompletionChoice) RawJSON() string { return r.JSON.raw }
 func (r *CompletionChoice) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type CompletionPrompt struct {
-	Logprobs LogProbs `json:"logprobs"`
-	Text     string   `json:"text"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Logprobs    respjson.Field
-		Text        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r CompletionPrompt) RawJSON() string { return r.JSON.raw }
-func (r *CompletionPrompt) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
