@@ -25,10 +25,10 @@ func TestUsage(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionNewParamsMessageUnion{{
-			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
+		Messages: []together.ChatCompletionMessageParamUnion{{
+			OfChatCompletionMessageChatCompletionUserMessageParam: &together.ChatCompletionMessageParamChatCompletionUserMessageParam{
 				Role: "user",
-				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+				Content: together.ChatCompletionMessageParamChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test!"),
 				},
 			},
