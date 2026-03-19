@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
@@ -35,68 +36,91 @@ func NewBetaJigQueueService(opts ...option.RequestOption) (r BetaJigQueueService
 	return
 }
 
-// Check the status of a job using request_id and model query parameters.
+// Poll the current status of a previously submitted job. Provide the request_id
+// and model as query parameters.
 func (r *BetaJigQueueService) Get(ctx context.Context, query BetaJigQueueGetParams, opts ...option.RequestOption) (res *BetaJigQueueGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/status"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
-// Cancel a pending or running job. Returns the job status after the cancellation
-// attempt.
+// Cancel a pending job. Only jobs in pending status can be canceled. Running jobs
+// cannot be stopped. Returns the job status after the attempt. If the job is not
+// pending, returns 409 with the current status unchanged.
 func (r *BetaJigQueueService) Cancel(ctx context.Context, body BetaJigQueueCancelParams, opts ...option.RequestOption) (res *BetaJigQueueCancelResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/cancel"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
-// Get the current queue statistics including pending and running job counts.
+// Get the current queue statistics for a model, including pending and running job
+// counts.
 func (r *BetaJigQueueService) Metrics(ctx context.Context, query BetaJigQueueMetricsParams, opts ...option.RequestOption) (res *BetaJigQueueMetricsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/metrics"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
-// Submit a new job to the queue. Returns a request ID that can be used to check
-// status.
+// Submit a new job to the queue for asynchronous processing. Jobs are processed in
+// strict priority order (higher priority first, FIFO within the same priority).
+// Returns a request ID that can be used to poll status or cancel the job.
 func (r *BetaJigQueueService) Submit(ctx context.Context, body BetaJigQueueSubmitParams, opts ...option.RequestOption) (res *BetaJigQueueSubmitResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "queue/submit"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type BetaJigQueueGetResponse struct {
-	ClaimedAt string         `json:"claimed_at"`
-	CreatedAt string         `json:"created_at"`
-	DoneAt    string         `json:"done_at"`
-	Info      map[string]any `json:"info"`
-	Inputs    map[string]any `json:"inputs"`
-	Model     string         `json:"model"`
-	Outputs   map[string]any `json:"outputs"`
-	// Additional fields for test compatibility
-	Priority  int64  `json:"priority"`
-	RequestID string `json:"request_id"`
-	Retries   int64  `json:"retries"`
-	// this should be the enum, but isn't for backwards compatability
-	Status   string   `json:"status"`
+	// Model identifier the job was submitted to
+	Model string `json:"model" api:"required"`
+	// The request ID that was returned from the submit endpoint
+	RequestID string `json:"request_id" api:"required"`
+	// Current job status. Transitions: pending → running → done/failed. A pending job
+	// may also be canceled.
+	//
+	// Any of "pending", "running", "done", "failed", "canceled".
+	Status BetaJigQueueGetResponseStatus `json:"status" api:"required"`
+	// Timestamp when a worker claimed the job
+	ClaimedAt time.Time `json:"claimed_at" format:"date-time"`
+	// Timestamp when the job was created
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
+	// Timestamp when the job completed (done or failed)
+	DoneAt time.Time `json:"done_at" format:"date-time"`
+	// Job metadata. Contains keys from the submit request, plus any modifications from
+	// the model or system (e.g. progress, retry history).
+	Info map[string]any `json:"info"`
+	// Freeform model input, as submitted
+	Inputs map[string]any `json:"inputs"`
+	// Freeform model output, populated when the job reaches done status. Contents are
+	// model-specific.
+	Outputs map[string]any `json:"outputs"`
+	// Job priority. Higher values are processed first.
+	Priority int64 `json:"priority"`
+	// Number of times this job has been retried. Workers set a claim timeout and must
+	// send periodic status updates to keep the job alive. If no update is received
+	// within the timeout, the job is returned to the queue and retried. After 3
+	// retries the job is permanently failed. Jobs explicitly failed by the model are
+	// not retried.
+	Retries int64 `json:"retries"`
+	// Non-fatal messages about the request (e.g. deprecation notices)
 	Warnings []string `json:"warnings"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		Model       respjson.Field
+		RequestID   respjson.Field
+		Status      respjson.Field
 		ClaimedAt   respjson.Field
 		CreatedAt   respjson.Field
 		DoneAt      respjson.Field
 		Info        respjson.Field
 		Inputs      respjson.Field
-		Model       respjson.Field
 		Outputs     respjson.Field
 		Priority    respjson.Field
-		RequestID   respjson.Field
 		Retries     respjson.Field
-		Status      respjson.Field
 		Warnings    respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
@@ -109,8 +133,24 @@ func (r *BetaJigQueueGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Current job status. Transitions: pending → running → done/failed. A pending job
+// may also be canceled.
+type BetaJigQueueGetResponseStatus string
+
+const (
+	BetaJigQueueGetResponseStatusPending  BetaJigQueueGetResponseStatus = "pending"
+	BetaJigQueueGetResponseStatusRunning  BetaJigQueueGetResponseStatus = "running"
+	BetaJigQueueGetResponseStatusDone     BetaJigQueueGetResponseStatus = "done"
+	BetaJigQueueGetResponseStatusFailed   BetaJigQueueGetResponseStatus = "failed"
+	BetaJigQueueGetResponseStatusCanceled BetaJigQueueGetResponseStatus = "canceled"
+)
+
 type BetaJigQueueCancelResponse struct {
-	Status string `json:"status"`
+	// Job status after the cancel attempt. Only pending jobs can be canceled. If the
+	// job is already running, done, or failed, the status is returned unchanged.
+	//
+	// Any of "canceled", "running", "done", "failed".
+	Status BetaJigQueueCancelResponseStatus `json:"status" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Status      respjson.Field
@@ -125,11 +165,44 @@ func (r *BetaJigQueueCancelResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaJigQueueMetricsResponse map[string]any
+// Job status after the cancel attempt. Only pending jobs can be canceled. If the
+// job is already running, done, or failed, the status is returned unchanged.
+type BetaJigQueueCancelResponseStatus string
+
+const (
+	BetaJigQueueCancelResponseStatusCanceled BetaJigQueueCancelResponseStatus = "canceled"
+	BetaJigQueueCancelResponseStatusRunning  BetaJigQueueCancelResponseStatus = "running"
+	BetaJigQueueCancelResponseStatusDone     BetaJigQueueCancelResponseStatus = "done"
+	BetaJigQueueCancelResponseStatusFailed   BetaJigQueueCancelResponseStatus = "failed"
+)
+
+type BetaJigQueueMetricsResponse struct {
+	// Number of jobs currently being processed
+	MessagesRunning int64 `json:"messages_running" api:"required"`
+	// Number of jobs waiting to be claimed by a worker
+	MessagesWaiting int64 `json:"messages_waiting" api:"required"`
+	// Total number of active jobs (waiting + running)
+	TotalJobs int64 `json:"total_jobs" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MessagesRunning respjson.Field
+		MessagesWaiting respjson.Field
+		TotalJobs       respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigQueueMetricsResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigQueueMetricsResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 type BetaJigQueueSubmitResponse struct {
-	Error     BetaJigQueueSubmitResponseError `json:"error"`
-	RequestID string                          `json:"requestId"`
+	Error BetaJigQueueSubmitResponseError `json:"error"`
+	// Unique identifier for the submitted job. Use this to poll status or cancel.
+	RequestID string `json:"requestId"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Error       respjson.Field
@@ -146,10 +219,14 @@ func (r *BetaJigQueueSubmitResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaJigQueueSubmitResponseError struct {
-	Code    string `json:"code"`
+	// Machine-readable error code
+	Code string `json:"code"`
+	// Human-readable error message
 	Message string `json:"message"`
-	Param   string `json:"param"`
-	Type    string `json:"type"`
+	// The parameter that caused the error, if applicable
+	Param string `json:"param"`
+	// Error category (e.g. "invalid_request_error", "not_found_error")
+	Type string `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Code        respjson.Field
@@ -168,10 +245,10 @@ func (r *BetaJigQueueSubmitResponseError) UnmarshalJSON(data []byte) error {
 }
 
 type BetaJigQueueGetParams struct {
-	// Model name
-	Model string `query:"model,required" json:"-"`
-	// Request ID
-	RequestID string `query:"request_id,required" json:"-"`
+	// Model name the job was submitted to
+	Model string `query:"model" api:"required" json:"-"`
+	// Request ID returned from the submit endpoint
+	RequestID string `query:"request_id" api:"required" json:"-"`
 	paramObj
 }
 
@@ -184,8 +261,10 @@ func (r BetaJigQueueGetParams) URLQuery() (v url.Values, err error) {
 }
 
 type BetaJigQueueCancelParams struct {
-	Model     string `json:"model,required"`
-	RequestID string `json:"request_id,required"`
+	// Model identifier the job was submitted to
+	Model string `json:"model" api:"required"`
+	// The request ID returned from the submit endpoint
+	RequestID string `json:"request_id" api:"required"`
 	paramObj
 }
 
@@ -199,7 +278,7 @@ func (r *BetaJigQueueCancelParams) UnmarshalJSON(data []byte) error {
 
 type BetaJigQueueMetricsParams struct {
 	// Model name to get metrics for
-	Model string `query:"model,required" json:"-"`
+	Model string `query:"model" api:"required" json:"-"`
 	paramObj
 }
 
@@ -214,10 +293,16 @@ func (r BetaJigQueueMetricsParams) URLQuery() (v url.Values, err error) {
 
 type BetaJigQueueSubmitParams struct {
 	// Required model identifier
-	Model    string           `json:"model,required"`
-	Payload  map[string]any   `json:"payload,omitzero,required"`
+	Model string `json:"model" api:"required"`
+	// Freeform model input. Passed unchanged to the model. Contents are
+	// model-specific.
+	Payload map[string]any `json:"payload,omitzero" api:"required"`
+	// Job priority. Higher values are processed first (strict priority ordering). Jobs
+	// with equal priority are processed in submission order (FIFO).
 	Priority param.Opt[int64] `json:"priority,omitzero"`
-	Info     map[string]any   `json:"info,omitzero"`
+	// Arbitrary JSON metadata stored with the job and returned in status responses.
+	// The model and system may add or update keys during processing.
+	Info map[string]any `json:"info,omitzero"`
 	paramObj
 }
 

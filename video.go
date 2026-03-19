@@ -41,7 +41,7 @@ func (r *VideoService) New(ctx context.Context, body VideoNewParams, opts ...opt
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.xyz/v2/")}, opts...)
 	path := "videos"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Fetch video metadata
@@ -50,29 +50,29 @@ func (r *VideoService) Get(ctx context.Context, id string, opts ...option.Reques
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.xyz/v2/")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("videos/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Structured information describing a generated video job.
 type VideoJob struct {
 	// Unique identifier for the video job.
-	ID string `json:"id,required"`
+	ID string `json:"id" api:"required"`
 	// Unix timestamp (seconds) for when the job was created.
-	CreatedAt float64 `json:"created_at,required"`
+	CreatedAt float64 `json:"created_at" api:"required"`
 	// The video generation model that produced the job.
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Duration of the generated clip in seconds.
-	Seconds string `json:"seconds,required"`
+	Seconds string `json:"seconds" api:"required"`
 	// The resolution of the generated video.
-	Size string `json:"size,required"`
+	Size string `json:"size" api:"required"`
 	// Current lifecycle status of the video job.
 	//
 	// Any of "in_progress", "completed", "failed".
-	Status VideoJobStatus `json:"status,required"`
+	Status VideoJobStatus `json:"status" api:"required"`
 	// Unix timestamp (seconds) for when the job completed, if finished.
 	CompletedAt float64 `json:"completed_at"`
 	// Error payload that explains why generation failed, if applicable.
@@ -118,7 +118,7 @@ const (
 
 // Error payload that explains why generation failed, if applicable.
 type VideoJobError struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	Code    string `json:"code"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -146,9 +146,9 @@ const (
 // url to access the video
 type VideoJobOutputs struct {
 	// The cost of generated video charged to the owners account.
-	Cost int64 `json:"cost,required"`
+	Cost int64 `json:"cost" api:"required"`
 	// URL hosting the generated video
-	VideoURL string `json:"video_url,required"`
+	VideoURL string `json:"video_url" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Cost        respjson.Field
@@ -166,7 +166,7 @@ func (r *VideoJobOutputs) UnmarshalJSON(data []byte) error {
 
 type VideoNewParams struct {
 	// The model to be used for the video creation request.
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Frames per second. Defaults to 24.
 	Fps param.Opt[int64] `json:"fps,omitzero"`
 	// Controls how closely the video generation follows your prompt. Higher values
@@ -217,7 +217,7 @@ func (r *VideoNewParams) UnmarshalJSON(data []byte) error {
 // The property InputImage is required.
 type VideoNewParamsFrameImage struct {
 	// URL path to hosted image that is used for a frame
-	InputImage string `json:"input_image,required"`
+	InputImage string `json:"input_image" api:"required"`
 	// Optional param to specify where to insert the frame. If this is omitted, the
 	// following heuristics are applied:
 	//

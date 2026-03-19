@@ -14,6 +14,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // ModelService contains methods and other services that help with interacting with
@@ -42,7 +43,7 @@ func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Upload a custom model or adapter from Hugging Face or S3
@@ -50,15 +51,16 @@ func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts 
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type ModelObject struct {
-	ID      string `json:"id,required"`
-	Created int64  `json:"created,required"`
-	Object  string `json:"object,required"`
+	ID      string `json:"id" api:"required"`
+	Created int64  `json:"created" api:"required"`
+	// The object type, which is always `model`.
+	Object constant.Model `json:"object" api:"required"`
 	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank".
-	Type          ModelObjectType    `json:"type,required"`
+	Type          ModelObjectType    `json:"type" api:"required"`
 	ContextLength int64              `json:"context_length"`
 	DisplayName   string             `json:"display_name"`
 	License       string             `json:"license"`
@@ -101,11 +103,11 @@ const (
 )
 
 type ModelObjectPricing struct {
-	Base     float64 `json:"base,required"`
-	Finetune float64 `json:"finetune,required"`
-	Hourly   float64 `json:"hourly,required"`
-	Input    float64 `json:"input,required"`
-	Output   float64 `json:"output,required"`
+	Base     float64 `json:"base" api:"required"`
+	Finetune float64 `json:"finetune" api:"required"`
+	Hourly   float64 `json:"hourly" api:"required"`
+	Input    float64 `json:"input" api:"required"`
+	Output   float64 `json:"output" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Base        respjson.Field
@@ -125,8 +127,8 @@ func (r *ModelObjectPricing) UnmarshalJSON(data []byte) error {
 }
 
 type ModelUploadResponse struct {
-	Data    ModelUploadResponseData `json:"data,required"`
-	Message string                  `json:"message,required"`
+	Data    ModelUploadResponseData `json:"data" api:"required"`
+	Message string                  `json:"message" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -143,10 +145,10 @@ func (r *ModelUploadResponse) UnmarshalJSON(data []byte) error {
 }
 
 type ModelUploadResponseData struct {
-	JobID       string `json:"job_id,required"`
-	ModelID     string `json:"model_id,required"`
-	ModelName   string `json:"model_name,required"`
-	ModelSource string `json:"model_source,required"`
+	JobID       string `json:"job_id" api:"required"`
+	ModelID     string `json:"model_id" api:"required"`
+	ModelName   string `json:"model_name" api:"required"`
+	ModelSource string `json:"model_source" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		JobID       respjson.Field
@@ -180,9 +182,9 @@ func (r ModelListParams) URLQuery() (v url.Values, err error) {
 
 type ModelUploadParams struct {
 	// The name to give to your uploaded model
-	ModelName string `json:"model_name,required"`
+	ModelName string `json:"model_name" api:"required"`
 	// The source location of the model (Hugging Face repo or S3 path)
-	ModelSource string `json:"model_source,required"`
+	ModelSource string `json:"model_source" api:"required"`
 	// The base model to use for an adapter if setting it to run against a serverless
 	// pool. Only used for model_type `adapter`.
 	BaseModel param.Opt[string] `json:"base_model,omitzero"`

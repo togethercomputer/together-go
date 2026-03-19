@@ -12,6 +12,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // EmbeddingService contains methods and other services that help with interacting
@@ -33,19 +34,20 @@ func NewEmbeddingService(opts ...option.RequestOption) (r EmbeddingService) {
 	return
 }
 
-// Query an embedding model for a given string of text.
+// Generate vector embeddings for one or more text inputs. Returns numerical arrays
+// representing semantic meaning, useful for search, classification, and retrieval.
 func (r *EmbeddingService) New(ctx context.Context, body EmbeddingNewParams, opts ...option.RequestOption) (res *Embedding, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "embeddings"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type Embedding struct {
-	Data  []EmbeddingData `json:"data,required"`
-	Model string          `json:"model,required"`
-	// Any of "list".
-	Object EmbeddingObject `json:"object,required"`
+	Data  []EmbeddingData `json:"data" api:"required"`
+	Model string          `json:"model" api:"required"`
+	// The object type, which is always `list`.
+	Object constant.List `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -63,10 +65,10 @@ func (r *Embedding) UnmarshalJSON(data []byte) error {
 }
 
 type EmbeddingData struct {
-	Embedding []float64 `json:"embedding,required"`
-	Index     int64     `json:"index,required"`
-	// Any of "embedding".
-	Object string `json:"object,required"`
+	Embedding []float64 `json:"embedding" api:"required"`
+	Index     int64     `json:"index" api:"required"`
+	// The object type, which is always `embedding`.
+	Object constant.Embedding `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Embedding   respjson.Field
@@ -83,19 +85,13 @@ func (r *EmbeddingData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EmbeddingObject string
-
-const (
-	EmbeddingObjectList EmbeddingObject = "list"
-)
-
 type EmbeddingNewParams struct {
 	// A string providing the text for the model to embed.
-	Input EmbeddingNewParamsInputUnion `json:"input,omitzero,required"`
+	Input EmbeddingNewParamsInputUnion `json:"input,omitzero" api:"required"`
 	// The name of the embedding model to use.
 	//
 	// [See all of Together AI's embedding models](https://docs.together.ai/docs/serverless-models#embedding-models)
-	Model EmbeddingNewParamsModel `json:"model,omitzero,required"`
+	Model EmbeddingNewParamsModel `json:"model,omitzero" api:"required"`
 	paramObj
 }
 

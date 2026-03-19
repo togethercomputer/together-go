@@ -39,7 +39,7 @@ func (r *AudioSpeechService) New(ctx context.Context, body AudioSpeechNewParams,
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
 	path := "audio/speech"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Generate audio from input text
@@ -58,13 +58,13 @@ func (r *AudioSpeechService) NewStreaming(ctx context.Context, body AudioSpeechN
 
 type AudioSpeechNewParams struct {
 	// Input text to generate the audio for
-	Input string `json:"input,required"`
+	Input string `json:"input" api:"required"`
 	// The name of the model to query.
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#audio-models)
 	// The current supported tts models are: - cartesia/sonic - hexgrad/Kokoro-82M -
 	// canopylabs/orpheus-3b-0.1-ft
-	Model AudioSpeechNewParamsModel `json:"model,omitzero,required"`
+	Model AudioSpeechNewParamsModel `json:"model,omitzero" api:"required"`
 	// The voice to use for generating the audio. The voices supported are different
 	// for each model. For eg - for canopylabs/orpheus-3b-0.1-ft, one of the voices
 	// supported is tara, for hexgrad/Kokoro-82M, one of the voices supported is
@@ -74,7 +74,7 @@ type AudioSpeechNewParams struct {
 	// You can view the voices supported for each model using the /v1/voices endpoint
 	// sending the model name as the query parameter.
 	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#voices-available).
-	Voice string `json:"voice,required"`
+	Voice string `json:"voice" api:"required"`
 	// Sampling rate to use for the output audio. The default sampling rate for
 	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
 	// cartesia/sonic is 44100.

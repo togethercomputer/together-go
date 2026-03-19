@@ -46,7 +46,7 @@ func (r *CodeInterpreterService) Execute(ctx context.Context, body CodeInterpret
 	opts = slices.Concat(r.Options, opts)
 	path := "tci/execute"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // ExecuteResponseUnion contains all possible properties and values from
@@ -141,8 +141,8 @@ func (r *ExecuteResponseUnionErrors) UnmarshalJSON(data []byte) error {
 }
 
 type ExecuteResponseSuccessfulExecution struct {
-	Data   ExecuteResponseSuccessfulExecutionData `json:"data,required"`
-	Errors any                                    `json:"errors,required"`
+	Data   ExecuteResponseSuccessfulExecutionData `json:"data" api:"required"`
+	Errors any                                    `json:"errors" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -159,9 +159,9 @@ func (r *ExecuteResponseSuccessfulExecution) UnmarshalJSON(data []byte) error {
 }
 
 type ExecuteResponseSuccessfulExecutionData struct {
-	Outputs []ExecuteResponseSuccessfulExecutionDataOutputUnion `json:"outputs,required"`
+	Outputs []ExecuteResponseSuccessfulExecutionDataOutputUnion `json:"outputs" api:"required"`
 	// Identifier of the current session. Used to make follow-up calls.
-	SessionID string `json:"session_id,required"`
+	SessionID string `json:"session_id" api:"required"`
 	// Status of the execution. Currently only supports success.
 	//
 	// Any of "success".
@@ -308,9 +308,9 @@ func (r *ExecuteResponseSuccessfulExecutionDataOutputUnionData) UnmarshalJSON(da
 
 // Outputs that were printed to stdout or stderr
 type ExecuteResponseSuccessfulExecutionDataOutputStreamOutput struct {
-	Data string `json:"data,required"`
+	Data string `json:"data" api:"required"`
 	// Any of "stdout", "stderr".
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -329,8 +329,8 @@ func (r *ExecuteResponseSuccessfulExecutionDataOutputStreamOutput) UnmarshalJSON
 // Errors and exceptions that occurred. If this output type is present, your code
 // did not execute successfully.
 type ExecuteResponseSuccessfulExecutionDataOutputError struct {
-	Data string         `json:"data,required"`
-	Type constant.Error `json:"type,required"`
+	Data string         `json:"data" api:"required"`
+	Type constant.Error `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -347,9 +347,9 @@ func (r *ExecuteResponseSuccessfulExecutionDataOutputError) UnmarshalJSON(data [
 }
 
 type ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutput struct {
-	Data ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData `json:"data,required"`
+	Data ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData `json:"data" api:"required"`
 	// Any of "display_data", "execute_result".
-	Type string `json:"type,required"`
+	Type string `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -412,8 +412,8 @@ func (r *ExecuteResponseSuccessfulExecutionDataOutputDisplayorExecuteOutputData)
 }
 
 type ExecuteResponseFailedExecution struct {
-	Data   any                                        `json:"data,required"`
-	Errors []ExecuteResponseFailedExecutionErrorUnion `json:"errors,required"`
+	Data   any                                        `json:"data" api:"required"`
+	Errors []ExecuteResponseFailedExecutionErrorUnion `json:"errors" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -467,12 +467,12 @@ func (r *ExecuteResponseFailedExecutionErrorUnion) UnmarshalJSON(data []byte) er
 
 type CodeInterpreterExecuteParams struct {
 	// Code snippet to execute.
-	Code string `json:"code,required"`
+	Code string `json:"code" api:"required"`
 	// Programming language for the code to execute. Currently only supports Python,
 	// but more will be added.
 	//
 	// Any of "python".
-	Language CodeInterpreterExecuteParamsLanguage `json:"language,omitzero,required"`
+	Language CodeInterpreterExecuteParamsLanguage `json:"language,omitzero" api:"required"`
 	// Identifier of the current session. Used to make follow-up calls. Requests will
 	// return an error if the session does not belong to the caller or has expired.
 	SessionID param.Opt[string] `json:"session_id,omitzero"`
@@ -500,13 +500,13 @@ const (
 
 // The properties Content, Encoding, Name are required.
 type CodeInterpreterExecuteParamsFile struct {
-	Content string `json:"content,required"`
+	Content string `json:"content" api:"required"`
 	// Encoding of the file content. Use `string` for text files such as code, and
 	// `base64` for binary files, such as images.
 	//
 	// Any of "string", "base64".
-	Encoding string `json:"encoding,omitzero,required"`
-	Name     string `json:"name,required"`
+	Encoding string `json:"encoding,omitzero" api:"required"`
+	Name     string `json:"name" api:"required"`
 	paramObj
 }
 

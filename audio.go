@@ -6,6 +6,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // AudioService contains methods and other services that help with interacting with
@@ -37,10 +38,10 @@ func NewAudioService(opts ...option.RequestOption) (r AudioService) {
 
 type AudioSpeechStreamChunk struct {
 	// base64 encoded audio stream
-	B64   string `json:"b64,required"`
-	Model string `json:"model,required"`
-	// Any of "audio.tts.chunk".
-	Object AudioSpeechStreamChunkObject `json:"object,required"`
+	B64   string `json:"b64" api:"required"`
+	Model string `json:"model" api:"required"`
+	// The object type, which is always `audio.tts.chunk`.
+	Object constant.AudioTtsChunk `json:"object" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		B64         respjson.Field
@@ -56,9 +57,3 @@ func (r AudioSpeechStreamChunk) RawJSON() string { return r.JSON.raw }
 func (r *AudioSpeechStreamChunk) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type AudioSpeechStreamChunkObject string
-
-const (
-	AudioSpeechStreamChunkObjectAudioTtsChunk AudioSpeechStreamChunkObject = "audio.tts.chunk"
-)

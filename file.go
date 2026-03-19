@@ -17,6 +17,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // FileService contains methods and other services that help with interacting with
@@ -38,16 +39,16 @@ func NewFileService(opts ...option.RequestOption) (r FileService) {
 	return
 }
 
-// List the metadata for a single uploaded data file.
+// Retrieve the metadata for a single uploaded data file.
 func (r *FileService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *FileResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("files/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List the metadata for all uploaded data files.
@@ -55,7 +56,7 @@ func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (r
 	opts = slices.Concat(r.Options, opts)
 	path := "files"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a previously uploaded data file.
@@ -63,11 +64,11 @@ func (r *FileService) Delete(ctx context.Context, id string, opts ...option.Requ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("files/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Get the contents of a single uploaded data file.
@@ -76,11 +77,11 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/binary")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("files/%s/content", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Upload a file with specified purpose, file name, and file type.
@@ -88,11 +89,11 @@ func (r *FileService) Upload(ctx context.Context, body FileUploadParams, opts ..
 	opts = slices.Concat(r.Options, opts)
 	path := "files/upload"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 type FileList struct {
-	Data []FileResponse `json:"data,required"`
+	Data []FileResponse `json:"data" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -120,23 +121,29 @@ const (
 	FilePurposeBatchAPI       FilePurpose = "batch-api"
 )
 
+// Structured information describing a file uploaded to Together.
 type FileResponse struct {
-	ID        string `json:"id,required"`
-	Bytes     int64  `json:"bytes,required"`
-	CreatedAt int64  `json:"created_at,required"`
-	Filename  string `json:"filename,required"`
-	// The type of the file
+	// ID of the file.
+	ID string `json:"id" api:"required"`
+	// The number of bytes in the file.
+	Bytes int64 `json:"bytes" api:"required"`
+	// The timestamp when the file was created.
+	CreatedAt int64 `json:"created_at" api:"required"`
+	// The name of the file as it was uploaded.
+	Filename string `json:"filename" api:"required"`
+	// The type of the file such as `jsonl`, `csv`, or `parquet`.
 	//
 	// Any of "csv", "jsonl", "parquet".
-	FileType  FileType `json:"FileType,required"`
-	LineCount int64    `json:"LineCount,required"`
-	Object    string   `json:"object,required"`
-	Processed bool     `json:"Processed,required"`
-	// The purpose of the file
+	FileType FileType `json:"FileType" api:"required"`
+	// The object type, which is always `file`.
+	Object constant.File `json:"object" api:"required"`
+	// Whether the file has been parsed and analyzed for correctness for fine-tuning.
+	Processed bool `json:"Processed" api:"required"`
+	// The purpose of the file as it was uploaded.
 	//
 	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
 	// "batch-generated", "batch-api".
-	Purpose FilePurpose `json:"purpose,required"`
+	Purpose FilePurpose `json:"purpose" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -144,7 +151,6 @@ type FileResponse struct {
 		CreatedAt   respjson.Field
 		Filename    respjson.Field
 		FileType    respjson.Field
-		LineCount   respjson.Field
 		Object      respjson.Field
 		Processed   respjson.Field
 		Purpose     respjson.Field
@@ -188,14 +194,14 @@ func (r *FileDeleteResponse) UnmarshalJSON(data []byte) error {
 
 type FileUploadParams struct {
 	// The content of the file being uploaded
-	File io.Reader `json:"file,omitzero,required" format:"binary"`
+	File io.Reader `json:"file,omitzero" api:"required" format:"binary"`
 	// The name of the file being uploaded
-	FileName string `json:"file_name,required"`
+	FileName string `json:"file_name" api:"required"`
 	// The purpose of the file
 	//
 	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
 	// "batch-generated", "batch-api".
-	Purpose FilePurpose `json:"purpose,omitzero,required"`
+	Purpose FilePurpose `json:"purpose,omitzero" api:"required"`
 	// The type of the file
 	//
 	// Any of "csv", "jsonl", "parquet".

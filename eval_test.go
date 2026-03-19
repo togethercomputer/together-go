@@ -31,7 +31,7 @@ func TestEvalNewWithOptionalParams(t *testing.T) {
 			OfEvalNewsParametersEvaluationClassifyParameters: &together.EvalNewParamsParametersEvaluationClassifyParameters{
 				InputDataFilePath: "file-1234-aefd",
 				Judge: together.EvalNewParamsParametersEvaluationClassifyParametersJudge{
-					Model:            "meta-llama/Llama-3-70B-Instruct-Turbo",
+					Model:            "Qwen/Qwen3.5-9B",
 					ModelSource:      "serverless",
 					SystemTemplate:   "Imagine you are a helpful assistant",
 					ExternalAPIToken: together.String("external_api_token"),
@@ -92,7 +92,6 @@ func TestEvalListWithOptionalParams(t *testing.T) {
 	_, err := client.Evals.List(context.TODO(), together.EvalListParams{
 		Limit:  together.Int(0),
 		Status: together.String("status"),
-		UserID: together.String("userId"),
 	})
 	if err != nil {
 		var apierr *together.Error

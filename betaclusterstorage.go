@@ -44,7 +44,7 @@ func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterSto
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve information about a specific shared volume.
@@ -52,11 +52,11 @@ func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, op
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
 		err = errors.New("missing required volume_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update the configuration of an existing shared volume.
@@ -64,7 +64,7 @@ func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaCluster
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // List all shared volumes.
@@ -72,7 +72,7 @@ func (r *BetaClusterStorageService) List(ctx context.Context, opts ...option.Req
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a shared volume. Note that if this volume is attached to a cluster,
@@ -81,19 +81,24 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
 		err = errors.New("missing required volume_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type ClusterStorage struct {
-	SizeTib int64 `json:"size_tib,required"`
+	// Size of the volume in whole tebibytes (TiB).
+	SizeTib int64 `json:"size_tib" api:"required"`
+	// Deployment status of the volume.
+	//
 	// Any of "available", "bound", "provisioning".
-	Status     ClusterStorageStatus `json:"status,required"`
-	VolumeID   string               `json:"volume_id,required"`
-	VolumeName string               `json:"volume_name,required"`
+	Status ClusterStorageStatus `json:"status" api:"required"`
+	// ID of the volume.
+	VolumeID string `json:"volume_id" api:"required"`
+	// Provided name of the volume.
+	VolumeName string `json:"volume_name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SizeTib     respjson.Field
@@ -111,6 +116,7 @@ func (r *ClusterStorage) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Deployment status of the volume.
 type ClusterStorageStatus string
 
 const (
@@ -120,7 +126,7 @@ const (
 )
 
 type BetaClusterStorageListResponse struct {
-	Volumes []ClusterStorage `json:"volumes,required"`
+	Volumes []ClusterStorage `json:"volumes" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Volumes     respjson.Field
@@ -136,7 +142,7 @@ func (r *BetaClusterStorageListResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageDeleteResponse struct {
-	Success bool `json:"success,required"`
+	Success bool `json:"success" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Success     respjson.Field
@@ -153,10 +159,11 @@ func (r *BetaClusterStorageDeleteResponse) UnmarshalJSON(data []byte) error {
 
 type BetaClusterStorageNewParams struct {
 	// Region name. Usable regions can be found from `client.clusters.list_regions()`
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	// Volume size in whole tebibytes (TiB).
-	SizeTib    int64  `json:"size_tib,required"`
-	VolumeName string `json:"volume_name,required"`
+	SizeTib int64 `json:"size_tib" api:"required"`
+	// Customizable name of the volume to create.
+	VolumeName string `json:"volume_name" api:"required"`
 	paramObj
 }
 
@@ -169,7 +176,9 @@ func (r *BetaClusterStorageNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageUpdateParams struct {
-	SizeTib  param.Opt[int64]  `json:"size_tib,omitzero"`
+	// Size of the volume in whole tebibytes (TiB).
+	SizeTib param.Opt[int64] `json:"size_tib,omitzero"`
+	// ID of the volume to update.
 	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
 	paramObj
 }

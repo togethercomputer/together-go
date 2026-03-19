@@ -40,7 +40,7 @@ func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewPar
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve details of a specific volume by its ID or name
@@ -48,11 +48,11 @@ func (r *BetaJigVolumeService) Get(ctx context.Context, id string, opts ...optio
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update an existing volume's configuration or contents
@@ -60,11 +60,11 @@ func (r *BetaJigVolumeService) Update(ctx context.Context, id string, body BetaJ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve all volumes in your project
@@ -72,7 +72,7 @@ func (r *BetaJigVolumeService) List(ctx context.Context, opts ...option.RequestO
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete an existing volume
@@ -80,41 +80,49 @@ func (r *BetaJigVolumeService) Delete(ctx context.Context, id string, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Volume struct {
 	// ID is the unique identifier for this volume
-	ID string `json:"id"`
-	// Content specifies the content that will be preloaded to this volume
+	ID      string        `json:"id"`
 	Content VolumeContent `json:"content"`
 	// CreatedAt is the ISO8601 timestamp when this volume was created
 	CreatedAt string `json:"created_at"`
+	// CurrentVersion is the current version number of this volume
+	CurrentVersion int64 `json:"current_version"`
+	// MountedBy is the list of deployment IDs currently mounting current volume
+	// version
+	MountedBy []string `json:"mounted_by"`
 	// Name is the name of the volume
 	Name string `json:"name"`
 	// Object is the type identifier for this response (always "volume")
 	Object string `json:"object"`
-	// Type is the volume type (e.g., "readOnly")
-	//
 	// Any of "readOnly".
 	Type VolumeType `json:"type"`
 	// UpdatedAt is the ISO8601 timestamp when this volume was last updated
 	UpdatedAt string `json:"updated_at"`
+	// VersionHistory contains previous versions of this volume, keyed by version
+	// number
+	VersionHistory map[string]VolumeVersionHistory `json:"version_history"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID          respjson.Field
-		Content     respjson.Field
-		CreatedAt   respjson.Field
-		Name        respjson.Field
-		Object      respjson.Field
-		Type        respjson.Field
-		UpdatedAt   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		ID             respjson.Field
+		Content        respjson.Field
+		CreatedAt      respjson.Field
+		CurrentVersion respjson.Field
+		MountedBy      respjson.Field
+		Name           respjson.Field
+		Object         respjson.Field
+		Type           respjson.Field
+		UpdatedAt      respjson.Field
+		VersionHistory respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
 	} `json:"-"`
 }
 
@@ -124,8 +132,86 @@ func (r *Volume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the content that will be preloaded to this volume
 type VolumeContent struct {
+	// Files is the list of files that will be preloaded into the volume, if the volume
+	// content type is "files"
+	Files []VolumeContentFile `json:"files"`
+	// SourcePrefix is the file path prefix for the content to be preloaded into the
+	// volume
+	SourcePrefix string `json:"source_prefix"`
+	// Type is the content type (currently only "files" is supported which allows
+	// preloading files uploaded via Files API into the volume)
+	//
+	// Any of "files".
+	Type string `json:"type"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Files        respjson.Field
+		SourcePrefix respjson.Field
+		Type         respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeContent) RawJSON() string { return r.JSON.raw }
+func (r *VolumeContent) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type VolumeContentFile struct {
+	// LastModified is the timestamp when the file was last modified
+	LastModified string `json:"last_modified"`
+	// Name is the filename including extension (e.g., "model_weights.bin")
+	Name string `json:"name"`
+	// Size is the file size in bytes
+	Size int64 `json:"size"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		LastModified respjson.Field
+		Name         respjson.Field
+		Size         respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeContentFile) RawJSON() string { return r.JSON.raw }
+func (r *VolumeContentFile) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type VolumeType string
+
+const (
+	VolumeTypeReadOnly VolumeType = "readOnly"
+)
+
+type VolumeVersionHistory struct {
+	// Content specifies the new content that will be preloaded to this volume
+	Content   VolumeVersionHistoryContent `json:"content"`
+	MountedBy []string                    `json:"mounted_by"`
+	Version   int64                       `json:"version"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Content     respjson.Field
+		MountedBy   respjson.Field
+		Version     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeVersionHistory) RawJSON() string { return r.JSON.raw }
+func (r *VolumeVersionHistory) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Content specifies the new content that will be preloaded to this volume
+type VolumeVersionHistoryContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
 	SourcePrefix string `json:"source_prefix"`
@@ -144,23 +230,18 @@ type VolumeContent struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r VolumeContent) RawJSON() string { return r.JSON.raw }
-func (r *VolumeContent) UnmarshalJSON(data []byte) error {
+func (r VolumeVersionHistoryContent) RawJSON() string { return r.JSON.raw }
+func (r *VolumeVersionHistoryContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-// Type is the volume type (e.g., "readOnly")
-type VolumeType string
-
-const (
-	VolumeTypeReadOnly VolumeType = "readOnly"
-)
 
 type BetaJigVolumeListResponse struct {
 	// Data is the array of volume items
 	Data []Volume `json:"data"`
-	// Object is the type identifier for this response (always "list")
-	Object string `json:"object"`
+	// The object type, which is always `list`.
+	//
+	// Any of "list".
+	Object BetaJigVolumeListResponseObject `json:"object"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -176,17 +257,24 @@ func (r *BetaJigVolumeListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// The object type, which is always `list`.
+type BetaJigVolumeListResponseObject string
+
+const (
+	BetaJigVolumeListResponseObjectList BetaJigVolumeListResponseObject = "list"
+)
+
 type BetaJigVolumeDeleteResponse = any
 
 type BetaJigVolumeNewParams struct {
-	// Content specifies the content configuration for this volume
-	Content BetaJigVolumeNewParamsContent `json:"content,omitzero,required"`
+	// Content specifies the new content that will be preloaded to this volume
+	Content BetaJigVolumeNewParamsContent `json:"content,omitzero" api:"required"`
 	// Name is the unique identifier for the volume within the project
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Type is the volume type (currently only "readOnly" is supported)
 	//
 	// Any of "readOnly".
-	Type BetaJigVolumeNewParamsType `json:"type,omitzero,required"`
+	Type BetaJigVolumeNewParamsType `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -198,7 +286,7 @@ func (r *BetaJigVolumeNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the content configuration for this volume
+// Content specifies the new content that will be preloaded to this volume
 type BetaJigVolumeNewParamsContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume

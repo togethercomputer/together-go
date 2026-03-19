@@ -31,7 +31,7 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 		DriverVersion: together.BetaClusterNewParamsDriverVersionCuda12_5_555,
 		GPUType:       together.BetaClusterNewParamsGPUTypeH100Sxm,
 		NumGPUs:       0,
-		Region:        together.BetaClusterNewParamsRegionUsCentral8,
+		Region:        "region",
 		ClusterType:   together.BetaClusterNewParamsClusterTypeKubernetes,
 		DurationDays:  together.Int(0),
 		SharedVolume: together.BetaClusterNewParamsSharedVolume{

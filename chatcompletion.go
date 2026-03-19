@@ -35,15 +35,17 @@ func NewChatCompletionService(opts ...option.RequestOption) (r ChatCompletionSer
 	return
 }
 
-// Query a chat model.
+// Generate a model response for a given chat conversation. Supports single queries
+// and multi-turn conversations with system, user, and assistant messages.
 func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (res *ChatCompletion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "chat/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
-// Query a chat model.
+// Generate a model response for a given chat conversation. Supports single queries
+// and multi-turn conversations with system, user, and assistant messages.
 func (r *ChatCompletionService) NewStreaming(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[ChatCompletionChunk]) {
 	var (
 		raw *http.Response
@@ -57,13 +59,17 @@ func (r *ChatCompletionService) NewStreaming(ctx context.Context, body ChatCompl
 }
 
 type ChatCompletion struct {
-	ID      string                 `json:"id,required"`
-	Choices []ChatCompletionChoice `json:"choices,required"`
-	Created int64                  `json:"created,required"`
-	Model   string                 `json:"model,required"`
-	// Any of "chat.completion".
-	Object   ChatCompletionObject    `json:"object,required"`
-	Usage    ChatCompletionUsage     `json:"usage,nullable"`
+	ID      string                 `json:"id" api:"required"`
+	Choices []ChatCompletionChoice `json:"choices" api:"required"`
+	Created int64                  `json:"created" api:"required"`
+	Model   string                 `json:"model" api:"required"`
+	// The object type, which is always `chat.completion`.
+	Object constant.ChatCompletion `json:"object" api:"required"`
+	// When `echo` is true, the prompt is included in the response. Additionally, when
+	// `logprobs` is also provided, log probability information is provided on the
+	// prompt.
+	Prompt   ChatCompletionPrompt    `json:"prompt" api:"required"`
+	Usage    ChatCompletionUsage     `json:"usage" api:"nullable"`
 	Warnings []ChatCompletionWarning `json:"warnings"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -72,6 +78,7 @@ type ChatCompletion struct {
 		Created     respjson.Field
 		Model       respjson.Field
 		Object      respjson.Field
+		Prompt      respjson.Field
 		Usage       respjson.Field
 		Warnings    respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -89,10 +96,12 @@ type ChatCompletionChoice struct {
 	// Any of "stop", "eos", "length", "tool_calls", "function_call".
 	FinishReason string                      `json:"finish_reason"`
 	Index        int64                       `json:"index"`
-	Logprobs     LogProbs                    `json:"logprobs,nullable"`
+	Logprobs     LogProbs                    `json:"logprobs" api:"nullable"`
 	Message      ChatCompletionChoiceMessage `json:"message"`
 	Seed         int64                       `json:"seed"`
 	Text         string                      `json:"text"`
+	// Top log probabilities for the tokens.
+	TopLogprobs map[string]float64 `json:"top_logprobs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		FinishReason respjson.Field
@@ -101,6 +110,7 @@ type ChatCompletionChoice struct {
 		Message      respjson.Field
 		Seed         respjson.Field
 		Text         respjson.Field
+		TopLogprobs  respjson.Field
 		ExtraFields  map[string]respjson.Field
 		raw          string
 	} `json:"-"`
@@ -113,12 +123,12 @@ func (r *ChatCompletionChoice) UnmarshalJSON(data []byte) error {
 }
 
 type ChatCompletionChoiceMessage struct {
-	Content string `json:"content,required"`
+	Content string `json:"content" api:"required"`
 	// Any of "assistant".
-	Role string `json:"role,required"`
+	Role string `json:"role" api:"required"`
 	// Deprecated: deprecated
 	FunctionCall ChatCompletionChoiceMessageFunctionCall `json:"function_call"`
-	Reasoning    string                                  `json:"reasoning,nullable"`
+	Reasoning    string                                  `json:"reasoning" api:"nullable"`
 	ToolCalls    []ToolChoice                            `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -140,8 +150,8 @@ func (r *ChatCompletionChoiceMessage) UnmarshalJSON(data []byte) error {
 
 // Deprecated: deprecated
 type ChatCompletionChoiceMessageFunctionCall struct {
-	Arguments string `json:"arguments,required"`
-	Name      string `json:"name,required"`
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Arguments   respjson.Field
@@ -157,22 +167,16 @@ func (r *ChatCompletionChoiceMessageFunctionCall) UnmarshalJSON(data []byte) err
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ChatCompletionObject string
-
-const (
-	ChatCompletionObjectChatCompletion ChatCompletionObject = "chat.completion"
-)
-
 type ChatCompletionChunk struct {
-	ID      string                      `json:"id,required"`
-	Choices []ChatCompletionChunkChoice `json:"choices,required"`
-	Created int64                       `json:"created,required"`
-	Model   string                      `json:"model,required"`
-	// Any of "chat.completion.chunk".
-	Object            ChatCompletionChunkObject `json:"object,required"`
-	SystemFingerprint string                    `json:"system_fingerprint"`
-	Usage             ChatCompletionUsage       `json:"usage,nullable"`
-	Warnings          []ChatCompletionWarning   `json:"warnings"`
+	ID      string                      `json:"id" api:"required"`
+	Choices []ChatCompletionChunkChoice `json:"choices" api:"required"`
+	Created int64                       `json:"created" api:"required"`
+	Model   string                      `json:"model" api:"required"`
+	// The object type, which is always `chat.completion.chunk`.
+	Object            constant.ChatCompletionChunk `json:"object" api:"required"`
+	SystemFingerprint string                       `json:"system_fingerprint"`
+	Usage             ChatCompletionUsage          `json:"usage" api:"nullable"`
+	Warnings          []ChatCompletionWarning      `json:"warnings"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID                respjson.Field
@@ -195,12 +199,14 @@ func (r *ChatCompletionChunk) UnmarshalJSON(data []byte) error {
 }
 
 type ChatCompletionChunkChoice struct {
-	Delta ChatCompletionChunkChoiceDelta `json:"delta,required"`
+	Delta ChatCompletionChunkChoiceDelta `json:"delta" api:"required"`
 	// Any of "stop", "eos", "length", "tool_calls", "function_call".
-	FinishReason string  `json:"finish_reason,required"`
-	Index        int64   `json:"index,required"`
-	Logprobs     float64 `json:"logprobs,nullable"`
-	Seed         int64   `json:"seed,nullable"`
+	FinishReason string  `json:"finish_reason" api:"required"`
+	Index        int64   `json:"index" api:"required"`
+	Logprobs     float64 `json:"logprobs" api:"nullable"`
+	Seed         int64   `json:"seed" api:"nullable"`
+	// Top log probabilities for the tokens.
+	TopLogprobs map[string]float64 `json:"top_logprobs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Delta        respjson.Field
@@ -208,6 +214,7 @@ type ChatCompletionChunkChoice struct {
 		Index        respjson.Field
 		Logprobs     respjson.Field
 		Seed         respjson.Field
+		TopLogprobs  respjson.Field
 		ExtraFields  map[string]respjson.Field
 		raw          string
 	} `json:"-"`
@@ -221,11 +228,11 @@ func (r *ChatCompletionChunkChoice) UnmarshalJSON(data []byte) error {
 
 type ChatCompletionChunkChoiceDelta struct {
 	// Any of "system", "user", "assistant", "function", "tool".
-	Role    string `json:"role,required"`
-	Content string `json:"content,nullable"`
+	Role    string `json:"role" api:"required"`
+	Content string `json:"content" api:"nullable"`
 	// Deprecated: deprecated
-	FunctionCall ChatCompletionChunkChoiceDeltaFunctionCall `json:"function_call,nullable"`
-	Reasoning    string                                     `json:"reasoning,nullable"`
+	FunctionCall ChatCompletionChunkChoiceDeltaFunctionCall `json:"function_call" api:"nullable"`
+	Reasoning    string                                     `json:"reasoning" api:"nullable"`
 	TokenID      int64                                      `json:"token_id"`
 	ToolCalls    []ToolChoice                               `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -249,8 +256,8 @@ func (r *ChatCompletionChunkChoiceDelta) UnmarshalJSON(data []byte) error {
 
 // Deprecated: deprecated
 type ChatCompletionChunkChoiceDeltaFunctionCall struct {
-	Arguments string `json:"arguments,required"`
-	Name      string `json:"name,required"`
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Arguments   respjson.Field
@@ -266,11 +273,25 @@ func (r *ChatCompletionChunkChoiceDeltaFunctionCall) UnmarshalJSON(data []byte) 
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ChatCompletionChunkObject string
+type ChatCompletionPrompt []ChatCompletionPromptItem
 
-const (
-	ChatCompletionChunkObjectChatCompletionChunk ChatCompletionChunkObject = "chat.completion.chunk"
-)
+type ChatCompletionPromptItem struct {
+	Logprobs LogProbs `json:"logprobs"`
+	Text     string   `json:"text"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Logprobs    respjson.Field
+		Text        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ChatCompletionPromptItem) RawJSON() string { return r.JSON.raw }
+func (r *ChatCompletionPromptItem) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 type ChatCompletionStructuredMessageImageURLParam struct {
 	ImageURL ChatCompletionStructuredMessageImageURLImageURLParam `json:"image_url,omitzero"`
@@ -290,7 +311,7 @@ func (r *ChatCompletionStructuredMessageImageURLParam) UnmarshalJSON(data []byte
 // The property URL is required.
 type ChatCompletionStructuredMessageImageURLImageURLParam struct {
 	// The URL of the image
-	URL string `json:"url,required"`
+	URL string `json:"url" api:"required"`
 	paramObj
 }
 
@@ -310,9 +331,9 @@ const (
 
 // The properties Text, Type are required.
 type ChatCompletionStructuredMessageTextParam struct {
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// Any of "text".
-	Type ChatCompletionStructuredMessageTextType `json:"type,omitzero,required"`
+	Type ChatCompletionStructuredMessageTextType `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -333,8 +354,8 @@ const (
 // The properties Type, VideoURL are required.
 type ChatCompletionStructuredMessageVideoURLParam struct {
 	// Any of "video_url".
-	Type     ChatCompletionStructuredMessageVideoURLType          `json:"type,omitzero,required"`
-	VideoURL ChatCompletionStructuredMessageVideoURLVideoURLParam `json:"video_url,omitzero,required"`
+	Type     ChatCompletionStructuredMessageVideoURLType          `json:"type,omitzero" api:"required"`
+	VideoURL ChatCompletionStructuredMessageVideoURLVideoURLParam `json:"video_url,omitzero" api:"required"`
 	paramObj
 }
 
@@ -355,7 +376,7 @@ const (
 // The property URL is required.
 type ChatCompletionStructuredMessageVideoURLVideoURLParam struct {
 	// The URL of the video
-	URL string `json:"url,required"`
+	URL string `json:"url" api:"required"`
 	paramObj
 }
 
@@ -368,9 +389,9 @@ func (r *ChatCompletionStructuredMessageVideoURLVideoURLParam) UnmarshalJSON(dat
 }
 
 type ChatCompletionUsage struct {
-	CompletionTokens int64 `json:"completion_tokens,required"`
-	PromptTokens     int64 `json:"prompt_tokens,required"`
-	TotalTokens      int64 `json:"total_tokens,required"`
+	CompletionTokens int64 `json:"completion_tokens" api:"required"`
+	PromptTokens     int64 `json:"prompt_tokens" api:"required"`
+	TotalTokens      int64 `json:"total_tokens" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CompletionTokens respjson.Field
@@ -388,7 +409,7 @@ func (r *ChatCompletionUsage) UnmarshalJSON(data []byte) error {
 }
 
 type ChatCompletionWarning struct {
-	Message string `json:"message,required"`
+	Message string `json:"message" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Message     respjson.Field
@@ -405,11 +426,11 @@ func (r *ChatCompletionWarning) UnmarshalJSON(data []byte) error {
 
 type ChatCompletionNewParams struct {
 	// A list of messages comprising the conversation so far.
-	Messages []ChatCompletionNewParamsMessageUnion `json:"messages,omitzero,required"`
+	Messages []ChatCompletionNewParamsMessageUnion `json:"messages,omitzero" api:"required"`
 	// The name of the model to query.
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
-	Model ChatCompletionNewParamsModel `json:"model,omitzero,required"`
+	Model string `json:"model" api:"required"`
 	// If true, the response will contain the prompt. Can be used with `logprobs` to
 	// return prompt logprobs.
 	Echo param.Opt[bool] `json:"echo,omitzero"`
@@ -454,8 +475,9 @@ type ChatCompletionNewParams struct {
 	// probabilities. It specifies a probability threshold below which all less likely
 	// tokens are filtered out. This technique helps maintain diversity and generate
 	// more fluent and natural-sounding text.
-	TopP               param.Opt[float64] `json:"top_p,omitzero"`
-	ChatTemplateKwargs any                `json:"chat_template_kwargs,omitzero"`
+	TopP param.Opt[float64] `json:"top_p,omitzero"`
+	// Additional configuration to pass to model engine.
+	ChatTemplateKwargs any `json:"chat_template_kwargs,omitzero"`
 	// Any of "hipaa".
 	Compliance ChatCompletionNewParamsCompliance `json:"compliance,omitzero"`
 	// Defined the behavior of the API when max_tokens exceed the maximum context
@@ -467,7 +489,9 @@ type ChatCompletionNewParams struct {
 	ContextLengthExceededBehavior ChatCompletionNewParamsContextLengthExceededBehavior `json:"context_length_exceeded_behavior,omitzero"`
 	FunctionCall                  ChatCompletionNewParamsFunctionCallUnion             `json:"function_call,omitzero"`
 	// Adjusts the likelihood of specific tokens appearing in the generated output.
-	LogitBias map[string]float64               `json:"logit_bias,omitzero"`
+	LogitBias map[string]float64 `json:"logit_bias,omitzero"`
+	// For models that support toggling reasoning functionality, this object can be
+	// used to control that functionality.
 	Reasoning ChatCompletionNewParamsReasoning `json:"reasoning,omitzero"`
 	// Controls the level of reasoning effort the model should apply when generating
 	// responses. Higher values may result in more thoughtful and detailed responses
@@ -635,9 +659,9 @@ func (u chatCompletionNewParamsMessageUnionContent) AsAny() any { return u.any }
 
 // The properties Content, Role are required.
 type ChatCompletionNewParamsMessageChatCompletionSystemMessageParam struct {
-	Content string `json:"content,required"`
+	Content string `json:"content" api:"required"`
 	// Any of "system".
-	Role string            `json:"role,omitzero,required"`
+	Role string            `json:"role,omitzero" api:"required"`
 	Name param.Opt[string] `json:"name,omitzero"`
 	paramObj
 }
@@ -660,9 +684,9 @@ func init() {
 type ChatCompletionNewParamsMessageChatCompletionUserMessageParam struct {
 	// The content of the message, which can either be a simple string or a structured
 	// format.
-	Content ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion `json:"content,omitzero,required"`
+	Content ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion `json:"content,omitzero" api:"required"`
 	// Any of "user".
-	Role string            `json:"role,omitzero,required"`
+	Role string            `json:"role,omitzero" api:"required"`
 	Name param.Opt[string] `json:"name,omitzero"`
 	paramObj
 }
@@ -802,9 +826,9 @@ func (u ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatC
 
 // The properties AudioURL, Type are required.
 type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudio struct {
-	AudioURL ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL `json:"audio_url,omitzero,required"`
+	AudioURL ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL `json:"audio_url,omitzero" api:"required"`
 	// Any of "audio_url".
-	Type string `json:"type,omitzero,required"`
+	Type string `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -825,7 +849,7 @@ func init() {
 // The property URL is required.
 type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemAudioAudioURL struct {
 	// The URL of the audio
-	URL string `json:"url,required"`
+	URL string `json:"url" api:"required"`
 	paramObj
 }
 
@@ -839,9 +863,9 @@ func (r *ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChat
 
 // The properties InputAudio, Type are required.
 type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudio struct {
-	InputAudio ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio `json:"input_audio,omitzero,required"`
+	InputAudio ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio `json:"input_audio,omitzero" api:"required"`
 	// Any of "input_audio".
-	Type string `json:"type,omitzero,required"`
+	Type string `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -862,11 +886,11 @@ func init() {
 // The properties Data, Format are required.
 type ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentChatCompletionUserMessageContentMultimodalItemInputAudioInputAudio struct {
 	// The base64 encoded audio data
-	Data string `json:"data,required"`
+	Data string `json:"data" api:"required"`
 	// The format of the audio data
 	//
 	// Any of "wav".
-	Format string `json:"format,omitzero,required"`
+	Format string `json:"format,omitzero" api:"required"`
 	paramObj
 }
 
@@ -887,7 +911,7 @@ func init() {
 // The property Role is required.
 type ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam struct {
 	// Any of "assistant".
-	Role    string            `json:"role,omitzero,required"`
+	Role    string            `json:"role,omitzero" api:"required"`
 	Content param.Opt[string] `json:"content,omitzero"`
 	Name    param.Opt[string] `json:"name,omitzero"`
 	// Deprecated: deprecated
@@ -914,8 +938,8 @@ func init() {
 //
 // The properties Arguments, Name are required.
 type ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall struct {
-	Arguments string `json:"arguments,required"`
-	Name      string `json:"name,required"`
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
 	paramObj
 }
 
@@ -929,10 +953,10 @@ func (r *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFuncti
 
 // The properties Content, Role, ToolCallID are required.
 type ChatCompletionNewParamsMessageChatCompletionToolMessageParam struct {
-	Content string `json:"content,required"`
+	Content string `json:"content" api:"required"`
 	// Any of "tool".
-	Role       string            `json:"role,omitzero,required"`
-	ToolCallID string            `json:"tool_call_id,required"`
+	Role       string            `json:"role,omitzero" api:"required"`
+	ToolCallID string            `json:"tool_call_id" api:"required"`
 	Name       param.Opt[string] `json:"name,omitzero"`
 	paramObj
 }
@@ -955,10 +979,10 @@ func init() {
 //
 // The properties Content, Name, Role are required.
 type ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam struct {
-	Content string `json:"content,required"`
-	Name    string `json:"name,required"`
+	Content string `json:"content" api:"required"`
+	Name    string `json:"name" api:"required"`
 	// Any of "function".
-	Role string `json:"role,omitzero,required"`
+	Role string `json:"role,omitzero" api:"required"`
 	paramObj
 }
 
@@ -975,19 +999,6 @@ func init() {
 		"role", "function",
 	)
 }
-
-// The name of the model to query.
-//
-// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
-type ChatCompletionNewParamsModel string
-
-const (
-	ChatCompletionNewParamsModelQwenQwen2_5_72BInstructTurbo            ChatCompletionNewParamsModel = "Qwen/Qwen2.5-72B-Instruct-Turbo"
-	ChatCompletionNewParamsModelQwenQwen2_5_7BInstructTurbo             ChatCompletionNewParamsModel = "Qwen/Qwen2.5-7B-Instruct-Turbo"
-	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_405BInstructTurbo ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo"
-	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_70BInstructTurbo  ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo"
-	ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo   ChatCompletionNewParamsModel = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
-)
 
 type ChatCompletionNewParamsCompliance string
 
@@ -1042,7 +1053,7 @@ const (
 
 // The property Name is required.
 type ChatCompletionNewParamsFunctionCallName struct {
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	paramObj
 }
 
@@ -1054,9 +1065,9 @@ func (r *ChatCompletionNewParamsFunctionCallName) UnmarshalJSON(data []byte) err
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// For models that support toggling reasoning functionality, this object can be
+// used to control that functionality.
 type ChatCompletionNewParamsReasoning struct {
-	// For models that support toggling reasoning functionality, this object can be
-	// used to control that functionality.
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
@@ -1149,7 +1160,7 @@ func NewChatCompletionNewParamsResponseFormatText() ChatCompletionNewParamsRespo
 // [NewChatCompletionNewParamsResponseFormatText].
 type ChatCompletionNewParamsResponseFormatText struct {
 	// The type of response format being defined. Always `text`.
-	Type constant.Text `json:"type,required"`
+	Type constant.Text `json:"type" api:"required"`
 	paramObj
 }
 
@@ -1167,11 +1178,11 @@ func (r *ChatCompletionNewParamsResponseFormatText) UnmarshalJSON(data []byte) e
 // The properties JsonSchema, Type are required.
 type ChatCompletionNewParamsResponseFormatJsonSchema struct {
 	// Structured Outputs configuration options, including a JSON Schema.
-	JsonSchema ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema `json:"json_schema,omitzero,required"`
+	JsonSchema ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema `json:"json_schema,omitzero" api:"required"`
 	// The type of response format being defined. Always `json_schema`.
 	//
 	// This field can be elided, and will marshal its zero value as "json_schema".
-	Type constant.JsonSchema `json:"type,required"`
+	Type constant.JsonSchema `json:"type" api:"required"`
 	paramObj
 }
 
@@ -1189,7 +1200,7 @@ func (r *ChatCompletionNewParamsResponseFormatJsonSchema) UnmarshalJSON(data []b
 type ChatCompletionNewParamsResponseFormatJsonSchemaJsonSchema struct {
 	// The name of the response format. Must be a-z, A-Z, 0-9, or contain underscores
 	// and dashes, with a maximum length of 64.
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Whether to enable strict schema adherence when generating the output. If set to
 	// true, the model will always follow the exact schema defined in the `schema`
 	// field. Only a subset of JSON Schema is supported when `strict` is `true`. To
@@ -1227,7 +1238,7 @@ func NewChatCompletionNewParamsResponseFormatJsonObject() ChatCompletionNewParam
 // [NewChatCompletionNewParamsResponseFormatJsonObject].
 type ChatCompletionNewParamsResponseFormatJsonObject struct {
 	// The type of response format being defined. Always `json_object`.
-	Type constant.JsonObject `json:"type,required"`
+	Type constant.JsonObject `json:"type" api:"required"`
 	paramObj
 }
 

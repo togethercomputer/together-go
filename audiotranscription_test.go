@@ -29,7 +29,7 @@ func TestAudioTranscriptionNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Audio.Transcriptions.New(context.TODO(), together.AudioTranscriptionNewParams{
 		File: together.AudioTranscriptionNewParamsFileUnion{
-			OfFile: io.Reader(bytes.NewBuffer([]byte("some file contents"))),
+			OfFile: io.Reader(bytes.NewBuffer([]byte("Example data"))),
 		},
 		Diarize:        together.Bool(true),
 		Language:       together.String("en"),

@@ -43,7 +43,7 @@ func (r *AudioTranscriptionService) New(ctx context.Context, body AudioTranscrip
 	opts = slices.Concat(r.Options, opts)
 	path := "audio/transcriptions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // AudioTranscriptionNewResponseUnion contains all possible properties and values
@@ -102,7 +102,7 @@ func (r *AudioTranscriptionNewResponseUnion) UnmarshalJSON(data []byte) error {
 
 type AudioTranscriptionNewResponseAudioTranscriptionJsonResponse struct {
 	// The transcribed text
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Text        respjson.Field
@@ -121,17 +121,17 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionJsonResponse) UnmarshalJ
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
 	// The duration of the audio in seconds
-	Duration float64 `json:"duration,required"`
+	Duration float64 `json:"duration" api:"required"`
 	// The language of the audio
-	Language string `json:"language,required"`
+	Language string `json:"language" api:"required"`
 	// Array of transcription segments
-	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments,required"`
+	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments" api:"required"`
 	// The task performed
 	//
 	// Any of "transcribe", "translate".
-	Task string `json:"task,required"`
+	Task string `json:"task" api:"required"`
 	// The transcribed text
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// Array of transcription speaker segments (only when diarize is enabled)
 	SpeakerSegments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment `json:"speaker_segments"`
 	// Array of transcription words (only when timestamp_granularities includes 'word')
@@ -160,13 +160,13 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse) Unm
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment struct {
 	// Unique identifier for the segment
-	ID int64 `json:"id,required"`
+	ID int64 `json:"id" api:"required"`
 	// End time of the segment in seconds
-	End float64 `json:"end,required"`
+	End float64 `json:"end" api:"required"`
 	// Start time of the segment in seconds
-	Start float64 `json:"start,required"`
+	Start float64 `json:"start" api:"required"`
 	// The text content of the segment
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -188,17 +188,17 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegme
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment struct {
 	// Unique identifier for the speaker segment
-	ID int64 `json:"id,required"`
+	ID int64 `json:"id" api:"required"`
 	// End time of the speaker segment in seconds
-	End float64 `json:"end,required"`
+	End float64 `json:"end" api:"required"`
 	// The speaker identifier
-	SpeakerID string `json:"speaker_id,required"`
+	SpeakerID string `json:"speaker_id" api:"required"`
 	// Start time of the speaker segment in seconds
-	Start float64 `json:"start,required"`
+	Start float64 `json:"start" api:"required"`
 	// The full text spoken by this speaker in this segment
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// Array of words spoken by this speaker in this segment
-	Words []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegmentWord `json:"words,required"`
+	Words []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegmentWord `json:"words" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -222,11 +222,11 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeak
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegmentWord struct {
 	// End time of the word in seconds
-	End float64 `json:"end,required"`
+	End float64 `json:"end" api:"required"`
 	// Start time of the word in seconds
-	Start float64 `json:"start,required"`
+	Start float64 `json:"start" api:"required"`
 	// The word
-	Word string `json:"word,required"`
+	Word string `json:"word" api:"required"`
 	// The speaker id for the word (only when diarize is enabled)
 	SpeakerID string `json:"speaker_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -250,11 +250,11 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeak
 
 type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord struct {
 	// End time of the word in seconds
-	End float64 `json:"end,required"`
+	End float64 `json:"end" api:"required"`
 	// Start time of the word in seconds
-	Start float64 `json:"start,required"`
+	Start float64 `json:"start" api:"required"`
 	// The word
-	Word string `json:"word,required"`
+	Word string `json:"word" api:"required"`
 	// The speaker id for the word (only when diarize is enabled)
 	SpeakerID string `json:"speaker_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -279,7 +279,7 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord)
 type AudioTranscriptionNewParams struct {
 	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
 	// .webm, .flac.
-	File AudioTranscriptionNewParamsFileUnion `json:"file,omitzero,required" format:"binary"`
+	File AudioTranscriptionNewParamsFileUnion `json:"file,omitzero" api:"required" format:"binary"`
 	// Whether to enable speaker diarization. When enabled, you will get the speaker id
 	// for each word in the transcription. In the response, in the words array, you
 	// will get the speaker id for each word. In addition, we also return the

@@ -37,12 +37,12 @@ func (r *AudioVoiceService) List(ctx context.Context, opts ...option.RequestOpti
 	opts = slices.Concat(r.Options, opts)
 	path := "voices"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Response containing a list of models and their available voices.
 type AudioVoiceListResponse struct {
-	Data []AudioVoiceListResponseData `json:"data,required"`
+	Data []AudioVoiceListResponseData `json:"data" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -59,8 +59,10 @@ func (r *AudioVoiceListResponse) UnmarshalJSON(data []byte) error {
 
 // Represents a model with its available voices.
 type AudioVoiceListResponseData struct {
-	Model  string                            `json:"model,required"`
-	Voices []AudioVoiceListResponseDataVoice `json:"voices,required"`
+	// Model name.
+	Model string `json:"model" api:"required"`
+	// List of available voices for the model.
+	Voices []AudioVoiceListResponseDataVoice `json:"voices" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Model       respjson.Field
@@ -77,8 +79,9 @@ func (r *AudioVoiceListResponseData) UnmarshalJSON(data []byte) error {
 }
 
 type AudioVoiceListResponseDataVoice struct {
-	ID   string `json:"id,required"`
-	Name string `json:"name,required"`
+	ID string `json:"id" api:"required"`
+	// Voice name to be used for audio inference.
+	Name string `json:"name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field

@@ -45,7 +45,7 @@ func (r *EvalService) New(ctx context.Context, body EvalNewParams, opts ...optio
 	opts = slices.Concat(r.Options, opts)
 	path := "evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Get evaluation job details
@@ -53,11 +53,11 @@ func (r *EvalService) Get(ctx context.Context, id string, opts ...option.Request
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("evaluation/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Get all evaluation jobs
@@ -65,7 +65,7 @@ func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	path := "evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return
+	return res, err
 }
 
 // Get evaluation job status and results
@@ -73,11 +73,11 @@ func (r *EvalService) Status(ctx context.Context, id string, opts ...option.Requ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("evaluation/%s/status", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type EvaluationJob struct {
@@ -88,7 +88,7 @@ type EvaluationJob struct {
 	// The parameters used for this evaluation
 	Parameters map[string]any `json:"parameters"`
 	// Results of the evaluation (when completed)
-	Results EvaluationJobResultsUnion `json:"results,nullable"`
+	Results EvaluationJobResultsUnion `json:"results" api:"nullable"`
 	// Current status of the job
 	//
 	// Any of "pending", "queued", "running", "completed", "error", "user_error".
@@ -205,15 +205,15 @@ func (r *EvaluationJobResultsUnion) UnmarshalJSON(data []byte) error {
 
 type EvaluationJobResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of invalid labels
-	InvalidLabelCount float64 `json:"invalid_label_count,nullable"`
+	InvalidLabelCount float64 `json:"invalid_label_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// JSON string representing label counts
 	LabelCounts string `json:"label_counts"`
 	// Pecentage of pass labels.
-	PassPercentage float64 `json:"pass_percentage,nullable"`
+	PassPercentage float64 `json:"pass_percentage" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -240,11 +240,11 @@ type EvaluationJobResultsEvaluationScoreResults struct {
 	// number of failed samples generated from model
 	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// number of invalid scores generated from model
 	InvalidScoreCount float64 `json:"invalid_score_count"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -294,9 +294,9 @@ type EvaluationJobResultsEvaluationCompareResults struct {
 	// Number of times model B won
 	BWins int64 `json:"B_wins"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// Total number of samples compared
 	NumSamples int64 `json:"num_samples"`
 	// Data File ID
@@ -506,15 +506,15 @@ func (r *EvalStatusResponseResultsUnion) UnmarshalJSON(data []byte) error {
 
 type EvalStatusResponseResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of invalid labels
-	InvalidLabelCount float64 `json:"invalid_label_count,nullable"`
+	InvalidLabelCount float64 `json:"invalid_label_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// JSON string representing label counts
 	LabelCounts string `json:"label_counts"`
 	// Pecentage of pass labels.
-	PassPercentage float64 `json:"pass_percentage,nullable"`
+	PassPercentage float64 `json:"pass_percentage" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -541,11 +541,11 @@ type EvalStatusResponseResultsEvaluationScoreResults struct {
 	// number of failed samples generated from model
 	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// number of invalid scores generated from model
 	InvalidScoreCount float64 `json:"invalid_score_count"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -595,9 +595,9 @@ type EvalStatusResponseResultsEvaluationCompareResults struct {
 	// Number of times model B won
 	BWins int64 `json:"B_wins"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count,nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count,nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// Total number of samples compared
 	NumSamples int64 `json:"num_samples"`
 	// Data File ID
@@ -638,11 +638,11 @@ const (
 
 type EvalNewParams struct {
 	// Type-specific parameters for the evaluation
-	Parameters EvalNewParamsParametersUnion `json:"parameters,omitzero,required"`
+	Parameters EvalNewParamsParametersUnion `json:"parameters,omitzero" api:"required"`
 	// The type of evaluation to perform
 	//
 	// Any of "classify", "score", "compare".
-	Type EvalNewParamsType `json:"type,omitzero,required"`
+	Type EvalNewParamsType `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -993,12 +993,12 @@ func (u evalNewParamsParametersUnionModelToEvaluate) GetExternalBaseURL() *strin
 // The properties InputDataFilePath, Judge, Labels, PassLabels are required.
 type EvalNewParamsParametersEvaluationClassifyParameters struct {
 	// Data file ID
-	InputDataFilePath string                                                   `json:"input_data_file_path,required"`
-	Judge             EvalNewParamsParametersEvaluationClassifyParametersJudge `json:"judge,omitzero,required"`
+	InputDataFilePath string                                                   `json:"input_data_file_path" api:"required"`
+	Judge             EvalNewParamsParametersEvaluationClassifyParametersJudge `json:"judge,omitzero" api:"required"`
 	// List of possible classification labels
-	Labels []string `json:"labels,omitzero,required"`
+	Labels []string `json:"labels,omitzero" api:"required"`
 	// List of labels that are considered passing
-	PassLabels []string `json:"pass_labels,omitzero,required"`
+	PassLabels []string `json:"pass_labels,omitzero" api:"required"`
 	// Field name in the input data
 	ModelToEvaluate EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion `json:"model_to_evaluate,omitzero"`
 	paramObj
@@ -1015,13 +1015,13 @@ func (r *EvalNewParamsParametersEvaluationClassifyParameters) UnmarshalJSON(data
 // The properties Model, ModelSource, SystemTemplate are required.
 type EvalNewParamsParametersEvaluationClassifyParametersJudge struct {
 	// Name of the judge model
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Source of the judge model.
 	//
 	// Any of "serverless", "dedicated", "external".
-	ModelSource string `json:"model_source,omitzero,required"`
+	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template for the judge
-	SystemTemplate string `json:"system_template,required"`
+	SystemTemplate string `json:"system_template" api:"required"`
 	// Bearer/API token for external judge models.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
@@ -1072,19 +1072,19 @@ func (u *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion
 // Temperature are required.
 type EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest struct {
 	// Input prompt template
-	InputTemplate string `json:"input_template,required"`
+	InputTemplate string `json:"input_template" api:"required"`
 	// Maximum number of tokens to generate
-	MaxTokens int64 `json:"max_tokens,required"`
+	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Source of the model.
 	//
 	// Any of "serverless", "dedicated", "external".
-	ModelSource string `json:"model_source,omitzero,required"`
+	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template
-	SystemTemplate string `json:"system_template,required"`
+	SystemTemplate string `json:"system_template" api:"required"`
 	// Sampling temperature
-	Temperature float64 `json:"temperature,required"`
+	Temperature float64 `json:"temperature" api:"required"`
 	// Bearer/API token for external models.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
@@ -1110,14 +1110,14 @@ func init() {
 // required.
 type EvalNewParamsParametersEvaluationScoreParameters struct {
 	// Data file ID
-	InputDataFilePath string                                                `json:"input_data_file_path,required"`
-	Judge             EvalNewParamsParametersEvaluationScoreParametersJudge `json:"judge,omitzero,required"`
+	InputDataFilePath string                                                `json:"input_data_file_path" api:"required"`
+	Judge             EvalNewParamsParametersEvaluationScoreParametersJudge `json:"judge,omitzero" api:"required"`
 	// Maximum possible score
-	MaxScore float64 `json:"max_score,required"`
+	MaxScore float64 `json:"max_score" api:"required"`
 	// Minimum possible score
-	MinScore float64 `json:"min_score,required"`
+	MinScore float64 `json:"min_score" api:"required"`
 	// Score threshold for passing
-	PassThreshold float64 `json:"pass_threshold,required"`
+	PassThreshold float64 `json:"pass_threshold" api:"required"`
 	// Field name in the input data
 	ModelToEvaluate EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion `json:"model_to_evaluate,omitzero"`
 	paramObj
@@ -1134,13 +1134,13 @@ func (r *EvalNewParamsParametersEvaluationScoreParameters) UnmarshalJSON(data []
 // The properties Model, ModelSource, SystemTemplate are required.
 type EvalNewParamsParametersEvaluationScoreParametersJudge struct {
 	// Name of the judge model
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Source of the judge model.
 	//
 	// Any of "serverless", "dedicated", "external".
-	ModelSource string `json:"model_source,omitzero,required"`
+	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template for the judge
-	SystemTemplate string `json:"system_template,required"`
+	SystemTemplate string `json:"system_template" api:"required"`
 	// Bearer/API token for external judge models.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
@@ -1191,19 +1191,19 @@ func (u *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion) a
 // Temperature are required.
 type EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest struct {
 	// Input prompt template
-	InputTemplate string `json:"input_template,required"`
+	InputTemplate string `json:"input_template" api:"required"`
 	// Maximum number of tokens to generate
-	MaxTokens int64 `json:"max_tokens,required"`
+	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Source of the model.
 	//
 	// Any of "serverless", "dedicated", "external".
-	ModelSource string `json:"model_source,omitzero,required"`
+	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template
-	SystemTemplate string `json:"system_template,required"`
+	SystemTemplate string `json:"system_template" api:"required"`
 	// Sampling temperature
-	Temperature float64 `json:"temperature,required"`
+	Temperature float64 `json:"temperature" api:"required"`
 	// Bearer/API token for external models.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
@@ -1228,8 +1228,8 @@ func init() {
 // The properties InputDataFilePath, Judge are required.
 type EvalNewParamsParametersEvaluationCompareParameters struct {
 	// Data file name
-	InputDataFilePath string                                                  `json:"input_data_file_path,required"`
-	Judge             EvalNewParamsParametersEvaluationCompareParametersJudge `json:"judge,omitzero,required"`
+	InputDataFilePath string                                                  `json:"input_data_file_path" api:"required"`
+	Judge             EvalNewParamsParametersEvaluationCompareParametersJudge `json:"judge,omitzero" api:"required"`
 	// Field name in the input data
 	ModelA EvalNewParamsParametersEvaluationCompareParametersModelAUnion `json:"model_a,omitzero"`
 	// Field name in the input data
@@ -1248,13 +1248,13 @@ func (r *EvalNewParamsParametersEvaluationCompareParameters) UnmarshalJSON(data 
 // The properties Model, ModelSource, SystemTemplate are required.
 type EvalNewParamsParametersEvaluationCompareParametersJudge struct {
 	// Name of the judge model
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Source of the judge model.
 	//
 	// Any of "serverless", "dedicated", "external".
-	ModelSource string `json:"model_source,omitzero,required"`
+	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template for the judge
-	SystemTemplate string `json:"system_template,required"`
+	SystemTemplate string `json:"system_template" api:"required"`
 	// Bearer/API token for external judge models.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
@@ -1305,19 +1305,19 @@ func (u *EvalNewParamsParametersEvaluationCompareParametersModelAUnion) asAny() 
 // Temperature are required.
 type EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest struct {
 	// Input prompt template
-	InputTemplate string `json:"input_template,required"`
+	InputTemplate string `json:"input_template" api:"required"`
 	// Maximum number of tokens to generate
-	MaxTokens int64 `json:"max_tokens,required"`
+	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Source of the model.
 	//
 	// Any of "serverless", "dedicated", "external".
-	ModelSource string `json:"model_source,omitzero,required"`
+	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template
-	SystemTemplate string `json:"system_template,required"`
+	SystemTemplate string `json:"system_template" api:"required"`
 	// Sampling temperature
-	Temperature float64 `json:"temperature,required"`
+	Temperature float64 `json:"temperature" api:"required"`
 	// Bearer/API token for external models.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
@@ -1368,19 +1368,19 @@ func (u *EvalNewParamsParametersEvaluationCompareParametersModelBUnion) asAny() 
 // Temperature are required.
 type EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest struct {
 	// Input prompt template
-	InputTemplate string `json:"input_template,required"`
+	InputTemplate string `json:"input_template" api:"required"`
 	// Maximum number of tokens to generate
-	MaxTokens int64 `json:"max_tokens,required"`
+	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
-	Model string `json:"model,required"`
+	Model string `json:"model" api:"required"`
 	// Source of the model.
 	//
 	// Any of "serverless", "dedicated", "external".
-	ModelSource string `json:"model_source,omitzero,required"`
+	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template
-	SystemTemplate string `json:"system_template,required"`
+	SystemTemplate string `json:"system_template" api:"required"`
 	// Sampling temperature
-	Temperature float64 `json:"temperature,required"`
+	Temperature float64 `json:"temperature" api:"required"`
 	// Bearer/API token for external models.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
@@ -1412,11 +1412,10 @@ const (
 )
 
 type EvalListParams struct {
-	Limit  param.Opt[int64]  `query:"limit,omitzero" json:"-"`
+	// Limit the number of results
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Filter evaluation jobs by status
 	Status param.Opt[string] `query:"status,omitzero" json:"-"`
-	// Admin users can specify a user ID to filter jobs. Pass empty string to get all
-	// jobs.
-	UserID param.Opt[string] `query:"userId,omitzero" json:"-"`
 	paramObj
 }
 

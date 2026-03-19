@@ -14,6 +14,7 @@ import (
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
 	"github.com/togethercomputer/together-go/packages/ssestream"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // CompletionService contains methods and other services that help with interacting
@@ -35,15 +36,17 @@ func NewCompletionService(opts ...option.RequestOption) (r CompletionService) {
 	return
 }
 
-// Query a language, code, or image model.
+// Generate text completions for a given prompt using a language, code, or image
+// model.
 func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (res *Completion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
-// Query a language, code, or image model.
+// Generate text completions for a given prompt using a language, code, or image
+// model.
 func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (stream *ssestream.Stream[CompletionChunk]) {
 	var (
 		raw *http.Response
@@ -57,14 +60,17 @@ func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNew
 }
 
 type Completion struct {
-	ID      string             `json:"id,required"`
-	Choices []CompletionChoice `json:"choices,required"`
-	Created int64              `json:"created,required"`
-	Model   string             `json:"model,required"`
-	// Any of "text.completion".
-	Object CompletionObject    `json:"object,required"`
-	Usage  ChatCompletionUsage `json:"usage,required"`
-	Prompt []CompletionPrompt  `json:"prompt"`
+	ID      string             `json:"id" api:"required"`
+	Choices []CompletionChoice `json:"choices" api:"required"`
+	Created int64              `json:"created" api:"required"`
+	Model   string             `json:"model" api:"required"`
+	// The object type, which is always `text.completion`.
+	Object constant.TextCompletion `json:"object" api:"required"`
+	// When `echo` is true, the prompt is included in the response. Additionally, when
+	// `logprobs` is also provided, log probability information is provided on the
+	// prompt.
+	Prompt ChatCompletionPrompt `json:"prompt" api:"required"`
+	Usage  ChatCompletionUsage  `json:"usage" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -72,8 +78,8 @@ type Completion struct {
 		Created     respjson.Field
 		Model       respjson.Field
 		Object      respjson.Field
-		Usage       respjson.Field
 		Prompt      respjson.Field
+		Usage       respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -108,38 +114,16 @@ func (r *CompletionChoice) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type CompletionObject string
-
-const (
-	CompletionObjectTextCompletion CompletionObject = "text.completion"
-)
-
-type CompletionPrompt struct {
-	Logprobs LogProbs `json:"logprobs"`
-	Text     string   `json:"text"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Logprobs    respjson.Field
-		Text        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r CompletionPrompt) RawJSON() string { return r.JSON.raw }
-func (r *CompletionPrompt) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 type CompletionChunk struct {
-	ID      string                  `json:"id,required"`
-	Token   CompletionChunkToken    `json:"token,required"`
-	Choices []CompletionChunkChoice `json:"choices,required"`
+	ID      string                  `json:"id" api:"required"`
+	Token   CompletionChunkToken    `json:"token" api:"required"`
+	Choices []CompletionChunkChoice `json:"choices" api:"required"`
 	// Any of "stop", "eos", "length", "tool_calls", "function_call".
-	FinishReason CompletionChunkFinishReason `json:"finish_reason,required"`
-	Usage        ChatCompletionUsage         `json:"usage,required"`
+	FinishReason CompletionChunkFinishReason `json:"finish_reason" api:"required"`
+	Usage        ChatCompletionUsage         `json:"usage" api:"required"`
 	Created      int64                       `json:"created"`
+	// The object type, which is always `completion.chunk`.
+	//
 	// Any of "completion.chunk".
 	Object CompletionChunkObject `json:"object"`
 	Seed   int64                 `json:"seed"`
@@ -165,10 +149,10 @@ func (r *CompletionChunk) UnmarshalJSON(data []byte) error {
 }
 
 type CompletionChunkToken struct {
-	ID      int64   `json:"id,required"`
-	Logprob float64 `json:"logprob,required"`
-	Special bool    `json:"special,required"`
-	Text    string  `json:"text,required"`
+	ID      int64   `json:"id" api:"required"`
+	Logprob float64 `json:"logprob" api:"required"`
+	Special bool    `json:"special" api:"required"`
+	Text    string  `json:"text" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -187,7 +171,7 @@ func (r *CompletionChunkToken) UnmarshalJSON(data []byte) error {
 }
 
 type CompletionChunkChoice struct {
-	Index int64                      `json:"index,required"`
+	Index int64                      `json:"index" api:"required"`
 	Delta CompletionChunkChoiceDelta `json:"delta"`
 	Text  string                     `json:"text"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -208,11 +192,11 @@ func (r *CompletionChunkChoice) UnmarshalJSON(data []byte) error {
 
 type CompletionChunkChoiceDelta struct {
 	// Any of "system", "user", "assistant", "function", "tool".
-	Role    string `json:"role,required"`
-	Content string `json:"content,nullable"`
+	Role    string `json:"role" api:"required"`
+	Content string `json:"content" api:"nullable"`
 	// Deprecated: deprecated
-	FunctionCall CompletionChunkChoiceDeltaFunctionCall `json:"function_call,nullable"`
-	Reasoning    string                                 `json:"reasoning,nullable"`
+	FunctionCall CompletionChunkChoiceDeltaFunctionCall `json:"function_call" api:"nullable"`
+	Reasoning    string                                 `json:"reasoning" api:"nullable"`
 	TokenID      int64                                  `json:"token_id"`
 	ToolCalls    []ToolChoice                           `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -236,8 +220,8 @@ func (r *CompletionChunkChoiceDelta) UnmarshalJSON(data []byte) error {
 
 // Deprecated: deprecated
 type CompletionChunkChoiceDeltaFunctionCall struct {
-	Arguments string `json:"arguments,required"`
-	Name      string `json:"name,required"`
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Arguments   respjson.Field
@@ -263,6 +247,7 @@ const (
 	CompletionChunkFinishReasonFunctionCall CompletionChunkFinishReason = "function_call"
 )
 
+// The object type, which is always `completion.chunk`.
 type CompletionChunkObject string
 
 const (
@@ -276,11 +261,14 @@ type LogProbs struct {
 	TokenLogprobs []float64 `json:"token_logprobs"`
 	// List of token strings
 	Tokens []string `json:"tokens"`
+	// Top log probabilities for the tokens.
+	TopLogprobs map[string]float64 `json:"top_logprobs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		TokenIDs      respjson.Field
 		TokenLogprobs respjson.Field
 		Tokens        respjson.Field
+		TopLogprobs   respjson.Field
 		ExtraFields   map[string]respjson.Field
 		raw           string
 	} `json:"-"`
@@ -293,11 +281,11 @@ func (r *LogProbs) UnmarshalJSON(data []byte) error {
 }
 
 type ToolChoice struct {
-	ID       string             `json:"id,required"`
-	Function ToolChoiceFunction `json:"function,required"`
-	Index    float64            `json:"index,required"`
+	ID       string             `json:"id" api:"required"`
+	Function ToolChoiceFunction `json:"function" api:"required"`
+	Index    float64            `json:"index" api:"required"`
 	// Any of "function".
-	Type ToolChoiceType `json:"type,required"`
+	Type ToolChoiceType `json:"type" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -325,8 +313,8 @@ func (r ToolChoice) ToParam() ToolChoiceParam {
 }
 
 type ToolChoiceFunction struct {
-	Arguments string `json:"arguments,required"`
-	Name      string `json:"name,required"`
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Arguments   respjson.Field
@@ -350,11 +338,11 @@ const (
 
 // The properties ID, Function, Index, Type are required.
 type ToolChoiceParam struct {
-	ID       string                  `json:"id,required"`
-	Function ToolChoiceFunctionParam `json:"function,omitzero,required"`
-	Index    float64                 `json:"index,required"`
+	ID       string                  `json:"id" api:"required"`
+	Function ToolChoiceFunctionParam `json:"function,omitzero" api:"required"`
+	Index    float64                 `json:"index" api:"required"`
 	// Any of "function".
-	Type ToolChoiceType `json:"type,omitzero,required"`
+	Type ToolChoiceType `json:"type,omitzero" api:"required"`
 	paramObj
 }
 
@@ -368,8 +356,8 @@ func (r *ToolChoiceParam) UnmarshalJSON(data []byte) error {
 
 // The properties Arguments, Name are required.
 type ToolChoiceFunctionParam struct {
-	Arguments string `json:"arguments,required"`
-	Name      string `json:"name,required"`
+	Arguments string `json:"arguments" api:"required"`
+	Name      string `json:"name" api:"required"`
 	paramObj
 }
 
@@ -415,9 +403,9 @@ type CompletionNewParams struct {
 	// The name of the model to query.
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
-	Model CompletionNewParamsModel `json:"model,omitzero,required"`
+	Model CompletionNewParamsModel `json:"model,omitzero" api:"required"`
 	// A string providing context for the model to complete.
-	Prompt string `json:"prompt,required"`
+	Prompt string `json:"prompt" api:"required"`
 	// If true, the response will contain the prompt. Can be used with `logprobs` to
 	// return prompt logprobs.
 	Echo param.Opt[bool] `json:"echo,omitzero"`

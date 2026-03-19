@@ -40,7 +40,7 @@ func (r *BetaJigSecretService) New(ctx context.Context, body BetaJigSecretNewPar
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/secrets"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve details of a specific secret by its ID or name
@@ -48,11 +48,11 @@ func (r *BetaJigSecretService) Get(ctx context.Context, id string, opts ...optio
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update an existing secret's value or metadata
@@ -60,11 +60,11 @@ func (r *BetaJigSecretService) Update(ctx context.Context, id string, body BetaJ
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve all secrets in your project
@@ -72,7 +72,7 @@ func (r *BetaJigSecretService) List(ctx context.Context, opts ...option.RequestO
 	opts = slices.Concat(r.Options, opts)
 	path := "deployments/secrets"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete an existing secret
@@ -80,11 +80,11 @@ func (r *BetaJigSecretService) Delete(ctx context.Context, id string, opts ...op
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("deployments/secrets/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Secret struct {
@@ -100,8 +100,10 @@ type Secret struct {
 	LastUpdatedBy string `json:"last_updated_by"`
 	// Name is the name/key of the secret
 	Name string `json:"name"`
-	// Object is the type identifier for this response (always "secret")
-	Object string `json:"object"`
+	// The object type, which is always `secret`.
+	//
+	// Any of "secret".
+	Object SecretObject `json:"object"`
 	// UpdatedAt is the ISO8601 timestamp when this secret was last updated
 	UpdatedAt string `json:"updated_at"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -125,11 +127,20 @@ func (r *Secret) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// The object type, which is always `secret`.
+type SecretObject string
+
+const (
+	SecretObjectSecret SecretObject = "secret"
+)
+
 type BetaJigSecretListResponse struct {
 	// Data is the array of secret items
 	Data []Secret `json:"data"`
-	// Object is the type identifier for this response (always "list")
-	Object string `json:"object"`
+	// The object type, which is always `list`.
+	//
+	// Any of "list".
+	Object BetaJigSecretListResponseObject `json:"object"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -145,16 +156,23 @@ func (r *BetaJigSecretListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// The object type, which is always `list`.
+type BetaJigSecretListResponseObject string
+
+const (
+	BetaJigSecretListResponseObjectList BetaJigSecretListResponseObject = "list"
+)
+
 type BetaJigSecretDeleteResponse = any
 
 type BetaJigSecretNewParams struct {
 	// Name is the unique identifier for the secret. Can contain alphanumeric
 	// characters, underscores, hyphens, forward slashes, and periods (1-100
 	// characters)
-	Name string `json:"name,required"`
+	Name string `json:"name" api:"required"`
 	// Value is the sensitive data to store securely (e.g., API keys, passwords,
 	// tokens). This value will be encrypted at rest
-	Value string `json:"value,required"`
+	Value string `json:"value" api:"required"`
 	// Description is an optional human-readable description of the secret's purpose
 	// (max 500 characters)
 	Description param.Opt[string] `json:"description,omitzero"`

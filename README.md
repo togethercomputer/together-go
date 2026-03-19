@@ -28,7 +28,7 @@ Or to pin the version:
 <!-- x-release-please-start-version -->
 
 ```sh
-go get -u 'github.com/togethercomputer/together-go@v0.6.0'
+go get -u 'github.com/togethercomputer/together-go@v0.7.0'
 ```
 
 <!-- x-release-please-end -->
@@ -65,7 +65,7 @@ func main() {
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
 	})
 	if err != nil {
 		panic(err.Error())
@@ -316,7 +316,7 @@ _, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNew
 			},
 		},
 	}},
-	Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+	Model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
 })
 if err != nil {
 	var apierr *together.Error
@@ -353,7 +353,7 @@ client.Chat.Completions.New(
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
 	},
 	// This sets the per-retry timeout
 	option.WithRequestTimeout(20*time.Second),
@@ -423,7 +423,7 @@ client.Chat.Completions.New(
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
 	},
 	option.WithMaxRetries(5),
 )
@@ -448,7 +448,7 @@ chatCompletion, err := client.Chat.Completions.New(
 				},
 			},
 		}},
-		Model: together.ChatCompletionNewParamsModelMetaLlamaMetaLlama3_1_8BInstructTurbo,
+		Model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
 	},
 	option.WithResponseInto(&response),
 )

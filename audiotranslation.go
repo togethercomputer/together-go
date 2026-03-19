@@ -43,7 +43,7 @@ func (r *AudioTranslationService) New(ctx context.Context, body AudioTranslation
 	opts = slices.Concat(r.Options, opts)
 	path := "audio/translations"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // AudioTranslationNewResponseUnion contains all possible properties and values
@@ -98,7 +98,7 @@ func (r *AudioTranslationNewResponseUnion) UnmarshalJSON(data []byte) error {
 
 type AudioTranslationNewResponseAudioTranslationJsonResponse struct {
 	// The translated text
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Text        respjson.Field
@@ -115,17 +115,17 @@ func (r *AudioTranslationNewResponseAudioTranslationJsonResponse) UnmarshalJSON(
 
 type AudioTranslationNewResponseAudioTranslationVerboseJsonResponse struct {
 	// The duration of the audio in seconds
-	Duration float64 `json:"duration,required"`
+	Duration float64 `json:"duration" api:"required"`
 	// The target language of the translation
-	Language string `json:"language,required"`
+	Language string `json:"language" api:"required"`
 	// Array of translation segments
-	Segments []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment `json:"segments,required"`
+	Segments []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment `json:"segments" api:"required"`
 	// The task performed
 	//
 	// Any of "transcribe", "translate".
-	Task string `json:"task,required"`
+	Task string `json:"task" api:"required"`
 	// The translated text
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// Array of translation words (only when timestamp_granularities includes 'word')
 	Words []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord `json:"words"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -151,13 +151,13 @@ func (r *AudioTranslationNewResponseAudioTranslationVerboseJsonResponse) Unmarsh
 
 type AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment struct {
 	// Unique identifier for the segment
-	ID int64 `json:"id,required"`
+	ID int64 `json:"id" api:"required"`
 	// End time of the segment in seconds
-	End float64 `json:"end,required"`
+	End float64 `json:"end" api:"required"`
 	// Start time of the segment in seconds
-	Start float64 `json:"start,required"`
+	Start float64 `json:"start" api:"required"`
 	// The text content of the segment
-	Text string `json:"text,required"`
+	Text string `json:"text" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
@@ -179,11 +179,11 @@ func (r *AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment) 
 
 type AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord struct {
 	// End time of the word in seconds
-	End float64 `json:"end,required"`
+	End float64 `json:"end" api:"required"`
 	// Start time of the word in seconds
-	Start float64 `json:"start,required"`
+	Start float64 `json:"start" api:"required"`
 	// The word
-	Word string `json:"word,required"`
+	Word string `json:"word" api:"required"`
 	// The speaker id for the word (only when diarize is enabled)
 	SpeakerID string `json:"speaker_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -208,7 +208,7 @@ func (r *AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord) Unm
 type AudioTranslationNewParams struct {
 	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
 	// .webm, .flac.
-	File AudioTranslationNewParamsFileUnion `json:"file,omitzero,required" format:"binary"`
+	File AudioTranslationNewParamsFileUnion `json:"file,omitzero" api:"required" format:"binary"`
 	// Target output language. Optional ISO 639-1 language code. If omitted, language
 	// is set to English.
 	Language param.Opt[string] `json:"language,omitzero"`

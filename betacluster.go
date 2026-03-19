@@ -46,7 +46,7 @@ func (r *BetaClusterService) New(ctx context.Context, body BetaClusterNewParams,
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // Retrieve information about a specific GPU cluster.
@@ -54,11 +54,11 @@ func (r *BetaClusterService) Get(ctx context.Context, clusterID string, opts ...
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Update the configuration of an existing GPU cluster.
@@ -66,11 +66,11 @@ func (r *BetaClusterService) Update(ctx context.Context, clusterID string, body 
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
-	return
+	return res, err
 }
 
 // List all GPU clusters.
@@ -78,7 +78,7 @@ func (r *BetaClusterService) List(ctx context.Context, opts ...option.RequestOpt
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // Delete a GPU cluster by cluster ID.
@@ -86,11 +86,11 @@ func (r *BetaClusterService) Delete(ctx context.Context, clusterID string, opts 
 	opts = slices.Concat(r.Options, opts)
 	if clusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
-		return
+		return nil, err
 	}
 	path := fmt.Sprintf("compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 // List regions and corresponding supported driver versions
@@ -98,33 +98,35 @@ func (r *BetaClusterService) ListRegions(ctx context.Context, opts ...option.Req
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/regions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return
+	return res, err
 }
 
 type Cluster struct {
-	ClusterID   string `json:"cluster_id,required"`
-	ClusterName string `json:"cluster_name,required"`
+	ClusterID   string `json:"cluster_id" api:"required"`
+	ClusterName string `json:"cluster_name" api:"required"`
+	// Type of cluster.
+	//
 	// Any of "KUBERNETES", "SLURM".
-	ClusterType       ClusterClusterType        `json:"cluster_type,required"`
-	ControlPlaneNodes []ClusterControlPlaneNode `json:"control_plane_nodes,required"`
+	ClusterType       ClusterClusterType        `json:"cluster_type" api:"required"`
+	ControlPlaneNodes []ClusterControlPlaneNode `json:"control_plane_nodes" api:"required"`
 	// Any of "CUDA_12_5_555", "CUDA_12_6_560", "CUDA_12_6_565", "CUDA_12_8_570".
-	DriverVersion ClusterDriverVersion `json:"driver_version,required"`
-	DurationHours int64                `json:"duration_hours,required"`
+	DriverVersion ClusterDriverVersion `json:"driver_version" api:"required"`
+	DurationHours int64                `json:"duration_hours" api:"required"`
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
 	// "H100_SXM_INF".
-	GPUType        ClusterGPUType         `json:"gpu_type,required"`
-	GPUWorkerNodes []ClusterGPUWorkerNode `json:"gpu_worker_nodes,required"`
-	KubeConfig     string                 `json:"kube_config,required"`
-	NumGPUs        int64                  `json:"num_gpus,required"`
-	Region         string                 `json:"region,required"`
+	GPUType        ClusterGPUType         `json:"gpu_type" api:"required"`
+	GPUWorkerNodes []ClusterGPUWorkerNode `json:"gpu_worker_nodes" api:"required"`
+	KubeConfig     string                 `json:"kube_config" api:"required"`
+	NumGPUs        int64                  `json:"num_gpus" api:"required"`
+	Region         string                 `json:"region" api:"required"`
 	// Current status of the GPU cluster.
 	//
 	// Any of "WaitingForControlPlaneNodes", "WaitingForDataPlaneNodes",
 	// "WaitingForSubnet", "WaitingForSharedVolume", "InstallingDrivers",
 	// "RunningAcceptanceTests", "Paused", "OnDemandComputePaused", "Ready",
 	// "Degraded", "Deleting".
-	Status  ClusterStatus   `json:"status,required"`
-	Volumes []ClusterVolume `json:"volumes,required"`
+	Status  ClusterStatus   `json:"status" api:"required"`
+	Volumes []ClusterVolume `json:"volumes" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ClusterID         respjson.Field
@@ -151,6 +153,7 @@ func (r *Cluster) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Type of cluster.
 type ClusterClusterType string
 
 const (
@@ -159,13 +162,13 @@ const (
 )
 
 type ClusterControlPlaneNode struct {
-	HostName    string  `json:"host_name,required"`
-	MemoryGib   float64 `json:"memory_gib,required"`
-	Network     string  `json:"network,required"`
-	NodeID      string  `json:"node_id,required"`
-	NodeName    string  `json:"node_name,required"`
-	NumCPUCores int64   `json:"num_cpu_cores,required"`
-	Status      string  `json:"status,required"`
+	HostName    string  `json:"host_name" api:"required"`
+	MemoryGib   float64 `json:"memory_gib" api:"required"`
+	Network     string  `json:"network" api:"required"`
+	NodeID      string  `json:"node_id" api:"required"`
+	NodeName    string  `json:"node_name" api:"required"`
+	NumCPUCores int64   `json:"num_cpu_cores" api:"required"`
+	Status      string  `json:"status" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		HostName    respjson.Field
@@ -207,14 +210,14 @@ const (
 )
 
 type ClusterGPUWorkerNode struct {
-	HostName    string   `json:"host_name,required"`
-	MemoryGib   float64  `json:"memory_gib,required"`
-	Networks    []string `json:"networks,required"`
-	NodeID      string   `json:"node_id,required"`
-	NodeName    string   `json:"node_name,required"`
-	NumCPUCores int64    `json:"num_cpu_cores,required"`
-	NumGPUs     int64    `json:"num_gpus,required"`
-	Status      string   `json:"status,required"`
+	HostName    string   `json:"host_name" api:"required"`
+	MemoryGib   float64  `json:"memory_gib" api:"required"`
+	Networks    []string `json:"networks" api:"required"`
+	NodeID      string   `json:"node_id" api:"required"`
+	NodeName    string   `json:"node_name" api:"required"`
+	NumCPUCores int64    `json:"num_cpu_cores" api:"required"`
+	NumGPUs     int64    `json:"num_gpus" api:"required"`
+	Status      string   `json:"status" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		HostName    respjson.Field
@@ -254,10 +257,10 @@ const (
 )
 
 type ClusterVolume struct {
-	SizeTib    int64  `json:"size_tib,required"`
-	Status     string `json:"status,required"`
-	VolumeID   string `json:"volume_id,required"`
-	VolumeName string `json:"volume_name,required"`
+	SizeTib    int64  `json:"size_tib" api:"required"`
+	Status     string `json:"status" api:"required"`
+	VolumeID   string `json:"volume_id" api:"required"`
+	VolumeName string `json:"volume_name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SizeTib     respjson.Field
@@ -276,7 +279,7 @@ func (r *ClusterVolume) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterListResponse struct {
-	Clusters []Cluster `json:"clusters,required"`
+	Clusters []Cluster `json:"clusters" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Clusters    respjson.Field
@@ -292,7 +295,7 @@ func (r *BetaClusterListResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterDeleteResponse struct {
-	ClusterID string `json:"cluster_id,required"`
+	ClusterID string `json:"cluster_id" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ClusterID   respjson.Field
@@ -308,7 +311,7 @@ func (r *BetaClusterDeleteResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterListRegionsResponse struct {
-	Regions []BetaClusterListRegionsResponseRegion `json:"regions,required"`
+	Regions []BetaClusterListRegionsResponseRegion `json:"regions" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Regions     respjson.Field
@@ -324,18 +327,19 @@ func (r *BetaClusterListRegionsResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterListRegionsResponseRegion struct {
-	ID                string   `json:"id,required"`
-	AvailabilityZones []string `json:"availability_zones,required"`
-	DriverVersions    []string `json:"driver_versions,required"`
-	Name              string   `json:"name,required"`
+	// List of supported identifiable driver versions available in the region.
+	DriverVersions []string `json:"driver_versions" api:"required"`
+	// Identifiable name of the region.
+	Name string `json:"name" api:"required"`
+	// List of supported identifiable gpus available in the region.
+	SupportedInstanceTypes []string `json:"supported_instance_types"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID                respjson.Field
-		AvailabilityZones respjson.Field
-		DriverVersions    respjson.Field
-		Name              respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
+		DriverVersions         respjson.Field
+		Name                   respjson.Field
+		SupportedInstanceTypes respjson.Field
+		ExtraFields            map[string]respjson.Field
+		raw                    string
 	} `json:"-"`
 }
 
@@ -346,32 +350,38 @@ func (r *BetaClusterListRegionsResponseRegion) UnmarshalJSON(data []byte) error 
 }
 
 type BetaClusterNewParams struct {
+	// RESERVED billing types allow you to specify the duration of the cluster
+	// reservation via the duration_days field. ON_DEMAND billing types will give you
+	// ownership of the cluster until you delete it.
+	//
 	// Any of "RESERVED", "ON_DEMAND".
-	BillingType BetaClusterNewParamsBillingType `json:"billing_type,omitzero,required"`
+	BillingType BetaClusterNewParamsBillingType `json:"billing_type,omitzero" api:"required"`
 	// Name of the GPU cluster.
-	ClusterName string `json:"cluster_name,required"`
+	ClusterName string `json:"cluster_name" api:"required"`
 	// NVIDIA driver version to use in the cluster.
 	//
 	// Any of "CUDA_12_5_555", "CUDA_12_6_560", "CUDA_12_6_565", "CUDA_12_8_570".
-	DriverVersion BetaClusterNewParamsDriverVersion `json:"driver_version,omitzero,required"`
+	DriverVersion BetaClusterNewParamsDriverVersion `json:"driver_version,omitzero" api:"required"`
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
 	// "H100_SXM_INF".
-	GPUType BetaClusterNewParamsGPUType `json:"gpu_type,omitzero,required"`
+	GPUType BetaClusterNewParamsGPUType `json:"gpu_type,omitzero" api:"required"`
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
-	NumGPUs int64 `json:"num_gpus,required"`
-	// Region to create the GPU cluster in. Valid values are us-central-8 and
-	// us-central-4.
-	//
-	// Any of "us-central-8", "us-central-4".
-	Region BetaClusterNewParamsRegion `json:"region,omitzero,required"`
+	NumGPUs int64 `json:"num_gpus" api:"required"`
+	// Region to create the GPU cluster in. Usable regions can be found from
+	// `client.clusters.list_regions()`
+	Region string `json:"region" api:"required"`
 	// Duration in days to keep the cluster running.
-	DurationDays param.Opt[int64]  `json:"duration_days,omitzero"`
-	VolumeID     param.Opt[string] `json:"volume_id,omitzero"`
+	DurationDays param.Opt[int64] `json:"duration_days,omitzero"`
+	// ID of an existing volume to use with the cluster creation.
+	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
+	// Type of cluster to create.
+	//
 	// Any of "KUBERNETES", "SLURM".
-	ClusterType  BetaClusterNewParamsClusterType  `json:"cluster_type,omitzero"`
+	ClusterType BetaClusterNewParamsClusterType `json:"cluster_type,omitzero"`
+	// Inline configuration to create a shared volume with the cluster creation.
 	SharedVolume BetaClusterNewParamsSharedVolume `json:"shared_volume,omitzero"`
 	paramObj
 }
@@ -384,6 +394,9 @@ func (r *BetaClusterNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// RESERVED billing types allow you to specify the duration of the cluster
+// reservation via the duration_days field. ON_DEMAND billing types will give you
+// ownership of the cluster until you delete it.
 type BetaClusterNewParamsBillingType string
 
 const (
@@ -413,15 +426,7 @@ const (
 	BetaClusterNewParamsGPUTypeH100SxmInf BetaClusterNewParamsGPUType = "H100_SXM_INF"
 )
 
-// Region to create the GPU cluster in. Valid values are us-central-8 and
-// us-central-4.
-type BetaClusterNewParamsRegion string
-
-const (
-	BetaClusterNewParamsRegionUsCentral8 BetaClusterNewParamsRegion = "us-central-8"
-	BetaClusterNewParamsRegionUsCentral4 BetaClusterNewParamsRegion = "us-central-4"
-)
-
+// Type of cluster to create.
 type BetaClusterNewParamsClusterType string
 
 const (
@@ -429,13 +434,16 @@ const (
 	BetaClusterNewParamsClusterTypeSlurm      BetaClusterNewParamsClusterType = "SLURM"
 )
 
+// Inline configuration to create a shared volume with the cluster creation.
+//
 // The properties Region, SizeTib, VolumeName are required.
 type BetaClusterNewParamsSharedVolume struct {
 	// Region name. Usable regions can be found from `client.clusters.list_regions()`
-	Region string `json:"region,required"`
+	Region string `json:"region" api:"required"`
 	// Volume size in whole tebibytes (TiB).
-	SizeTib    int64  `json:"size_tib,required"`
-	VolumeName string `json:"volume_name,required"`
+	SizeTib int64 `json:"size_tib" api:"required"`
+	// Customizable name of the volume to create.
+	VolumeName string `json:"volume_name" api:"required"`
 	paramObj
 }
 
@@ -448,7 +456,11 @@ func (r *BetaClusterNewParamsSharedVolume) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterUpdateParams struct {
+	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
+	// example, 8, 16 or 24
 	NumGPUs param.Opt[int64] `json:"num_gpus,omitzero"`
+	// Type of cluster to update.
+	//
 	// Any of "KUBERNETES", "SLURM".
 	ClusterType BetaClusterUpdateParamsClusterType `json:"cluster_type,omitzero"`
 	paramObj
@@ -462,6 +474,7 @@ func (r *BetaClusterUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Type of cluster to update.
 type BetaClusterUpdateParamsClusterType string
 
 const (
