@@ -822,6 +822,9 @@ type FineTuningNewResponse struct {
 	OwnerAddress string `json:"owner_address"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningNewResponseProgress `json:"progress"`
+	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
+	// jobs) or no explicit seed was recorded.
+	RandomSeed int64 `json:"random_seed" api:"nullable"`
 	// Start timestamp of the current stage of the fine-tune job
 	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
@@ -869,6 +872,7 @@ type FineTuningNewResponse struct {
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
 		Progress         respjson.Field
+		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
@@ -1312,6 +1316,9 @@ type FineTuningListResponseData struct {
 	OwnerAddress string `json:"owner_address"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningListResponseDataProgress `json:"progress"`
+	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
+	// jobs) or no explicit seed was recorded.
+	RandomSeed int64 `json:"random_seed" api:"nullable"`
 	// Start timestamp of the current stage of the fine-tune job
 	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
@@ -1359,6 +1366,7 @@ type FineTuningListResponseData struct {
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
 		Progress         respjson.Field
+		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
@@ -1799,6 +1807,9 @@ type FineTuningCancelResponse struct {
 	OwnerAddress string `json:"owner_address"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningCancelResponseProgress `json:"progress"`
+	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
+	// jobs) or no explicit seed was recorded.
+	RandomSeed int64 `json:"random_seed" api:"nullable"`
 	// Start timestamp of the current stage of the fine-tune job
 	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
@@ -1846,6 +1857,7 @@ type FineTuningCancelResponse struct {
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
 		Progress         respjson.Field
+		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
@@ -2324,6 +2336,10 @@ type FineTuningNewParams struct {
 	Model string `json:"model" api:"required"`
 	// File-ID of a training file uploaded to the Together API
 	TrainingFile string `json:"training_file" api:"required"`
+	// Random seed for reproducible training. When set, the same seed produces the same
+	// run (e.g. data shuffle, init). If omitted or null, the server applies its
+	// default seed (e.g. 42).
+	RandomSeed param.Opt[int64] `json:"random_seed,omitzero"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
 	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
