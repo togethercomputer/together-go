@@ -56,6 +56,7 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		NCheckpoints: together.Int(0),
 		NEpochs:      together.Int(0),
 		NEvals:       together.Int(0),
+		RandomSeed:   together.Int(0),
 		Suffix:       together.String("suffix"),
 		TrainOnInputs: together.FineTuningNewParamsTrainOnInputsUnion{
 			OfBool: together.Bool(true),
