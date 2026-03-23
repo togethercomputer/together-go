@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
@@ -122,7 +123,7 @@ type Deployment struct {
 	// value is allowed)
 	CPU float64 `json:"cpu"`
 	// CreatedAt is the ISO8601 timestamp when this deployment was created
-	CreatedAt string `json:"created_at"`
+	CreatedAt time.Time `json:"created_at" format:"date-time"`
 	// Description provides a human-readable explanation of the deployment's purpose or
 	// content
 	Description string `json:"description"`
@@ -168,7 +169,7 @@ type Deployment struct {
 	// allocated to each replica
 	Storage int64 `json:"storage"`
 	// UpdatedAt is the ISO8601 timestamp when this deployment was last updated
-	UpdatedAt string `json:"updated_at"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 	// Volumes is a list of volume mounts for this deployment
 	Volumes []DeploymentVolume `json:"volumes"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -544,8 +545,7 @@ type BetaJigUpdateParams struct {
 	// Args overrides the container's CMD. Provide as an array of arguments (e.g.,
 	// ["python", "app.py"])
 	Args []string `json:"args,omitzero"`
-	// Autoscaling configuration for the deployment. Omit or set to null to disable
-	// autoscaling
+	// Autoscaling configuration for the deployment. Set to {} to disable autoscaling
 	Autoscaling BetaJigUpdateParamsAutoscalingUnion `json:"autoscaling,omitzero"`
 	// Command overrides the container's ENTRYPOINT. Provide as an array (e.g.,
 	// ["/bin/sh", "-c"])
@@ -555,7 +555,7 @@ type BetaJigUpdateParams struct {
 	EnvironmentVariables []BetaJigUpdateParamsEnvironmentVariable `json:"environment_variables,omitzero"`
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb")
 	//
-	// Any of "h100-80gb", " a100-80gb".
+	// Any of "h100-80gb".
 	GPUType BetaJigUpdateParamsGPUType `json:"gpu_type,omitzero"`
 	// Volumes is a list of volume mounts to attach to the container. This will replace
 	// all existing volumes
@@ -759,7 +759,6 @@ type BetaJigUpdateParamsGPUType string
 
 const (
 	BetaJigUpdateParamsGPUTypeH100_80gb BetaJigUpdateParamsGPUType = "h100-80gb"
-	BetaJigUpdateParamsGPUTypeA100_80gb BetaJigUpdateParamsGPUType = " a100-80gb"
 )
 
 // The properties MountPath, Name are required.
@@ -787,7 +786,7 @@ func (r *BetaJigUpdateParamsVolume) UnmarshalJSON(data []byte) error {
 type BetaJigDeployParams struct {
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb").
 	//
-	// Any of "h100-80gb", "a100-80gb".
+	// Any of "h100-80gb".
 	GPUType BetaJigDeployParamsGPUType `json:"gpu_type,omitzero" api:"required"`
 	// Image is the container image to deploy from registry.together.ai.
 	Image string `json:"image" api:"required"`
@@ -855,7 +854,6 @@ type BetaJigDeployParamsGPUType string
 
 const (
 	BetaJigDeployParamsGPUTypeH100_80gb BetaJigDeployParamsGPUType = "h100-80gb"
-	BetaJigDeployParamsGPUTypeA100_80gb BetaJigDeployParamsGPUType = "a100-80gb"
 )
 
 // Only one field can be non-zero.
