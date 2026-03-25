@@ -73,7 +73,7 @@ type AudioSpeechNewParams struct {
 	//
 	// You can view the voices supported for each model using the /v1/voices endpoint
 	// sending the model name as the query parameter.
-	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#voices-available).
+	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#supported-voices).
 	Voice string `json:"voice" api:"required"`
 	// Sampling rate to use for the output audio. The default sampling rate for
 	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
