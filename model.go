@@ -58,7 +58,7 @@ type ModelObject struct {
 	ID      string `json:"id" api:"required"`
 	Created int64  `json:"created" api:"required"`
 	// The object type, which is always `model`.
-	Object constant.Model `json:"object" api:"required"`
+	Object constant.Model `json:"object" default:"model"`
 	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank".
 	Type          ModelObjectType    `json:"type" api:"required"`
 	ContextLength int64              `json:"context_length"`

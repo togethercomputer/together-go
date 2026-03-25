@@ -182,7 +182,7 @@ type DedicatedEndpoint struct {
 	// System name for the endpoint
 	Name string `json:"name" api:"required"`
 	// The object type, which is always `endpoint`.
-	Object constant.Endpoint `json:"object" api:"required"`
+	Object constant.Endpoint `json:"object" default:"endpoint"`
 	// The owner of this endpoint
 	Owner string `json:"owner" api:"required"`
 	// Current state of the endpoint
@@ -239,7 +239,7 @@ const (
 type EndpointListResponse struct {
 	Data []EndpointListResponseData `json:"data" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object" api:"required"`
+	Object constant.List `json:"object" default:"list"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -266,7 +266,7 @@ type EndpointListResponseData struct {
 	// System name for the endpoint
 	Name string `json:"name" api:"required"`
 	// The object type, which is always `endpoint`.
-	Object constant.Endpoint `json:"object" api:"required"`
+	Object constant.Endpoint `json:"object" default:"endpoint"`
 	// The owner of this endpoint
 	Owner string `json:"owner" api:"required"`
 	// Current state of the endpoint
@@ -318,7 +318,7 @@ func (r *EndpointListAvzonesResponse) UnmarshalJSON(data []byte) error {
 type EndpointListHardwareResponse struct {
 	Data []EndpointListHardwareResponseData `json:"data" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object" api:"required"`
+	Object constant.List `json:"object" default:"list"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -339,7 +339,7 @@ type EndpointListHardwareResponseData struct {
 	// Unique identifier for the hardware configuration
 	ID string `json:"id" api:"required"`
 	// The object type, which is always `hardware`.
-	Object constant.Hardware `json:"object" api:"required"`
+	Object constant.Hardware `json:"object" default:"hardware"`
 	// Pricing details for using an endpoint
 	Pricing EndpointListHardwareResponseDataPricing `json:"pricing" api:"required"`
 	// Detailed specifications of a hardware configuration

@@ -142,7 +142,7 @@ type FinetuneEvent struct {
 	Message        string `json:"message" api:"required"`
 	ModelPath      string `json:"model_path" api:"required"`
 	// The object type, which is always `fine-tune-event`.
-	Object         constant.FineTuneEvent `json:"object" api:"required"`
+	Object         constant.FineTuneEvent `json:"object" default:"fine-tune-event"`
 	ParamCount     int64                  `json:"param_count" api:"required"`
 	Step           int64                  `json:"step" api:"required"`
 	TokenCount     int64                  `json:"token_count" api:"required"`

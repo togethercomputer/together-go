@@ -47,7 +47,7 @@ type RerankNewResponse struct {
 	// The model to be used for the rerank request.
 	Model string `json:"model" api:"required"`
 	// The object type, which is always `rerank`.
-	Object  constant.Rerank           `json:"object" api:"required"`
+	Object  constant.Rerank           `json:"object" default:"rerank"`
 	Results []RerankNewResponseResult `json:"results" api:"required"`
 	// Request ID
 	ID    string              `json:"id"`
