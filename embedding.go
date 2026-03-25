@@ -47,7 +47,7 @@ type Embedding struct {
 	Data  []EmbeddingData `json:"data" api:"required"`
 	Model string          `json:"model" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object" api:"required"`
+	Object constant.List `json:"object" default:"list"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
@@ -68,7 +68,7 @@ type EmbeddingData struct {
 	Embedding []float64 `json:"embedding" api:"required"`
 	Index     int64     `json:"index" api:"required"`
 	// The object type, which is always `embedding`.
-	Object constant.Embedding `json:"object" api:"required"`
+	Object constant.Embedding `json:"object" default:"embedding"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Embedding   respjson.Field

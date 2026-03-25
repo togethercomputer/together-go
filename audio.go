@@ -41,7 +41,7 @@ type AudioSpeechStreamChunk struct {
 	B64   string `json:"b64" api:"required"`
 	Model string `json:"model" api:"required"`
 	// The object type, which is always `audio.tts.chunk`.
-	Object constant.AudioTtsChunk `json:"object" api:"required"`
+	Object constant.AudioTtsChunk `json:"object" default:"audio.tts.chunk"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		B64         respjson.Field

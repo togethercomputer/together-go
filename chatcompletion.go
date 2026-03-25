@@ -64,7 +64,7 @@ type ChatCompletion struct {
 	Created int64                  `json:"created" api:"required"`
 	Model   string                 `json:"model" api:"required"`
 	// The object type, which is always `chat.completion`.
-	Object constant.ChatCompletion `json:"object" api:"required"`
+	Object constant.ChatCompletion `json:"object" default:"chat.completion"`
 	// When `echo` is true, the prompt is included in the response. Additionally, when
 	// `logprobs` is also provided, log probability information is provided on the
 	// prompt.
@@ -173,7 +173,7 @@ type ChatCompletionChunk struct {
 	Created int64                       `json:"created" api:"required"`
 	Model   string                      `json:"model" api:"required"`
 	// The object type, which is always `chat.completion.chunk`.
-	Object            constant.ChatCompletionChunk `json:"object" api:"required"`
+	Object            constant.ChatCompletionChunk `json:"object" default:"chat.completion.chunk"`
 	SystemFingerprint string                       `json:"system_fingerprint"`
 	Usage             ChatCompletionUsage          `json:"usage" api:"nullable"`
 	Warnings          []ChatCompletionWarning      `json:"warnings"`
@@ -1160,7 +1160,7 @@ func NewChatCompletionNewParamsResponseFormatText() ChatCompletionNewParamsRespo
 // [NewChatCompletionNewParamsResponseFormatText].
 type ChatCompletionNewParamsResponseFormatText struct {
 	// The type of response format being defined. Always `text`.
-	Type constant.Text `json:"type" api:"required"`
+	Type constant.Text `json:"type" default:"text"`
 	paramObj
 }
 
@@ -1182,7 +1182,7 @@ type ChatCompletionNewParamsResponseFormatJsonSchema struct {
 	// The type of response format being defined. Always `json_schema`.
 	//
 	// This field can be elided, and will marshal its zero value as "json_schema".
-	Type constant.JsonSchema `json:"type" api:"required"`
+	Type constant.JsonSchema `json:"type" default:"json_schema"`
 	paramObj
 }
 
@@ -1238,7 +1238,7 @@ func NewChatCompletionNewParamsResponseFormatJsonObject() ChatCompletionNewParam
 // [NewChatCompletionNewParamsResponseFormatJsonObject].
 type ChatCompletionNewParamsResponseFormatJsonObject struct {
 	// The type of response format being defined. Always `json_object`.
-	Type constant.JsonObject `json:"type" api:"required"`
+	Type constant.JsonObject `json:"type" default:"json_object"`
 	paramObj
 }
 

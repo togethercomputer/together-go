@@ -65,7 +65,7 @@ type Completion struct {
 	Created int64              `json:"created" api:"required"`
 	Model   string             `json:"model" api:"required"`
 	// The object type, which is always `text.completion`.
-	Object constant.TextCompletion `json:"object" api:"required"`
+	Object constant.TextCompletion `json:"object" default:"text.completion"`
 	// When `echo` is true, the prompt is included in the response. Additionally, when
 	// `logprobs` is also provided, log probability information is provided on the
 	// prompt.

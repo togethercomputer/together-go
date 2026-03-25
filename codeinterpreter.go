@@ -330,7 +330,7 @@ func (r *ExecuteResponseSuccessfulExecutionDataOutputStreamOutput) UnmarshalJSON
 // did not execute successfully.
 type ExecuteResponseSuccessfulExecutionDataOutputError struct {
 	Data string         `json:"data" api:"required"`
-	Type constant.Error `json:"type" api:"required"`
+	Type constant.Error `json:"type" default:"error"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field

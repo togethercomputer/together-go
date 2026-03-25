@@ -102,7 +102,7 @@ type ImageFile struct {
 	Data  []ImageFileDataUnion `json:"data" api:"required"`
 	Model string               `json:"model" api:"required"`
 	// The object type, which is always `list`.
-	Object constant.List `json:"object" api:"required"`
+	Object constant.List `json:"object" default:"list"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID          respjson.Field
