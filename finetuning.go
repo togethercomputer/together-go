@@ -820,6 +820,8 @@ type FineTuningNewResponse struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Whether sequence packing is being used for training.
+	Packing bool `json:"packing"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningNewResponseProgress `json:"progress"`
 	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
@@ -871,6 +873,7 @@ type FineTuningNewResponse struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Packing          respjson.Field
 		Progress         respjson.Field
 		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
@@ -1314,6 +1317,8 @@ type FineTuningListResponseData struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Whether sequence packing is being used for training.
+	Packing bool `json:"packing"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningListResponseDataProgress `json:"progress"`
 	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
@@ -1365,6 +1370,7 @@ type FineTuningListResponseData struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Packing          respjson.Field
 		Progress         respjson.Field
 		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
@@ -1805,6 +1811,8 @@ type FineTuningCancelResponse struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Whether sequence packing is being used for training.
+	Packing bool `json:"packing"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningCancelResponseProgress `json:"progress"`
 	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
@@ -1856,6 +1864,7 @@ type FineTuningCancelResponse struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Packing          respjson.Field
 		Progress         respjson.Field
 		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
@@ -2369,6 +2378,8 @@ type FineTuningNewParams struct {
 	NEpochs param.Opt[int64] `json:"n_epochs,omitzero"`
 	// Number of evaluations to be run on a given validation set during training
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
+	// Whether to use sequence packing for training.
+	Packing param.Opt[bool] `json:"packing,omitzero"`
 	// Suffix that will be added to your fine-tuned model name
 	Suffix param.Opt[string] `json:"suffix,omitzero"`
 	// File-ID of a validation file uploaded to the Together API
