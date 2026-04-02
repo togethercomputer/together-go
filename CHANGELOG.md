@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.8.0 (2026-03-31)
+
+Full Changelog: [v0.7.0...v0.8.0](https://github.com/togethercomputer/together-go/compare/v0.7.0...v0.8.0)
+
+### Features
+
+* **api:** add bit_rate parameter to audio speech ([d8de09d](https://github.com/togethercomputer/together-go/commit/d8de09dbefaf2f8d0991917ef81f2ed7bcd74080))
+* **api:** add packing parameter to fine-tuning creation ([a069ef3](https://github.com/togethercomputer/together-go/commit/a069ef34c7196dcb963e19817264860a0f7677bf))
+* **api:** add random_seed parameter and response field to finetuning ([8411254](https://github.com/togethercomputer/together-go/commit/8411254d407566710194d117ddc1eea5859a6822))
+* **internal:** support comma format in multipart form encoding ([52878ad](https://github.com/togethercomputer/together-go/commit/52878ad1778b1e5e320d8dcd90570597259b4d3b))
+
+
+### Bug Fixes
+
+* **api:** correct deployment timestamp types, remove a100-80gb GPU option ([d0fa5b7](https://github.com/togethercomputer/together-go/commit/d0fa5b7dbff4c13f82ae5b0726d3101979f572a9))
+* prevent duplicate ? in query params ([99b4604](https://github.com/togethercomputer/together-go/commit/99b46046831da822858cf7da2741e57599ee6012))
+
+
+### Chores
+
+* **ci:** skip lint on metadata-only changes ([600beba](https://github.com/togethercomputer/together-go/commit/600bebacc21e0a3820329fce6f7706e634685785))
+* **ci:** support opting out of skipping builds on metadata-only commits ([dd48c02](https://github.com/togethercomputer/together-go/commit/dd48c023645a31f40cd500f813df0987d1b4f895))
+* **client:** fix multipart serialisation of Default() fields ([c138cb8](https://github.com/togethercomputer/together-go/commit/c138cb8445e6447fe20e421122006f1b3831f682))
+* **internal:** regenerate SDK with no functional changes ([c00cd32](https://github.com/togethercomputer/together-go/commit/c00cd320443bea52a977151df8eff2521d518af0))
+* **internal:** support default value struct tag ([b52d77d](https://github.com/togethercomputer/together-go/commit/b52d77d28b6a5480aea3886467a8aea1b9d8425b))
+* **internal:** update gitignore ([2ab0110](https://github.com/togethercomputer/together-go/commit/2ab01108d07bb9ffaa9cb2693fc5da8a17376dac))
+* remove unnecessary error check for url parsing ([dcb31e6](https://github.com/togethercomputer/together-go/commit/dcb31e68684855aae952c9d4377de814a038eb11))
+* **tests:** bump steady to v0.19.4 ([63d48d7](https://github.com/togethercomputer/together-go/commit/63d48d7149d2fa0ffe4ab5cb55493a0345d0eae5))
+* **tests:** bump steady to v0.19.5 ([947df8d](https://github.com/togethercomputer/together-go/commit/947df8d1358495b5e5ae52caa0ec1eb7b2f1b9be))
+* **tests:** bump steady to v0.19.6 ([3341f67](https://github.com/togethercomputer/together-go/commit/3341f67675e3e8f1cc0b39ff6fe97dc6f20a4d91))
+* **tests:** bump steady to v0.19.7 ([dceaf3e](https://github.com/togethercomputer/together-go/commit/dceaf3e5980747d4cdeea41a4ee1dbb04b3669ef))
+* **tests:** bump steady to v0.20.1 ([7cfebca](https://github.com/togethercomputer/together-go/commit/7cfebca3cdbd9c2a38bbca8090bfc9ca99ae1d6d))
+* **tests:** bump steady to v0.20.2 ([dfcebcb](https://github.com/togethercomputer/together-go/commit/dfcebcbd517624fa7c32363f2a5ea3466b92f8e7))
+* update docs for api:"required" ([e6ab4e4](https://github.com/togethercomputer/together-go/commit/e6ab4e463dcddb13a2b326de4a9219ad6b4a5915))
+
+
+### Refactors
+
+* **tests:** switch from prism to steady ([26cd0c8](https://github.com/togethercomputer/together-go/commit/26cd0c857f2b09f8c24eebd384d8a274f987e787))
+
 ## 0.7.0 (2026-03-18)
 
 Full Changelog: [v0.6.0...v0.7.0](https://github.com/togethercomputer/together-go/compare/v0.6.0...v0.7.0)

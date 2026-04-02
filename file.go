@@ -136,7 +136,7 @@ type FileResponse struct {
 	// Any of "csv", "jsonl", "parquet".
 	FileType FileType `json:"FileType" api:"required"`
 	// The object type, which is always `file`.
-	Object constant.File `json:"object" api:"required"`
+	Object constant.File `json:"object" default:"file"`
 	// Whether the file has been parsed and analyzed for correctness for fine-tuning.
 	Processed bool `json:"Processed" api:"required"`
 	// The purpose of the file as it was uploaded.

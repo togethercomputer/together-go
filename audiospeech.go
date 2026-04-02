@@ -73,12 +73,18 @@ type AudioSpeechNewParams struct {
 	//
 	// You can view the voices supported for each model using the /v1/voices endpoint
 	// sending the model name as the query parameter.
-	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#voices-available).
+	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#supported-voices).
 	Voice string `json:"voice" api:"required"`
 	// Sampling rate to use for the output audio. The default sampling rate for
 	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
 	// cartesia/sonic is 44100.
 	SampleRate param.Opt[int64] `json:"sample_rate,omitzero"`
+	// Bitrate of the MP3 audio output in bits per second. Only applicable when
+	// response_format is mp3. Higher values produce better audio quality at larger
+	// file sizes. Default is 128000. Currently supported on Cartesia models.
+	//
+	// Any of 32000, 64000, 96000, 128000, 192000.
+	BitRate int64 `json:"bit_rate,omitzero"`
 	// Language of input text.
 	//
 	// Any of "en", "de", "fr", "es", "hi", "it", "ja", "ko", "nl", "pl", "pt", "ru",

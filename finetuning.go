@@ -142,7 +142,7 @@ type FinetuneEvent struct {
 	Message        string `json:"message" api:"required"`
 	ModelPath      string `json:"model_path" api:"required"`
 	// The object type, which is always `fine-tune-event`.
-	Object         constant.FineTuneEvent `json:"object" api:"required"`
+	Object         constant.FineTuneEvent `json:"object" default:"fine-tune-event"`
 	ParamCount     int64                  `json:"param_count" api:"required"`
 	Step           int64                  `json:"step" api:"required"`
 	TokenCount     int64                  `json:"token_count" api:"required"`
@@ -820,8 +820,13 @@ type FineTuningNewResponse struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Whether sequence packing is being used for training.
+	Packing bool `json:"packing"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningNewResponseProgress `json:"progress"`
+	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
+	// jobs) or no explicit seed was recorded.
+	RandomSeed int64 `json:"random_seed" api:"nullable"`
 	// Start timestamp of the current stage of the fine-tune job
 	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
@@ -868,7 +873,9 @@ type FineTuningNewResponse struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Packing          respjson.Field
 		Progress         respjson.Field
+		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
@@ -1310,8 +1317,13 @@ type FineTuningListResponseData struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Whether sequence packing is being used for training.
+	Packing bool `json:"packing"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningListResponseDataProgress `json:"progress"`
+	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
+	// jobs) or no explicit seed was recorded.
+	RandomSeed int64 `json:"random_seed" api:"nullable"`
 	// Start timestamp of the current stage of the fine-tune job
 	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
@@ -1358,7 +1370,9 @@ type FineTuningListResponseData struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Packing          respjson.Field
 		Progress         respjson.Field
+		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
@@ -1797,8 +1811,13 @@ type FineTuningCancelResponse struct {
 	NEvals int64 `json:"n_evals"`
 	// Owner address information
 	OwnerAddress string `json:"owner_address"`
+	// Whether sequence packing is being used for training.
+	Packing bool `json:"packing"`
 	// Progress information for the fine-tuning job
 	Progress FineTuningCancelResponseProgress `json:"progress"`
+	// Random seed used for training. Integer when set; null if not stored (e.g. legacy
+	// jobs) or no explicit seed was recorded.
+	RandomSeed int64 `json:"random_seed" api:"nullable"`
 	// Start timestamp of the current stage of the fine-tune job
 	StartedAt time.Time `json:"started_at" format:"date-time"`
 	// Suffix added to the fine-tuned model name
@@ -1845,7 +1864,9 @@ type FineTuningCancelResponse struct {
 		NEpochs          respjson.Field
 		NEvals           respjson.Field
 		OwnerAddress     respjson.Field
+		Packing          respjson.Field
 		Progress         respjson.Field
+		RandomSeed       respjson.Field
 		StartedAt        respjson.Field
 		Suffix           respjson.Field
 		TokenCount       respjson.Field
@@ -2324,6 +2345,10 @@ type FineTuningNewParams struct {
 	Model string `json:"model" api:"required"`
 	// File-ID of a training file uploaded to the Together API
 	TrainingFile string `json:"training_file" api:"required"`
+	// Random seed for reproducible training. When set, the same seed produces the same
+	// run (e.g. data shuffle, init). If omitted or null, the server applies its
+	// default seed (e.g. 42).
+	RandomSeed param.Opt[int64] `json:"random_seed,omitzero"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
 	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
@@ -2353,6 +2378,8 @@ type FineTuningNewParams struct {
 	NEpochs param.Opt[int64] `json:"n_epochs,omitzero"`
 	// Number of evaluations to be run on a given validation set during training
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
+	// Whether to use sequence packing for training.
+	Packing param.Opt[bool] `json:"packing,omitzero"`
 	// Suffix that will be added to your fine-tuned model name
 	Suffix param.Opt[string] `json:"suffix,omitzero"`
 	// File-ID of a validation file uploaded to the Together API
