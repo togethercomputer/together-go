@@ -169,6 +169,8 @@ type VideoNewParams struct {
 	Model string `json:"model" api:"required"`
 	// Frames per second. Defaults to 24.
 	Fps param.Opt[int64] `json:"fps,omitzero"`
+	// Whether to generate audio for the video.
+	GenerateAudio param.Opt[bool] `json:"generate_audio,omitzero"`
 	// Controls how closely the video generation follows your prompt. Higher values
 	// make the model adhere more strictly to your text description, while lower values
 	// allow more creative freedom. guidence_scale affects both visual content and
@@ -182,6 +184,10 @@ type VideoNewParams struct {
 	OutputQuality param.Opt[int64] `json:"output_quality,omitzero"`
 	// Text prompt that describes the video to generate.
 	Prompt param.Opt[string] `json:"prompt,omitzero"`
+	// Aspect ratio of the video.
+	Ratio param.Opt[string] `json:"ratio,omitzero"`
+	// Video resolution.
+	Resolution param.Opt[string] `json:"resolution,omitzero"`
 	// Clip duration in seconds.
 	Seconds param.Opt[string] `json:"seconds,omitzero"`
 	// Seed to use in initializing the video generation. Using the same seed allows
@@ -193,15 +199,19 @@ type VideoNewParams struct {
 	// time.
 	Steps param.Opt[int64] `json:"steps,omitzero"`
 	Width param.Opt[int64] `json:"width,omitzero"`
-	// Array of images to guide video generation, similar to keyframes.
+	// Deprecated: use media.frame_images instead. Array of images to guide video
+	// generation, similar to keyframes.
 	FrameImages []VideoNewParamsFrameImage `json:"frame_images,omitzero"`
+	// Media inputs for video generation. The accepted fields depend on the model type
+	// (e.g. i2v, r2v, t2v, videoedit).
+	Media VideoNewParamsMedia `json:"media,omitzero"`
 	// Specifies the format of the output video. Defaults to MP4.
 	//
 	// Any of "MP4", "WEBM".
 	OutputFormat VideoNewParamsOutputFormat `json:"output_format,omitzero"`
-	// Unlike frame_images which constrain specific timeline positions, reference
-	// images guide the general appearance that should appear consistently across the
-	// video.
+	// Deprecated: use media.reference_images instead. Unlike frame_images which
+	// constrain specific timeline positions, reference images guide the general
+	// appearance that should appear consistently across the video.
 	ReferenceImages []string `json:"reference_images,omitzero"`
 	paramObj
 }
@@ -269,6 +279,150 @@ const (
 	VideoNewParamsFrameImageFrameStringFirst VideoNewParamsFrameImageFrameString = "first"
 	VideoNewParamsFrameImageFrameStringLast  VideoNewParamsFrameImageFrameString = "last"
 )
+
+// Media inputs for video generation. The accepted fields depend on the model type
+// (e.g. i2v, r2v, t2v, videoedit).
+type VideoNewParamsMedia struct {
+	// Array of audio inputs.
+	AudioInputs []VideoNewParamsMediaAudioInput `json:"audio_inputs,omitzero"`
+	// Array of images to guide video generation at specific timeline positions.
+	FrameImages []VideoNewParamsMediaFrameImage `json:"frame_images,omitzero"`
+	// Array of video clips to use as starting clips.
+	FrameVideos []VideoNewParamsMediaFrameVideo `json:"frame_videos,omitzero"`
+	// Array of image URLs that guide the general appearance across the video.
+	ReferenceImages []string `json:"reference_images,omitzero"`
+	// Array of reference videos.
+	ReferenceVideos []VideoNewParamsMediaReferenceVideo `json:"reference_videos,omitzero"`
+	// Source video to edit.
+	SourceVideo VideoNewParamsMediaSourceVideo `json:"source_video,omitzero"`
+	paramObj
+}
+
+func (r VideoNewParamsMedia) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMedia
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VideoNewParamsMedia) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The property Audio is required.
+type VideoNewParamsMediaAudioInput struct {
+	// URL of the audio.
+	Audio string `json:"audio" api:"required"`
+	paramObj
+}
+
+func (r VideoNewParamsMediaAudioInput) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMediaAudioInput
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VideoNewParamsMediaAudioInput) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The property InputImage is required.
+type VideoNewParamsMediaFrameImage struct {
+	// URL path to hosted image that is used for a frame
+	InputImage string `json:"input_image" api:"required"`
+	// Optional param to specify where to insert the frame. If this is omitted, the
+	// following heuristics are applied:
+	//
+	// - frame_images size is one, frame is first.
+	// - If size is two, frames are first and last.
+	// - If size is larger, frames are first, last and evenly spaced between.
+	Frame VideoNewParamsMediaFrameImageFrameUnion `json:"frame,omitzero"`
+	paramObj
+}
+
+func (r VideoNewParamsMediaFrameImage) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMediaFrameImage
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VideoNewParamsMediaFrameImage) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type VideoNewParamsMediaFrameImageFrameUnion struct {
+	OfFloat param.Opt[float64] `json:",omitzero,inline"`
+	// Check if union is this variant with
+	// !param.IsOmitted(union.OfVideoNewsMediaFrameImageFrameString)
+	OfVideoNewsMediaFrameImageFrameString param.Opt[string] `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u VideoNewParamsMediaFrameImageFrameUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfFloat, u.OfVideoNewsMediaFrameImageFrameString)
+}
+func (u *VideoNewParamsMediaFrameImageFrameUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *VideoNewParamsMediaFrameImageFrameUnion) asAny() any {
+	if !param.IsOmitted(u.OfFloat) {
+		return &u.OfFloat.Value
+	} else if !param.IsOmitted(u.OfVideoNewsMediaFrameImageFrameString) {
+		return &u.OfVideoNewsMediaFrameImageFrameString
+	}
+	return nil
+}
+
+type VideoNewParamsMediaFrameImageFrameString string
+
+const (
+	VideoNewParamsMediaFrameImageFrameStringFirst VideoNewParamsMediaFrameImageFrameString = "first"
+	VideoNewParamsMediaFrameImageFrameStringLast  VideoNewParamsMediaFrameImageFrameString = "last"
+)
+
+// The property Video is required.
+type VideoNewParamsMediaFrameVideo struct {
+	// URL of the video.
+	Video string `json:"video" api:"required"`
+	paramObj
+}
+
+func (r VideoNewParamsMediaFrameVideo) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMediaFrameVideo
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VideoNewParamsMediaFrameVideo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The property Video is required.
+type VideoNewParamsMediaReferenceVideo struct {
+	// URL of the video.
+	Video string `json:"video" api:"required"`
+	paramObj
+}
+
+func (r VideoNewParamsMediaReferenceVideo) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMediaReferenceVideo
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VideoNewParamsMediaReferenceVideo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Source video to edit.
+//
+// The property Video is required.
+type VideoNewParamsMediaSourceVideo struct {
+	// URL of the video.
+	Video string `json:"video" api:"required"`
+	paramObj
+}
+
+func (r VideoNewParamsMediaSourceVideo) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMediaSourceVideo
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VideoNewParamsMediaSourceVideo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 // Specifies the format of the output video. Defaults to MP4.
 type VideoNewParamsOutputFormat string
