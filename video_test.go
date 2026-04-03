@@ -34,13 +34,37 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 				OfFloat: together.Float(0),
 			},
 		}},
-		GuidanceScale:   together.Int(0),
-		Height:          together.Int(0),
+		GenerateAudio: together.Bool(true),
+		GuidanceScale: together.Int(0),
+		Height:        together.Int(0),
+		Media: together.VideoNewParamsMedia{
+			AudioInputs: []together.VideoNewParamsMediaAudioInput{{
+				Audio: "audio",
+			}},
+			FrameImages: []together.VideoNewParamsMediaFrameImage{{
+				InputImage: "input_image",
+				Frame: together.VideoNewParamsMediaFrameImageFrameUnion{
+					OfFloat: together.Float(0),
+				},
+			}},
+			FrameVideos: []together.VideoNewParamsMediaFrameVideo{{
+				Video: "video",
+			}},
+			ReferenceImages: []string{"string"},
+			ReferenceVideos: []together.VideoNewParamsMediaReferenceVideo{{
+				Video: "video",
+			}},
+			SourceVideo: together.VideoNewParamsMediaSourceVideo{
+				Video: "video",
+			},
+		},
 		NegativePrompt:  together.String("negative_prompt"),
 		OutputFormat:    together.VideoNewParamsOutputFormatMP4,
 		OutputQuality:   together.Int(0),
 		Prompt:          together.String("x"),
+		Ratio:           together.String("ratio"),
 		ReferenceImages: []string{"string"},
+		Resolution:      together.String("resolution"),
 		Seconds:         together.String("seconds"),
 		Seed:            together.Int(0),
 		Steps:           together.Int(10),
