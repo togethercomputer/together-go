@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 (2026-04-03)
+
+Full Changelog: [v0.8.0...v0.9.0](https://github.com/togethercomputer/together-go/compare/v0.8.0...v0.9.0)
+
+### Features
+
+* **api:** add generate_audio and media parameters to video ([b8cd41e](https://github.com/togethercomputer/together-go/commit/b8cd41e1600a792726df8df79154689ce2c9acaf))
+
 ## 0.8.0 (2026-03-31)
 
 Full Changelog: [v0.7.0...v0.8.0](https://github.com/togethercomputer/together-go/compare/v0.7.0...v0.8.0)
