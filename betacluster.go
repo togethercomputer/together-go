@@ -327,12 +327,13 @@ func (r *BetaClusterListRegionsResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterListRegionsResponseRegion struct {
-	// List of supported identifiable driver versions available in the region.
-	DriverVersions []string `json:"driver_versions" api:"required"`
+	// List of supported identifiable cuda/nvidia driver versions pairs available in
+	// the region.
+	DriverVersions []BetaClusterListRegionsResponseRegionDriverVersion `json:"driver_versions" api:"required"`
 	// Identifiable name of the region.
 	Name string `json:"name" api:"required"`
 	// List of supported identifiable gpus available in the region.
-	SupportedInstanceTypes []string `json:"supported_instance_types"`
+	SupportedInstanceTypes []string `json:"supported_instance_types" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DriverVersions         respjson.Field
@@ -346,6 +347,28 @@ type BetaClusterListRegionsResponseRegion struct {
 // Returns the unmodified JSON received from the API
 func (r BetaClusterListRegionsResponseRegion) RawJSON() string { return r.JSON.raw }
 func (r *BetaClusterListRegionsResponseRegion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// CUDA/NVIDIA driver versions pair available in the region to use in the create
+// cluster request.
+type BetaClusterListRegionsResponseRegionDriverVersion struct {
+	// CUDA driver version.
+	CudaDriverVersion string `json:"cuda_driver_version" api:"required"`
+	// NVIDIA driver version.
+	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CudaDriverVersion   respjson.Field
+		NvidiaDriverVersion respjson.Field
+		ExtraFields         map[string]respjson.Field
+		raw                 string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaClusterListRegionsResponseRegionDriverVersion) RawJSON() string { return r.JSON.raw }
+func (r *BetaClusterListRegionsResponseRegionDriverVersion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
