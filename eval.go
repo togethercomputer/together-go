@@ -205,15 +205,15 @@ func (r *EvaluationJobResultsUnion) UnmarshalJSON(data []byte) error {
 
 type EvaluationJobResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
 	// Number of invalid labels
 	InvalidLabelCount float64 `json:"invalid_label_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
 	// JSON string representing label counts
 	LabelCounts string `json:"label_counts"`
 	// Pecentage of pass labels.
-	PassPercentage float64 `json:"pass_percentage" api:"nullable"`
+	PassPercentage float64 `json:"pass_percentage" api:"nullable" format:"integer"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -238,13 +238,13 @@ func (r *EvaluationJobResultsEvaluationClassifyResults) UnmarshalJSON(data []byt
 type EvaluationJobResultsEvaluationScoreResults struct {
 	AggregatedScores EvaluationJobResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
-	FailedSamples float64 `json:"failed_samples"`
+	FailedSamples float64 `json:"failed_samples" format:"integer"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
 	// number of invalid scores generated from model
-	InvalidScoreCount float64 `json:"invalid_score_count"`
+	InvalidScoreCount float64 `json:"invalid_score_count" format:"integer"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -294,9 +294,9 @@ type EvaluationJobResultsEvaluationCompareResults struct {
 	// Number of times model B won
 	BWins int64 `json:"B_wins"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
 	// Total number of samples compared
 	NumSamples int64 `json:"num_samples"`
 	// Data File ID
@@ -506,15 +506,15 @@ func (r *EvalStatusResponseResultsUnion) UnmarshalJSON(data []byte) error {
 
 type EvalStatusResponseResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
 	// Number of invalid labels
 	InvalidLabelCount float64 `json:"invalid_label_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
 	// JSON string representing label counts
 	LabelCounts string `json:"label_counts"`
 	// Pecentage of pass labels.
-	PassPercentage float64 `json:"pass_percentage" api:"nullable"`
+	PassPercentage float64 `json:"pass_percentage" api:"nullable" format:"integer"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -539,13 +539,13 @@ func (r *EvalStatusResponseResultsEvaluationClassifyResults) UnmarshalJSON(data 
 type EvalStatusResponseResultsEvaluationScoreResults struct {
 	AggregatedScores EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
-	FailedSamples float64 `json:"failed_samples"`
+	FailedSamples float64 `json:"failed_samples" format:"integer"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
 	// number of invalid scores generated from model
-	InvalidScoreCount float64 `json:"invalid_score_count"`
+	InvalidScoreCount float64 `json:"invalid_score_count" format:"integer"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -595,9 +595,9 @@ type EvalStatusResponseResultsEvaluationCompareResults struct {
 	// Number of times model B won
 	BWins int64 `json:"B_wins"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
 	// Total number of samples compared
 	NumSamples int64 `json:"num_samples"`
 	// Data File ID
