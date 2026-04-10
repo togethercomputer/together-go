@@ -846,6 +846,19 @@ func (u evalNewParamsParametersUnionJudge) GetExternalBaseURL() *string {
 	return nil
 }
 
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetNumWorkers() *int64 {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return paramutil.AddrIfPresent(vt.NumWorkers)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return paramutil.AddrIfPresent(vt.NumWorkers)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return paramutil.AddrIfPresent(vt.NumWorkers)
+	}
+	return nil
+}
+
 // Returns a subunion which exports methods to access subproperties
 //
 // Or use AsAny() to get the underlying value
@@ -990,6 +1003,21 @@ func (u evalNewParamsParametersUnionModelToEvaluate) GetExternalBaseURL() *strin
 	return nil
 }
 
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionModelToEvaluate) GetNumWorkers() *int64 {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest != nil {
+			return paramutil.AddrIfPresent(vt.OfEvalNewsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest.NumWorkers)
+		}
+	case *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion:
+		if vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest != nil {
+			return paramutil.AddrIfPresent(vt.OfEvalNewsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest.NumWorkers)
+		}
+	}
+	return nil
+}
+
 // The properties InputDataFilePath, Judge, Labels, PassLabels are required.
 type EvalNewParamsParametersEvaluationClassifyParameters struct {
 	// Data file ID
@@ -1026,6 +1054,10 @@ type EvalNewParamsParametersEvaluationClassifyParametersJudge struct {
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Number of concurrent workers for inference requests. Overrides the default
+	// concurrency for this model. Useful for tuning throughput when using proxy
+	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
 
@@ -1089,6 +1121,10 @@ type EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluatio
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Number of concurrent workers for inference requests. Overrides the default
+	// concurrency for this model. Useful for tuning throughput when using proxy
+	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
 
@@ -1145,6 +1181,10 @@ type EvalNewParamsParametersEvaluationScoreParametersJudge struct {
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Number of concurrent workers for inference requests. Overrides the default
+	// concurrency for this model. Useful for tuning throughput when using proxy
+	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
 
@@ -1208,6 +1248,10 @@ type EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationMo
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Number of concurrent workers for inference requests. Overrides the default
+	// concurrency for this model. Useful for tuning throughput when using proxy
+	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
 
@@ -1259,6 +1303,10 @@ type EvalNewParamsParametersEvaluationCompareParametersJudge struct {
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Number of concurrent workers for inference requests. Overrides the default
+	// concurrency for this model. Useful for tuning throughput when using proxy
+	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
 
@@ -1322,6 +1370,10 @@ type EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequ
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Number of concurrent workers for inference requests. Overrides the default
+	// concurrency for this model. Useful for tuning throughput when using proxy
+	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
 
@@ -1385,6 +1437,10 @@ type EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequ
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external models. Must be OpenAI-compatible base URL
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Number of concurrent workers for inference requests. Overrides the default
+	// concurrency for this model. Useful for tuning throughput when using proxy
+	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
 
