@@ -35,6 +35,7 @@ func TestEvalNewWithOptionalParams(t *testing.T) {
 					SystemTemplate:   "Imagine you are a helpful assistant",
 					ExternalAPIToken: together.String("external_api_token"),
 					ExternalBaseURL:  together.String("external_base_url"),
+					NumWorkers:       together.Int(5),
 				},
 				Labels:     []string{"yes", "no"},
 				PassLabels: []string{"yes"},
