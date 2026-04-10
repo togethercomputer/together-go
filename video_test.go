@@ -31,7 +31,7 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 		FrameImages: []together.VideoNewParamsFrameImage{{
 			InputImage: "input_image",
 			Frame: together.VideoNewParamsFrameImageFrameUnion{
-				OfFloat: together.Float(0),
+				OfVideoNewsFrameImageFrameString: together.String("first"),
 			},
 		}},
 		GenerateAudio: together.Bool(true),
@@ -44,7 +44,7 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 			FrameImages: []together.VideoNewParamsMediaFrameImage{{
 				InputImage: "input_image",
 				Frame: together.VideoNewParamsMediaFrameImageFrameUnion{
-					OfFloat: together.Float(0),
+					OfVideoNewsMediaFrameImageFrameString: together.String("first"),
 				},
 			}},
 			FrameVideos: []together.VideoNewParamsMediaFrameVideo{{

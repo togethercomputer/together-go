@@ -33,7 +33,7 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		Model:        "model",
 		TrainingFile: "training_file",
 		BatchSize: together.FineTuningNewParamsBatchSizeUnion{
-			OfInt: together.Int(0),
+			OfFineTuningNewsBatchSizeString: together.String("max"),
 		},
 		FromCheckpoint:   together.String("from_checkpoint"),
 		FromHfModel:      together.String("from_hf_model"),
@@ -60,13 +60,13 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		RandomSeed:   together.Int(0),
 		Suffix:       together.String("suffix"),
 		TrainOnInputs: together.FineTuningNewParamsTrainOnInputsUnion{
-			OfBool: together.Bool(true),
+			OfFineTuningNewsTrainOnInputsString: together.String("auto"),
 		},
 		TrainingMethod: together.FineTuningNewParamsTrainingMethodUnion{
 			OfFineTuningNewsTrainingMethodTrainingMethodSft: &together.FineTuningNewParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
 				TrainOnInputs: together.FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion{
-					OfBool: together.Bool(true),
+					OfFineTuningNewsTrainingMethodTrainingMethodSftTrainOnInputsString: together.String("auto"),
 				},
 			},
 		},
@@ -247,7 +247,7 @@ func TestFineTuningEstimatePriceWithOptionalParams(t *testing.T) {
 			OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft: &together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
 				TrainOnInputs: together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion{
-					OfBool: together.Bool(true),
+					OfFineTuningEstimatePricesTrainingMethodTrainingMethodSftTrainOnInputsString: together.String("auto"),
 				},
 			},
 		},
