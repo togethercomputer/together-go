@@ -361,12 +361,12 @@ func (r *BetaClusterListRegionsResponseRegion) UnmarshalJSON(data []byte) error 
 // cluster request.
 type BetaClusterListRegionsResponseRegionDriverVersion struct {
 	// CUDA driver version.
-	CudaDriverVersion string `json:"cuda_driver_version" api:"required"`
+	CudaVersion string `json:"cuda_version" api:"required"`
 	// NVIDIA driver version.
 	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		CudaDriverVersion   respjson.Field
+		CudaVersion         respjson.Field
 		NvidiaDriverVersion respjson.Field
 		ExtraFields         map[string]respjson.Field
 		raw                 string
