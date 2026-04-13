@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
@@ -109,41 +110,54 @@ type Cluster struct {
 	// Any of "KUBERNETES", "SLURM".
 	ClusterType       ClusterClusterType        `json:"cluster_type" api:"required"`
 	ControlPlaneNodes []ClusterControlPlaneNode `json:"control_plane_nodes" api:"required"`
-	// Any of "CUDA_12_5_555", "CUDA_12_6_560", "CUDA_12_6_565", "CUDA_12_8_570".
-	DriverVersion ClusterDriverVersion `json:"driver_version" api:"required"`
-	DurationHours int64                `json:"duration_hours" api:"required"`
+	CudaVersion       string                    `json:"cuda_version" api:"required"`
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
 	// "H100_SXM_INF".
-	GPUType        ClusterGPUType         `json:"gpu_type" api:"required"`
-	GPUWorkerNodes []ClusterGPUWorkerNode `json:"gpu_worker_nodes" api:"required"`
-	KubeConfig     string                 `json:"kube_config" api:"required"`
-	NumGPUs        int64                  `json:"num_gpus" api:"required"`
-	Region         string                 `json:"region" api:"required"`
+	GPUType             ClusterGPUType         `json:"gpu_type" api:"required"`
+	GPUWorkerNodes      []ClusterGPUWorkerNode `json:"gpu_worker_nodes" api:"required"`
+	KubeConfig          string                 `json:"kube_config" api:"required"`
+	NumGPUs             int64                  `json:"num_gpus" api:"required"`
+	NvidiaDriverVersion string                 `json:"nvidia_driver_version" api:"required"`
+	Region              string                 `json:"region" api:"required"`
 	// Current status of the GPU cluster.
 	//
 	// Any of "WaitingForControlPlaneNodes", "WaitingForDataPlaneNodes",
 	// "WaitingForSubnet", "WaitingForSharedVolume", "InstallingDrivers",
 	// "RunningAcceptanceTests", "Paused", "OnDemandComputePaused", "Ready",
 	// "Degraded", "Deleting".
-	Status  ClusterStatus   `json:"status" api:"required"`
-	Volumes []ClusterVolume `json:"volumes" api:"required"`
+	Status               ClusterStatus   `json:"status" api:"required"`
+	Volumes              []ClusterVolume `json:"volumes" api:"required"`
+	CapacityPoolID       string          `json:"capacity_pool_id"`
+	CreatedAt            time.Time       `json:"created_at" format:"date-time"`
+	DurationHours        int64           `json:"duration_hours"`
+	InstallTraefik       bool            `json:"install_traefik"`
+	ReservationEndTime   time.Time       `json:"reservation_end_time" format:"date-time"`
+	ReservationStartTime time.Time       `json:"reservation_start_time" format:"date-time"`
+	SlurmShmSizeGib      int64           `json:"slurm_shm_size_gib"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ClusterID         respjson.Field
-		ClusterName       respjson.Field
-		ClusterType       respjson.Field
-		ControlPlaneNodes respjson.Field
-		DriverVersion     respjson.Field
-		DurationHours     respjson.Field
-		GPUType           respjson.Field
-		GPUWorkerNodes    respjson.Field
-		KubeConfig        respjson.Field
-		NumGPUs           respjson.Field
-		Region            respjson.Field
-		Status            respjson.Field
-		Volumes           respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
+		ClusterID            respjson.Field
+		ClusterName          respjson.Field
+		ClusterType          respjson.Field
+		ControlPlaneNodes    respjson.Field
+		CudaVersion          respjson.Field
+		GPUType              respjson.Field
+		GPUWorkerNodes       respjson.Field
+		KubeConfig           respjson.Field
+		NumGPUs              respjson.Field
+		NvidiaDriverVersion  respjson.Field
+		Region               respjson.Field
+		Status               respjson.Field
+		Volumes              respjson.Field
+		CapacityPoolID       respjson.Field
+		CreatedAt            respjson.Field
+		DurationHours        respjson.Field
+		InstallTraefik       respjson.Field
+		ReservationEndTime   respjson.Field
+		ReservationStartTime respjson.Field
+		SlurmShmSizeGib      respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
 	} `json:"-"`
 }
 
@@ -189,15 +203,6 @@ func (r *ClusterControlPlaneNode) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ClusterDriverVersion string
-
-const (
-	ClusterDriverVersionCuda12_5_555 ClusterDriverVersion = "CUDA_12_5_555"
-	ClusterDriverVersionCuda12_6_560 ClusterDriverVersion = "CUDA_12_6_560"
-	ClusterDriverVersionCuda12_6_565 ClusterDriverVersion = "CUDA_12_6_565"
-	ClusterDriverVersionCuda12_8_570 ClusterDriverVersion = "CUDA_12_8_570"
-)
-
 type ClusterGPUType string
 
 const (
@@ -218,6 +223,7 @@ type ClusterGPUWorkerNode struct {
 	NumCPUCores int64    `json:"num_cpu_cores" api:"required"`
 	NumGPUs     int64    `json:"num_gpus" api:"required"`
 	Status      string   `json:"status" api:"required"`
+	InstanceID  string   `json:"instance_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		HostName    respjson.Field
@@ -228,6 +234,7 @@ type ClusterGPUWorkerNode struct {
 		NumCPUCores respjson.Field
 		NumGPUs     respjson.Field
 		Status      respjson.Field
+		InstanceID  respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -377,14 +384,12 @@ type BetaClusterNewParams struct {
 	// reservation via the duration_days field. ON_DEMAND billing types will give you
 	// ownership of the cluster until you delete it.
 	//
-	// Any of "RESERVED", "ON_DEMAND".
+	// Any of "RESERVED", "ON_DEMAND", "SCHEDULED_CAPACITY".
 	BillingType BetaClusterNewParamsBillingType `json:"billing_type,omitzero" api:"required"`
 	// Name of the GPU cluster.
 	ClusterName string `json:"cluster_name" api:"required"`
-	// NVIDIA driver version to use in the cluster.
-	//
-	// Any of "CUDA_12_5_555", "CUDA_12_6_560", "CUDA_12_6_565", "CUDA_12_8_570".
-	DriverVersion BetaClusterNewParamsDriverVersion `json:"driver_version,omitzero" api:"required"`
+	// CUDA version for this cluster. For example, 12.5
+	CudaVersion string `json:"cuda_version" api:"required"`
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
@@ -393,11 +398,41 @@ type BetaClusterNewParams struct {
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
 	NumGPUs int64 `json:"num_gpus" api:"required"`
+	// Nvidia driver version for this cluster. For example, 550. Only some combination
+	// of cuda_version and nvidia_driver_version are supported.
+	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
 	// Region to create the GPU cluster in. Usable regions can be found from
 	// `client.clusters.list_regions()`
 	Region string `json:"region" api:"required"`
+	// Maximum number of GPUs to which the cluster can be auto-scaled up. This field is
+	// required if auto_scaled is true.
+	AutoScaleMaxGPUs param.Opt[int64] `json:"auto_scale_max_gpus,omitzero"`
+	// Whether GPU cluster should be auto-scaled based on the workload. By default, it
+	// is not auto-scaled.
+	AutoScaled param.Opt[bool] `json:"auto_scaled,omitzero"`
+	// ID of the capacity pool to use for the cluster. This field is optional and only
+	// applicable if the cluster is created from a capacity pool.
+	CapacityPoolID param.Opt[string] `json:"capacity_pool_id,omitzero"`
 	// Duration in days to keep the cluster running.
 	DurationDays param.Opt[int64] `json:"duration_days,omitzero"`
+	// Whether automated GPU node failover should be enabled for this cluster. By
+	// default, it is disabled.
+	GPUNodeFailoverEnabled param.Opt[bool] `json:"gpu_node_failover_enabled,omitzero"`
+	// Whether to install Traefik ingress controller in the cluster. This field is only
+	// applicable for Kubernetes clusters and is false by default.
+	InstallTraefik param.Opt[bool] `json:"install_traefik,omitzero"`
+	// Reservation end time of the cluster. This field is required for SCHEDULED
+	// billing to specify the reservation end time for the cluster.
+	ReservationEndTime param.Opt[time.Time] `json:"reservation_end_time,omitzero" format:"date-time"`
+	// Reservation start time of the cluster. This field is required for SCHEDULED
+	// billing to specify the reservation start time for the cluster. If not provided,
+	// the cluster will be provisioned immediately.
+	ReservationStartTime param.Opt[time.Time] `json:"reservation_start_time,omitzero" format:"date-time"`
+	// Custom Slurm image for Slurm clusters.
+	SlurmImage param.Opt[string] `json:"slurm_image,omitzero"`
+	// Shared memory size in GiB for Slurm cluster. This field is required if
+	// cluster_type is SLURM.
+	SlurmShmSizeGib param.Opt[int64] `json:"slurm_shm_size_gib,omitzero"`
 	// ID of an existing volume to use with the cluster creation.
 	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
 	// Type of cluster to create.
@@ -423,18 +458,9 @@ func (r *BetaClusterNewParams) UnmarshalJSON(data []byte) error {
 type BetaClusterNewParamsBillingType string
 
 const (
-	BetaClusterNewParamsBillingTypeReserved BetaClusterNewParamsBillingType = "RESERVED"
-	BetaClusterNewParamsBillingTypeOnDemand BetaClusterNewParamsBillingType = "ON_DEMAND"
-)
-
-// NVIDIA driver version to use in the cluster.
-type BetaClusterNewParamsDriverVersion string
-
-const (
-	BetaClusterNewParamsDriverVersionCuda12_5_555 BetaClusterNewParamsDriverVersion = "CUDA_12_5_555"
-	BetaClusterNewParamsDriverVersionCuda12_6_560 BetaClusterNewParamsDriverVersion = "CUDA_12_6_560"
-	BetaClusterNewParamsDriverVersionCuda12_6_565 BetaClusterNewParamsDriverVersion = "CUDA_12_6_565"
-	BetaClusterNewParamsDriverVersionCuda12_8_570 BetaClusterNewParamsDriverVersion = "CUDA_12_8_570"
+	BetaClusterNewParamsBillingTypeReserved          BetaClusterNewParamsBillingType = "RESERVED"
+	BetaClusterNewParamsBillingTypeOnDemand          BetaClusterNewParamsBillingType = "ON_DEMAND"
+	BetaClusterNewParamsBillingTypeScheduledCapacity BetaClusterNewParamsBillingType = "SCHEDULED_CAPACITY"
 )
 
 // Type of GPU to use in the cluster
@@ -482,6 +508,9 @@ type BetaClusterUpdateParams struct {
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
 	NumGPUs param.Opt[int64] `json:"num_gpus,omitzero"`
+	// Timestamp at which the cluster should be decommissioned. Only accepted for
+	// prepaid clusters.
+	ReservationEndTime param.Opt[time.Time] `json:"reservation_end_time,omitzero" format:"date-time"`
 	// Type of cluster to update.
 	//
 	// Any of "KUBERNETES", "SLURM".
