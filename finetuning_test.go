@@ -49,7 +49,8 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 				},
 			},
 		},
-		MaxGradNorm: together.Float(0),
+		MaxGradNorm:  together.Float(0),
+		MaxSeqLength: together.Int(0),
 		MultimodalParams: together.FineTuningNewParamsMultimodalParams{
 			TrainVision: together.Bool(true),
 		},
