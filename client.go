@@ -37,7 +37,7 @@ type Client struct {
 // DefaultClientOptions read from the environment (TOGETHER_API_KEY,
 // TOGETHER_BASE_URL). This should be used to initialize new clients.
 func DefaultClientOptions() []option.RequestOption {
-	defaults := []option.RequestOption{option.WithEnvironmentProduction()}
+	defaults := []option.RequestOption{option.WithHTTPClient(defaultHTTPClient()), option.WithEnvironmentProduction()}
 	if o, ok := os.LookupEnv("TOGETHER_BASE_URL"); ok {
 		defaults = append(defaults, option.WithBaseURL(o))
 	}
