@@ -74,6 +74,12 @@ type AudioSpeechNewParams struct {
 	// You can view the voices supported for each model using the /v1/voices endpoint
 	// sending the model name as the query parameter.
 	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#supported-voices).
+	//
+	// `hexgrad/Kokoro-82M` additionally supports voice mixing, where two or more
+	// voices are combined into a single blended voice by joining their names with `+`
+	// (e.g. `af_bella+af_heart`). Optional per-voice weights can be provided in
+	// parentheses (e.g. `af_bella(2)+af_heart(1)`). Other models require a single
+	// voice name.
 	Voice string `json:"voice" api:"required"`
 	// Sampling rate to use for the output audio. The default sampling rate for
 	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
