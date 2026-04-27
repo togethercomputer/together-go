@@ -135,7 +135,7 @@ type Deployment struct {
 	GPUCount int64 `json:"gpu_count"`
 	// GPUType specifies the type of GPU requested (if any) for this deployment
 	//
-	// Any of "h100-80gb", " a100-80gb".
+	// Any of "h100-80gb", "h100-40gb-mig", "b200-192gb".
 	GPUType DeploymentGPUType `json:"gpu_type"`
 	// HealthCheckPath is the HTTP path used for health checks of the application
 	HealthCheckPath string `json:"health_check_path"`
@@ -369,8 +369,9 @@ func (r *DeploymentEnvironmentVariable) UnmarshalJSON(data []byte) error {
 type DeploymentGPUType string
 
 const (
-	DeploymentGPUTypeH100_80gb DeploymentGPUType = "h100-80gb"
-	DeploymentGPUTypeA100_80gb DeploymentGPUType = " a100-80gb"
+	DeploymentGPUTypeH100_80gb    DeploymentGPUType = "h100-80gb"
+	DeploymentGPUTypeH100_40gbMig DeploymentGPUType = "h100-40gb-mig"
+	DeploymentGPUTypeB200_192gb   DeploymentGPUType = "b200-192gb"
 )
 
 // The object type, which is always `deployment`.
@@ -555,7 +556,7 @@ type BetaJigUpdateParams struct {
 	EnvironmentVariables []BetaJigUpdateParamsEnvironmentVariable `json:"environment_variables,omitzero"`
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb")
 	//
-	// Any of "h100-80gb".
+	// Any of "h100-80gb", "h100-40gb-mig", "b200-192gb".
 	GPUType BetaJigUpdateParamsGPUType `json:"gpu_type,omitzero"`
 	// Volumes is a list of volume mounts to attach to the container. This will replace
 	// all existing volumes
@@ -758,7 +759,9 @@ func (r *BetaJigUpdateParamsEnvironmentVariable) UnmarshalJSON(data []byte) erro
 type BetaJigUpdateParamsGPUType string
 
 const (
-	BetaJigUpdateParamsGPUTypeH100_80gb BetaJigUpdateParamsGPUType = "h100-80gb"
+	BetaJigUpdateParamsGPUTypeH100_80gb    BetaJigUpdateParamsGPUType = "h100-80gb"
+	BetaJigUpdateParamsGPUTypeH100_40gbMig BetaJigUpdateParamsGPUType = "h100-40gb-mig"
+	BetaJigUpdateParamsGPUTypeB200_192gb   BetaJigUpdateParamsGPUType = "b200-192gb"
 )
 
 // The properties MountPath, Name are required.
@@ -786,7 +789,7 @@ func (r *BetaJigUpdateParamsVolume) UnmarshalJSON(data []byte) error {
 type BetaJigDeployParams struct {
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb").
 	//
-	// Any of "h100-80gb".
+	// Any of "h100-80gb", "h100-40gb-mig", "b200-192gb".
 	GPUType BetaJigDeployParamsGPUType `json:"gpu_type,omitzero" api:"required"`
 	// Image is the container image to deploy from registry.together.ai.
 	Image string `json:"image" api:"required"`
@@ -853,7 +856,9 @@ func (r *BetaJigDeployParams) UnmarshalJSON(data []byte) error {
 type BetaJigDeployParamsGPUType string
 
 const (
-	BetaJigDeployParamsGPUTypeH100_80gb BetaJigDeployParamsGPUType = "h100-80gb"
+	BetaJigDeployParamsGPUTypeH100_80gb    BetaJigDeployParamsGPUType = "h100-80gb"
+	BetaJigDeployParamsGPUTypeH100_40gbMig BetaJigDeployParamsGPUType = "h100-40gb-mig"
+	BetaJigDeployParamsGPUTypeB200_192gb   BetaJigDeployParamsGPUType = "b200-192gb"
 )
 
 // Only one field can be non-zero.
