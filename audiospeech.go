@@ -81,9 +81,9 @@ type AudioSpeechNewParams struct {
 	// parentheses (e.g. `af_bella(2)+af_heart(1)`). Other models require a single
 	// voice name.
 	Voice string `json:"voice" api:"required"`
-	// Sampling rate to use for the output audio. The default sampling rate for
-	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
-	// cartesia/sonic is 44100.
+	// Sampling rate in Hz for the output audio. Cartesia and Minimax models respect
+	// this parameter. Orpheus and Kokoro models always output at 24000 Hz regardless
+	// of this setting.
 	SampleRate param.Opt[int64] `json:"sample_rate,omitzero"`
 	// Bitrate of the MP3 audio output in bits per second. Only applicable when
 	// response_format is mp3. Higher values produce better audio quality at larger
@@ -96,7 +96,9 @@ type AudioSpeechNewParams struct {
 	// Any of "en", "de", "fr", "es", "hi", "it", "ja", "ko", "nl", "pl", "pt", "ru",
 	// "sv", "tr", "zh".
 	Language AudioSpeechNewParamsLanguage `json:"language,omitzero"`
-	// Audio encoding of response
+	// Audio encoding of response. Only applicable when response_format is raw or pcm.
+	// Cartesia models respect this parameter and support all values. Orpheus, Kokoro,
+	// and Minimax models always return pcm_s16le regardless of this setting.
 	//
 	// Any of "pcm_f32le", "pcm_s16le", "pcm_mulaw", "pcm_alaw".
 	ResponseEncoding AudioSpeechNewParamsResponseEncoding `json:"response_encoding,omitzero"`
@@ -150,7 +152,9 @@ const (
 	AudioSpeechNewParamsLanguageZh AudioSpeechNewParamsLanguage = "zh"
 )
 
-// Audio encoding of response
+// Audio encoding of response. Only applicable when response_format is raw or pcm.
+// Cartesia models respect this parameter and support all values. Orpheus, Kokoro,
+// and Minimax models always return pcm_s16le regardless of this setting.
 type AudioSpeechNewParamsResponseEncoding string
 
 const (
