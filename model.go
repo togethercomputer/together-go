@@ -103,11 +103,12 @@ const (
 )
 
 type ModelObjectPricing struct {
-	Base     float64 `json:"base" api:"required"`
-	Finetune float64 `json:"finetune" api:"required"`
-	Hourly   float64 `json:"hourly" api:"required"`
-	Input    float64 `json:"input" api:"required"`
-	Output   float64 `json:"output" api:"required"`
+	Base        float64 `json:"base" api:"required"`
+	Finetune    float64 `json:"finetune" api:"required"`
+	Hourly      float64 `json:"hourly" api:"required"`
+	Input       float64 `json:"input" api:"required"`
+	Output      float64 `json:"output" api:"required"`
+	CachedInput float64 `json:"cached_input"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Base        respjson.Field
@@ -115,6 +116,7 @@ type ModelObjectPricing struct {
 		Hourly      respjson.Field
 		Input       respjson.Field
 		Output      respjson.Field
+		CachedInput respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
