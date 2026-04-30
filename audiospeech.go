@@ -83,7 +83,7 @@ type AudioSpeechNewParams struct {
 	Voice string `json:"voice" api:"required"`
 	// Language or locale of input text. Accepts ISO 639-1 language codes (e.g., `en`,
 	// `fr`, `es`, `zh`) as well as locale codes for region-specific variants. Locale
-	// codes must be lowercase (e.g., `zh-hk` for Cantonese, not `zh-HK`).
+	// codes must be lowercase (e.g., `zh-hk` for Cantonese).
 	Language param.Opt[string] `json:"language,omitzero"`
 	// Sampling rate in Hz for the output audio. Cartesia and Minimax models respect
 	// this parameter. Orpheus and Kokoro models always output at 24000 Hz regardless
