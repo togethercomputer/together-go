@@ -31,7 +31,7 @@ func TestAudioSpeechNewWithOptionalParams(t *testing.T) {
 		Model:            together.AudioSpeechNewParamsModelCanopylabsOrpheus3b0_1Ft,
 		Voice:            "voice",
 		BitRate:          32000,
-		Language:         together.AudioSpeechNewParamsLanguageEn,
+		Language:         together.String("en"),
 		ResponseEncoding: together.AudioSpeechNewParamsResponseEncodingPcmF32le,
 		ResponseFormat:   together.AudioSpeechNewParamsResponseFormatMP3,
 		SampleRate:       together.Int(0),
