@@ -809,7 +809,8 @@ type FineTuningNewResponse struct {
 	LrScheduler FineTuningNewResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
-	// Maximum sequence length to use for training.
+	// Maximum sequence length to use for training. If not specified, the maximum
+	// allowed for the model and training method will be used.
 	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
@@ -1309,7 +1310,8 @@ type FineTuningListResponseData struct {
 	LrScheduler FineTuningListResponseDataLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
-	// Maximum sequence length to use for training.
+	// Maximum sequence length to use for training. If not specified, the maximum
+	// allowed for the model and training method will be used.
 	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
@@ -1806,7 +1808,8 @@ type FineTuningCancelResponse struct {
 	LrScheduler FineTuningCancelResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
-	// Maximum sequence length to use for training.
+	// Maximum sequence length to use for training. If not specified, the maximum
+	// allowed for the model and training method will be used.
 	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
