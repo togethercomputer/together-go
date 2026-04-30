@@ -81,6 +81,10 @@ type AudioSpeechNewParams struct {
 	// parentheses (e.g. `af_bella(2)+af_heart(1)`). Other models require a single
 	// voice name.
 	Voice string `json:"voice" api:"required"`
+	// Language or locale of input text. Accepts ISO 639-1 language codes (e.g., `en`,
+	// `fr`, `es`, `zh`) as well as locale codes for region-specific variants. Locale
+	// codes must be lowercase (e.g., `zh-hk` for Cantonese, not `zh-HK`).
+	Language param.Opt[string] `json:"language,omitzero"`
 	// Sampling rate in Hz for the output audio. Cartesia and Minimax models respect
 	// this parameter. Orpheus and Kokoro models always output at 24000 Hz regardless
 	// of this setting.
@@ -91,11 +95,6 @@ type AudioSpeechNewParams struct {
 	//
 	// Any of 32000, 64000, 96000, 128000, 192000.
 	BitRate int64 `json:"bit_rate,omitzero"`
-	// Language of input text.
-	//
-	// Any of "en", "de", "fr", "es", "hi", "it", "ja", "ko", "nl", "pl", "pt", "ru",
-	// "sv", "tr", "zh".
-	Language AudioSpeechNewParamsLanguage `json:"language,omitzero"`
 	// Audio encoding of response. Only applicable when response_format is raw or pcm.
 	// Cartesia models respect this parameter and support all values. Orpheus, Kokoro,
 	// and Minimax models always return pcm_s16le regardless of this setting.
@@ -129,27 +128,6 @@ const (
 	AudioSpeechNewParamsModelCartesiaSonic            AudioSpeechNewParamsModel = "cartesia/sonic"
 	AudioSpeechNewParamsModelHexgradKokoro82M         AudioSpeechNewParamsModel = "hexgrad/Kokoro-82M"
 	AudioSpeechNewParamsModelCanopylabsOrpheus3b0_1Ft AudioSpeechNewParamsModel = "canopylabs/orpheus-3b-0.1-ft"
-)
-
-// Language of input text.
-type AudioSpeechNewParamsLanguage string
-
-const (
-	AudioSpeechNewParamsLanguageEn AudioSpeechNewParamsLanguage = "en"
-	AudioSpeechNewParamsLanguageDe AudioSpeechNewParamsLanguage = "de"
-	AudioSpeechNewParamsLanguageFr AudioSpeechNewParamsLanguage = "fr"
-	AudioSpeechNewParamsLanguageEs AudioSpeechNewParamsLanguage = "es"
-	AudioSpeechNewParamsLanguageHi AudioSpeechNewParamsLanguage = "hi"
-	AudioSpeechNewParamsLanguageIt AudioSpeechNewParamsLanguage = "it"
-	AudioSpeechNewParamsLanguageJa AudioSpeechNewParamsLanguage = "ja"
-	AudioSpeechNewParamsLanguageKo AudioSpeechNewParamsLanguage = "ko"
-	AudioSpeechNewParamsLanguageNl AudioSpeechNewParamsLanguage = "nl"
-	AudioSpeechNewParamsLanguagePl AudioSpeechNewParamsLanguage = "pl"
-	AudioSpeechNewParamsLanguagePt AudioSpeechNewParamsLanguage = "pt"
-	AudioSpeechNewParamsLanguageRu AudioSpeechNewParamsLanguage = "ru"
-	AudioSpeechNewParamsLanguageSv AudioSpeechNewParamsLanguage = "sv"
-	AudioSpeechNewParamsLanguageTr AudioSpeechNewParamsLanguage = "tr"
-	AudioSpeechNewParamsLanguageZh AudioSpeechNewParamsLanguage = "zh"
 )
 
 // Audio encoding of response. Only applicable when response_format is raw or pcm.
