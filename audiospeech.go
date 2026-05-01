@@ -95,6 +95,8 @@ type AudioSpeechNewParams struct {
 	//
 	// Any of 32000, 64000, 96000, 128000, 192000.
 	BitRate int64 `json:"bit_rate,omitzero"`
+	// Additional model-specific parameters that fine-tune speech generation behavior.
+	ExtraParams AudioSpeechNewParamsExtraParams `json:"extra_params,omitzero"`
 	// Audio encoding of response. Only applicable when response_format is raw or pcm.
 	// Cartesia models respect this parameter and support all values. Orpheus, Kokoro,
 	// and Minimax models always return pcm_s16le regardless of this setting.
@@ -129,6 +131,23 @@ const (
 	AudioSpeechNewParamsModelHexgradKokoro82M         AudioSpeechNewParamsModel = "hexgrad/Kokoro-82M"
 	AudioSpeechNewParamsModelCanopylabsOrpheus3b0_1Ft AudioSpeechNewParamsModel = "canopylabs/orpheus-3b-0.1-ft"
 )
+
+// Additional model-specific parameters that fine-tune speech generation behavior.
+type AudioSpeechNewParamsExtraParams struct {
+	// A list of pronunciation rules for specific characters or symbols. Each entry
+	// uses the format `"<source>/<replacement>"` (e.g., `["omg/oh my god"]`) to
+	// override how the model pronounces matching tokens.
+	PronunciationDict []string `json:"pronunciation_dict,omitzero"`
+	paramObj
+}
+
+func (r AudioSpeechNewParamsExtraParams) MarshalJSON() (data []byte, err error) {
+	type shadow AudioSpeechNewParamsExtraParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *AudioSpeechNewParamsExtraParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 // Audio encoding of response. Only applicable when response_format is raw or pcm.
 // Cartesia models respect this parameter and support all values. Orpheus, Kokoro,
