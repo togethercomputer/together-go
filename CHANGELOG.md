@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.10.0 (2026-05-01)
+
+Full Changelog: [v0.9.0...v0.10.0](https://github.com/togethercomputer/together-go/compare/v0.9.0...v0.10.0)
+
+### Features
+
+* add the pronunciation dict ([665cf91](https://github.com/togethercomputer/together-go/commit/665cf9167aa7be6f15d4db9fe0e4fdd7a2984930))
+* **api:** add auto-scale/schedule/OIDC params, SCHEDULED_CAPACITY billing to clusters ([7769868](https://github.com/togethercomputer/together-go/commit/77698685188a076d8bc5707f686f0a3d1d4b4f34))
+* **api:** add cached_input field to ModelObjectPricing ([fb7b530](https://github.com/togethercomputer/together-go/commit/fb7b53061ff0df2956ccd2bed461226057eefbbd))
+* **api:** add h100-40gb-mig, b200-192gb GPU types, remove a100-80gb from deployments ([e041234](https://github.com/togethercomputer/together-go/commit/e04123466ad7059b1819cc3c6c0a6a369d7d1115))
+* **api:** add max_seq_length field to finetuning ([0964ef9](https://github.com/togethercomputer/together-go/commit/0964ef98937683218fd6c68ced1f93607932344e))
+* **api:** add num_workers parameter to eval evaluation parameters ([d061b9d](https://github.com/togethercomputer/together-go/commit/d061b9da29801d5f77ceaa4572868615af9ae285))
+* **api:** allow string or object for audio_inputs/source_video in video params ([75b4202](https://github.com/togethercomputer/together-go/commit/75b42023f5e1843a6e38f72c7b7b64f180fad27e))
+* **api:** Update server url to .ai ([9ae586b](https://github.com/togethercomputer/together-go/commit/9ae586b932601012d6428f8c1eba6d692376af0d))
+* ENG-87042: document language on TTS WebSocket and simplify locale note ([454dc61](https://github.com/togethercomputer/together-go/commit/454dc61de881e2c95c859f76bbf8dd1b2015f213))
+* **go:** add default http client with timeout ([f235d6f](https://github.com/togethercomputer/together-go/commit/f235d6f5ef94f6bd7f798783e3a36c4276f39d85))
+* MOSH-2181: Add default note on max-seq-length ([ee06e5a](https://github.com/togethercomputer/together-go/commit/ee06e5a98c1808e45586cc7bb399611ff368cd78))
+* support setting headers via env ([56a6ac9](https://github.com/togethercomputer/together-go/commit/56a6ac9b1c4ed2814672466a02bce74886e12fdb))
+
+
+### Bug Fixes
+
+* better respect format tags from the spec ([a99fd75](https://github.com/togethercomputer/together-go/commit/a99fd75b164e618cdeb5c021eb0e6bb3da5ff8ee))
+* **client:** update base URL to api.together.ai in video service ([169e53b](https://github.com/togethercomputer/together-go/commit/169e53bfff2c83a4eedb15c7123d73d68fa9230f))
+* **types:** change language from enum to string in audio speech ([c7c3dd5](https://github.com/togethercomputer/together-go/commit/c7c3dd500bb4e7ca3489ed06e36313de91b8f3e8))
+* **types:** remove eval-sample/eval-output/eval-summary/batch-generated from FilePurpose ([27aa4f5](https://github.com/togethercomputer/together-go/commit/27aa4f53fe430898efb99c694347bf1aa8126ace))
+* **types:** rename cuda_driver_version to cuda_version in cluster regions ([0d3c446](https://github.com/togethercomputer/together-go/commit/0d3c4461539623a60767f8690485ea21ec6bb7c5))
+* **types:** restructure driver_versions, make supported_instance_types required in betacluster ([1298ca1](https://github.com/togethercomputer/together-go/commit/1298ca1f4f905f5cbec9c8391ed018b4217bc08e))
+
+
+### Chores
+
+* avoid embedding reflect.Type for dead code elimination ([8f52477](https://github.com/togethercomputer/together-go/commit/8f52477443b1ea2088d1080ef79c3f2a064bbc87))
+* **internal:** more robust bootstrap script ([32acdb4](https://github.com/togethercomputer/together-go/commit/32acdb465404e7df8f886e6d6afdebf34c886c69))
+* **tests:** bump steady to v0.22.1 ([998c407](https://github.com/togethercomputer/together-go/commit/998c407c7892af0bc66889e11669541f11d03b7e))
+
+
+### Documentation
+
+* **api:** document voice mixing support for audio speech voice parameter ([374f51b](https://github.com/togethercomputer/together-go/commit/374f51bb529fd6271283a4b25a63b5e4f80dfe6c))
+* **api:** update billing_type description in beta cluster creation ([a40ff7f](https://github.com/togethercomputer/together-go/commit/a40ff7f25557222d01444d78adfd2acabf62307d))
+* **api:** update sample_rate and response_encoding parameter docs in audiospeech ([e1b61d9](https://github.com/togethercomputer/together-go/commit/e1b61d9e4718f75de57600ed247287cde4830d9d))
+* improve examples ([28ad2a1](https://github.com/togethercomputer/together-go/commit/28ad2a14bcb68286110cd2947040e8f8851e0d3b))
+
 ## 0.9.0 (2026-04-03)
 
 Full Changelog: [v0.8.0...v0.9.0](https://github.com/togethercomputer/together-go/compare/v0.8.0...v0.9.0)
