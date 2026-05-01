@@ -809,6 +809,9 @@ type FineTuningNewResponse struct {
 	LrScheduler FineTuningNewResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
+	// Maximum sequence length to use for training. If not specified, the maximum
+	// allowed for the model and training method will be used.
+	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
 	ModelOutputName string `json:"model_output_name"`
@@ -867,6 +870,7 @@ type FineTuningNewResponse struct {
 		LearningRate     respjson.Field
 		LrScheduler      respjson.Field
 		MaxGradNorm      respjson.Field
+		MaxSeqLength     respjson.Field
 		Model            respjson.Field
 		ModelOutputName  respjson.Field
 		NCheckpoints     respjson.Field
@@ -1306,6 +1310,9 @@ type FineTuningListResponseData struct {
 	LrScheduler FineTuningListResponseDataLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
+	// Maximum sequence length to use for training. If not specified, the maximum
+	// allowed for the model and training method will be used.
+	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
 	ModelOutputName string `json:"model_output_name"`
@@ -1364,6 +1371,7 @@ type FineTuningListResponseData struct {
 		LearningRate     respjson.Field
 		LrScheduler      respjson.Field
 		MaxGradNorm      respjson.Field
+		MaxSeqLength     respjson.Field
 		Model            respjson.Field
 		ModelOutputName  respjson.Field
 		NCheckpoints     respjson.Field
@@ -1800,6 +1808,9 @@ type FineTuningCancelResponse struct {
 	LrScheduler FineTuningCancelResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
+	// Maximum sequence length to use for training. If not specified, the maximum
+	// allowed for the model and training method will be used.
+	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
 	ModelOutputName string `json:"model_output_name"`
@@ -1858,6 +1869,7 @@ type FineTuningCancelResponse struct {
 		LearningRate     respjson.Field
 		LrScheduler      respjson.Field
 		MaxGradNorm      respjson.Field
+		MaxSeqLength     respjson.Field
 		Model            respjson.Field
 		ModelOutputName  respjson.Field
 		NCheckpoints     respjson.Field
@@ -2371,6 +2383,8 @@ type FineTuningNewParams struct {
 	LearningRate param.Opt[float64] `json:"learning_rate,omitzero"`
 	// Max gradient norm to be used for gradient clipping. Set to 0 to disable.
 	MaxGradNorm param.Opt[float64] `json:"max_grad_norm,omitzero"`
+	// Maximum sequence length to use for training.
+	MaxSeqLength param.Opt[int64] `json:"max_seq_length,omitzero"`
 	// Number of intermediate model versions saved during training for evaluation
 	NCheckpoints param.Opt[int64] `json:"n_checkpoints,omitzero"`
 	// Number of complete passes through the training dataset (higher values may

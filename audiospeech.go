@@ -74,10 +74,20 @@ type AudioSpeechNewParams struct {
 	// You can view the voices supported for each model using the /v1/voices endpoint
 	// sending the model name as the query parameter.
 	// [View all supported voices here](https://docs.together.ai/docs/text-to-speech#supported-voices).
+	//
+	// `hexgrad/Kokoro-82M` additionally supports voice mixing, where two or more
+	// voices are combined into a single blended voice by joining their names with `+`
+	// (e.g. `af_bella+af_heart`). Optional per-voice weights can be provided in
+	// parentheses (e.g. `af_bella(2)+af_heart(1)`). Other models require a single
+	// voice name.
 	Voice string `json:"voice" api:"required"`
-	// Sampling rate to use for the output audio. The default sampling rate for
-	// canopylabs/orpheus-3b-0.1-ft and hexgrad/Kokoro-82M is 24000 and for
-	// cartesia/sonic is 44100.
+	// Language or locale of input text. Accepts ISO 639-1 language codes (e.g., `en`,
+	// `fr`, `es`, `zh`) as well as locale codes for region-specific variants. Locale
+	// codes must be lowercase (e.g., `zh-hk` for Cantonese).
+	Language param.Opt[string] `json:"language,omitzero"`
+	// Sampling rate in Hz for the output audio. Cartesia and Minimax models respect
+	// this parameter. Orpheus and Kokoro models always output at 24000 Hz regardless
+	// of this setting.
 	SampleRate param.Opt[int64] `json:"sample_rate,omitzero"`
 	// Bitrate of the MP3 audio output in bits per second. Only applicable when
 	// response_format is mp3. Higher values produce better audio quality at larger
@@ -85,12 +95,11 @@ type AudioSpeechNewParams struct {
 	//
 	// Any of 32000, 64000, 96000, 128000, 192000.
 	BitRate int64 `json:"bit_rate,omitzero"`
-	// Language of input text.
-	//
-	// Any of "en", "de", "fr", "es", "hi", "it", "ja", "ko", "nl", "pl", "pt", "ru",
-	// "sv", "tr", "zh".
-	Language AudioSpeechNewParamsLanguage `json:"language,omitzero"`
-	// Audio encoding of response
+	// Additional model-specific parameters that fine-tune speech generation behavior.
+	ExtraParams AudioSpeechNewParamsExtraParams `json:"extra_params,omitzero"`
+	// Audio encoding of response. Only applicable when response_format is raw or pcm.
+	// Cartesia models respect this parameter and support all values. Orpheus, Kokoro,
+	// and Minimax models always return pcm_s16le regardless of this setting.
 	//
 	// Any of "pcm_f32le", "pcm_s16le", "pcm_mulaw", "pcm_alaw".
 	ResponseEncoding AudioSpeechNewParamsResponseEncoding `json:"response_encoding,omitzero"`
@@ -123,28 +132,26 @@ const (
 	AudioSpeechNewParamsModelCanopylabsOrpheus3b0_1Ft AudioSpeechNewParamsModel = "canopylabs/orpheus-3b-0.1-ft"
 )
 
-// Language of input text.
-type AudioSpeechNewParamsLanguage string
+// Additional model-specific parameters that fine-tune speech generation behavior.
+type AudioSpeechNewParamsExtraParams struct {
+	// A list of pronunciation rules for specific characters or symbols. Each entry
+	// uses the format `"<source>/<replacement>"` (e.g., `["omg/oh my god"]`) to
+	// override how the model pronounces matching tokens.
+	PronunciationDict []string `json:"pronunciation_dict,omitzero"`
+	paramObj
+}
 
-const (
-	AudioSpeechNewParamsLanguageEn AudioSpeechNewParamsLanguage = "en"
-	AudioSpeechNewParamsLanguageDe AudioSpeechNewParamsLanguage = "de"
-	AudioSpeechNewParamsLanguageFr AudioSpeechNewParamsLanguage = "fr"
-	AudioSpeechNewParamsLanguageEs AudioSpeechNewParamsLanguage = "es"
-	AudioSpeechNewParamsLanguageHi AudioSpeechNewParamsLanguage = "hi"
-	AudioSpeechNewParamsLanguageIt AudioSpeechNewParamsLanguage = "it"
-	AudioSpeechNewParamsLanguageJa AudioSpeechNewParamsLanguage = "ja"
-	AudioSpeechNewParamsLanguageKo AudioSpeechNewParamsLanguage = "ko"
-	AudioSpeechNewParamsLanguageNl AudioSpeechNewParamsLanguage = "nl"
-	AudioSpeechNewParamsLanguagePl AudioSpeechNewParamsLanguage = "pl"
-	AudioSpeechNewParamsLanguagePt AudioSpeechNewParamsLanguage = "pt"
-	AudioSpeechNewParamsLanguageRu AudioSpeechNewParamsLanguage = "ru"
-	AudioSpeechNewParamsLanguageSv AudioSpeechNewParamsLanguage = "sv"
-	AudioSpeechNewParamsLanguageTr AudioSpeechNewParamsLanguage = "tr"
-	AudioSpeechNewParamsLanguageZh AudioSpeechNewParamsLanguage = "zh"
-)
+func (r AudioSpeechNewParamsExtraParams) MarshalJSON() (data []byte, err error) {
+	type shadow AudioSpeechNewParamsExtraParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *AudioSpeechNewParamsExtraParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
-// Audio encoding of response
+// Audio encoding of response. Only applicable when response_format is raw or pcm.
+// Cartesia models respect this parameter and support all values. Orpheus, Kokoro,
+// and Minimax models always return pcm_s16le regardless of this setting.
 type AudioSpeechNewParamsResponseEncoding string
 
 const (

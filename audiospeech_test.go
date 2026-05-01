@@ -27,11 +27,14 @@ func TestAudioSpeechNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	resp, err := client.Audio.Speech.New(context.TODO(), together.AudioSpeechNewParams{
-		Input:            "input",
-		Model:            together.AudioSpeechNewParamsModelCanopylabsOrpheus3b0_1Ft,
-		Voice:            "voice",
-		BitRate:          32000,
-		Language:         together.AudioSpeechNewParamsLanguageEn,
+		Input:   "input",
+		Model:   together.AudioSpeechNewParamsModelCanopylabsOrpheus3b0_1Ft,
+		Voice:   "voice",
+		BitRate: 32000,
+		ExtraParams: together.AudioSpeechNewParamsExtraParams{
+			PronunciationDict: []string{"omg/oh my god"},
+		},
+		Language:         together.String("en"),
 		ResponseEncoding: together.AudioSpeechNewParamsResponseEncodingPcmF32le,
 		ResponseFormat:   together.AudioSpeechNewParamsResponseFormatMP3,
 		SampleRate:       together.Int(0),
