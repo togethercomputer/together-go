@@ -278,7 +278,7 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord)
 
 type AudioTranscriptionNewParams struct {
 	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
-	// .webm, .flac.
+	// .webm, .flac, .ogg, .opus, .aac.
 	File AudioTranscriptionNewParamsFileUnion `json:"file,omitzero" api:"required" format:"binary"`
 	// Whether to enable speaker diarization. When enabled, you will get the speaker id
 	// for each word in the transcription. In the response, in the words array, you
