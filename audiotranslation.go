@@ -64,16 +64,12 @@ type AudioTranslationNewResponseUnion struct {
 	Segments []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment `json:"segments"`
 	// This field is from variant
 	// [AudioTranslationNewResponseAudioTranslationVerboseJsonResponse].
-	Task string `json:"task"`
-	// This field is from variant
-	// [AudioTranslationNewResponseAudioTranslationVerboseJsonResponse].
 	Words []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord `json:"words"`
 	JSON  struct {
 		Text     respjson.Field
 		Duration respjson.Field
 		Language respjson.Field
 		Segments respjson.Field
-		Task     respjson.Field
 		Words    respjson.Field
 		raw      string
 	} `json:"-"`
@@ -120,10 +116,6 @@ type AudioTranslationNewResponseAudioTranslationVerboseJsonResponse struct {
 	Language string `json:"language" api:"required"`
 	// Array of translation segments
 	Segments []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment `json:"segments" api:"required"`
-	// The task performed
-	//
-	// Any of "transcribe", "translate".
-	Task string `json:"task" api:"required"`
 	// The translated text
 	Text string `json:"text" api:"required"`
 	// Array of translation words (only when timestamp_granularities includes 'word')
@@ -133,7 +125,6 @@ type AudioTranslationNewResponseAudioTranslationVerboseJsonResponse struct {
 		Duration    respjson.Field
 		Language    respjson.Field
 		Segments    respjson.Field
-		Task        respjson.Field
 		Text        respjson.Field
 		Words       respjson.Field
 		ExtraFields map[string]respjson.Field
