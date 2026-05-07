@@ -212,7 +212,10 @@ type AudioTranslationNewParams struct {
 	// Target output language. Optional ISO 639-1 language code. If omitted, language
 	// is set to English.
 	Language param.Opt[string] `json:"language,omitzero"`
-	// Optional text to bias decoding.
+	// Optional text to bias decoding. Supported only on Whisper-family models (e.g.
+	// `openai/whisper-large-v3`). Other STT models (e.g.
+	// `nvidia/parakeet-tdt-0.6b-v3`) accept the field for API compatibility but ignore
+	// it.
 	Prompt param.Opt[string] `json:"prompt,omitzero"`
 	// Sampling temperature between 0.0 and 1.0
 	Temperature param.Opt[float64] `json:"temperature,omitzero"`
