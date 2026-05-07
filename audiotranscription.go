@@ -64,9 +64,6 @@ type AudioTranscriptionNewResponseUnion struct {
 	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments"`
 	// This field is from variant
 	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
-	Task string `json:"task"`
-	// This field is from variant
-	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
 	SpeakerSegments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment `json:"speaker_segments"`
 	// This field is from variant
 	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
@@ -76,7 +73,6 @@ type AudioTranscriptionNewResponseUnion struct {
 		Duration        respjson.Field
 		Language        respjson.Field
 		Segments        respjson.Field
-		Task            respjson.Field
 		SpeakerSegments respjson.Field
 		Words           respjson.Field
 		raw             string
@@ -126,10 +122,6 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
 	Language string `json:"language" api:"required"`
 	// Array of transcription segments
 	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments" api:"required"`
-	// The task performed
-	//
-	// Any of "transcribe", "translate".
-	Task string `json:"task" api:"required"`
 	// The transcribed text
 	Text string `json:"text" api:"required"`
 	// Array of transcription speaker segments (only when diarize is enabled)
@@ -141,7 +133,6 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
 		Duration        respjson.Field
 		Language        respjson.Field
 		Segments        respjson.Field
-		Task            respjson.Field
 		Text            respjson.Field
 		SpeakerSegments respjson.Field
 		Words           respjson.Field
