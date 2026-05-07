@@ -207,7 +207,7 @@ func (r *AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord) Unm
 
 type AudioTranslationNewParams struct {
 	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
-	// .webm, .flac.
+	// .webm, .flac, .ogg, .opus, .aac.
 	File AudioTranslationNewParamsFileUnion `json:"file,omitzero" api:"required" format:"binary"`
 	// Target output language. Optional ISO 639-1 language code. If omitted, language
 	// is set to English.
