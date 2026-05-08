@@ -847,6 +847,19 @@ func (u evalNewParamsParametersUnionJudge) GetExternalBaseURL() *string {
 }
 
 // Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetMaxTokens() *int64 {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return paramutil.AddrIfPresent(vt.MaxTokens)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return paramutil.AddrIfPresent(vt.MaxTokens)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return paramutil.AddrIfPresent(vt.MaxTokens)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
 func (u evalNewParamsParametersUnionJudge) GetNumWorkers() *int64 {
 	switch vt := u.any.(type) {
 	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
@@ -855,6 +868,19 @@ func (u evalNewParamsParametersUnionJudge) GetNumWorkers() *int64 {
 		return paramutil.AddrIfPresent(vt.NumWorkers)
 	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
 		return paramutil.AddrIfPresent(vt.NumWorkers)
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u evalNewParamsParametersUnionJudge) GetTemperature() *float64 {
+	switch vt := u.any.(type) {
+	case *EvalNewParamsParametersEvaluationClassifyParametersJudge:
+		return paramutil.AddrIfPresent(vt.Temperature)
+	case *EvalNewParamsParametersEvaluationScoreParametersJudge:
+		return paramutil.AddrIfPresent(vt.Temperature)
+	case *EvalNewParamsParametersEvaluationCompareParametersJudge:
+		return paramutil.AddrIfPresent(vt.Temperature)
 	}
 	return nil
 }
@@ -1054,10 +1080,16 @@ type EvalNewParamsParametersEvaluationClassifyParametersJudge struct {
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Maximum number of tokens the judge model can generate. Defaults to 32768.
+	// Increase for reasoning models (e.g. Gemini, o-series) that consume output token
+	// budget for chain-of-thought.
+	MaxTokens param.Opt[int64] `json:"max_tokens,omitzero"`
 	// Number of concurrent workers for inference requests. Overrides the default
 	// concurrency for this model. Useful for tuning throughput when using proxy
 	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
+	// Sampling temperature for the judge model. Defaults to 0.05.
+	Temperature param.Opt[float64] `json:"temperature,omitzero"`
 	paramObj
 }
 
@@ -1181,10 +1213,16 @@ type EvalNewParamsParametersEvaluationScoreParametersJudge struct {
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Maximum number of tokens the judge model can generate. Defaults to 32768.
+	// Increase for reasoning models (e.g. Gemini, o-series) that consume output token
+	// budget for chain-of-thought.
+	MaxTokens param.Opt[int64] `json:"max_tokens,omitzero"`
 	// Number of concurrent workers for inference requests. Overrides the default
 	// concurrency for this model. Useful for tuning throughput when using proxy
 	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
+	// Sampling temperature for the judge model. Defaults to 0.05.
+	Temperature param.Opt[float64] `json:"temperature,omitzero"`
 	paramObj
 }
 
@@ -1303,10 +1341,16 @@ type EvalNewParamsParametersEvaluationCompareParametersJudge struct {
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
 	// Base URL for external judge models. Must be OpenAI-compatible base URL.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
+	// Maximum number of tokens the judge model can generate. Defaults to 32768.
+	// Increase for reasoning models (e.g. Gemini, o-series) that consume output token
+	// budget for chain-of-thought.
+	MaxTokens param.Opt[int64] `json:"max_tokens,omitzero"`
 	// Number of concurrent workers for inference requests. Overrides the default
 	// concurrency for this model. Useful for tuning throughput when using proxy
 	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
+	// Sampling temperature for the judge model. Defaults to 0.05.
+	Temperature param.Opt[float64] `json:"temperature,omitzero"`
 	paramObj
 }
 
