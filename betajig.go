@@ -439,8 +439,7 @@ const (
 )
 
 type DeploymentVolume struct {
-	// MountPath is the path in the container where the volume will be mounted (e.g.,
-	// "/data")
+	// MountPath is the path in the container where the volume mounts (e.g., "/data").
 	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
@@ -552,14 +551,14 @@ type BetaJigUpdateParams struct {
 	// ["/bin/sh", "-c"])
 	Command []string `json:"command,omitzero"`
 	// EnvironmentVariables is a list of environment variables to set in the container.
-	// This will replace all existing environment variables
+	// Replaces all existing environment variables.
 	EnvironmentVariables []BetaJigUpdateParamsEnvironmentVariable `json:"environment_variables,omitzero"`
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb")
 	//
 	// Any of "h100-80gb", "h100-40gb-mig", "b200-192gb".
 	GPUType BetaJigUpdateParamsGPUType `json:"gpu_type,omitzero"`
-	// Volumes is a list of volume mounts to attach to the container. This will replace
-	// all existing volumes
+	// Volumes is a list of volume mounts to attach to the container. Replaces all
+	// existing volumes.
 	Volumes []BetaJigUpdateParamsVolume `json:"volumes,omitzero"`
 	paramObj
 }
@@ -766,8 +765,7 @@ const (
 
 // The properties MountPath, Name are required.
 type BetaJigUpdateParamsVolume struct {
-	// MountPath is the path in the container where the volume will be mounted (e.g.,
-	// "/data")
+	// MountPath is the path in the container where the volume mounts (e.g., "/data").
 	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
@@ -805,10 +803,10 @@ type BetaJigDeployParams struct {
 	// if not specified
 	GPUCount param.Opt[int64] `json:"gpu_count,omitzero"`
 	// HealthCheckPath is the HTTP path for health checks (e.g., "/health"). If set,
-	// the platform will check this endpoint to determine container health
+	// the platform checks this endpoint to determine container health.
 	HealthCheckPath param.Opt[string] `json:"health_check_path,omitzero"`
-	// MaxReplicas is the maximum number of container instances that can be scaled up
-	// to. If not set, will be set to MinReplicas
+	// MaxReplicas is the maximum number of container instances. Defaults to
+	// MinReplicas if not set.
 	MaxReplicas param.Opt[int64] `json:"max_replicas,omitzero"`
 	// Memory is the amount of RAM to allocate per container instance in GiB (e.g., 0.5
 	// = 512MiB)
@@ -1046,8 +1044,7 @@ func (r *BetaJigDeployParamsEnvironmentVariable) UnmarshalJSON(data []byte) erro
 
 // The properties MountPath, Name are required.
 type BetaJigDeployParamsVolume struct {
-	// MountPath is the path in the container where the volume will be mounted (e.g.,
-	// "/data")
+	// MountPath is the path in the container where the volume mounts (e.g., "/data").
 	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID

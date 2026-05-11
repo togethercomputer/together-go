@@ -607,8 +607,8 @@ func (r *FinetuneResponseTrainingMethodUnion) UnmarshalJSON(data []byte) error {
 type FinetuneResponseTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
 	Method string `json:"method" api:"required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
+	// Whether to mask user messages in conversational data or prompts in instruction
+	// data.
 	TrainOnInputs FinetuneResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -809,8 +809,8 @@ type FineTuningNewResponse struct {
 	LrScheduler FineTuningNewResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
-	// Maximum sequence length to use for training. If not specified, the maximum
-	// allowed for the model and training method will be used.
+	// Maximum sequence length to use for training. If not specified, uses the maximum
+	// allowed for the model and training method.
 	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
@@ -844,7 +844,7 @@ type FineTuningNewResponse struct {
 	TrainingMethod FineTuningNewResponseTrainingMethodUnion `json:"training_method"`
 	// Type of training used (full or LoRA)
 	TrainingType FineTuningNewResponseTrainingTypeUnion `json:"training_type"`
-	// Identifier for the user who created the job
+	// Identifier for who created the job.
 	UserID string `json:"user_id"`
 	// File-ID of the validation file
 	ValidationFile string `json:"validation_file"`
@@ -1092,8 +1092,8 @@ func (r *FineTuningNewResponseTrainingMethodUnion) UnmarshalJSON(data []byte) er
 type FineTuningNewResponseTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
 	Method string `json:"method" api:"required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
+	// Whether to mask user messages in conversational data or prompts in instruction
+	// data.
 	TrainOnInputs FineTuningNewResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1310,8 +1310,8 @@ type FineTuningListResponseData struct {
 	LrScheduler FineTuningListResponseDataLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
-	// Maximum sequence length to use for training. If not specified, the maximum
-	// allowed for the model and training method will be used.
+	// Maximum sequence length to use for training. If not specified, uses the maximum
+	// allowed for the model and training method.
 	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
@@ -1345,7 +1345,7 @@ type FineTuningListResponseData struct {
 	TrainingMethod FineTuningListResponseDataTrainingMethodUnion `json:"training_method"`
 	// Type of training used (full or LoRA)
 	TrainingType FineTuningListResponseDataTrainingTypeUnion `json:"training_type"`
-	// Identifier for the user who created the job
+	// Identifier for who created the job.
 	UserID string `json:"user_id"`
 	// File-ID of the validation file
 	ValidationFile string `json:"validation_file"`
@@ -1581,8 +1581,8 @@ func (r *FineTuningListResponseDataTrainingMethodUnion) UnmarshalJSON(data []byt
 type FineTuningListResponseDataTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
 	Method string `json:"method" api:"required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
+	// Whether to mask user messages in conversational data or prompts in instruction
+	// data.
 	TrainOnInputs FineTuningListResponseDataTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1808,8 +1808,8 @@ type FineTuningCancelResponse struct {
 	LrScheduler FineTuningCancelResponseLrScheduler `json:"lr_scheduler"`
 	// Maximum gradient norm for clipping
 	MaxGradNorm float64 `json:"max_grad_norm"`
-	// Maximum sequence length to use for training. If not specified, the maximum
-	// allowed for the model and training method will be used.
+	// Maximum sequence length to use for training. If not specified, uses the maximum
+	// allowed for the model and training method.
 	MaxSeqLength int64 `json:"max_seq_length"`
 	// Base model used for fine-tuning
 	Model           string `json:"model"`
@@ -1843,7 +1843,7 @@ type FineTuningCancelResponse struct {
 	TrainingMethod FineTuningCancelResponseTrainingMethodUnion `json:"training_method"`
 	// Type of training used (full or LoRA)
 	TrainingType FineTuningCancelResponseTrainingTypeUnion `json:"training_type"`
-	// Identifier for the user who created the job
+	// Identifier for who created the job.
 	UserID string `json:"user_id"`
 	// File-ID of the validation file
 	ValidationFile string `json:"validation_file"`
@@ -2091,8 +2091,8 @@ func (r *FineTuningCancelResponseTrainingMethodUnion) UnmarshalJSON(data []byte)
 type FineTuningCancelResponseTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
 	Method string `json:"method" api:"required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
+	// Whether to mask user messages in conversational data or prompts in instruction
+	// data.
 	TrainOnInputs FineTuningCancelResponseTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -2270,7 +2270,7 @@ func (r *FineTuningCancelResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(dat
 }
 
 type FineTuningEstimatePriceResponse struct {
-	// Whether the user is allowed to proceed with the fine-tuning job
+	// Whether you are allowed to proceed with the fine-tuning job.
 	AllowedToProceed bool `json:"allowed_to_proceed"`
 	// The estimated number of tokens for evaluation
 	EstimatedEvalTokenCount float64 `json:"estimated_eval_token_count"`
@@ -2278,7 +2278,7 @@ type FineTuningEstimatePriceResponse struct {
 	EstimatedTotalPrice float64 `json:"estimated_total_price"`
 	// The estimated number of tokens to be trained
 	EstimatedTrainTokenCount float64 `json:"estimated_train_token_count"`
-	// The user's credit limit in dollars
+	// Your credit limit in dollars.
 	UserLimit float64 `json:"user_limit"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -2363,8 +2363,8 @@ type FineTuningNewParams struct {
 	RandomSeed param.Opt[int64] `json:"random_seed,omitzero"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
-	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
-	// final checkpoint will be used.
+	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, uses the
+	// final checkpoint.
 	FromCheckpoint param.Opt[string] `json:"from_checkpoint,omitzero"`
 	// The Hugging Face Hub repo to start training from. Should be as close as possible
 	// to the base model (specified by the `model` argument) in terms of architecture
@@ -2400,8 +2400,7 @@ type FineTuningNewParams struct {
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
 	// Whether to use sequence packing for training.
 	Packing param.Opt[bool] `json:"packing,omitzero"`
-	// Suffix that will be added to your fine-tuned model name. Must be at most 64
-	// characters long.
+	// Suffix to add to your fine-tuned model name. Must be at most 64 characters long.
 	Suffix param.Opt[string] `json:"suffix,omitzero"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Opt[string] `json:"validation_file,omitzero"`
@@ -2413,16 +2412,15 @@ type FineTuningNewParams struct {
 	WandbEntity param.Opt[string] `json:"wandb_entity,omitzero"`
 	// The Weights & Biases name for your run.
 	WandbName param.Opt[string] `json:"wandb_name,omitzero"`
-	// The Weights & Biases project for your run. If not specified, will use `together`
-	// as the project name.
+	// The Weights & Biases project for your run. If not specified, uses `together` as
+	// the project name.
 	WandbProjectName param.Opt[string] `json:"wandb_project_name,omitzero"`
 	// The percent of steps at the start of training to linearly increase the learning
 	// rate.
 	WarmupRatio param.Opt[float64] `json:"warmup_ratio,omitzero"`
 	// Weight decay. Regularization parameter for the optimizer.
 	WeightDecay param.Opt[float64] `json:"weight_decay,omitzero"`
-	// The training type to use. If not provided, the job will default to LoRA training
-	// type.
+	// The training type to use. Defaults to LoRA if not provided.
 	TrainingType FineTuningNewParamsTrainingTypeUnion `json:"training_type,omitzero"`
 	// Number of training examples processed together (larger batches use more memory
 	// but may train faster). Defaults to "max". We use training optimizations like
@@ -2432,8 +2430,8 @@ type FineTuningNewParams struct {
 	// adjusted during training.
 	LrScheduler      FineTuningNewParamsLrScheduler      `json:"lr_scheduler,omitzero"`
 	MultimodalParams FineTuningNewParamsMultimodalParams `json:"multimodal_params,omitzero"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
+	// Whether to mask user messages in conversational data or prompts in instruction
+	// data.
 	TrainOnInputs FineTuningNewParamsTrainOnInputsUnion `json:"train_on_inputs,omitzero"`
 	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 	// Preference Optimization.
@@ -2716,8 +2714,8 @@ func (u FineTuningNewParamsTrainingMethodUnion) GetMethod() *string {
 type FineTuningNewParamsTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
 	Method string `json:"method,omitzero" api:"required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
+	// Whether to mask user messages in conversational data or prompts in instruction
+	// data.
 	TrainOnInputs FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero" api:"required"`
 	paramObj
 }
@@ -2960,8 +2958,8 @@ type FineTuningEstimatePriceParams struct {
 	TrainingFile string `json:"training_file" api:"required"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
-	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, the
-	// final checkpoint will be used.
+	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, uses the
+	// final checkpoint.
 	FromCheckpoint param.Opt[string] `json:"from_checkpoint,omitzero"`
 	// Name of the base model to run fine-tune job on
 	Model param.Opt[string] `json:"model,omitzero"`
@@ -2972,8 +2970,7 @@ type FineTuningEstimatePriceParams struct {
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Opt[string] `json:"validation_file,omitzero"`
-	// The training type to use. If not provided, the job will default to LoRA training
-	// type.
+	// The training type to use. Defaults to LoRA if not provided.
 	TrainingType FineTuningEstimatePriceParamsTrainingTypeUnion `json:"training_type,omitzero"`
 	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 	// Preference Optimization.
@@ -3076,8 +3073,8 @@ func (u FineTuningEstimatePriceParamsTrainingMethodUnion) GetMethod() *string {
 type FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft struct {
 	// Any of "sft".
 	Method string `json:"method,omitzero" api:"required"`
-	// Whether to mask the user messages in conversational data or prompts in
-	// instruction data.
+	// Whether to mask user messages in conversational data or prompts in instruction
+	// data.
 	TrainOnInputs FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion `json:"train_on_inputs,omitzero" api:"required"`
 	paramObj
 }

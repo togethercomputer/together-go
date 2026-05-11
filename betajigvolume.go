@@ -133,8 +133,8 @@ func (r *Volume) UnmarshalJSON(data []byte) error {
 }
 
 type VolumeContent struct {
-	// Files is the list of files that will be preloaded into the volume, if the volume
-	// content type is "files"
+	// Files is the list of files to preload into the volume, if the volume content
+	// type is "files".
 	Files []VolumeContentFile `json:"files"`
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
@@ -190,7 +190,7 @@ const (
 )
 
 type VolumeVersionHistory struct {
-	// Content specifies the new content that will be preloaded to this volume
+	// Content specifies the new content to preload to this volume.
 	Content   VolumeVersionHistoryContent `json:"content"`
 	MountedBy []string                    `json:"mounted_by"`
 	Version   int64                       `json:"version"`
@@ -210,7 +210,7 @@ func (r *VolumeVersionHistory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the new content that will be preloaded to this volume
+// Content specifies the new content to preload to this volume.
 type VolumeVersionHistoryContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
@@ -267,7 +267,7 @@ const (
 type BetaJigVolumeDeleteResponse = any
 
 type BetaJigVolumeNewParams struct {
-	// Content specifies the new content that will be preloaded to this volume
+	// Content specifies the new content to preload to this volume.
 	Content BetaJigVolumeNewParamsContent `json:"content,omitzero" api:"required"`
 	// Name is the unique identifier for the volume within the project
 	Name string `json:"name" api:"required"`
@@ -286,7 +286,7 @@ func (r *BetaJigVolumeNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the new content that will be preloaded to this volume
+// Content specifies the new content to preload to this volume.
 type BetaJigVolumeNewParamsContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
@@ -323,7 +323,7 @@ const (
 type BetaJigVolumeUpdateParams struct {
 	// Name is the new unique identifier for the volume within the project
 	Name param.Opt[string] `json:"name,omitzero"`
-	// Content specifies the new content that will be preloaded to this volume
+	// Content specifies the new content to preload to this volume.
 	Content BetaJigVolumeUpdateParamsContent `json:"content,omitzero"`
 	// Type is the new volume type (currently only "readOnly" is supported)
 	//
@@ -340,7 +340,7 @@ func (r *BetaJigVolumeUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the new content that will be preloaded to this volume
+// Content specifies the new content to preload to this volume.
 type BetaJigVolumeUpdateParamsContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume

@@ -38,10 +38,10 @@ func NewCodeInterpreterService(opts ...option.RequestOption) (r CodeInterpreterS
 }
 
 // Executes the given code snippet and returns the output. Without a session_id, a
-// new session will be created to run the code. If you do pass in a valid
-// session_id, the code will be run in that session. This is useful for running
-// multiple code snippets in the same environment, because dependencies and similar
-// things are persisted between calls to the same session.
+// new session is created to run the code. If you pass a valid session_id, the code
+// runs in that session. This is useful for running multiple code snippets in the
+// same environment, because dependencies and similar things are persisted between
+// calls to the same session.
 func (r *CodeInterpreterService) Execute(ctx context.Context, body CodeInterpreterExecuteParams, opts ...option.RequestOption) (res *ExecuteResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "tci/execute"
@@ -468,16 +468,15 @@ func (r *ExecuteResponseFailedExecutionErrorUnion) UnmarshalJSON(data []byte) er
 type CodeInterpreterExecuteParams struct {
 	// Code snippet to execute.
 	Code string `json:"code" api:"required"`
-	// Programming language for the code to execute. Currently only supports Python,
-	// but more will be added.
+	// Programming language for the code to execute. Currently only supports Python.
 	//
 	// Any of "python".
 	Language CodeInterpreterExecuteParamsLanguage `json:"language,omitzero" api:"required"`
-	// Identifier of the current session. Used to make follow-up calls. Requests will
-	// return an error if the session does not belong to the caller or has expired.
+	// Identifier of the current session. Used to make follow-up calls. Returns an
+	// error if the session does not belong to the caller or has expired.
 	SessionID param.Opt[string] `json:"session_id,omitzero"`
-	// Files to upload to the session. If present, files will be uploaded before
-	// executing the given code.
+	// Files to upload to the session. If present, files are uploaded before executing
+	// the given code.
 	Files []CodeInterpreterExecuteParamsFile `json:"files,omitzero"`
 	paramObj
 }
@@ -490,8 +489,7 @@ func (r *CodeInterpreterExecuteParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Programming language for the code to execute. Currently only supports Python,
-// but more will be added.
+// Programming language for the code to execute. Currently only supports Python.
 type CodeInterpreterExecuteParamsLanguage string
 
 const (
