@@ -40,9 +40,9 @@ func NewEndpointService(opts ...option.RequestOption) (r EndpointService) {
 	return
 }
 
-// Creates a new dedicated endpoint for serving models. The endpoint will
-// automatically start after creation. You can deploy any supported model on
-// hardware configurations that meet the model's requirements.
+// Creates a new dedicated endpoint for serving models. The endpoint starts
+// automatically after creation. You can deploy any supported model on hardware
+// configurations that meet the model's requirements.
 func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts ...option.RequestOption) (res *DedicatedEndpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "endpoints"
@@ -439,9 +439,8 @@ type EndpointNewParams struct {
 	Hardware string `json:"hardware" api:"required"`
 	// The model to deploy on this endpoint
 	Model string `json:"model" api:"required"`
-	// The number of minutes of inactivity after which the endpoint will be
-	// automatically stopped. Set to null, omit or set to 0 to disable automatic
-	// timeout.
+	// The number of minutes of inactivity after which the endpoint stops
+	// automatically. Set to null, omit, or set to 0 to disable automatic timeout.
 	InactiveTimeout param.Opt[int64] `json:"inactive_timeout,omitzero"`
 	// Create the endpoint in a specified availability zone (e.g., us-central-4b)
 	AvailabilityZone param.Opt[string] `json:"availability_zone,omitzero"`
@@ -475,8 +474,8 @@ const (
 )
 
 type EndpointUpdateParams struct {
-	// The number of minutes of inactivity after which the endpoint will be
-	// automatically stopped. Set to 0 to disable automatic timeout.
+	// The number of minutes of inactivity after which the endpoint stops
+	// automatically. Set to 0 to disable automatic timeout.
 	InactiveTimeout param.Opt[int64] `json:"inactive_timeout,omitzero"`
 	// A human-readable name for the endpoint
 	DisplayName param.Opt[string] `json:"display_name,omitzero"`

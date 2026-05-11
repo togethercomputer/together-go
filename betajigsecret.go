@@ -92,11 +92,11 @@ type Secret struct {
 	ID string `json:"id"`
 	// CreatedAt is the ISO8601 timestamp when this secret was created
 	CreatedAt string `json:"created_at"`
-	// CreatedBy is the identifier of the user who created this secret
+	// CreatedBy is the identifier of who created this secret.
 	CreatedBy string `json:"created_by"`
 	// Description is a human-readable description of the secret's purpose
 	Description string `json:"description"`
-	// LastUpdatedBy is the identifier of the user who last updated this secret
+	// LastUpdatedBy is the identifier of who last updated this secret.
 	LastUpdatedBy string `json:"last_updated_by"`
 	// Name is the name/key of the secret
 	Name string `json:"name"`
@@ -171,7 +171,7 @@ type BetaJigSecretNewParams struct {
 	// characters)
 	Name string `json:"name" api:"required"`
 	// Value is the sensitive data to store securely (e.g., API keys, passwords,
-	// tokens). This value will be encrypted at rest
+	// tokens). Encrypted at rest.
 	Value string `json:"value" api:"required"`
 	// Description is an optional human-readable description of the secret's purpose
 	// (max 500 characters)
@@ -201,8 +201,8 @@ type BetaJigSecretUpdateParams struct {
 	// ProjectID is ignored - the project is automatically determined from your
 	// authentication
 	ProjectID param.Opt[string] `json:"project_id,omitzero"`
-	// Value is the new sensitive data to store securely. Updating this will replace
-	// the existing secret value
+	// Value is the new sensitive data to store securely. Updating this replaces the
+	// existing secret value.
 	Value param.Opt[string] `json:"value,omitzero"`
 	paramObj
 }

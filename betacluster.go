@@ -428,7 +428,7 @@ type BetaClusterNewParams struct {
 	ReservationEndTime param.Opt[time.Time] `json:"reservation_end_time,omitzero" format:"date-time"`
 	// Reservation start time of the cluster. This field is required for SCHEDULED
 	// billing to specify the reservation start time for the cluster. If not provided,
-	// the cluster will be provisioned immediately.
+	// the cluster provisions immediately.
 	ReservationStartTime param.Opt[time.Time] `json:"reservation_start_time,omitzero" format:"date-time"`
 	// Custom Slurm image for Slurm clusters.
 	SlurmImage param.Opt[string] `json:"slurm_image,omitzero"`

@@ -431,14 +431,14 @@ type ChatCompletionNewParams struct {
 	//
 	// [See all of Together AI's chat models](https://docs.together.ai/docs/serverless-models#chat-models)
 	Model string `json:"model" api:"required"`
-	// If true, the response will contain the prompt. Can be used with `logprobs` to
-	// return prompt logprobs.
+	// If true, the response contains the prompt. Can be used with `logprobs` to return
+	// prompt logprobs.
 	Echo param.Opt[bool] `json:"echo,omitzero"`
 	// A number between -2.0 and 2.0 where a positive value decreases the likelihood of
 	// repeating tokens that have already been mentioned.
 	FrequencyPenalty param.Opt[float64] `json:"frequency_penalty,omitzero"`
 	// An integer between 0 and 20 of the top k tokens to return log probabilities for
-	// at each generation step, instead of just the sampled token. Log probabilities
+	// at each generation step, instead of only the sampled token. Log probabilities
 	// help assess model confidence in token predictions.
 	Logprobs param.Opt[int64] `json:"logprobs,omitzero"`
 	// The maximum number of tokens to generate.
@@ -480,10 +480,10 @@ type ChatCompletionNewParams struct {
 	ChatTemplateKwargs any `json:"chat_template_kwargs,omitzero"`
 	// Any of "hipaa".
 	Compliance ChatCompletionNewParamsCompliance `json:"compliance,omitzero"`
-	// Defined the behavior of the API when max_tokens exceed the maximum context
-	// length of the model. When set to 'error', API will return 400 with appropriate
-	// error message. When set to 'truncate', override the max_tokens with maximum
-	// context length of the model.
+	// Defines the behavior of the API when max_tokens exceed the maximum context
+	// length of the model. When set to 'error', the API returns 400 with an
+	// appropriate error message. When set to 'truncate', overrides max_tokens with the
+	// maximum context length of the model.
 	//
 	// Any of "truncate", "error".
 	ContextLengthExceededBehavior ChatCompletionNewParamsContextLengthExceededBehavior `json:"context_length_exceeded_behavior,omitzero"`
@@ -509,9 +509,8 @@ type ChatCompletionNewParams struct {
 	// ensures the message the model generates is valid JSON. Using `json_schema` is
 	// preferred for models that support it.
 	ResponseFormat ChatCompletionNewParamsResponseFormatUnion `json:"response_format,omitzero"`
-	// A list of string sequences that will truncate (stop) inference text output. For
-	// example, "</s>" will stop generation as soon as the model generates the given
-	// token.
+	// A list of string sequences that truncate (stop) inference text output. For
+	// example, "</s>" stops generation as soon as the model generates the given token.
 	Stop []string `json:"stop,omitzero"`
 	// Controls which (if any) function is called by the model. By default uses `auto`,
 	// which lets the model pick between generating a message or calling a function.
@@ -1006,10 +1005,10 @@ const (
 	ChatCompletionNewParamsComplianceHipaa ChatCompletionNewParamsCompliance = "hipaa"
 )
 
-// Defined the behavior of the API when max_tokens exceed the maximum context
-// length of the model. When set to 'error', API will return 400 with appropriate
-// error message. When set to 'truncate', override the max_tokens with maximum
-// context length of the model.
+// Defines the behavior of the API when max_tokens exceed the maximum context
+// length of the model. When set to 'error', the API returns 400 with an
+// appropriate error message. When set to 'truncate', overrides max_tokens with the
+// maximum context length of the model.
 type ChatCompletionNewParamsContextLengthExceededBehavior string
 
 const (
