@@ -2388,7 +2388,8 @@ type FineTuningNewParams struct {
 	LearningRate param.Opt[float64] `json:"learning_rate,omitzero"`
 	// Max gradient norm to be used for gradient clipping. Set to 0 to disable.
 	MaxGradNorm param.Opt[float64] `json:"max_grad_norm,omitzero"`
-	// Maximum sequence length to use for training.
+	// Maximum sequence length to use for training. If not specified, the maximum
+	// allowed for the model and training method will be used.
 	MaxSeqLength param.Opt[int64] `json:"max_seq_length,omitzero"`
 	// Number of intermediate model versions saved during training for evaluation
 	NCheckpoints param.Opt[int64] `json:"n_checkpoints,omitzero"`
