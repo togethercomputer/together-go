@@ -35,12 +35,13 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		BatchSize: together.FineTuningNewParamsBatchSizeUnion{
 			OfFineTuningNewsBatchSizeString: together.String("max"),
 		},
-		FromCheckpoint:   together.String("from_checkpoint"),
-		FromHfModel:      together.String("from_hf_model"),
-		HfAPIToken:       together.String("hf_api_token"),
-		HfModelRevision:  together.String("hf_model_revision"),
-		HfOutputRepoName: together.String("hf_output_repo_name"),
-		LearningRate:     together.Float(0),
+		FromCheckpoint:            together.String("from_checkpoint"),
+		FromHfModel:               together.String("from_hf_model"),
+		GradientAccumulationSteps: together.Int(0),
+		HfAPIToken:                together.String("hf_api_token"),
+		HfModelRevision:           together.String("hf_model_revision"),
+		HfOutputRepoName:          together.String("hf_output_repo_name"),
+		LearningRate:              together.Float(0),
 		LrScheduler: together.FineTuningNewParamsLrScheduler{
 			LrSchedulerType: "linear",
 			LrSchedulerArgs: together.FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion{

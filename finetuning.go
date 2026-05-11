@@ -2370,6 +2370,11 @@ type FineTuningNewParams struct {
 	// to the base model (specified by the `model` argument) in terms of architecture
 	// and size.
 	FromHfModel param.Opt[string] `json:"from_hf_model,omitzero"`
+	// Number of steps to accumulate gradients before performing a weight update.
+	// Effectively increases the batch size without requiring more memory. For example,
+	// with batch_size=4 and gradient_accumulation_steps=8, the effective batch size
+	// is 32.
+	GradientAccumulationSteps param.Opt[int64] `json:"gradient_accumulation_steps,omitzero"`
 	// The API token for the Hugging Face Hub.
 	HfAPIToken param.Opt[string] `json:"hf_api_token,omitzero"`
 	// The revision of the Hugging Face Hub model to continue training from. E.g.,
@@ -2394,7 +2399,8 @@ type FineTuningNewParams struct {
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
 	// Whether to use sequence packing for training.
 	Packing param.Opt[bool] `json:"packing,omitzero"`
-	// Suffix that will be added to your fine-tuned model name
+	// Suffix that will be added to your fine-tuned model name. Must be at most 64
+	// characters long.
 	Suffix param.Opt[string] `json:"suffix,omitzero"`
 	// File-ID of a validation file uploaded to the Together API
 	ValidationFile param.Opt[string] `json:"validation_file,omitzero"`
