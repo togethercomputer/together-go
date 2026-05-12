@@ -135,19 +135,6 @@ func (r *FineTuningService) ListEvents(ctx context.Context, id string, opts ...o
 	return res, err
 }
 
-// Retrieves recorded training metrics for a fine-tuning job in chronological
-// order. All query parameters are optional: omit them to retrieve all metrics.
-func (r *FineTuningService) ListMetrics(ctx context.Context, id string, query FineTuningListMetricsParams, opts ...option.RequestOption) (res *FineTuningListMetricsResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("fine-tunes/%s/metrics", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
-	return res, err
-}
-
 type FinetuneEvent struct {
 	CheckpointPath string `json:"checkpoint_path" api:"required"`
 	CreatedAt      string `json:"created_at" api:"required"`
@@ -2365,22 +2352,6 @@ func (r *FineTuningListEventsResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FineTuningListMetricsResponse struct {
-	Metrics []map[string]float64 `json:"metrics"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Metrics     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FineTuningListMetricsResponse) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningListMetricsResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 type FineTuningNewParams struct {
 	// Name of the base model to run fine-tune job on
 	Model string `json:"model" api:"required"`
@@ -3292,27 +3263,4 @@ func init() {
 	apijson.RegisterFieldValidator[FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType](
 		"type", "Lora",
 	)
-}
-
-type FineTuningListMetricsParams struct {
-	// Return only metrics with global_step >= this value.
-	GlobalStepFrom param.Opt[int64] `query:"global_step_from,omitzero" json:"-"`
-	// Return only metrics with global_step <= this value.
-	GlobalStepTo param.Opt[int64] `query:"global_step_to,omitzero" json:"-"`
-	// Return only metrics logged at or after this ISO-8601 timestamp.
-	LoggedAtFrom param.Opt[time.Time] `query:"logged_at_from,omitzero" format:"date-time" json:"-"`
-	// Return only metrics logged at or before this ISO-8601 timestamp.
-	LoggedAtTo param.Opt[time.Time] `query:"logged_at_to,omitzero" format:"date-time" json:"-"`
-	// Number of (uniformly sampled) train metrics to return.
-	Resolution param.Opt[int64] `query:"resolution,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [FineTuningListMetricsParams]'s query parameters as
-// `url.Values`.
-func (r FineTuningListMetricsParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
 }
