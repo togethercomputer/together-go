@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaClusterStorageNew(t *testing.T) {
+func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -26,9 +26,10 @@ func TestBetaClusterStorageNew(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Beta.Clusters.Storage.New(context.TODO(), together.BetaClusterStorageNewParams{
-		Region:     "region",
-		SizeTib:    0,
-		VolumeName: "volume_name",
+		Region:                 "region",
+		SizeTib:                0,
+		VolumeName:             "volume_name",
+		IsLifecycleIndependent: together.Bool(true),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -61,7 +62,7 @@ func TestBetaClusterStorageGet(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
+func TestBetaClusterStorageUpdate(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -74,8 +75,8 @@ func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Beta.Clusters.Storage.Update(context.TODO(), together.BetaClusterStorageUpdateParams{
-		SizeTib:  together.Int(0),
-		VolumeID: together.String("volume_id"),
+		SizeTib:  0,
+		VolumeID: "volume_id",
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -86,7 +87,7 @@ func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageList(t *testing.T) {
+func TestBetaClusterStorageListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -98,7 +99,9 @@ func TestBetaClusterStorageList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.List(context.TODO())
+	_, err := client.Beta.Clusters.Storage.List(context.TODO(), together.BetaClusterStorageListParams{
+		ProjectID: together.String("project_id"),
+	})
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
