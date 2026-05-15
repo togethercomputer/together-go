@@ -418,8 +418,8 @@ type ClusterGPUWorkerNode struct {
 	// Remediation represents a node remediation request for an instance. An instance
 	// can have multiple remediations over time (e.g., failed attempts followed by
 	// retries).
-	LatestRemediation   ClusterGPUWorkerNodeLatestRemediation `json:"latest_remediation"`
-	SlurmWorkerHostname string                                `json:"slurm_worker_hostname"`
+	LatestRemediation   Remediation `json:"latest_remediation"`
+	SlurmWorkerHostname string      `json:"slurm_worker_hostname"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		HostName            respjson.Field
@@ -466,101 +466,6 @@ type ClusterGPUWorkerNodePhaseTransition struct {
 // Returns the unmodified JSON received from the API
 func (r ClusterGPUWorkerNodePhaseTransition) RawJSON() string { return r.JSON.raw }
 func (r *ClusterGPUWorkerNodePhaseTransition) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Remediation represents a node remediation request for an instance. An instance
-// can have multiple remediations over time (e.g., failed attempts followed by
-// retries).
-type ClusterGPUWorkerNodeLatestRemediation struct {
-	ID         string `json:"id" api:"required"`
-	ClusterID  string `json:"cluster_id" api:"required"`
-	InstanceID string `json:"instance_id" api:"required"`
-	// Remediation mode specifies how the remediation should be performed.
-	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//
-	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode string `json:"mode" api:"required"`
-	// RemediationState represents the lifecycle state of a remediation.
-	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//
-	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
-	State string `json:"state" api:"required"`
-	// RemediationTrigger specifies how the remediation was triggered.
-	//
-	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-	//     or API call).
-	//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-	//     approval.
-	//
-	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger string `json:"trigger" api:"required"`
-	// Active health check run ID (UUID) that triggered this remediation.
-	ActiveHealthCheckRunID string `json:"active_health_check_run_id"`
-	// When the remediation was created.
-	CreateTime time.Time `json:"create_time" format:"date-time"`
-	// When the remediation completed.
-	EndTime time.Time `json:"end_time" format:"date-time"`
-	// Error message if the remediation failed.
-	ErrorMessage string `json:"error_message"`
-	// Passive health check event ID that triggered this remediation.
-	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
-	// User-provided reason for the remediation.
-	Reason string `json:"reason"`
-	// Who requested the remediation.
-	RequestedBy string `json:"requested_by"`
-	// Review comment.
-	ReviewComment string `json:"review_comment"`
-	// When the remediation was reviewed.
-	ReviewTime time.Time `json:"review_time" format:"date-time"`
-	// Who reviewed the remediation.
-	ReviewedBy string `json:"reviewed_by"`
-	// When processing started.
-	StartTime time.Time `json:"start_time" format:"date-time"`
-	// When the remediation was last updated.
-	UpdateTime time.Time `json:"update_time" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID                        respjson.Field
-		ClusterID                 respjson.Field
-		InstanceID                respjson.Field
-		Mode                      respjson.Field
-		State                     respjson.Field
-		Trigger                   respjson.Field
-		ActiveHealthCheckRunID    respjson.Field
-		CreateTime                respjson.Field
-		EndTime                   respjson.Field
-		ErrorMessage              respjson.Field
-		PassiveHealthCheckEventID respjson.Field
-		Reason                    respjson.Field
-		RequestedBy               respjson.Field
-		ReviewComment             respjson.Field
-		ReviewTime                respjson.Field
-		ReviewedBy                respjson.Field
-		StartTime                 respjson.Field
-		UpdateTime                respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ClusterGPUWorkerNodeLatestRemediation) RawJSON() string { return r.JSON.raw }
-func (r *ClusterGPUWorkerNodeLatestRemediation) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

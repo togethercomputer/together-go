@@ -29,10 +29,12 @@ func TestBetaClusterRemediationNewWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"instance_id",
 		together.BetaClusterRemediationNewParams{
-			ClusterID:     "cluster_id",
-			Mode:          together.BetaClusterRemediationNewParamsModeRemediationModeVmOnly,
+			ClusterID: "cluster_id",
+			Remediation: together.RemediationParam{
+				Mode:   together.RemediationModeRemediationModeVmOnly,
+				Reason: together.String("reason"),
+			},
 			RemediationID: together.String("remediation_id"),
-			Reason:        together.String("reason"),
 		},
 	)
 	if err != nil {

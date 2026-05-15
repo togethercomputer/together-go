@@ -4,6 +4,7 @@ package together
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
+	shimjson "github.com/togethercomputer/together-go/internal/encoding/json"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
@@ -46,7 +48,7 @@ func NewBetaClusterRemediationService(opts ...option.RequestOption) (r BetaClust
 // remediations are created with PENDING_APPROVAL state. The user must call
 // /approve to start the actual remediation process. These operations can also be
 // rejected by calling /reject.
-func (r *BetaClusterRemediationService) New(ctx context.Context, instanceID string, params BetaClusterRemediationNewParams, opts ...option.RequestOption) (res *BetaClusterRemediationNewResponse, err error) {
+func (r *BetaClusterRemediationService) New(ctx context.Context, instanceID string, params BetaClusterRemediationNewParams, opts ...option.RequestOption) (res *Remediation, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if params.ClusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
@@ -63,7 +65,7 @@ func (r *BetaClusterRemediationService) New(ctx context.Context, instanceID stri
 
 // Retrieve the status of a specific remdiation on a specific instance in a
 // specific cluster.
-func (r *BetaClusterRemediationService) Get(ctx context.Context, remediationID string, query BetaClusterRemediationGetParams, opts ...option.RequestOption) (res *BetaClusterRemediationGetResponse, err error) {
+func (r *BetaClusterRemediationService) Get(ctx context.Context, remediationID string, query BetaClusterRemediationGetParams, opts ...option.RequestOption) (res *Remediation, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if query.ClusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
@@ -105,7 +107,7 @@ func (r *BetaClusterRemediationService) List(ctx context.Context, instanceID str
 // On APPROVE: state changes to PENDING and the remediation process begins. The
 // reviewed_by, review_time, and review_comment fields are populated on the
 // remediation after approval.
-func (r *BetaClusterRemediationService) Approve(ctx context.Context, remediationID string, params BetaClusterRemediationApproveParams, opts ...option.RequestOption) (res *BetaClusterRemediationApproveResponse, err error) {
+func (r *BetaClusterRemediationService) Approve(ctx context.Context, remediationID string, params BetaClusterRemediationApproveParams, opts ...option.RequestOption) (res *Remediation, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if params.ClusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
@@ -127,7 +129,7 @@ func (r *BetaClusterRemediationService) Approve(ctx context.Context, remediation
 // Cancels a pending remediation.
 //
 // Only remediations in PENDING_APPROVAL or PENDING state can be cancelled.
-func (r *BetaClusterRemediationService) Cancel(ctx context.Context, remediationID string, body BetaClusterRemediationCancelParams, opts ...option.RequestOption) (res *BetaClusterRemediationCancelResponse, err error) {
+func (r *BetaClusterRemediationService) Cancel(ctx context.Context, remediationID string, body BetaClusterRemediationCancelParams, opts ...option.RequestOption) (res *Remediation, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if body.ClusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
@@ -152,7 +154,7 @@ func (r *BetaClusterRemediationService) Cancel(ctx context.Context, remediationI
 //
 // On REJECT: state changes to CANCELLED. The reviewed_by, review_time, and
 // review_comment fields are populated on the remediation after rejection.
-func (r *BetaClusterRemediationService) Reject(ctx context.Context, remediationID string, params BetaClusterRemediationRejectParams, opts ...option.RequestOption) (res *BetaClusterRemediationRejectResponse, err error) {
+func (r *BetaClusterRemediationService) Reject(ctx context.Context, remediationID string, params BetaClusterRemediationRejectParams, opts ...option.RequestOption) (res *Remediation, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if params.ClusterID == "" {
 		err = errors.New("missing required cluster_id parameter")
@@ -174,7 +176,7 @@ func (r *BetaClusterRemediationService) Reject(ctx context.Context, remediationI
 // Remediation represents a node remediation request for an instance. An instance
 // can have multiple remediations over time (e.g., failed attempts followed by
 // retries).
-type BetaClusterRemediationNewResponse struct {
+type Remediation struct {
 	ID         string `json:"id" api:"required"`
 	ClusterID  string `json:"cluster_id" api:"required"`
 	InstanceID string `json:"instance_id" api:"required"`
@@ -187,7 +189,7 @@ type BetaClusterRemediationNewResponse struct {
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode BetaClusterRemediationNewResponseMode `json:"mode" api:"required"`
+	Mode RemediationMode `json:"mode" api:"required"`
 	// RemediationState represents the lifecycle state of a remediation.
 	//
 	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
@@ -201,7 +203,7 @@ type BetaClusterRemediationNewResponse struct {
 	//
 	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
 	// "CANCELLED", "AUTO_RESOLVED".
-	State BetaClusterRemediationNewResponseState `json:"state" api:"required"`
+	State RemediationState `json:"state" api:"required"`
 	// RemediationTrigger specifies how the remediation was triggered.
 	//
 	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
@@ -210,7 +212,7 @@ type BetaClusterRemediationNewResponse struct {
 	//     approval.
 	//
 	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger BetaClusterRemediationNewResponseTrigger `json:"trigger" api:"required"`
+	Trigger RemediationTrigger `json:"trigger" api:"required"`
 	// Active health check run ID (UUID) that triggered this remediation.
 	ActiveHealthCheckRunID string `json:"active_health_check_run_id"`
 	// When the remediation was created.
@@ -261,9 +263,18 @@ type BetaClusterRemediationNewResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaClusterRemediationNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterRemediationNewResponse) UnmarshalJSON(data []byte) error {
+func (r Remediation) RawJSON() string { return r.JSON.raw }
+func (r *Remediation) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this Remediation to a RemediationParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// RemediationParam.Overrides()
+func (r Remediation) ToParam() RemediationParam {
+	return param.Override[RemediationParam](json.RawMessage(r.RawJSON()))
 }
 
 // Remediation mode specifies how the remediation should be performed.
@@ -272,13 +283,13 @@ func (r *BetaClusterRemediationNewResponse) UnmarshalJSON(data []byte) error {
 //     available host.
 //   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
 //     provisions a new one on a different host.
-type BetaClusterRemediationNewResponseMode string
+type RemediationMode string
 
 const (
-	BetaClusterRemediationNewResponseModeRemediationModeVmOnly                  BetaClusterRemediationNewResponseMode = "REMEDIATION_MODE_VM_ONLY"
-	BetaClusterRemediationNewResponseModeRemediationModeHostAware               BetaClusterRemediationNewResponseMode = "REMEDIATION_MODE_HOST_AWARE"
-	BetaClusterRemediationNewResponseModeRemediationModeEvictWithoutReplacement BetaClusterRemediationNewResponseMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
-	BetaClusterRemediationNewResponseModeRemediationModeRebootVm                BetaClusterRemediationNewResponseMode = "REMEDIATION_MODE_REBOOT_VM"
+	RemediationModeRemediationModeVmOnly                  RemediationMode = "REMEDIATION_MODE_VM_ONLY"
+	RemediationModeRemediationModeHostAware               RemediationMode = "REMEDIATION_MODE_HOST_AWARE"
+	RemediationModeRemediationModeEvictWithoutReplacement RemediationMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
+	RemediationModeRemediationModeRebootVm                RemediationMode = "REMEDIATION_MODE_REBOOT_VM"
 )
 
 // RemediationState represents the lifecycle state of a remediation.
@@ -291,16 +302,16 @@ const (
 //   - `CANCELLED`: Cancelled by user or system.
 //   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
 //     processing.
-type BetaClusterRemediationNewResponseState string
+type RemediationState string
 
 const (
-	BetaClusterRemediationNewResponseStatePendingApproval BetaClusterRemediationNewResponseState = "PENDING_APPROVAL"
-	BetaClusterRemediationNewResponseStatePending         BetaClusterRemediationNewResponseState = "PENDING"
-	BetaClusterRemediationNewResponseStateRunning         BetaClusterRemediationNewResponseState = "RUNNING"
-	BetaClusterRemediationNewResponseStateSucceeded       BetaClusterRemediationNewResponseState = "SUCCEEDED"
-	BetaClusterRemediationNewResponseStateFailed          BetaClusterRemediationNewResponseState = "FAILED"
-	BetaClusterRemediationNewResponseStateCancelled       BetaClusterRemediationNewResponseState = "CANCELLED"
-	BetaClusterRemediationNewResponseStateAutoResolved    BetaClusterRemediationNewResponseState = "AUTO_RESOLVED"
+	RemediationStatePendingApproval RemediationState = "PENDING_APPROVAL"
+	RemediationStatePending         RemediationState = "PENDING"
+	RemediationStateRunning         RemediationState = "RUNNING"
+	RemediationStateSucceeded       RemediationState = "SUCCEEDED"
+	RemediationStateFailed          RemediationState = "FAILED"
+	RemediationStateCancelled       RemediationState = "CANCELLED"
+	RemediationStateAutoResolved    RemediationState = "AUTO_RESOLVED"
 )
 
 // RemediationTrigger specifies how the remediation was triggered.
@@ -309,20 +320,19 @@ const (
 //     or API call).
 //   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
 //     approval.
-type BetaClusterRemediationNewResponseTrigger string
+type RemediationTrigger string
 
 const (
-	BetaClusterRemediationNewResponseTriggerRemediationTriggerManual    BetaClusterRemediationNewResponseTrigger = "REMEDIATION_TRIGGER_MANUAL"
-	BetaClusterRemediationNewResponseTriggerRemediationTriggerAutomated BetaClusterRemediationNewResponseTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
+	RemediationTriggerRemediationTriggerManual    RemediationTrigger = "REMEDIATION_TRIGGER_MANUAL"
+	RemediationTriggerRemediationTriggerAutomated RemediationTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
 )
 
 // Remediation represents a node remediation request for an instance. An instance
 // can have multiple remediations over time (e.g., failed attempts followed by
 // retries).
-type BetaClusterRemediationGetResponse struct {
-	ID         string `json:"id" api:"required"`
-	ClusterID  string `json:"cluster_id" api:"required"`
-	InstanceID string `json:"instance_id" api:"required"`
+//
+// The properties ID, ClusterID, InstanceID, Mode, State, Trigger are required.
+type RemediationParam struct {
 	// Remediation mode specifies how the remediation should be performed.
 	//
 	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
@@ -332,134 +342,19 @@ type BetaClusterRemediationGetResponse struct {
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode BetaClusterRemediationGetResponseMode `json:"mode" api:"required"`
-	// RemediationState represents the lifecycle state of a remediation.
-	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//
-	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
-	State BetaClusterRemediationGetResponseState `json:"state" api:"required"`
-	// RemediationTrigger specifies how the remediation was triggered.
-	//
-	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-	//     or API call).
-	//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-	//     approval.
-	//
-	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger BetaClusterRemediationGetResponseTrigger `json:"trigger" api:"required"`
-	// Active health check run ID (UUID) that triggered this remediation.
-	ActiveHealthCheckRunID string `json:"active_health_check_run_id"`
-	// When the remediation was created.
-	CreateTime time.Time `json:"create_time" format:"date-time"`
-	// When the remediation completed.
-	EndTime time.Time `json:"end_time" format:"date-time"`
-	// Error message if the remediation failed.
-	ErrorMessage string `json:"error_message"`
-	// Passive health check event ID that triggered this remediation.
-	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
+	Mode RemediationMode `json:"mode,omitzero" api:"required"`
 	// User-provided reason for the remediation.
-	Reason string `json:"reason"`
-	// Who requested the remediation.
-	RequestedBy string `json:"requested_by"`
-	// Review comment.
-	ReviewComment string `json:"review_comment"`
-	// When the remediation was reviewed.
-	ReviewTime time.Time `json:"review_time" format:"date-time"`
-	// Who reviewed the remediation.
-	ReviewedBy string `json:"reviewed_by"`
-	// When processing started.
-	StartTime time.Time `json:"start_time" format:"date-time"`
-	// When the remediation was last updated.
-	UpdateTime time.Time `json:"update_time" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID                        respjson.Field
-		ClusterID                 respjson.Field
-		InstanceID                respjson.Field
-		Mode                      respjson.Field
-		State                     respjson.Field
-		Trigger                   respjson.Field
-		ActiveHealthCheckRunID    respjson.Field
-		CreateTime                respjson.Field
-		EndTime                   respjson.Field
-		ErrorMessage              respjson.Field
-		PassiveHealthCheckEventID respjson.Field
-		Reason                    respjson.Field
-		RequestedBy               respjson.Field
-		ReviewComment             respjson.Field
-		ReviewTime                respjson.Field
-		ReviewedBy                respjson.Field
-		StartTime                 respjson.Field
-		UpdateTime                respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
+	Reason param.Opt[string] `json:"reason,omitzero"`
+	paramObj
 }
 
-// Returns the unmodified JSON received from the API
-func (r BetaClusterRemediationGetResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterRemediationGetResponse) UnmarshalJSON(data []byte) error {
+func (r RemediationParam) MarshalJSON() (data []byte, err error) {
+	type shadow RemediationParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RemediationParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-// Remediation mode specifies how the remediation should be performed.
-//
-//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-//     available host.
-//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-//     provisions a new one on a different host.
-type BetaClusterRemediationGetResponseMode string
-
-const (
-	BetaClusterRemediationGetResponseModeRemediationModeVmOnly                  BetaClusterRemediationGetResponseMode = "REMEDIATION_MODE_VM_ONLY"
-	BetaClusterRemediationGetResponseModeRemediationModeHostAware               BetaClusterRemediationGetResponseMode = "REMEDIATION_MODE_HOST_AWARE"
-	BetaClusterRemediationGetResponseModeRemediationModeEvictWithoutReplacement BetaClusterRemediationGetResponseMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
-	BetaClusterRemediationGetResponseModeRemediationModeRebootVm                BetaClusterRemediationGetResponseMode = "REMEDIATION_MODE_REBOOT_VM"
-)
-
-// RemediationState represents the lifecycle state of a remediation.
-//
-//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-//   - `PENDING`: Approved and queued for processing.
-//   - `RUNNING`: Actively being processed.
-//   - `SUCCEEDED`: Successfully completed.
-//   - `FAILED`: Failed with an error.
-//   - `CANCELLED`: Cancelled by user or system.
-//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-//     processing.
-type BetaClusterRemediationGetResponseState string
-
-const (
-	BetaClusterRemediationGetResponseStatePendingApproval BetaClusterRemediationGetResponseState = "PENDING_APPROVAL"
-	BetaClusterRemediationGetResponseStatePending         BetaClusterRemediationGetResponseState = "PENDING"
-	BetaClusterRemediationGetResponseStateRunning         BetaClusterRemediationGetResponseState = "RUNNING"
-	BetaClusterRemediationGetResponseStateSucceeded       BetaClusterRemediationGetResponseState = "SUCCEEDED"
-	BetaClusterRemediationGetResponseStateFailed          BetaClusterRemediationGetResponseState = "FAILED"
-	BetaClusterRemediationGetResponseStateCancelled       BetaClusterRemediationGetResponseState = "CANCELLED"
-	BetaClusterRemediationGetResponseStateAutoResolved    BetaClusterRemediationGetResponseState = "AUTO_RESOLVED"
-)
-
-// RemediationTrigger specifies how the remediation was triggered.
-//
-//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-//     or API call).
-//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-//     approval.
-type BetaClusterRemediationGetResponseTrigger string
-
-const (
-	BetaClusterRemediationGetResponseTriggerRemediationTriggerManual    BetaClusterRemediationGetResponseTrigger = "REMEDIATION_TRIGGER_MANUAL"
-	BetaClusterRemediationGetResponseTriggerRemediationTriggerAutomated BetaClusterRemediationGetResponseTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
-)
 
 // ListRemediationsResponse is the response for ListRemediations.
 type BetaClusterRemediationListResponse struct {
@@ -468,7 +363,7 @@ type BetaClusterRemediationListResponse struct {
 	// Token for the next page.
 	NextPageToken string `json:"next_page_token" api:"required"`
 	// The list of remediations.
-	Remediations []BetaClusterRemediationListResponseRemediation `json:"remediations" api:"required"`
+	Remediations []Remediation `json:"remediations" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		HasNext       respjson.Field
@@ -485,558 +380,19 @@ func (r *BetaClusterRemediationListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Remediation represents a node remediation request for an instance. An instance
-// can have multiple remediations over time (e.g., failed attempts followed by
-// retries).
-type BetaClusterRemediationListResponseRemediation struct {
-	ID         string `json:"id" api:"required"`
-	ClusterID  string `json:"cluster_id" api:"required"`
-	InstanceID string `json:"instance_id" api:"required"`
-	// Remediation mode specifies how the remediation should be performed.
-	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//
-	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode string `json:"mode" api:"required"`
-	// RemediationState represents the lifecycle state of a remediation.
-	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//
-	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
-	State string `json:"state" api:"required"`
-	// RemediationTrigger specifies how the remediation was triggered.
-	//
-	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-	//     or API call).
-	//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-	//     approval.
-	//
-	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger string `json:"trigger" api:"required"`
-	// Active health check run ID (UUID) that triggered this remediation.
-	ActiveHealthCheckRunID string `json:"active_health_check_run_id"`
-	// When the remediation was created.
-	CreateTime time.Time `json:"create_time" format:"date-time"`
-	// When the remediation completed.
-	EndTime time.Time `json:"end_time" format:"date-time"`
-	// Error message if the remediation failed.
-	ErrorMessage string `json:"error_message"`
-	// Passive health check event ID that triggered this remediation.
-	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
-	// User-provided reason for the remediation.
-	Reason string `json:"reason"`
-	// Who requested the remediation.
-	RequestedBy string `json:"requested_by"`
-	// Review comment.
-	ReviewComment string `json:"review_comment"`
-	// When the remediation was reviewed.
-	ReviewTime time.Time `json:"review_time" format:"date-time"`
-	// Who reviewed the remediation.
-	ReviewedBy string `json:"reviewed_by"`
-	// When processing started.
-	StartTime time.Time `json:"start_time" format:"date-time"`
-	// When the remediation was last updated.
-	UpdateTime time.Time `json:"update_time" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID                        respjson.Field
-		ClusterID                 respjson.Field
-		InstanceID                respjson.Field
-		Mode                      respjson.Field
-		State                     respjson.Field
-		Trigger                   respjson.Field
-		ActiveHealthCheckRunID    respjson.Field
-		CreateTime                respjson.Field
-		EndTime                   respjson.Field
-		ErrorMessage              respjson.Field
-		PassiveHealthCheckEventID respjson.Field
-		Reason                    respjson.Field
-		RequestedBy               respjson.Field
-		ReviewComment             respjson.Field
-		ReviewTime                respjson.Field
-		ReviewedBy                respjson.Field
-		StartTime                 respjson.Field
-		UpdateTime                respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaClusterRemediationListResponseRemediation) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterRemediationListResponseRemediation) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Remediation represents a node remediation request for an instance. An instance
-// can have multiple remediations over time (e.g., failed attempts followed by
-// retries).
-type BetaClusterRemediationApproveResponse struct {
-	ID         string `json:"id" api:"required"`
-	ClusterID  string `json:"cluster_id" api:"required"`
-	InstanceID string `json:"instance_id" api:"required"`
-	// Remediation mode specifies how the remediation should be performed.
-	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//
-	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode BetaClusterRemediationApproveResponseMode `json:"mode" api:"required"`
-	// RemediationState represents the lifecycle state of a remediation.
-	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//
-	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
-	State BetaClusterRemediationApproveResponseState `json:"state" api:"required"`
-	// RemediationTrigger specifies how the remediation was triggered.
-	//
-	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-	//     or API call).
-	//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-	//     approval.
-	//
-	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger BetaClusterRemediationApproveResponseTrigger `json:"trigger" api:"required"`
-	// Active health check run ID (UUID) that triggered this remediation.
-	ActiveHealthCheckRunID string `json:"active_health_check_run_id"`
-	// When the remediation was created.
-	CreateTime time.Time `json:"create_time" format:"date-time"`
-	// When the remediation completed.
-	EndTime time.Time `json:"end_time" format:"date-time"`
-	// Error message if the remediation failed.
-	ErrorMessage string `json:"error_message"`
-	// Passive health check event ID that triggered this remediation.
-	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
-	// User-provided reason for the remediation.
-	Reason string `json:"reason"`
-	// Who requested the remediation.
-	RequestedBy string `json:"requested_by"`
-	// Review comment.
-	ReviewComment string `json:"review_comment"`
-	// When the remediation was reviewed.
-	ReviewTime time.Time `json:"review_time" format:"date-time"`
-	// Who reviewed the remediation.
-	ReviewedBy string `json:"reviewed_by"`
-	// When processing started.
-	StartTime time.Time `json:"start_time" format:"date-time"`
-	// When the remediation was last updated.
-	UpdateTime time.Time `json:"update_time" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID                        respjson.Field
-		ClusterID                 respjson.Field
-		InstanceID                respjson.Field
-		Mode                      respjson.Field
-		State                     respjson.Field
-		Trigger                   respjson.Field
-		ActiveHealthCheckRunID    respjson.Field
-		CreateTime                respjson.Field
-		EndTime                   respjson.Field
-		ErrorMessage              respjson.Field
-		PassiveHealthCheckEventID respjson.Field
-		Reason                    respjson.Field
-		RequestedBy               respjson.Field
-		ReviewComment             respjson.Field
-		ReviewTime                respjson.Field
-		ReviewedBy                respjson.Field
-		StartTime                 respjson.Field
-		UpdateTime                respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaClusterRemediationApproveResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterRemediationApproveResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Remediation mode specifies how the remediation should be performed.
-//
-//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-//     available host.
-//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-//     provisions a new one on a different host.
-type BetaClusterRemediationApproveResponseMode string
-
-const (
-	BetaClusterRemediationApproveResponseModeRemediationModeVmOnly                  BetaClusterRemediationApproveResponseMode = "REMEDIATION_MODE_VM_ONLY"
-	BetaClusterRemediationApproveResponseModeRemediationModeHostAware               BetaClusterRemediationApproveResponseMode = "REMEDIATION_MODE_HOST_AWARE"
-	BetaClusterRemediationApproveResponseModeRemediationModeEvictWithoutReplacement BetaClusterRemediationApproveResponseMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
-	BetaClusterRemediationApproveResponseModeRemediationModeRebootVm                BetaClusterRemediationApproveResponseMode = "REMEDIATION_MODE_REBOOT_VM"
-)
-
-// RemediationState represents the lifecycle state of a remediation.
-//
-//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-//   - `PENDING`: Approved and queued for processing.
-//   - `RUNNING`: Actively being processed.
-//   - `SUCCEEDED`: Successfully completed.
-//   - `FAILED`: Failed with an error.
-//   - `CANCELLED`: Cancelled by user or system.
-//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-//     processing.
-type BetaClusterRemediationApproveResponseState string
-
-const (
-	BetaClusterRemediationApproveResponseStatePendingApproval BetaClusterRemediationApproveResponseState = "PENDING_APPROVAL"
-	BetaClusterRemediationApproveResponseStatePending         BetaClusterRemediationApproveResponseState = "PENDING"
-	BetaClusterRemediationApproveResponseStateRunning         BetaClusterRemediationApproveResponseState = "RUNNING"
-	BetaClusterRemediationApproveResponseStateSucceeded       BetaClusterRemediationApproveResponseState = "SUCCEEDED"
-	BetaClusterRemediationApproveResponseStateFailed          BetaClusterRemediationApproveResponseState = "FAILED"
-	BetaClusterRemediationApproveResponseStateCancelled       BetaClusterRemediationApproveResponseState = "CANCELLED"
-	BetaClusterRemediationApproveResponseStateAutoResolved    BetaClusterRemediationApproveResponseState = "AUTO_RESOLVED"
-)
-
-// RemediationTrigger specifies how the remediation was triggered.
-//
-//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-//     or API call).
-//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-//     approval.
-type BetaClusterRemediationApproveResponseTrigger string
-
-const (
-	BetaClusterRemediationApproveResponseTriggerRemediationTriggerManual    BetaClusterRemediationApproveResponseTrigger = "REMEDIATION_TRIGGER_MANUAL"
-	BetaClusterRemediationApproveResponseTriggerRemediationTriggerAutomated BetaClusterRemediationApproveResponseTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
-)
-
-// Remediation represents a node remediation request for an instance. An instance
-// can have multiple remediations over time (e.g., failed attempts followed by
-// retries).
-type BetaClusterRemediationCancelResponse struct {
-	ID         string `json:"id" api:"required"`
-	ClusterID  string `json:"cluster_id" api:"required"`
-	InstanceID string `json:"instance_id" api:"required"`
-	// Remediation mode specifies how the remediation should be performed.
-	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//
-	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode BetaClusterRemediationCancelResponseMode `json:"mode" api:"required"`
-	// RemediationState represents the lifecycle state of a remediation.
-	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//
-	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
-	State BetaClusterRemediationCancelResponseState `json:"state" api:"required"`
-	// RemediationTrigger specifies how the remediation was triggered.
-	//
-	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-	//     or API call).
-	//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-	//     approval.
-	//
-	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger BetaClusterRemediationCancelResponseTrigger `json:"trigger" api:"required"`
-	// Active health check run ID (UUID) that triggered this remediation.
-	ActiveHealthCheckRunID string `json:"active_health_check_run_id"`
-	// When the remediation was created.
-	CreateTime time.Time `json:"create_time" format:"date-time"`
-	// When the remediation completed.
-	EndTime time.Time `json:"end_time" format:"date-time"`
-	// Error message if the remediation failed.
-	ErrorMessage string `json:"error_message"`
-	// Passive health check event ID that triggered this remediation.
-	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
-	// User-provided reason for the remediation.
-	Reason string `json:"reason"`
-	// Who requested the remediation.
-	RequestedBy string `json:"requested_by"`
-	// Review comment.
-	ReviewComment string `json:"review_comment"`
-	// When the remediation was reviewed.
-	ReviewTime time.Time `json:"review_time" format:"date-time"`
-	// Who reviewed the remediation.
-	ReviewedBy string `json:"reviewed_by"`
-	// When processing started.
-	StartTime time.Time `json:"start_time" format:"date-time"`
-	// When the remediation was last updated.
-	UpdateTime time.Time `json:"update_time" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID                        respjson.Field
-		ClusterID                 respjson.Field
-		InstanceID                respjson.Field
-		Mode                      respjson.Field
-		State                     respjson.Field
-		Trigger                   respjson.Field
-		ActiveHealthCheckRunID    respjson.Field
-		CreateTime                respjson.Field
-		EndTime                   respjson.Field
-		ErrorMessage              respjson.Field
-		PassiveHealthCheckEventID respjson.Field
-		Reason                    respjson.Field
-		RequestedBy               respjson.Field
-		ReviewComment             respjson.Field
-		ReviewTime                respjson.Field
-		ReviewedBy                respjson.Field
-		StartTime                 respjson.Field
-		UpdateTime                respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaClusterRemediationCancelResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterRemediationCancelResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Remediation mode specifies how the remediation should be performed.
-//
-//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-//     available host.
-//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-//     provisions a new one on a different host.
-type BetaClusterRemediationCancelResponseMode string
-
-const (
-	BetaClusterRemediationCancelResponseModeRemediationModeVmOnly                  BetaClusterRemediationCancelResponseMode = "REMEDIATION_MODE_VM_ONLY"
-	BetaClusterRemediationCancelResponseModeRemediationModeHostAware               BetaClusterRemediationCancelResponseMode = "REMEDIATION_MODE_HOST_AWARE"
-	BetaClusterRemediationCancelResponseModeRemediationModeEvictWithoutReplacement BetaClusterRemediationCancelResponseMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
-	BetaClusterRemediationCancelResponseModeRemediationModeRebootVm                BetaClusterRemediationCancelResponseMode = "REMEDIATION_MODE_REBOOT_VM"
-)
-
-// RemediationState represents the lifecycle state of a remediation.
-//
-//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-//   - `PENDING`: Approved and queued for processing.
-//   - `RUNNING`: Actively being processed.
-//   - `SUCCEEDED`: Successfully completed.
-//   - `FAILED`: Failed with an error.
-//   - `CANCELLED`: Cancelled by user or system.
-//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-//     processing.
-type BetaClusterRemediationCancelResponseState string
-
-const (
-	BetaClusterRemediationCancelResponseStatePendingApproval BetaClusterRemediationCancelResponseState = "PENDING_APPROVAL"
-	BetaClusterRemediationCancelResponseStatePending         BetaClusterRemediationCancelResponseState = "PENDING"
-	BetaClusterRemediationCancelResponseStateRunning         BetaClusterRemediationCancelResponseState = "RUNNING"
-	BetaClusterRemediationCancelResponseStateSucceeded       BetaClusterRemediationCancelResponseState = "SUCCEEDED"
-	BetaClusterRemediationCancelResponseStateFailed          BetaClusterRemediationCancelResponseState = "FAILED"
-	BetaClusterRemediationCancelResponseStateCancelled       BetaClusterRemediationCancelResponseState = "CANCELLED"
-	BetaClusterRemediationCancelResponseStateAutoResolved    BetaClusterRemediationCancelResponseState = "AUTO_RESOLVED"
-)
-
-// RemediationTrigger specifies how the remediation was triggered.
-//
-//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-//     or API call).
-//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-//     approval.
-type BetaClusterRemediationCancelResponseTrigger string
-
-const (
-	BetaClusterRemediationCancelResponseTriggerRemediationTriggerManual    BetaClusterRemediationCancelResponseTrigger = "REMEDIATION_TRIGGER_MANUAL"
-	BetaClusterRemediationCancelResponseTriggerRemediationTriggerAutomated BetaClusterRemediationCancelResponseTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
-)
-
-// Remediation represents a node remediation request for an instance. An instance
-// can have multiple remediations over time (e.g., failed attempts followed by
-// retries).
-type BetaClusterRemediationRejectResponse struct {
-	ID         string `json:"id" api:"required"`
-	ClusterID  string `json:"cluster_id" api:"required"`
-	InstanceID string `json:"instance_id" api:"required"`
-	// Remediation mode specifies how the remediation should be performed.
-	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//
-	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode BetaClusterRemediationRejectResponseMode `json:"mode" api:"required"`
-	// RemediationState represents the lifecycle state of a remediation.
-	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//
-	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
-	State BetaClusterRemediationRejectResponseState `json:"state" api:"required"`
-	// RemediationTrigger specifies how the remediation was triggered.
-	//
-	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-	//     or API call).
-	//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-	//     approval.
-	//
-	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger BetaClusterRemediationRejectResponseTrigger `json:"trigger" api:"required"`
-	// Active health check run ID (UUID) that triggered this remediation.
-	ActiveHealthCheckRunID string `json:"active_health_check_run_id"`
-	// When the remediation was created.
-	CreateTime time.Time `json:"create_time" format:"date-time"`
-	// When the remediation completed.
-	EndTime time.Time `json:"end_time" format:"date-time"`
-	// Error message if the remediation failed.
-	ErrorMessage string `json:"error_message"`
-	// Passive health check event ID that triggered this remediation.
-	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
-	// User-provided reason for the remediation.
-	Reason string `json:"reason"`
-	// Who requested the remediation.
-	RequestedBy string `json:"requested_by"`
-	// Review comment.
-	ReviewComment string `json:"review_comment"`
-	// When the remediation was reviewed.
-	ReviewTime time.Time `json:"review_time" format:"date-time"`
-	// Who reviewed the remediation.
-	ReviewedBy string `json:"reviewed_by"`
-	// When processing started.
-	StartTime time.Time `json:"start_time" format:"date-time"`
-	// When the remediation was last updated.
-	UpdateTime time.Time `json:"update_time" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID                        respjson.Field
-		ClusterID                 respjson.Field
-		InstanceID                respjson.Field
-		Mode                      respjson.Field
-		State                     respjson.Field
-		Trigger                   respjson.Field
-		ActiveHealthCheckRunID    respjson.Field
-		CreateTime                respjson.Field
-		EndTime                   respjson.Field
-		ErrorMessage              respjson.Field
-		PassiveHealthCheckEventID respjson.Field
-		Reason                    respjson.Field
-		RequestedBy               respjson.Field
-		ReviewComment             respjson.Field
-		ReviewTime                respjson.Field
-		ReviewedBy                respjson.Field
-		StartTime                 respjson.Field
-		UpdateTime                respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaClusterRemediationRejectResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterRemediationRejectResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Remediation mode specifies how the remediation should be performed.
-//
-//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-//     available host.
-//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-//     provisions a new one on a different host.
-type BetaClusterRemediationRejectResponseMode string
-
-const (
-	BetaClusterRemediationRejectResponseModeRemediationModeVmOnly                  BetaClusterRemediationRejectResponseMode = "REMEDIATION_MODE_VM_ONLY"
-	BetaClusterRemediationRejectResponseModeRemediationModeHostAware               BetaClusterRemediationRejectResponseMode = "REMEDIATION_MODE_HOST_AWARE"
-	BetaClusterRemediationRejectResponseModeRemediationModeEvictWithoutReplacement BetaClusterRemediationRejectResponseMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
-	BetaClusterRemediationRejectResponseModeRemediationModeRebootVm                BetaClusterRemediationRejectResponseMode = "REMEDIATION_MODE_REBOOT_VM"
-)
-
-// RemediationState represents the lifecycle state of a remediation.
-//
-//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-//   - `PENDING`: Approved and queued for processing.
-//   - `RUNNING`: Actively being processed.
-//   - `SUCCEEDED`: Successfully completed.
-//   - `FAILED`: Failed with an error.
-//   - `CANCELLED`: Cancelled by user or system.
-//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-//     processing.
-type BetaClusterRemediationRejectResponseState string
-
-const (
-	BetaClusterRemediationRejectResponseStatePendingApproval BetaClusterRemediationRejectResponseState = "PENDING_APPROVAL"
-	BetaClusterRemediationRejectResponseStatePending         BetaClusterRemediationRejectResponseState = "PENDING"
-	BetaClusterRemediationRejectResponseStateRunning         BetaClusterRemediationRejectResponseState = "RUNNING"
-	BetaClusterRemediationRejectResponseStateSucceeded       BetaClusterRemediationRejectResponseState = "SUCCEEDED"
-	BetaClusterRemediationRejectResponseStateFailed          BetaClusterRemediationRejectResponseState = "FAILED"
-	BetaClusterRemediationRejectResponseStateCancelled       BetaClusterRemediationRejectResponseState = "CANCELLED"
-	BetaClusterRemediationRejectResponseStateAutoResolved    BetaClusterRemediationRejectResponseState = "AUTO_RESOLVED"
-)
-
-// RemediationTrigger specifies how the remediation was triggered.
-//
-//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-//     or API call).
-//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-//     approval.
-type BetaClusterRemediationRejectResponseTrigger string
-
-const (
-	BetaClusterRemediationRejectResponseTriggerRemediationTriggerManual    BetaClusterRemediationRejectResponseTrigger = "REMEDIATION_TRIGGER_MANUAL"
-	BetaClusterRemediationRejectResponseTriggerRemediationTriggerAutomated BetaClusterRemediationRejectResponseTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
-)
-
 type BetaClusterRemediationNewParams struct {
 	ClusterID string `path:"cluster_id" api:"required" json:"-"`
-	// Remediation mode specifies how the remediation should be performed.
-	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//
-	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode BetaClusterRemediationNewParamsMode `json:"mode,omitzero" api:"required"`
+	// Remediation represents a node remediation request for an instance. An instance
+	// can have multiple remediations over time (e.g., failed attempts followed by
+	// retries).
+	Remediation RemediationParam
 	// Client-specified ID for idempotency.
 	RemediationID param.Opt[string] `query:"remediation_id,omitzero" json:"-"`
-	// User-provided reason for the remediation.
-	Reason param.Opt[string] `json:"reason,omitzero"`
 	paramObj
 }
 
 func (r BetaClusterRemediationNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow BetaClusterRemediationNewParams
-	return param.MarshalObject(r, (*shadow)(&r))
+	return shimjson.Marshal(r.Remediation)
 }
 func (r *BetaClusterRemediationNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
@@ -1050,21 +406,6 @@ func (r BetaClusterRemediationNewParams) URLQuery() (v url.Values, err error) {
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
-
-// Remediation mode specifies how the remediation should be performed.
-//
-//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-//     available host.
-//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-//     provisions a new one on a different host.
-type BetaClusterRemediationNewParamsMode string
-
-const (
-	BetaClusterRemediationNewParamsModeRemediationModeVmOnly                  BetaClusterRemediationNewParamsMode = "REMEDIATION_MODE_VM_ONLY"
-	BetaClusterRemediationNewParamsModeRemediationModeHostAware               BetaClusterRemediationNewParamsMode = "REMEDIATION_MODE_HOST_AWARE"
-	BetaClusterRemediationNewParamsModeRemediationModeEvictWithoutReplacement BetaClusterRemediationNewParamsMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
-	BetaClusterRemediationNewParamsModeRemediationModeRebootVm                BetaClusterRemediationNewParamsMode = "REMEDIATION_MODE_REBOOT_VM"
-)
 
 type BetaClusterRemediationGetParams struct {
 	ClusterID  string `path:"cluster_id" api:"required" json:"-"`
