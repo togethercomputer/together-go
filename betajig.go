@@ -163,44 +163,48 @@ type Deployment struct {
 	// Status represents the overall status of the deployment (e.g., Updating, Scaling,
 	// Ready, Failed)
 	//
-	// Any of "Updating", "Scaling", "Ready", "Failed".
+	// Any of "Updating", "Scaling", "Ready", "Failed", "ScaledToZero".
 	Status DeploymentStatus `json:"status"`
 	// Storage is the amount of storage (in MB or units as defined by the platform)
 	// allocated to each replica
 	Storage int64 `json:"storage"`
+	// TerminationGracePeriodSeconds is the time in seconds to wait for graceful
+	// shutdown before forcefully terminating the replica
+	TerminationGracePeriodSeconds int64 `json:"termination_grace_period_seconds"`
 	// UpdatedAt is the ISO8601 timestamp when this deployment was last updated
 	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 	// Volumes is a list of volume mounts for this deployment
 	Volumes []DeploymentVolume `json:"volumes"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID                   respjson.Field
-		Args                 respjson.Field
-		Autoscaling          respjson.Field
-		Command              respjson.Field
-		CPU                  respjson.Field
-		CreatedAt            respjson.Field
-		Description          respjson.Field
-		DesiredReplicas      respjson.Field
-		EnvironmentVariables respjson.Field
-		GPUCount             respjson.Field
-		GPUType              respjson.Field
-		HealthCheckPath      respjson.Field
-		Image                respjson.Field
-		MaxReplicas          respjson.Field
-		Memory               respjson.Field
-		MinReplicas          respjson.Field
-		Name                 respjson.Field
-		Object               respjson.Field
-		Port                 respjson.Field
-		ReadyReplicas        respjson.Field
-		ReplicaEvents        respjson.Field
-		Status               respjson.Field
-		Storage              respjson.Field
-		UpdatedAt            respjson.Field
-		Volumes              respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
+		ID                            respjson.Field
+		Args                          respjson.Field
+		Autoscaling                   respjson.Field
+		Command                       respjson.Field
+		CPU                           respjson.Field
+		CreatedAt                     respjson.Field
+		Description                   respjson.Field
+		DesiredReplicas               respjson.Field
+		EnvironmentVariables          respjson.Field
+		GPUCount                      respjson.Field
+		GPUType                       respjson.Field
+		HealthCheckPath               respjson.Field
+		Image                         respjson.Field
+		MaxReplicas                   respjson.Field
+		Memory                        respjson.Field
+		MinReplicas                   respjson.Field
+		Name                          respjson.Field
+		Object                        respjson.Field
+		Port                          respjson.Field
+		ReadyReplicas                 respjson.Field
+		ReplicaEvents                 respjson.Field
+		Status                        respjson.Field
+		Storage                       respjson.Field
+		TerminationGracePeriodSeconds respjson.Field
+		UpdatedAt                     respjson.Field
+		Volumes                       respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
 	} `json:"-"`
 }
 
@@ -433,10 +437,11 @@ func (r *DeploymentReplicaEvent) UnmarshalJSON(data []byte) error {
 type DeploymentStatus string
 
 const (
-	DeploymentStatusUpdating DeploymentStatus = "Updating"
-	DeploymentStatusScaling  DeploymentStatus = "Scaling"
-	DeploymentStatusReady    DeploymentStatus = "Ready"
-	DeploymentStatusFailed   DeploymentStatus = "Failed"
+	DeploymentStatusUpdating     DeploymentStatus = "Updating"
+	DeploymentStatusScaling      DeploymentStatus = "Scaling"
+	DeploymentStatusReady        DeploymentStatus = "Ready"
+	DeploymentStatusFailed       DeploymentStatus = "Failed"
+	DeploymentStatusScaledToZero DeploymentStatus = "ScaledToZero"
 )
 
 type DeploymentVolume struct {
@@ -1069,6 +1074,11 @@ func (r *BetaJigDeployParamsVolume) UnmarshalJSON(data []byte) error {
 type BetaJigGetLogsParams struct {
 	// Replica ID to filter logs
 	ReplicaID param.Opt[string] `query:"replica_id,omitzero" json:"-"`
+	// Deployment revision (UUID) to filter logs
+	Revision param.Opt[string] `query:"revision,omitzero" json:"-"`
+	// Deployment image version (tag or last 4 characters of image digest) to filter
+	// logs
+	Version param.Opt[string] `query:"version,omitzero" json:"-"`
 	paramObj
 }
 

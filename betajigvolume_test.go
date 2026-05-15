@@ -30,7 +30,7 @@ func TestBetaJigVolumeNewWithOptionalParams(t *testing.T) {
 			SourcePrefix: together.String("models/"),
 			Type:         "files",
 		},
-		Name: "name",
+		Name: "x",
 		Type: together.BetaJigVolumeNewParamsTypeReadOnly,
 	})
 	if err != nil {
@@ -42,7 +42,7 @@ func TestBetaJigVolumeNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaJigVolumeGet(t *testing.T) {
+func TestBetaJigVolumeGetWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -54,7 +54,13 @@ func TestBetaJigVolumeGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Jig.Volumes.Get(context.TODO(), "id")
+	_, err := client.Beta.Jig.Volumes.Get(
+		context.TODO(),
+		"id",
+		together.BetaJigVolumeGetParams{
+			Version: together.Int(0),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

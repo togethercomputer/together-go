@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
+	"github.com/togethercomputer/together-go/internal/apiquery"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
@@ -44,14 +46,14 @@ func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewPar
 }
 
 // Retrieve details of a specific volume by its ID or name
-func (r *BetaJigVolumeService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *Volume, err error) {
+func (r *BetaJigVolumeService) Get(ctx context.Context, id string, query BetaJigVolumeGetParams, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -319,6 +321,20 @@ type BetaJigVolumeNewParamsType string
 const (
 	BetaJigVolumeNewParamsTypeReadOnly BetaJigVolumeNewParamsType = "readOnly"
 )
+
+type BetaJigVolumeGetParams struct {
+	// Volume version to describe (defaults to current version)
+	Version param.Opt[int64] `query:"version,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [BetaJigVolumeGetParams]'s query parameters as `url.Values`.
+func (r BetaJigVolumeGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
 
 type BetaJigVolumeUpdateParams struct {
 	// Name is the new unique identifier for the volume within the project
