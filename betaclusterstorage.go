@@ -91,14 +91,17 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 }
 
 type ClusterStorage struct {
+	// Size of the volume in TiB.
 	SizeTib int64 `json:"size_tib" api:"required"`
 	// Current status of the shared volume.
 	//
 	// Any of "scheduled", "available", "bound", "provisioning", "deleting", "failed",
 	// "access_revoked", "unknown".
-	Status     ClusterStorageStatus `json:"status" api:"required"`
-	VolumeID   string               `json:"volume_id" api:"required"`
-	VolumeName string               `json:"volume_name" api:"required"`
+	Status ClusterStorageStatus `json:"status" api:"required"`
+	// ID of the volume.
+	VolumeID string `json:"volume_id" api:"required"`
+	// User provided name of the volume.
+	VolumeName string `json:"volume_name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SizeTib     respjson.Field
@@ -163,9 +166,11 @@ func (r *BetaClusterStorageDeleteResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageNewParams struct {
+	// Region name. Usable regions can be found from `clusters.list_regions()`
 	Region string `json:"region" api:"required"`
 	// Volume size in whole tebibytes (TiB).
-	SizeTib    int64  `json:"size_tib" api:"required"`
+	SizeTib int64 `json:"size_tib" api:"required"`
+	// User provided name of the volume.
 	VolumeName string `json:"volume_name" api:"required"`
 	// When true, the shared volume is not deleted when the cluster is decommissioned.
 	IsLifecycleIndependent param.Opt[bool] `json:"is_lifecycle_independent,omitzero"`
@@ -181,8 +186,10 @@ func (r *BetaClusterStorageNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageUpdateParams struct {
-	VolumeID string           `json:"volume_id" api:"required"`
-	SizeTib  param.Opt[int64] `json:"size_tib,omitzero"`
+	// ID of the volume.
+	VolumeID string `json:"volume_id" api:"required"`
+	// Size of the volume in TiB.
+	SizeTib param.Opt[int64] `json:"size_tib,omitzero"`
 	paramObj
 }
 
