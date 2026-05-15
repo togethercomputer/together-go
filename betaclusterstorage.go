@@ -181,8 +181,8 @@ func (r *BetaClusterStorageNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageUpdateParams struct {
-	SizeTib  int64  `json:"size_tib" api:"required"`
-	VolumeID string `json:"volume_id" api:"required"`
+	VolumeID string           `json:"volume_id" api:"required"`
+	SizeTib  param.Opt[int64] `json:"size_tib,omitzero"`
 	paramObj
 }
 
