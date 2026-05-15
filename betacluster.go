@@ -880,8 +880,6 @@ type BetaClusterNewParams struct {
 	ClusterName string `json:"cluster_name" api:"required"`
 	// CUDA version for this cluster. For example, 12.5
 	CudaVersion string `json:"cuda_version" api:"required"`
-	// Duration in days to keep the cluster running.
-	DurationDays int64 `json:"duration_days" api:"required"`
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
@@ -909,6 +907,8 @@ type BetaClusterNewParams struct {
 	// ID of the capacity pool to use for the cluster. This field is optional and only
 	// applicable if the cluster is created from a capacity pool.
 	CapacityPoolID param.Opt[string] `json:"capacity_pool_id,omitzero"`
+	// Duration in days to keep the cluster running.
+	DurationDays param.Opt[int64] `json:"duration_days,omitzero"`
 	// Whether automated GPU node failover should be enabled for this cluster. By
 	// default, it is disabled.
 	GPUNodeFailoverEnabled param.Opt[bool] `json:"gpu_node_failover_enabled,omitzero"`

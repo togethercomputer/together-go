@@ -62,7 +62,7 @@ func TestBetaClusterStorageGet(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageUpdate(t *testing.T) {
+func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -75,8 +75,8 @@ func TestBetaClusterStorageUpdate(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Beta.Clusters.Storage.Update(context.TODO(), together.BetaClusterStorageUpdateParams{
-		SizeTib:  0,
 		VolumeID: "volume_id",
+		SizeTib:  together.Int(0),
 	})
 	if err != nil {
 		var apierr *together.Error
