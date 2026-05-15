@@ -40,13 +40,12 @@ func NewBetaClusterRemediationService(opts ...option.RequestOption) (r BetaClust
 
 // Creates a new remediation for an instance.
 //
-// If mode is unspecified, it defaults to VM_ONLY. If trigger is unspecified, it
-// defaults to MANUAL.
+// Remediations created via the API goes directly to PENDING state.
 //
-// For MANUAL triggers: The remediation goes directly to PENDING state.
-//
-// For AUTOMATED triggers: The remediation is created with PENDING_APPROVAL state.
-// The caller must then use ApproveRemediation to start the remediation process.
+// Our system may trigger automated remediations that require approval. These
+// remediations are created with PENDING_APPROVAL state. The user must call
+// /approve to start the actual remediation process. These operations can also be
+// rejected by calling /reject.
 func (r *BetaClusterRemediationService) New(ctx context.Context, instanceID string, params BetaClusterRemediationNewParams, opts ...option.RequestOption) (res *BetaClusterRemediationNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if params.ClusterID == "" {
@@ -83,8 +82,7 @@ func (r *BetaClusterRemediationService) Get(ctx context.Context, remediationID s
 	return res, err
 }
 
-// Lists remediations for an instance or cluster. Use instances/- as wildcard to
-// list all remediations in a cluster.
+// Lists remediations for an instance or cluster.
 func (r *BetaClusterRemediationService) List(ctx context.Context, instanceID string, params BetaClusterRemediationListParams, opts ...option.RequestOption) (res *BetaClusterRemediationListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if params.ClusterID == "" {
@@ -1018,7 +1016,6 @@ const (
 )
 
 type BetaClusterRemediationNewParams struct {
-	// The cluster ID.
 	ClusterID string `path:"cluster_id" api:"required" json:"-"`
 	// Remediation mode specifies how the remediation should be performed.
 	//
@@ -1030,7 +1027,7 @@ type BetaClusterRemediationNewParams struct {
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
 	Mode BetaClusterRemediationNewParamsMode `json:"mode,omitzero" api:"required"`
-	// Optional. Client-specified ID for idempotency.
+	// Client-specified ID for idempotency.
 	RemediationID param.Opt[string] `query:"remediation_id,omitzero" json:"-"`
 	// User-provided reason for the remediation.
 	Reason param.Opt[string] `json:"reason,omitzero"`
@@ -1070,39 +1067,39 @@ const (
 )
 
 type BetaClusterRemediationGetParams struct {
-	// The cluster ID.
-	ClusterID string `path:"cluster_id" api:"required" json:"-"`
-	// The instance ID.
+	ClusterID  string `path:"cluster_id" api:"required" json:"-"`
 	InstanceID string `path:"instance_id" api:"required" json:"-"`
 	paramObj
 }
 
 type BetaClusterRemediationListParams struct {
-	// The cluster ID.
 	ClusterID string `path:"cluster_id" api:"required" json:"-"`
-	// Optional. Order by expression.
+	// Order by expression.
 	OrderBy param.Opt[string] `query:"order_by,omitzero" json:"-"`
-	// Optional. Maximum results to return.
+	// Maximum results to return.
 	PageSize param.Opt[int64] `query:"page_size,omitzero" json:"-"`
-	// Optional. Pagination token from previous request.
+	// Pagination token from previous request.
 	PageToken param.Opt[string] `query:"page_token,omitzero" json:"-"`
-	// Optional. Filter by remediation mode. Returns only remediations matching the
-	// specified mode.
+	// Filter by remediation mode. Returns only remediations matching the specified
+	// mode.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
 	Mode BetaClusterRemediationListParamsMode `query:"mode,omitzero" json:"-"`
-	// Optional. Filter by state(s). Returns remediations matching any of the specified
-	// states.
+	// Filter by state(s). Returns remediations matching any of the specified states.
+	//
+	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
+	//   - `PENDING`: Approved and queued for processing.
+	//   - `RUNNING`: Actively being processed.
+	//   - `SUCCEEDED`: Successfully completed.
+	//   - `FAILED`: Failed with an error.
+	//   - `CANCELLED`: Cancelled by user or system.
+	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
+	//     processing.
 	//
 	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
 	// "CANCELLED", "AUTO_RESOLVED".
 	State []string `query:"state,omitzero" json:"-"`
-	// Optional. Filter by trigger type. Returns only remediations matching the
-	// specified trigger.
-	//
-	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
-	Trigger BetaClusterRemediationListParamsTrigger `query:"trigger,omitzero" json:"-"`
 	paramObj
 }
 
@@ -1115,8 +1112,8 @@ func (r BetaClusterRemediationListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-// Optional. Filter by remediation mode. Returns only remediations matching the
-// specified mode.
+// Filter by remediation mode. Returns only remediations matching the specified
+// mode.
 type BetaClusterRemediationListParamsMode string
 
 const (
@@ -1126,19 +1123,8 @@ const (
 	BetaClusterRemediationListParamsModeRemediationModeRebootVm                BetaClusterRemediationListParamsMode = "REMEDIATION_MODE_REBOOT_VM"
 )
 
-// Optional. Filter by trigger type. Returns only remediations matching the
-// specified trigger.
-type BetaClusterRemediationListParamsTrigger string
-
-const (
-	BetaClusterRemediationListParamsTriggerRemediationTriggerManual    BetaClusterRemediationListParamsTrigger = "REMEDIATION_TRIGGER_MANUAL"
-	BetaClusterRemediationListParamsTriggerRemediationTriggerAutomated BetaClusterRemediationListParamsTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
-)
-
 type BetaClusterRemediationApproveParams struct {
-	// The cluster ID.
-	ClusterID string `path:"cluster_id" api:"required" json:"-"`
-	// The instance ID.
+	ClusterID  string `path:"cluster_id" api:"required" json:"-"`
 	InstanceID string `path:"instance_id" api:"required" json:"-"`
 	// Comment explaining the action.
 	Comment param.Opt[string] `json:"comment,omitzero"`
@@ -1162,9 +1148,7 @@ type BetaClusterRemediationCancelParams struct {
 }
 
 type BetaClusterRemediationRejectParams struct {
-	// The cluster ID.
-	ClusterID string `path:"cluster_id" api:"required" json:"-"`
-	// The instance ID.
+	ClusterID  string `path:"cluster_id" api:"required" json:"-"`
 	InstanceID string `path:"instance_id" api:"required" json:"-"`
 	// Comment explaining the action.
 	Comment param.Opt[string] `json:"comment,omitzero"`

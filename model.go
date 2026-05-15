@@ -38,7 +38,8 @@ func NewModelService(opts ...option.RequestOption) (r ModelService) {
 	return
 }
 
-// Lists all of Together's open-source models
+// Lists all of Together's open-source models and metadata including pricing, chat
+// template, and context.
 func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...option.RequestOption) (res *[]ModelObject, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
