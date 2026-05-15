@@ -26,8 +26,9 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewBetaClusterService] method instead.
 type BetaClusterService struct {
-	Options []option.RequestOption
-	Storage BetaClusterStorageService
+	Options      []option.RequestOption
+	Remediations BetaClusterRemediationService
+	Storage      BetaClusterStorageService
 }
 
 // NewBetaClusterService generates a new service that applies the given options to
@@ -36,6 +37,7 @@ type BetaClusterService struct {
 func NewBetaClusterService(opts ...option.RequestOption) (r BetaClusterService) {
 	r = BetaClusterService{}
 	r.Options = opts
+	r.Remediations = NewBetaClusterRemediationService(opts...)
 	r.Storage = NewBetaClusterStorageService(opts...)
 	return
 }
