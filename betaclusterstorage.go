@@ -91,10 +91,14 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 }
 
 type ClusterStorage struct {
-	SizeTib    int64  `json:"size_tib" api:"required"`
-	Status     string `json:"status" api:"required"`
-	VolumeID   string `json:"volume_id" api:"required"`
-	VolumeName string `json:"volume_name" api:"required"`
+	SizeTib int64 `json:"size_tib" api:"required"`
+	// Current status of the shared volume.
+	//
+	// Any of "scheduled", "available", "bound", "provisioning", "deleting", "failed",
+	// "access_revoked", "unknown".
+	Status     ClusterStorageStatus `json:"status" api:"required"`
+	VolumeID   string               `json:"volume_id" api:"required"`
+	VolumeName string               `json:"volume_name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SizeTib     respjson.Field
@@ -111,6 +115,20 @@ func (r ClusterStorage) RawJSON() string { return r.JSON.raw }
 func (r *ClusterStorage) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// Current status of the shared volume.
+type ClusterStorageStatus string
+
+const (
+	ClusterStorageStatusScheduled     ClusterStorageStatus = "scheduled"
+	ClusterStorageStatusAvailable     ClusterStorageStatus = "available"
+	ClusterStorageStatusBound         ClusterStorageStatus = "bound"
+	ClusterStorageStatusProvisioning  ClusterStorageStatus = "provisioning"
+	ClusterStorageStatusDeleting      ClusterStorageStatus = "deleting"
+	ClusterStorageStatusFailed        ClusterStorageStatus = "failed"
+	ClusterStorageStatusAccessRevoked ClusterStorageStatus = "access_revoked"
+	ClusterStorageStatusUnknown       ClusterStorageStatus = "unknown"
+)
 
 type BetaClusterStorageListResponse struct {
 	Volumes []ClusterStorage `json:"volumes" api:"required"`
