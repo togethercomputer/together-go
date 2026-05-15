@@ -95,7 +95,6 @@ func TestBetaClusterRemediationListWithOptionalParams(t *testing.T) {
 			PageSize:  together.Int(0),
 			PageToken: together.String("page_token"),
 			State:     []string{"PENDING_APPROVAL"},
-			Trigger:   together.BetaClusterRemediationListParamsTriggerRemediationTriggerManual,
 		},
 	)
 	if err != nil {
