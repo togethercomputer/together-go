@@ -100,7 +100,7 @@ func TestBetaJigQueueSubmitWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Beta.Jig.Queue.Submit(context.TODO(), together.BetaJigQueueSubmitParams{
-		Model: "model",
+		Model: "my-queue-model",
 		Payload: map[string]any{
 			"foo": "bar",
 		},
