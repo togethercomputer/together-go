@@ -74,6 +74,7 @@ func (r *BetaJigQueueService) Submit(ctx context.Context, body BetaJigQueueSubmi
 	return res, err
 }
 
+// Current status and metadata for a queued job.
 type BetaJigQueueGetResponse struct {
 	// Model identifier the job was submitted to
 	Model string `json:"model" api:"required"`
@@ -145,6 +146,7 @@ const (
 	BetaJigQueueGetResponseStatusCanceled BetaJigQueueGetResponseStatus = "canceled"
 )
 
+// Status returned after a cancel attempt.
 type BetaJigQueueCancelResponse struct {
 	// Job status after the cancel attempt. Only pending jobs can be canceled. If the
 	// job is already running, done, or failed, the status is returned unchanged.
@@ -176,6 +178,7 @@ const (
 	BetaJigQueueCancelResponseStatusFailed   BetaJigQueueCancelResponseStatus = "failed"
 )
 
+// Queue job counts for a model.
 type BetaJigQueueMetricsResponse struct {
 	// Number of jobs currently being processed
 	MessagesRunning int64 `json:"messages_running" api:"required"`
@@ -199,13 +202,12 @@ func (r *BetaJigQueueMetricsResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Response returned after queueing a job.
 type BetaJigQueueSubmitResponse struct {
-	Error BetaJigQueueSubmitResponseError `json:"error"`
 	// Unique identifier for the submitted job. Use this to poll status or cancel.
-	RequestID string `json:"requestId"`
+	RequestID string `json:"requestId" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Error       respjson.Field
 		RequestID   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
@@ -215,32 +217,6 @@ type BetaJigQueueSubmitResponse struct {
 // Returns the unmodified JSON received from the API
 func (r BetaJigQueueSubmitResponse) RawJSON() string { return r.JSON.raw }
 func (r *BetaJigQueueSubmitResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-type BetaJigQueueSubmitResponseError struct {
-	// Machine-readable error code
-	Code string `json:"code"`
-	// Human-readable error message
-	Message string `json:"message"`
-	// The parameter that caused the error, if applicable
-	Param string `json:"param"`
-	// Error category (e.g. "invalid_request_error", "not_found_error")
-	Type string `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Code        respjson.Field
-		Message     respjson.Field
-		Param       respjson.Field
-		Type        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaJigQueueSubmitResponseError) RawJSON() string { return r.JSON.raw }
-func (r *BetaJigQueueSubmitResponseError) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -300,8 +276,8 @@ type BetaJigQueueSubmitParams struct {
 	// Job priority. Higher values are processed first (strict priority ordering). Jobs
 	// with equal priority are processed in submission order (FIFO).
 	Priority param.Opt[int64] `json:"priority,omitzero"`
-	// Arbitrary JSON metadata stored with the job and returned in status responses.
-	// The model and system may add or update keys during processing.
+	// Arbitrary JSON metadata stored with the job. Returned in status responses, where
+	// the model and system may have added or modified keys (e.g. progress).
 	Info map[string]any `json:"info,omitzero"`
 	paramObj
 }
