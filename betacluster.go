@@ -342,7 +342,6 @@ type ClusterControlPlaneNode struct {
 	MemoryGib   float64 `json:"memory_gib" api:"required"`
 	Network     string  `json:"network" api:"required"`
 	NodeID      string  `json:"node_id" api:"required"`
-	NodeName    string  `json:"node_name" api:"required"`
 	NumCPUCores int64   `json:"num_cpu_cores" api:"required"`
 	// Phase transition history for this control plane node.
 	PhaseTransitions []ClusterControlPlaneNodePhaseTransition `json:"phase_transitions" api:"required"`
@@ -353,7 +352,6 @@ type ClusterControlPlaneNode struct {
 		MemoryGib        respjson.Field
 		Network          respjson.Field
 		NodeID           respjson.Field
-		NodeName         respjson.Field
 		NumCPUCores      respjson.Field
 		PhaseTransitions respjson.Field
 		Status           respjson.Field
@@ -408,7 +406,6 @@ type ClusterGPUWorkerNode struct {
 	MemoryGib   float64  `json:"memory_gib" api:"required"`
 	Networks    []string `json:"networks" api:"required"`
 	NodeID      string   `json:"node_id" api:"required"`
-	NodeName    string   `json:"node_name" api:"required"`
 	NumCPUCores int64    `json:"num_cpu_cores" api:"required"`
 	NumGPUs     int64    `json:"num_gpus" api:"required"`
 	// Phase transition history for this GPU worker node.
@@ -426,7 +423,6 @@ type ClusterGPUWorkerNode struct {
 		MemoryGib           respjson.Field
 		Networks            respjson.Field
 		NodeID              respjson.Field
-		NodeName            respjson.Field
 		NumCPUCores         respjson.Field
 		NumGPUs             respjson.Field
 		PhaseTransitions    respjson.Field
