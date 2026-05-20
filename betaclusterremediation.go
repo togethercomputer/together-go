@@ -421,12 +421,12 @@ type BetaClusterRemediationListParams struct {
 	PageSize param.Opt[int64] `query:"page_size,omitzero" json:"-"`
 	// Pagination token from previous request.
 	PageToken param.Opt[string] `query:"page_token,omitzero" json:"-"`
-	// Filter by remediation mode. Returns only remediations matching the specified
-	// mode.
+	// Filter by remediation mode(s). Returns remediations matching any of the
+	// specified modes.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
-	Mode BetaClusterRemediationListParamsMode `query:"mode,omitzero" json:"-"`
+	Mode []string `query:"mode,omitzero" json:"-"`
 	// Filter by state(s). Returns remediations matching any of the specified states.
 	//
 	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
@@ -441,6 +441,11 @@ type BetaClusterRemediationListParams struct {
 	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
 	// "CANCELLED", "AUTO_RESOLVED".
 	State []string `query:"state,omitzero" json:"-"`
+	// Filter by trigger type(s). Returns remediations matching any of the specified
+	// triggers.
+	//
+	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
+	Trigger []string `query:"trigger,omitzero" json:"-"`
 	paramObj
 }
 
@@ -452,17 +457,6 @@ func (r BetaClusterRemediationListParams) URLQuery() (v url.Values, err error) {
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
-
-// Filter by remediation mode. Returns only remediations matching the specified
-// mode.
-type BetaClusterRemediationListParamsMode string
-
-const (
-	BetaClusterRemediationListParamsModeRemediationModeVmOnly                  BetaClusterRemediationListParamsMode = "REMEDIATION_MODE_VM_ONLY"
-	BetaClusterRemediationListParamsModeRemediationModeHostAware               BetaClusterRemediationListParamsMode = "REMEDIATION_MODE_HOST_AWARE"
-	BetaClusterRemediationListParamsModeRemediationModeEvictWithoutReplacement BetaClusterRemediationListParamsMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
-	BetaClusterRemediationListParamsModeRemediationModeRebootVm                BetaClusterRemediationListParamsMode = "REMEDIATION_MODE_REBOOT_VM"
-)
 
 type BetaClusterRemediationApproveParams struct {
 	ClusterID  string `path:"cluster_id" api:"required" json:"-"`

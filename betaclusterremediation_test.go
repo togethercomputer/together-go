@@ -92,11 +92,12 @@ func TestBetaClusterRemediationListWithOptionalParams(t *testing.T) {
 		"instance_id",
 		together.BetaClusterRemediationListParams{
 			ClusterID: "cluster_id",
-			Mode:      together.BetaClusterRemediationListParamsModeRemediationModeVmOnly,
+			Mode:      []string{"REMEDIATION_MODE_VM_ONLY"},
 			OrderBy:   together.String("order_by"),
 			PageSize:  together.Int(0),
 			PageToken: together.String("page_token"),
 			State:     []string{"PENDING_APPROVAL"},
+			Trigger:   []string{"REMEDIATION_TRIGGER_MANUAL"},
 		},
 	)
 	if err != nil {
