@@ -2399,10 +2399,8 @@ type FineTuningNewParams struct {
 	// to the base model (specified by the `model` argument) in terms of architecture
 	// and size.
 	FromHfModel param.Opt[string] `json:"from_hf_model,omitzero"`
-	// Number of steps to accumulate gradients before performing a weight update.
-	// Effectively increases the batch size without requiring more memory. For example,
-	// with batch_size=4 and gradient_accumulation_steps=8, the effective batch size
-	// is 32.
+	// Number of steps to accumulate gradients before performing a weight update. If
+	// omitted or set to 0, the model default is used.
 	GradientAccumulationSteps param.Opt[int64] `json:"gradient_accumulation_steps,omitzero"`
 	// The API token for the Hugging Face Hub.
 	HfAPIToken param.Opt[string] `json:"hf_api_token,omitzero"`
