@@ -152,8 +152,6 @@ type EvaluationJobResultsUnion struct {
 	// This field is from variant [EvaluationJobResultsEvaluationCompareResults].
 	BWins int64 `json:"B_wins"`
 	// This field is from variant [EvaluationJobResultsEvaluationCompareResults].
-	NumSamples int64 `json:"num_samples"`
-	// This field is from variant [EvaluationJobResultsEvaluationCompareResults].
 	Ties int64 `json:"Ties"`
 	// This field is from variant [EvaluationJobResultsError].
 	Error string `json:"error"`
@@ -169,7 +167,6 @@ type EvaluationJobResultsUnion struct {
 		InvalidScoreCount   respjson.Field
 		AWins               respjson.Field
 		BWins               respjson.Field
-		NumSamples          respjson.Field
 		Ties                respjson.Field
 		Error               respjson.Field
 		raw                 string
@@ -289,19 +286,22 @@ func (r *EvaluationJobResultsEvaluationScoreResultsAggregatedScores) UnmarshalJS
 }
 
 type EvaluationJobResultsEvaluationCompareResults struct {
-	// Number of times model A won
+	// Number of samples where model A was judged the winner
 	AWins int64 `json:"A_wins"`
-	// Number of times model B won
+	// Number of samples where model B was judged the winner
 	BWins int64 `json:"B_wins"`
-	// Number of failed generations.
+	// Number of generation failures across model A and model B.
 	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
-	// Number of failed judge generations
+	// Number of judge inference failures. In the default two-pass mode
+	// (disable_position_bias_correction=false) this is the combined failure count from
+	// both the original-order and flipped-order judge passes.
 	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
-	// Total number of samples compared
-	NumSamples int64 `json:"num_samples"`
-	// Data File ID
+	// File ID of the detailed output file. Each row contains the original input fields
+	// plus judge outputs. In two-pass mode the file includes both original-order and
+	// flipped-order judge fields; in single-pass mode
+	// (disable_position_bias_correction=true) only original-order fields are present.
 	ResultFileID string `json:"result_file_id"`
-	// Number of ties
+	// Number of samples that resulted in a tie
 	Ties int64 `json:"Ties"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -309,7 +309,6 @@ type EvaluationJobResultsEvaluationCompareResults struct {
 		BWins               respjson.Field
 		GenerationFailCount respjson.Field
 		JudgeFailCount      respjson.Field
-		NumSamples          respjson.Field
 		ResultFileID        respjson.Field
 		Ties                respjson.Field
 		ExtraFields         map[string]respjson.Field
@@ -461,8 +460,6 @@ type EvalStatusResponseResultsUnion struct {
 	// This field is from variant [EvalStatusResponseResultsEvaluationCompareResults].
 	BWins int64 `json:"B_wins"`
 	// This field is from variant [EvalStatusResponseResultsEvaluationCompareResults].
-	NumSamples int64 `json:"num_samples"`
-	// This field is from variant [EvalStatusResponseResultsEvaluationCompareResults].
 	Ties int64 `json:"Ties"`
 	JSON struct {
 		GenerationFailCount respjson.Field
@@ -476,7 +473,6 @@ type EvalStatusResponseResultsUnion struct {
 		InvalidScoreCount   respjson.Field
 		AWins               respjson.Field
 		BWins               respjson.Field
-		NumSamples          respjson.Field
 		Ties                respjson.Field
 		raw                 string
 	} `json:"-"`
@@ -590,19 +586,22 @@ func (r *EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores) Unmars
 }
 
 type EvalStatusResponseResultsEvaluationCompareResults struct {
-	// Number of times model A won
+	// Number of samples where model A was judged the winner
 	AWins int64 `json:"A_wins"`
-	// Number of times model B won
+	// Number of samples where model B was judged the winner
 	BWins int64 `json:"B_wins"`
-	// Number of failed generations.
+	// Number of generation failures across model A and model B.
 	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
-	// Number of failed judge generations
+	// Number of judge inference failures. In the default two-pass mode
+	// (disable_position_bias_correction=false) this is the combined failure count from
+	// both the original-order and flipped-order judge passes.
 	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
-	// Total number of samples compared
-	NumSamples int64 `json:"num_samples"`
-	// Data File ID
+	// File ID of the detailed output file. Each row contains the original input fields
+	// plus judge outputs. In two-pass mode the file includes both original-order and
+	// flipped-order judge fields; in single-pass mode
+	// (disable_position_bias_correction=true) only original-order fields are present.
 	ResultFileID string `json:"result_file_id"`
-	// Number of ties
+	// Number of samples that resulted in a tie
 	Ties int64 `json:"Ties"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -610,7 +609,6 @@ type EvalStatusResponseResultsEvaluationCompareResults struct {
 		BWins               respjson.Field
 		GenerationFailCount respjson.Field
 		JudgeFailCount      respjson.Field
-		NumSamples          respjson.Field
 		ResultFileID        respjson.Field
 		Ties                respjson.Field
 		ExtraFields         map[string]respjson.Field
@@ -718,6 +716,14 @@ func (u EvalNewParamsParametersUnion) GetMinScore() *float64 {
 func (u EvalNewParamsParametersUnion) GetPassThreshold() *float64 {
 	if vt := u.OfEvalNewsParametersEvaluationScoreParameters; vt != nil {
 		return &vt.PassThreshold
+	}
+	return nil
+}
+
+// Returns a pointer to the underlying variant's property, if present.
+func (u EvalNewParamsParametersUnion) GetDisablePositionBiasCorrection() *bool {
+	if vt := u.OfEvalNewsParametersEvaluationCompareParameters; vt != nil && vt.DisablePositionBiasCorrection.Valid() {
+		return &vt.DisablePositionBiasCorrection.Value
 	}
 	return nil
 }
@@ -1053,7 +1059,7 @@ type EvalNewParamsParametersEvaluationClassifyParameters struct {
 	Labels []string `json:"labels,omitzero" api:"required"`
 	// List of labels that are considered passing
 	PassLabels []string `json:"pass_labels,omitzero" api:"required"`
-	// Field name in the input data
+	// Column name in the input dataset containing pre-generated responses
 	ModelToEvaluate EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion `json:"model_to_evaluate,omitzero"`
 	paramObj
 }
@@ -1070,25 +1076,36 @@ func (r *EvalNewParamsParametersEvaluationClassifyParameters) UnmarshalJSON(data
 type EvalNewParamsParametersEvaluationClassifyParametersJudge struct {
 	// Name of the judge model
 	Model string `json:"model" api:"required"`
-	// Source of the judge model.
+	// Source of the judge model inference: - `serverless`: Together's shared
+	// serverless inference API. Default concurrency: 25 workers. - `dedicated`: A
+	// Together dedicated deployment endpoint. Default concurrency: 5 workers (minimum
+	// enforced even if num_workers is set lower).
+	//
+	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//     concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
+	//     endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template for the judge
 	SystemTemplate string `json:"system_template" api:"required"`
-	// Bearer/API token for external judge models.
+	// Bearer/API token for the external judge model provider. Required when
+	// model_source is 'external'.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
-	// Base URL for external judge models. Must be OpenAI-compatible base URL.
+	// Base URL of the external inference API for the judge. Must be OpenAI-compatible.
+	// Required when model_source is 'external'.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
-	// Maximum number of tokens the judge model can generate. Defaults to 32768.
-	// Increase for reasoning models (e.g. Gemini, o-series) that consume output token
-	// budget for chain-of-thought.
+	// Maximum number of tokens the judge model may generate. Defaults to 32768 if
+	// omitted. Set higher for reasoning judges (e.g. o-series, Gemini) that spend
+	// tokens on internal chain-of-thought before emitting the verdict JSON.
 	MaxTokens param.Opt[int64] `json:"max_tokens,omitzero"`
-	// Number of concurrent workers for inference requests. Overrides the default
-	// concurrency for this model. Useful for tuning throughput when using proxy
-	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	// Number of concurrent inference workers for the judge. Overrides the
+	// source-specific default (serverless: 25, dedicated: 5, external: 2–20). For
+	// dedicated endpoints the value is clamped to a minimum of 5 regardless of what is
+	// set here.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
-	// Sampling temperature for the judge model. Defaults to 0.05.
+	// Sampling temperature for the judge model. Defaults to 0.05 if omitted.
 	Temperature param.Opt[float64] `json:"temperature,omitzero"`
 	paramObj
 }
@@ -1135,27 +1152,38 @@ func (u *EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion
 // The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
 // Temperature are required.
 type EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluationModelRequest struct {
-	// Input prompt template
+	// User message template. Supports Jinja2 variables referencing dataset columns.
 	InputTemplate string `json:"input_template" api:"required"`
-	// Maximum number of tokens to generate
+	// Maximum number of tokens to generate.
 	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
 	Model string `json:"model" api:"required"`
-	// Source of the model.
+	// Source of the model inference: - `serverless`: Together's shared serverless
+	// inference API. Default concurrency: 25 workers. - `dedicated`: A Together
+	// dedicated deployment endpoint. Default concurrency: 5 workers (minimum enforced
+	// even if num_workers is set lower). Authentication uses the requesting user's
+	// Together API token automatically.
+	//
+	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//     for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
-	// System prompt template
+	// System prompt template. Supports Jinja2 variables referencing dataset columns.
 	SystemTemplate string `json:"system_template" api:"required"`
-	// Sampling temperature
+	// Sampling temperature for generation.
 	Temperature float64 `json:"temperature" api:"required"`
-	// Bearer/API token for external models.
+	// Bearer/API token for the external model provider. Required when model_source is
+	// 'external'.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
-	// Base URL for external models. Must be OpenAI-compatible base URL
+	// Base URL of the external inference API. Must be OpenAI-compatible. Required when
+	// model_source is 'external'.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
-	// Number of concurrent workers for inference requests. Overrides the default
-	// concurrency for this model. Useful for tuning throughput when using proxy
-	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	// Number of concurrent inference workers. Overrides the source-specific default
+	// (serverless: 25, dedicated: 5, external: 2–20). For dedicated endpoints the
+	// value is clamped to a minimum of 5 regardless of what is set here.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
@@ -1186,7 +1214,7 @@ type EvalNewParamsParametersEvaluationScoreParameters struct {
 	MinScore float64 `json:"min_score" api:"required"`
 	// Score threshold for passing
 	PassThreshold float64 `json:"pass_threshold" api:"required"`
-	// Field name in the input data
+	// Column name in the input dataset containing pre-generated responses
 	ModelToEvaluate EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion `json:"model_to_evaluate,omitzero"`
 	paramObj
 }
@@ -1203,25 +1231,36 @@ func (r *EvalNewParamsParametersEvaluationScoreParameters) UnmarshalJSON(data []
 type EvalNewParamsParametersEvaluationScoreParametersJudge struct {
 	// Name of the judge model
 	Model string `json:"model" api:"required"`
-	// Source of the judge model.
+	// Source of the judge model inference: - `serverless`: Together's shared
+	// serverless inference API. Default concurrency: 25 workers. - `dedicated`: A
+	// Together dedicated deployment endpoint. Default concurrency: 5 workers (minimum
+	// enforced even if num_workers is set lower).
+	//
+	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//     concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
+	//     endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template for the judge
 	SystemTemplate string `json:"system_template" api:"required"`
-	// Bearer/API token for external judge models.
+	// Bearer/API token for the external judge model provider. Required when
+	// model_source is 'external'.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
-	// Base URL for external judge models. Must be OpenAI-compatible base URL.
+	// Base URL of the external inference API for the judge. Must be OpenAI-compatible.
+	// Required when model_source is 'external'.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
-	// Maximum number of tokens the judge model can generate. Defaults to 32768.
-	// Increase for reasoning models (e.g. Gemini, o-series) that consume output token
-	// budget for chain-of-thought.
+	// Maximum number of tokens the judge model may generate. Defaults to 32768 if
+	// omitted. Set higher for reasoning judges (e.g. o-series, Gemini) that spend
+	// tokens on internal chain-of-thought before emitting the verdict JSON.
 	MaxTokens param.Opt[int64] `json:"max_tokens,omitzero"`
-	// Number of concurrent workers for inference requests. Overrides the default
-	// concurrency for this model. Useful for tuning throughput when using proxy
-	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	// Number of concurrent inference workers for the judge. Overrides the
+	// source-specific default (serverless: 25, dedicated: 5, external: 2–20). For
+	// dedicated endpoints the value is clamped to a minimum of 5 regardless of what is
+	// set here.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
-	// Sampling temperature for the judge model. Defaults to 0.05.
+	// Sampling temperature for the judge model. Defaults to 0.05 if omitted.
 	Temperature param.Opt[float64] `json:"temperature,omitzero"`
 	paramObj
 }
@@ -1268,27 +1307,38 @@ func (u *EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateUnion) a
 // The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
 // Temperature are required.
 type EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationModelRequest struct {
-	// Input prompt template
+	// User message template. Supports Jinja2 variables referencing dataset columns.
 	InputTemplate string `json:"input_template" api:"required"`
-	// Maximum number of tokens to generate
+	// Maximum number of tokens to generate.
 	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
 	Model string `json:"model" api:"required"`
-	// Source of the model.
+	// Source of the model inference: - `serverless`: Together's shared serverless
+	// inference API. Default concurrency: 25 workers. - `dedicated`: A Together
+	// dedicated deployment endpoint. Default concurrency: 5 workers (minimum enforced
+	// even if num_workers is set lower). Authentication uses the requesting user's
+	// Together API token automatically.
+	//
+	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//     for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
-	// System prompt template
+	// System prompt template. Supports Jinja2 variables referencing dataset columns.
 	SystemTemplate string `json:"system_template" api:"required"`
-	// Sampling temperature
+	// Sampling temperature for generation.
 	Temperature float64 `json:"temperature" api:"required"`
-	// Bearer/API token for external models.
+	// Bearer/API token for the external model provider. Required when model_source is
+	// 'external'.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
-	// Base URL for external models. Must be OpenAI-compatible base URL
+	// Base URL of the external inference API. Must be OpenAI-compatible. Required when
+	// model_source is 'external'.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
-	// Number of concurrent workers for inference requests. Overrides the default
-	// concurrency for this model. Useful for tuning throughput when using proxy
-	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	// Number of concurrent inference workers. Overrides the source-specific default
+	// (serverless: 25, dedicated: 5, external: 2–20). For dedicated endpoints the
+	// value is clamped to a minimum of 5 regardless of what is set here.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
@@ -1309,12 +1359,25 @@ func init() {
 
 // The properties InputDataFilePath, Judge are required.
 type EvalNewParamsParametersEvaluationCompareParameters struct {
-	// Data file name
+	// Data file ID
 	InputDataFilePath string                                                  `json:"input_data_file_path" api:"required"`
 	Judge             EvalNewParamsParametersEvaluationCompareParametersJudge `json:"judge,omitzero" api:"required"`
-	// Field name in the input data
+	// When false (default), the judge runs twice per sample: once with model A's
+	// response first (original order) and once with model B's response first (flipped
+	// order). The two verdicts are reconciled to cancel out position bias. When true,
+	// only the original-order pass is run, halving judge cost and latency at the
+	// expense of position-bias correction. The result file will not contain
+	// flipped-order judge fields when this is true.
+	DisablePositionBiasCorrection param.Opt[bool] `json:"disable_position_bias_correction,omitzero"`
+	// Either an EvaluationModelRequest for generation or a string column name from the
+	// dataset (when responses are pre-generated). When both model_a and model_b are
+	// EvaluationModelRequest objects, their inference runs execute in parallel to
+	// reduce total wall-clock time.
 	ModelA EvalNewParamsParametersEvaluationCompareParametersModelAUnion `json:"model_a,omitzero"`
-	// Field name in the input data
+	// Either an EvaluationModelRequest for generation or a string column name from the
+	// dataset (when responses are pre-generated). When both model_a and model_b are
+	// EvaluationModelRequest objects, their inference runs execute in parallel to
+	// reduce total wall-clock time.
 	ModelB EvalNewParamsParametersEvaluationCompareParametersModelBUnion `json:"model_b,omitzero"`
 	paramObj
 }
@@ -1331,25 +1394,36 @@ func (r *EvalNewParamsParametersEvaluationCompareParameters) UnmarshalJSON(data 
 type EvalNewParamsParametersEvaluationCompareParametersJudge struct {
 	// Name of the judge model
 	Model string `json:"model" api:"required"`
-	// Source of the judge model.
+	// Source of the judge model inference: - `serverless`: Together's shared
+	// serverless inference API. Default concurrency: 25 workers. - `dedicated`: A
+	// Together dedicated deployment endpoint. Default concurrency: 5 workers (minimum
+	// enforced even if num_workers is set lower).
+	//
+	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//     concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
+	//     endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
 	// System prompt template for the judge
 	SystemTemplate string `json:"system_template" api:"required"`
-	// Bearer/API token for external judge models.
+	// Bearer/API token for the external judge model provider. Required when
+	// model_source is 'external'.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
-	// Base URL for external judge models. Must be OpenAI-compatible base URL.
+	// Base URL of the external inference API for the judge. Must be OpenAI-compatible.
+	// Required when model_source is 'external'.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
-	// Maximum number of tokens the judge model can generate. Defaults to 32768.
-	// Increase for reasoning models (e.g. Gemini, o-series) that consume output token
-	// budget for chain-of-thought.
+	// Maximum number of tokens the judge model may generate. Defaults to 32768 if
+	// omitted. Set higher for reasoning judges (e.g. o-series, Gemini) that spend
+	// tokens on internal chain-of-thought before emitting the verdict JSON.
 	MaxTokens param.Opt[int64] `json:"max_tokens,omitzero"`
-	// Number of concurrent workers for inference requests. Overrides the default
-	// concurrency for this model. Useful for tuning throughput when using proxy
-	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	// Number of concurrent inference workers for the judge. Overrides the
+	// source-specific default (serverless: 25, dedicated: 5, external: 2–20). For
+	// dedicated endpoints the value is clamped to a minimum of 5 regardless of what is
+	// set here.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
-	// Sampling temperature for the judge model. Defaults to 0.05.
+	// Sampling temperature for the judge model. Defaults to 0.05 if omitted.
 	Temperature param.Opt[float64] `json:"temperature,omitzero"`
 	paramObj
 }
@@ -1372,23 +1446,23 @@ func init() {
 //
 // Use [param.IsOmitted] to confirm if a field is set.
 type EvalNewParamsParametersEvaluationCompareParametersModelAUnion struct {
-	OfString                                                                    param.Opt[string]                                                               `json:",omitzero,inline"`
 	OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest *EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest `json:",omitzero,inline"`
+	OfString                                                                    param.Opt[string]                                                               `json:",omitzero,inline"`
 	paramUnion
 }
 
 func (u EvalNewParamsParametersEvaluationCompareParametersModelAUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfString, u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest)
+	return param.MarshalUnion(u, u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest, u.OfString)
 }
 func (u *EvalNewParamsParametersEvaluationCompareParametersModelAUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, u)
 }
 
 func (u *EvalNewParamsParametersEvaluationCompareParametersModelAUnion) asAny() any {
-	if !param.IsOmitted(u.OfString) {
-		return &u.OfString.Value
-	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest) {
+	if !param.IsOmitted(u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest) {
 		return u.OfEvalNewsParametersEvaluationCompareParametersModelAEvaluationModelRequest
+	} else if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
 	}
 	return nil
 }
@@ -1396,27 +1470,38 @@ func (u *EvalNewParamsParametersEvaluationCompareParametersModelAUnion) asAny() 
 // The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
 // Temperature are required.
 type EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequest struct {
-	// Input prompt template
+	// User message template. Supports Jinja2 variables referencing dataset columns.
 	InputTemplate string `json:"input_template" api:"required"`
-	// Maximum number of tokens to generate
+	// Maximum number of tokens to generate.
 	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
 	Model string `json:"model" api:"required"`
-	// Source of the model.
+	// Source of the model inference: - `serverless`: Together's shared serverless
+	// inference API. Default concurrency: 25 workers. - `dedicated`: A Together
+	// dedicated deployment endpoint. Default concurrency: 5 workers (minimum enforced
+	// even if num_workers is set lower). Authentication uses the requesting user's
+	// Together API token automatically.
+	//
+	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//     for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
-	// System prompt template
+	// System prompt template. Supports Jinja2 variables referencing dataset columns.
 	SystemTemplate string `json:"system_template" api:"required"`
-	// Sampling temperature
+	// Sampling temperature for generation.
 	Temperature float64 `json:"temperature" api:"required"`
-	// Bearer/API token for external models.
+	// Bearer/API token for the external model provider. Required when model_source is
+	// 'external'.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
-	// Base URL for external models. Must be OpenAI-compatible base URL
+	// Base URL of the external inference API. Must be OpenAI-compatible. Required when
+	// model_source is 'external'.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
-	// Number of concurrent workers for inference requests. Overrides the default
-	// concurrency for this model. Useful for tuning throughput when using proxy
-	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	// Number of concurrent inference workers. Overrides the source-specific default
+	// (serverless: 25, dedicated: 5, external: 2–20). For dedicated endpoints the
+	// value is clamped to a minimum of 5 regardless of what is set here.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
@@ -1439,23 +1524,23 @@ func init() {
 //
 // Use [param.IsOmitted] to confirm if a field is set.
 type EvalNewParamsParametersEvaluationCompareParametersModelBUnion struct {
-	OfString                                                                    param.Opt[string]                                                               `json:",omitzero,inline"`
 	OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest *EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest `json:",omitzero,inline"`
+	OfString                                                                    param.Opt[string]                                                               `json:",omitzero,inline"`
 	paramUnion
 }
 
 func (u EvalNewParamsParametersEvaluationCompareParametersModelBUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfString, u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest)
+	return param.MarshalUnion(u, u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest, u.OfString)
 }
 func (u *EvalNewParamsParametersEvaluationCompareParametersModelBUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, u)
 }
 
 func (u *EvalNewParamsParametersEvaluationCompareParametersModelBUnion) asAny() any {
-	if !param.IsOmitted(u.OfString) {
-		return &u.OfString.Value
-	} else if !param.IsOmitted(u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest) {
+	if !param.IsOmitted(u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest) {
 		return u.OfEvalNewsParametersEvaluationCompareParametersModelBEvaluationModelRequest
+	} else if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
 	}
 	return nil
 }
@@ -1463,27 +1548,38 @@ func (u *EvalNewParamsParametersEvaluationCompareParametersModelBUnion) asAny() 
 // The properties InputTemplate, MaxTokens, Model, ModelSource, SystemTemplate,
 // Temperature are required.
 type EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequest struct {
-	// Input prompt template
+	// User message template. Supports Jinja2 variables referencing dataset columns.
 	InputTemplate string `json:"input_template" api:"required"`
-	// Maximum number of tokens to generate
+	// Maximum number of tokens to generate.
 	MaxTokens int64 `json:"max_tokens" api:"required"`
 	// Name of the model to evaluate
 	Model string `json:"model" api:"required"`
-	// Source of the model.
+	// Source of the model inference: - `serverless`: Together's shared serverless
+	// inference API. Default concurrency: 25 workers. - `dedicated`: A Together
+	// dedicated deployment endpoint. Default concurrency: 5 workers (minimum enforced
+	// even if num_workers is set lower). Authentication uses the requesting user's
+	// Together API token automatically.
+	//
+	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//     for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
-	// System prompt template
+	// System prompt template. Supports Jinja2 variables referencing dataset columns.
 	SystemTemplate string `json:"system_template" api:"required"`
-	// Sampling temperature
+	// Sampling temperature for generation.
 	Temperature float64 `json:"temperature" api:"required"`
-	// Bearer/API token for external models.
+	// Bearer/API token for the external model provider. Required when model_source is
+	// 'external'.
 	ExternalAPIToken param.Opt[string] `json:"external_api_token,omitzero"`
-	// Base URL for external models. Must be OpenAI-compatible base URL
+	// Base URL of the external inference API. Must be OpenAI-compatible. Required when
+	// model_source is 'external'.
 	ExternalBaseURL param.Opt[string] `json:"external_base_url,omitzero"`
-	// Number of concurrent workers for inference requests. Overrides the default
-	// concurrency for this model. Useful for tuning throughput when using proxy
-	// endpoints (e.g. OpenRouter) or rate-limited external APIs.
+	// Number of concurrent inference workers. Overrides the source-specific default
+	// (serverless: 25, dedicated: 5, external: 2–20). For dedicated endpoints the
+	// value is clamped to a minimum of 5 regardless of what is set here.
 	NumWorkers param.Opt[int64] `json:"num_workers,omitzero"`
 	paramObj
 }
