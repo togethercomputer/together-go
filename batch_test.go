@@ -26,7 +26,7 @@ func TestBatchNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Batches.New(context.TODO(), together.BatchNewParams{
-		Endpoint:         "/v1/chat/completions",
+		Endpoint:         together.BatchNewParamsEndpointV1ChatCompletions,
 		InputFileID:      "file-abc123def456ghi789",
 		CompletionWindow: together.String("24h"),
 		ModelID:          together.String("Qwen/Qwen3.5-9B"),

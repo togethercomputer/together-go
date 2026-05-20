@@ -1,5 +1,79 @@
 # Changelog
 
+## 0.10.0 (2026-05-20)
+
+Full Changelog: [v0.9.0...v0.10.0](https://github.com/togethercomputer/together-go/compare/v0.9.0...v0.10.0)
+
+### Features
+
+* add the pronunciation dict ([665cf91](https://github.com/togethercomputer/together-go/commit/665cf9167aa7be6f15d4db9fe0e4fdd7a2984930))
+* **api:** add auto-scale/schedule/OIDC params, SCHEDULED_CAPACITY billing to clusters ([7769868](https://github.com/togethercomputer/together-go/commit/77698685188a076d8bc5707f686f0a3d1d4b4f34))
+* **api:** add cached_input field to ModelObjectPricing ([fb7b530](https://github.com/togethercomputer/together-go/commit/fb7b53061ff0df2956ccd2bed461226057eefbbd))
+* **api:** add disable_position_bias_correction param, remove num_samples from compare results ([a1908f0](https://github.com/togethercomputer/together-go/commit/a1908f03c041a22363fab976d82e3d89c32477af))
+* **api:** add h100-40gb-mig, b200-192gb GPU types, remove a100-80gb from deployments ([e041234](https://github.com/togethercomputer/together-go/commit/e04123466ad7059b1819cc3c6c0a6a369d7d1115))
+* **api:** add h200-140gb GPU type option to betajig ([fedd305](https://github.com/togethercomputer/together-go/commit/fedd30552a33d08a1a09f88cd0b33e2fe2ae2bdf))
+* **api:** add instance_name field to Remediation ([1f5e3cd](https://github.com/togethercomputer/together-go/commit/1f5e3cd9977a7245c80829a90f9e5081defeadc8))
+* **api:** add max_seq_length field to finetuning ([0964ef9](https://github.com/togethercomputer/together-go/commit/0964ef98937683218fd6c68ced1f93607932344e))
+* **api:** add max_tokens and temperature parameters to eval judge ([c619446](https://github.com/togethercomputer/together-go/commit/c6194463afd28dac5df67be10ed2d60f195572cf))
+* **api:** Add node remediation APIs to clusters sdks ([a44d364](https://github.com/togethercomputer/together-go/commit/a44d36431f0180fe9710b67bce0f637375e99da3))
+* **api:** add num_workers parameter to eval evaluation parameters ([d061b9d](https://github.com/togethercomputer/together-go/commit/d061b9da29801d5f77ceaa4572868615af9ae285))
+* **api:** add parameters to clusters/storage list methods, update cluster/storage types ([6e07f04](https://github.com/togethercomputer/together-go/commit/6e07f044a1e7b57d4494db2e49c2eb6c8a0440c8))
+* **api:** add storage/multipart/logs endpoints, update deployment/volume types ([8178f61](https://github.com/togethercomputer/together-go/commit/8178f6173a4235e2c5dc8a79fd094f6ddeacfeba))
+* **api:** add trigger filter and multi-mode support to cluster remediation list ([e73e7ee](https://github.com/togethercomputer/together-go/commit/e73e7eeaf56dddc9485eafd37a4b464f4e7678aa))
+* **api:** allow string or object for audio_inputs/source_video in video params ([75b4202](https://github.com/togethercomputer/together-go/commit/75b42023f5e1843a6e38f72c7b7b64f180fad27e))
+* **api:** Integrate fine_tuning.list_metrics from stainless ([9b4d021](https://github.com/togethercomputer/together-go/commit/9b4d021e1eca06d63dad70dded77eb5bf832abdd))
+* **api:** manual updates ([4de5220](https://github.com/togethercomputer/together-go/commit/4de5220d3dc77af33d08ed89600f92ec0fd4ad5d))
+* **api:** manual updates ([4140f1d](https://github.com/togethercomputer/together-go/commit/4140f1dbd381195c899224022008afc5a60b14af))
+* **api:** Update server url to .ai ([9ae586b](https://github.com/togethercomputer/together-go/commit/9ae586b932601012d6428f8c1eba6d692376af0d))
+* **client:** optimize json encoder for internal types ([f35ac5f](https://github.com/togethercomputer/together-go/commit/f35ac5f3300f85d181b719c20681eb241c16a549))
+* ENG-87042: document language on TTS WebSocket and simplify locale note ([454dc61](https://github.com/togethercomputer/together-go/commit/454dc61de881e2c95c859f76bbf8dd1b2015f213))
+* **go:** add default http client with timeout ([f235d6f](https://github.com/togethercomputer/together-go/commit/f235d6f5ef94f6bd7f798783e3a36c4276f39d85))
+* MOSH-2181: Add default note on max-seq-length ([ee06e5a](https://github.com/togethercomputer/together-go/commit/ee06e5a98c1808e45586cc7bb399611ff368cd78))
+* support setting headers via env ([56a6ac9](https://github.com/togethercomputer/together-go/commit/56a6ac9b1c4ed2814672466a02bce74886e12fdb))
+
+
+### Bug Fixes
+
+* **api:** remove trigger param from beta cluster remediation list ([1249f1c](https://github.com/togethercomputer/together-go/commit/1249f1cfce33dc778d89cead25275bdd7ae75f01))
+* better respect format tags from the spec ([a99fd75](https://github.com/togethercomputer/together-go/commit/a99fd75b164e618cdeb5c021eb0e6bb3da5ff8ee))
+* **client:** update base URL to api.together.ai in video service ([169e53b](https://github.com/togethercomputer/together-go/commit/169e53bfff2c83a4eedb15c7123d73d68fa9230f))
+* **go:** avoid panic when http.DefaultTransport is wrapped ([d3d1491](https://github.com/togethercomputer/together-go/commit/d3d1491d8b33d9749059fe9d63c21fe65e3ab5e0))
+* **types:** change language from enum to string in audio speech ([c7c3dd5](https://github.com/togethercomputer/together-go/commit/c7c3dd500bb4e7ca3489ed06e36313de91b8f3e8))
+* **types:** change status to enum in ClusterStorage ([0ae8433](https://github.com/togethercomputer/together-go/commit/0ae84330b648f2e90284a4ed16d1025e769c2ab5))
+* **types:** convert endpoint to enum in batch new params ([24f44d8](https://github.com/togethercomputer/together-go/commit/24f44d8b31359e5c2d0792f7baf244731e2acbba))
+* **types:** make duration_days and size_tib optional in beta clusters ([5d5ba57](https://github.com/togethercomputer/together-go/commit/5d5ba5769561d45d3a29045a56fc94b080be3800))
+* **types:** make RequestID required, remove error field in BetaJigQueueSubmitResponse ([f395a88](https://github.com/togethercomputer/together-go/commit/f395a88cb8a51200f58fd00dd8e3cd79f6a9b401))
+* **types:** remove eval-sample/eval-output/eval-summary/batch-generated from FilePurpose ([27aa4f5](https://github.com/togethercomputer/together-go/commit/27aa4f53fe430898efb99c694347bf1aa8126ace))
+* **types:** remove node_name from ClusterControlPlaneNode and ClusterGPUWorkerNode ([150c1a4](https://github.com/togethercomputer/together-go/commit/150c1a4d3043dec4f85ace631f107f0eaa902bb4))
+* **types:** remove task field from audiotranscription and audiotranslation responses ([c0e0c08](https://github.com/togethercomputer/together-go/commit/c0e0c08eeab810c01da3e5ba9cd0c6490506ca7a))
+* **types:** rename cuda_driver_version to cuda_version in cluster regions ([0d3c446](https://github.com/togethercomputer/together-go/commit/0d3c4461539623a60767f8690485ea21ec6bb7c5))
+* **types:** restructure driver_versions, make supported_instance_types required in betacluster ([1298ca1](https://github.com/togethercomputer/together-go/commit/1298ca1f4f905f5cbec9c8391ed018b4217bc08e))
+
+
+### Chores
+
+* avoid embedding reflect.Type for dead code elimination ([8f52477](https://github.com/togethercomputer/together-go/commit/8f52477443b1ea2088d1080ef79c3f2a064bbc87))
+* **internal:** more robust bootstrap script ([32acdb4](https://github.com/togethercomputer/together-go/commit/32acdb465404e7df8f886e6d6afdebf34c886c69))
+* redact api-key headers in debug logs ([8b4cdf7](https://github.com/togethercomputer/together-go/commit/8b4cdf78008d26bc23a44546dd4a4e9a73c6ee30))
+* temp deletion ([deaf58b](https://github.com/togethercomputer/together-go/commit/deaf58b6e5c57e6eae5980068a283ab0666776ba))
+* temp undeletion ([07426d5](https://github.com/togethercomputer/together-go/commit/07426d529a89d79ce1760fa281a8c1cc69104819))
+* **tests:** bump steady to v0.22.1 ([998c407](https://github.com/togethercomputer/together-go/commit/998c407c7892af0bc66889e11669541f11d03b7e))
+
+
+### Documentation
+
+* **api:** clarify gradient_accumulation_steps default behavior in finetuning ([2d6b8ac](https://github.com/togethercomputer/together-go/commit/2d6b8ac1cfbd3eb408cf1d5663e4d05e8292c1e0))
+* **api:** clarify max_seq_length parameter in finetuning ([3148bba](https://github.com/togethercomputer/together-go/commit/3148bba05848fa22a06e99d48a106269f63285cb))
+* **api:** clarify prompt parameter docs in transcription/translation ([637afa2](https://github.com/togethercomputer/together-go/commit/637afa209837f412dab07a0ecc8322ff8a10f6d3))
+* **api:** clarify suffix parameter character limit in fine-tuning ([6f8178d](https://github.com/togethercomputer/together-go/commit/6f8178dfcdc51349ba3afd0e921835243f35cdbf))
+* **api:** document voice mixing support for audio speech voice parameter ([374f51b](https://github.com/togethercomputer/together-go/commit/374f51bb529fd6271283a4b25a63b5e4f80dfe6c))
+* **api:** update billing_type description in beta cluster creation ([a40ff7f](https://github.com/togethercomputer/together-go/commit/a40ff7f25557222d01444d78adfd2acabf62307d))
+* **api:** update docstrings from future to present tense ([7795a05](https://github.com/togethercomputer/together-go/commit/7795a05304ff9012c78e58263250b82e53971405))
+* **api:** update sample_rate and response_encoding parameter docs in audiospeech ([e1b61d9](https://github.com/togethercomputer/together-go/commit/e1b61d9e4718f75de57600ed247287cde4830d9d))
+* **api:** update supported formats in audio transcription/translation file params ([3bf7862](https://github.com/togethercomputer/together-go/commit/3bf7862520e1abdc30136f58dc89dcff44ddad66))
+* improve examples ([28ad2a1](https://github.com/togethercomputer/together-go/commit/28ad2a14bcb68286110cd2947040e8f8851e0d3b))
+* **types:** add field descriptions to cluster/storage types ([8773a13](https://github.com/togethercomputer/together-go/commit/8773a13101c54e8588214bc951ec66b4369108a8))
+
 ## 0.9.0 (2026-04-03)
 
 Full Changelog: [v0.8.0...v0.9.0](https://github.com/togethercomputer/together-go/compare/v0.8.0...v0.9.0)

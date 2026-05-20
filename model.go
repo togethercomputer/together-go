@@ -38,7 +38,8 @@ func NewModelService(opts ...option.RequestOption) (r ModelService) {
 	return
 }
 
-// Lists all of Together's open-source models
+// Lists all of Together's open-source models and metadata including pricing, chat
+// template, and context.
 func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...option.RequestOption) (res *[]ModelObject, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "models"
@@ -103,11 +104,12 @@ const (
 )
 
 type ModelObjectPricing struct {
-	Base     float64 `json:"base" api:"required"`
-	Finetune float64 `json:"finetune" api:"required"`
-	Hourly   float64 `json:"hourly" api:"required"`
-	Input    float64 `json:"input" api:"required"`
-	Output   float64 `json:"output" api:"required"`
+	Base        float64 `json:"base" api:"required"`
+	Finetune    float64 `json:"finetune" api:"required"`
+	Hourly      float64 `json:"hourly" api:"required"`
+	Input       float64 `json:"input" api:"required"`
+	Output      float64 `json:"output" api:"required"`
+	CachedInput float64 `json:"cached_input"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Base        respjson.Field
@@ -115,6 +117,7 @@ type ModelObjectPricing struct {
 		Hourly      respjson.Field
 		Input       respjson.Field
 		Output      respjson.Field
+		CachedInput respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`

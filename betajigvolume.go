@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
+	"github.com/togethercomputer/together-go/internal/apiquery"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
@@ -44,14 +46,14 @@ func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewPar
 }
 
 // Retrieve details of a specific volume by its ID or name
-func (r *BetaJigVolumeService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *Volume, err error) {
+func (r *BetaJigVolumeService) Get(ctx context.Context, id string, query BetaJigVolumeGetParams, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -133,8 +135,8 @@ func (r *Volume) UnmarshalJSON(data []byte) error {
 }
 
 type VolumeContent struct {
-	// Files is the list of files that will be preloaded into the volume, if the volume
-	// content type is "files"
+	// Files is the list of files to preload into the volume, if the volume content
+	// type is "files".
 	Files []VolumeContentFile `json:"files"`
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
@@ -190,7 +192,7 @@ const (
 )
 
 type VolumeVersionHistory struct {
-	// Content specifies the new content that will be preloaded to this volume
+	// Content specifies the new content to preload to this volume.
 	Content   VolumeVersionHistoryContent `json:"content"`
 	MountedBy []string                    `json:"mounted_by"`
 	Version   int64                       `json:"version"`
@@ -210,7 +212,7 @@ func (r *VolumeVersionHistory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the new content that will be preloaded to this volume
+// Content specifies the new content to preload to this volume.
 type VolumeVersionHistoryContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
@@ -267,7 +269,7 @@ const (
 type BetaJigVolumeDeleteResponse = any
 
 type BetaJigVolumeNewParams struct {
-	// Content specifies the new content that will be preloaded to this volume
+	// Content specifies the new content to preload to this volume.
 	Content BetaJigVolumeNewParamsContent `json:"content,omitzero" api:"required"`
 	// Name is the unique identifier for the volume within the project
 	Name string `json:"name" api:"required"`
@@ -286,7 +288,7 @@ func (r *BetaJigVolumeNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the new content that will be preloaded to this volume
+// Content specifies the new content to preload to this volume.
 type BetaJigVolumeNewParamsContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
@@ -320,10 +322,24 @@ const (
 	BetaJigVolumeNewParamsTypeReadOnly BetaJigVolumeNewParamsType = "readOnly"
 )
 
+type BetaJigVolumeGetParams struct {
+	// Volume version to describe (defaults to current version)
+	Version param.Opt[int64] `query:"version,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [BetaJigVolumeGetParams]'s query parameters as `url.Values`.
+func (r BetaJigVolumeGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
 type BetaJigVolumeUpdateParams struct {
 	// Name is the new unique identifier for the volume within the project
 	Name param.Opt[string] `json:"name,omitzero"`
-	// Content specifies the new content that will be preloaded to this volume
+	// Content specifies the new content to preload to this volume.
 	Content BetaJigVolumeUpdateParamsContent `json:"content,omitzero"`
 	// Type is the new volume type (currently only "readOnly" is supported)
 	//
@@ -340,7 +356,7 @@ func (r *BetaJigVolumeUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the new content that will be preloaded to this volume
+// Content specifies the new content to preload to this volume.
 type BetaJigVolumeUpdateParamsContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume

@@ -406,14 +406,14 @@ type CompletionNewParams struct {
 	Model CompletionNewParamsModel `json:"model,omitzero" api:"required"`
 	// A string providing context for the model to complete.
 	Prompt string `json:"prompt" api:"required"`
-	// If true, the response will contain the prompt. Can be used with `logprobs` to
-	// return prompt logprobs.
+	// If true, the response contains the prompt. Can be used with `logprobs` to return
+	// prompt logprobs.
 	Echo param.Opt[bool] `json:"echo,omitzero"`
 	// A number between -2.0 and 2.0 where a positive value decreases the likelihood of
 	// repeating tokens that have already been mentioned.
 	FrequencyPenalty param.Opt[float64] `json:"frequency_penalty,omitzero"`
 	// An integer between 0 and 20 of the top k tokens to return log probabilities for
-	// at each generation step, instead of just the sampled token. Log probabilities
+	// at each generation step, instead of only the sampled token. Log probabilities
 	// help assess model confidence in token predictions.
 	Logprobs param.Opt[int64] `json:"logprobs,omitzero"`
 	// The maximum number of tokens to generate.
@@ -453,9 +453,8 @@ type CompletionNewParams struct {
 	// available moderation models found
 	// [here](https://docs.together.ai/docs/inference-models#moderation-models).
 	SafetyModel CompletionNewParamsSafetyModel `json:"safety_model,omitzero"`
-	// A list of string sequences that will truncate (stop) inference text output. For
-	// example, "</s>" will stop generation as soon as the model generates the given
-	// token.
+	// A list of string sequences that truncate (stop) inference text output. For
+	// example, "</s>" stops generation as soon as the model generates the given token.
 	Stop []string `json:"stop,omitzero"`
 	paramObj
 }

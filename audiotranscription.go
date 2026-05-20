@@ -64,9 +64,6 @@ type AudioTranscriptionNewResponseUnion struct {
 	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments"`
 	// This field is from variant
 	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
-	Task string `json:"task"`
-	// This field is from variant
-	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
 	SpeakerSegments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSpeakerSegment `json:"speaker_segments"`
 	// This field is from variant
 	// [AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse].
@@ -76,7 +73,6 @@ type AudioTranscriptionNewResponseUnion struct {
 		Duration        respjson.Field
 		Language        respjson.Field
 		Segments        respjson.Field
-		Task            respjson.Field
 		SpeakerSegments respjson.Field
 		Words           respjson.Field
 		raw             string
@@ -126,10 +122,6 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
 	Language string `json:"language" api:"required"`
 	// Array of transcription segments
 	Segments []AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseSegment `json:"segments" api:"required"`
-	// The task performed
-	//
-	// Any of "transcribe", "translate".
-	Task string `json:"task" api:"required"`
 	// The transcribed text
 	Text string `json:"text" api:"required"`
 	// Array of transcription speaker segments (only when diarize is enabled)
@@ -141,7 +133,6 @@ type AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponse struct {
 		Duration        respjson.Field
 		Language        respjson.Field
 		Segments        respjson.Field
-		Task            respjson.Field
 		Text            respjson.Field
 		SpeakerSegments respjson.Field
 		Words           respjson.Field
@@ -278,7 +269,7 @@ func (r *AudioTranscriptionNewResponseAudioTranscriptionVerboseJsonResponseWord)
 
 type AudioTranscriptionNewParams struct {
 	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
-	// .webm, .flac.
+	// .webm, .flac, .ogg, .opus, .aac.
 	File AudioTranscriptionNewParamsFileUnion `json:"file,omitzero" api:"required" format:"binary"`
 	// Whether to enable speaker diarization. When enabled, you will get the speaker id
 	// for each word in the transcription. In the response, in the words array, you
@@ -300,7 +291,10 @@ type AudioTranscriptionNewParams struct {
 	// Minimum number of speakers expected in the audio. Used to improve diarization
 	// accuracy when the approximate number of speakers is known.
 	MinSpeakers param.Opt[int64] `json:"min_speakers,omitzero"`
-	// Optional text to bias decoding.
+	// Optional text to bias decoding. Supported only on Whisper-family models (e.g.
+	// `openai/whisper-large-v3`). Other STT models (e.g.
+	// `nvidia/parakeet-tdt-0.6b-v3`) accept the field for API compatibility but ignore
+	// it.
 	Prompt param.Opt[string] `json:"prompt,omitzero"`
 	// Sampling temperature between 0.0 and 1.0
 	Temperature param.Opt[float64] `json:"temperature,omitzero"`

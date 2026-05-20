@@ -38,7 +38,7 @@ func NewVideoService(opts ...option.RequestOption) (r VideoService) {
 // Create a video
 func (r *VideoService) New(ctx context.Context, body VideoNewParams, opts ...option.RequestOption) (res *VideoJob, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.xyz/v2/")}, opts...)
+	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	path := "videos"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
@@ -47,7 +47,7 @@ func (r *VideoService) New(ctx context.Context, body VideoNewParams, opts ...opt
 // Fetch video metadata
 func (r *VideoService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *VideoJob, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.xyz/v2/")}, opts...)
+	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return nil, err
@@ -283,8 +283,9 @@ const (
 // Media inputs for video generation. The accepted fields depend on the model type
 // (e.g. i2v, r2v, t2v, videoedit).
 type VideoNewParamsMedia struct {
-	// Array of audio inputs.
-	AudioInputs []VideoNewParamsMediaAudioInput `json:"audio_inputs,omitzero"`
+	// Array of audio inputs. Each element accepts a URL string or an object with an
+	// "audio" key.
+	AudioInputs []VideoNewParamsMediaAudioInputUnion `json:"audio_inputs,omitzero"`
 	// Array of images to guide video generation at specific timeline positions.
 	FrameImages []VideoNewParamsMediaFrameImage `json:"frame_images,omitzero"`
 	// Array of video clips to use as starting clips.
@@ -293,8 +294,8 @@ type VideoNewParamsMedia struct {
 	ReferenceImages []string `json:"reference_images,omitzero"`
 	// Array of reference videos.
 	ReferenceVideos []VideoNewParamsMediaReferenceVideo `json:"reference_videos,omitzero"`
-	// Source video to edit.
-	SourceVideo VideoNewParamsMediaSourceVideo `json:"source_video,omitzero"`
+	// Source video to edit. Accepts a URL string or an object with a "video" key.
+	SourceVideo VideoNewParamsMediaSourceVideoUnion `json:"source_video,omitzero"`
 	paramObj
 }
 
@@ -306,18 +307,43 @@ func (r *VideoNewParamsMedia) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Only one field can be non-zero.
+//
+// Use [param.IsOmitted] to confirm if a field is set.
+type VideoNewParamsMediaAudioInputUnion struct {
+	OfString                           param.Opt[string]                      `json:",omitzero,inline"`
+	OfVideoNewsMediaAudioInputAudioRef *VideoNewParamsMediaAudioInputAudioRef `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u VideoNewParamsMediaAudioInputUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfString, u.OfVideoNewsMediaAudioInputAudioRef)
+}
+func (u *VideoNewParamsMediaAudioInputUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *VideoNewParamsMediaAudioInputUnion) asAny() any {
+	if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	} else if !param.IsOmitted(u.OfVideoNewsMediaAudioInputAudioRef) {
+		return u.OfVideoNewsMediaAudioInputAudioRef
+	}
+	return nil
+}
+
 // The property Audio is required.
-type VideoNewParamsMediaAudioInput struct {
+type VideoNewParamsMediaAudioInputAudioRef struct {
 	// URL of the audio.
 	Audio string `json:"audio" api:"required"`
 	paramObj
 }
 
-func (r VideoNewParamsMediaAudioInput) MarshalJSON() (data []byte, err error) {
-	type shadow VideoNewParamsMediaAudioInput
+func (r VideoNewParamsMediaAudioInputAudioRef) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMediaAudioInputAudioRef
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *VideoNewParamsMediaAudioInput) UnmarshalJSON(data []byte) error {
+func (r *VideoNewParamsMediaAudioInputAudioRef) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -407,20 +433,43 @@ func (r *VideoNewParamsMediaReferenceVideo) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Source video to edit.
+// Only one field can be non-zero.
 //
+// Use [param.IsOmitted] to confirm if a field is set.
+type VideoNewParamsMediaSourceVideoUnion struct {
+	OfString                            param.Opt[string]                       `json:",omitzero,inline"`
+	OfVideoNewsMediaSourceVideoVideoRef *VideoNewParamsMediaSourceVideoVideoRef `json:",omitzero,inline"`
+	paramUnion
+}
+
+func (u VideoNewParamsMediaSourceVideoUnion) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfString, u.OfVideoNewsMediaSourceVideoVideoRef)
+}
+func (u *VideoNewParamsMediaSourceVideoUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, u)
+}
+
+func (u *VideoNewParamsMediaSourceVideoUnion) asAny() any {
+	if !param.IsOmitted(u.OfString) {
+		return &u.OfString.Value
+	} else if !param.IsOmitted(u.OfVideoNewsMediaSourceVideoVideoRef) {
+		return u.OfVideoNewsMediaSourceVideoVideoRef
+	}
+	return nil
+}
+
 // The property Video is required.
-type VideoNewParamsMediaSourceVideo struct {
+type VideoNewParamsMediaSourceVideoVideoRef struct {
 	// URL of the video.
 	Video string `json:"video" api:"required"`
 	paramObj
 }
 
-func (r VideoNewParamsMediaSourceVideo) MarshalJSON() (data []byte, err error) {
-	type shadow VideoNewParamsMediaSourceVideo
+func (r VideoNewParamsMediaSourceVideoVideoRef) MarshalJSON() (data []byte, err error) {
+	type shadow VideoNewParamsMediaSourceVideoVideoRef
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *VideoNewParamsMediaSourceVideo) UnmarshalJSON(data []byte) error {
+func (r *VideoNewParamsMediaSourceVideoVideoRef) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

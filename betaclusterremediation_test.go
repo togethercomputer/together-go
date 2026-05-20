@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
+func TestBetaClusterRemediationNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,12 +25,18 @@ func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.New(context.TODO(), together.BetaClusterStorageNewParams{
-		Region:                 "region",
-		SizeTib:                0,
-		VolumeName:             "volume_name",
-		IsLifecycleIndependent: together.Bool(true),
-	})
+	_, err := client.Beta.Clusters.Remediations.New(
+		context.TODO(),
+		"instance_id",
+		together.BetaClusterRemediationNewParams{
+			ClusterID: "cluster_id",
+			Remediation: together.RemediationParam{
+				Mode:   together.RemediationModeRemediationModeVmOnly,
+				Reason: together.String("reason"),
+			},
+			RemediationID: together.String("remediation_id"),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -40,7 +46,7 @@ func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageGet(t *testing.T) {
+func TestBetaClusterRemediationGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -52,7 +58,14 @@ func TestBetaClusterStorageGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.Get(context.TODO(), "volume_id")
+	_, err := client.Beta.Clusters.Remediations.Get(
+		context.TODO(),
+		"remediation_id",
+		together.BetaClusterRemediationGetParams{
+			ClusterID:  "cluster_id",
+			InstanceID: "instance_id",
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -62,7 +75,7 @@ func TestBetaClusterStorageGet(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
+func TestBetaClusterRemediationListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -74,10 +87,19 @@ func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.Update(context.TODO(), together.BetaClusterStorageUpdateParams{
-		VolumeID: "volume_id",
-		SizeTib:  together.Int(0),
-	})
+	_, err := client.Beta.Clusters.Remediations.List(
+		context.TODO(),
+		"instance_id",
+		together.BetaClusterRemediationListParams{
+			ClusterID: "cluster_id",
+			Mode:      []string{"REMEDIATION_MODE_VM_ONLY"},
+			OrderBy:   together.String("order_by"),
+			PageSize:  together.Int(0),
+			PageToken: together.String("page_token"),
+			State:     []string{"PENDING_APPROVAL"},
+			Trigger:   []string{"REMEDIATION_TRIGGER_MANUAL"},
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -87,7 +109,7 @@ func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageListWithOptionalParams(t *testing.T) {
+func TestBetaClusterRemediationApproveWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -99,9 +121,15 @@ func TestBetaClusterStorageListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.List(context.TODO(), together.BetaClusterStorageListParams{
-		ProjectID: together.String("project_id"),
-	})
+	_, err := client.Beta.Clusters.Remediations.Approve(
+		context.TODO(),
+		"remediation_id",
+		together.BetaClusterRemediationApproveParams{
+			ClusterID:  "cluster_id",
+			InstanceID: "instance_id",
+			Comment:    together.String("comment"),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -111,7 +139,7 @@ func TestBetaClusterStorageListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageDelete(t *testing.T) {
+func TestBetaClusterRemediationCancel(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -123,7 +151,44 @@ func TestBetaClusterStorageDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.Delete(context.TODO(), "volume_id")
+	_, err := client.Beta.Clusters.Remediations.Cancel(
+		context.TODO(),
+		"remediation_id",
+		together.BetaClusterRemediationCancelParams{
+			ClusterID:  "cluster_id",
+			InstanceID: "instance_id",
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestBetaClusterRemediationRejectWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Beta.Clusters.Remediations.Reject(
+		context.TODO(),
+		"remediation_id",
+		together.BetaClusterRemediationRejectParams{
+			ClusterID:  "cluster_id",
+			InstanceID: "instance_id",
+			Comment:    together.String("comment"),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

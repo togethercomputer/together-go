@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
+	"github.com/togethercomputer/together-go/internal/apiquery"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
@@ -68,10 +70,10 @@ func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaCluster
 }
 
 // List all shared volumes.
-func (r *BetaClusterStorageService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaClusterStorageListResponse, err error) {
+func (r *BetaClusterStorageService) List(ctx context.Context, query BetaClusterStorageListParams, opts ...option.RequestOption) (res *BetaClusterStorageListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
@@ -89,15 +91,16 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 }
 
 type ClusterStorage struct {
-	// Size of the volume in whole tebibytes (TiB).
+	// Size of the volume in TiB.
 	SizeTib int64 `json:"size_tib" api:"required"`
-	// Deployment status of the volume.
+	// Current status of the shared volume.
 	//
-	// Any of "available", "bound", "provisioning".
+	// Any of "scheduled", "available", "bound", "provisioning", "deleting", "failed",
+	// "access_revoked", "unknown".
 	Status ClusterStorageStatus `json:"status" api:"required"`
 	// ID of the volume.
 	VolumeID string `json:"volume_id" api:"required"`
-	// Provided name of the volume.
+	// User provided name of the volume.
 	VolumeName string `json:"volume_name" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -116,13 +119,18 @@ func (r *ClusterStorage) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Deployment status of the volume.
+// Current status of the shared volume.
 type ClusterStorageStatus string
 
 const (
-	ClusterStorageStatusAvailable    ClusterStorageStatus = "available"
-	ClusterStorageStatusBound        ClusterStorageStatus = "bound"
-	ClusterStorageStatusProvisioning ClusterStorageStatus = "provisioning"
+	ClusterStorageStatusScheduled     ClusterStorageStatus = "scheduled"
+	ClusterStorageStatusAvailable     ClusterStorageStatus = "available"
+	ClusterStorageStatusBound         ClusterStorageStatus = "bound"
+	ClusterStorageStatusProvisioning  ClusterStorageStatus = "provisioning"
+	ClusterStorageStatusDeleting      ClusterStorageStatus = "deleting"
+	ClusterStorageStatusFailed        ClusterStorageStatus = "failed"
+	ClusterStorageStatusAccessRevoked ClusterStorageStatus = "access_revoked"
+	ClusterStorageStatusUnknown       ClusterStorageStatus = "unknown"
 )
 
 type BetaClusterStorageListResponse struct {
@@ -158,12 +166,14 @@ func (r *BetaClusterStorageDeleteResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageNewParams struct {
-	// Region name. Usable regions can be found from `client.clusters.list_regions()`
+	// Region name. Usable regions can be found from `clusters.list_regions()`
 	Region string `json:"region" api:"required"`
 	// Volume size in whole tebibytes (TiB).
 	SizeTib int64 `json:"size_tib" api:"required"`
-	// Customizable name of the volume to create.
+	// User provided name of the volume.
 	VolumeName string `json:"volume_name" api:"required"`
+	// When true, the shared volume is not deleted when the cluster is decommissioned.
+	IsLifecycleIndependent param.Opt[bool] `json:"is_lifecycle_independent,omitzero"`
 	paramObj
 }
 
@@ -176,10 +186,10 @@ func (r *BetaClusterStorageNewParams) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterStorageUpdateParams struct {
-	// Size of the volume in whole tebibytes (TiB).
+	// ID of the volume.
+	VolumeID string `json:"volume_id" api:"required"`
+	// Size of the volume in TiB.
 	SizeTib param.Opt[int64] `json:"size_tib,omitzero"`
-	// ID of the volume to update.
-	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
 	paramObj
 }
 
@@ -189,4 +199,21 @@ func (r BetaClusterStorageUpdateParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *BetaClusterStorageUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaClusterStorageListParams struct {
+	// Optional UMS project ID to filter volumes by. When set, only volumes belonging
+	// to this project are returned. The caller must be a member of the project;
+	// otherwise the result set will be empty.
+	ProjectID param.Opt[string] `query:"project_id,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [BetaClusterStorageListParams]'s query parameters as
+// `url.Values`.
+func (r BetaClusterStorageListParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }

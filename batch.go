@@ -156,8 +156,17 @@ func (r *BatchNewResponse) UnmarshalJSON(data []byte) error {
 }
 
 type BatchNewParams struct {
-	// The endpoint to use for batch processing
-	Endpoint string `json:"endpoint" api:"required"`
+	// The endpoint to use for batch processing. Each line of the uploaded input file
+	// is dispatched against this endpoint.
+	//
+	//   - `/v1/chat/completions` — chat completion batches
+	//   - `/v1/audio/transcriptions` — audio transcription batches (e.g.
+	//     `openai/whisper-large-v3`)
+	//   - `/v1/audio/translations` — audio translation batches
+	//
+	// Any of "/v1/chat/completions", "/v1/audio/transcriptions",
+	// "/v1/audio/translations".
+	Endpoint BatchNewParamsEndpoint `json:"endpoint,omitzero" api:"required"`
 	// ID of the uploaded input file containing batch requests
 	InputFileID string `json:"input_file_id" api:"required"`
 	// Time window for batch completion (optional)
@@ -176,3 +185,18 @@ func (r BatchNewParams) MarshalJSON() (data []byte, err error) {
 func (r *BatchNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// The endpoint to use for batch processing. Each line of the uploaded input file
+// is dispatched against this endpoint.
+//
+//   - `/v1/chat/completions` — chat completion batches
+//   - `/v1/audio/transcriptions` — audio transcription batches (e.g.
+//     `openai/whisper-large-v3`)
+//   - `/v1/audio/translations` — audio translation batches
+type BatchNewParamsEndpoint string
+
+const (
+	BatchNewParamsEndpointV1ChatCompletions     BatchNewParamsEndpoint = "/v1/chat/completions"
+	BatchNewParamsEndpointV1AudioTranscriptions BatchNewParamsEndpoint = "/v1/audio/transcriptions"
+	BatchNewParamsEndpointV1AudioTranslations   BatchNewParamsEndpoint = "/v1/audio/translations"
+)

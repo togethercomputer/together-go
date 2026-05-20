@@ -64,16 +64,12 @@ type AudioTranslationNewResponseUnion struct {
 	Segments []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment `json:"segments"`
 	// This field is from variant
 	// [AudioTranslationNewResponseAudioTranslationVerboseJsonResponse].
-	Task string `json:"task"`
-	// This field is from variant
-	// [AudioTranslationNewResponseAudioTranslationVerboseJsonResponse].
 	Words []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord `json:"words"`
 	JSON  struct {
 		Text     respjson.Field
 		Duration respjson.Field
 		Language respjson.Field
 		Segments respjson.Field
-		Task     respjson.Field
 		Words    respjson.Field
 		raw      string
 	} `json:"-"`
@@ -120,10 +116,6 @@ type AudioTranslationNewResponseAudioTranslationVerboseJsonResponse struct {
 	Language string `json:"language" api:"required"`
 	// Array of translation segments
 	Segments []AudioTranslationNewResponseAudioTranslationVerboseJsonResponseSegment `json:"segments" api:"required"`
-	// The task performed
-	//
-	// Any of "transcribe", "translate".
-	Task string `json:"task" api:"required"`
 	// The translated text
 	Text string `json:"text" api:"required"`
 	// Array of translation words (only when timestamp_granularities includes 'word')
@@ -133,7 +125,6 @@ type AudioTranslationNewResponseAudioTranslationVerboseJsonResponse struct {
 		Duration    respjson.Field
 		Language    respjson.Field
 		Segments    respjson.Field
-		Task        respjson.Field
 		Text        respjson.Field
 		Words       respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -207,12 +198,15 @@ func (r *AudioTranslationNewResponseAudioTranslationVerboseJsonResponseWord) Unm
 
 type AudioTranslationNewParams struct {
 	// Audio file upload or public HTTP/HTTPS URL. Supported formats .wav, .mp3, .m4a,
-	// .webm, .flac.
+	// .webm, .flac, .ogg, .opus, .aac.
 	File AudioTranslationNewParamsFileUnion `json:"file,omitzero" api:"required" format:"binary"`
 	// Target output language. Optional ISO 639-1 language code. If omitted, language
 	// is set to English.
 	Language param.Opt[string] `json:"language,omitzero"`
-	// Optional text to bias decoding.
+	// Optional text to bias decoding. Supported only on Whisper-family models (e.g.
+	// `openai/whisper-large-v3`). Other STT models (e.g.
+	// `nvidia/parakeet-tdt-0.6b-v3`) accept the field for API compatibility but ignore
+	// it.
 	Prompt param.Opt[string] `json:"prompt,omitzero"`
 	// Sampling temperature between 0.0 and 1.0
 	Temperature param.Opt[float64] `json:"temperature,omitzero"`

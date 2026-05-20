@@ -135,7 +135,7 @@ type Deployment struct {
 	GPUCount int64 `json:"gpu_count"`
 	// GPUType specifies the type of GPU requested (if any) for this deployment
 	//
-	// Any of "h100-80gb", " a100-80gb".
+	// Any of "h100-80gb", "h100-40gb-mig", "h200-140gb", "b200-192gb".
 	GPUType DeploymentGPUType `json:"gpu_type"`
 	// HealthCheckPath is the HTTP path used for health checks of the application
 	HealthCheckPath string `json:"health_check_path"`
@@ -163,44 +163,48 @@ type Deployment struct {
 	// Status represents the overall status of the deployment (e.g., Updating, Scaling,
 	// Ready, Failed)
 	//
-	// Any of "Updating", "Scaling", "Ready", "Failed".
+	// Any of "Updating", "Scaling", "Ready", "Failed", "ScaledToZero".
 	Status DeploymentStatus `json:"status"`
 	// Storage is the amount of storage (in MB or units as defined by the platform)
 	// allocated to each replica
 	Storage int64 `json:"storage"`
+	// TerminationGracePeriodSeconds is the time in seconds to wait for graceful
+	// shutdown before forcefully terminating the replica
+	TerminationGracePeriodSeconds int64 `json:"termination_grace_period_seconds"`
 	// UpdatedAt is the ISO8601 timestamp when this deployment was last updated
 	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 	// Volumes is a list of volume mounts for this deployment
 	Volumes []DeploymentVolume `json:"volumes"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID                   respjson.Field
-		Args                 respjson.Field
-		Autoscaling          respjson.Field
-		Command              respjson.Field
-		CPU                  respjson.Field
-		CreatedAt            respjson.Field
-		Description          respjson.Field
-		DesiredReplicas      respjson.Field
-		EnvironmentVariables respjson.Field
-		GPUCount             respjson.Field
-		GPUType              respjson.Field
-		HealthCheckPath      respjson.Field
-		Image                respjson.Field
-		MaxReplicas          respjson.Field
-		Memory               respjson.Field
-		MinReplicas          respjson.Field
-		Name                 respjson.Field
-		Object               respjson.Field
-		Port                 respjson.Field
-		ReadyReplicas        respjson.Field
-		ReplicaEvents        respjson.Field
-		Status               respjson.Field
-		Storage              respjson.Field
-		UpdatedAt            respjson.Field
-		Volumes              respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
+		ID                            respjson.Field
+		Args                          respjson.Field
+		Autoscaling                   respjson.Field
+		Command                       respjson.Field
+		CPU                           respjson.Field
+		CreatedAt                     respjson.Field
+		Description                   respjson.Field
+		DesiredReplicas               respjson.Field
+		EnvironmentVariables          respjson.Field
+		GPUCount                      respjson.Field
+		GPUType                       respjson.Field
+		HealthCheckPath               respjson.Field
+		Image                         respjson.Field
+		MaxReplicas                   respjson.Field
+		Memory                        respjson.Field
+		MinReplicas                   respjson.Field
+		Name                          respjson.Field
+		Object                        respjson.Field
+		Port                          respjson.Field
+		ReadyReplicas                 respjson.Field
+		ReplicaEvents                 respjson.Field
+		Status                        respjson.Field
+		Storage                       respjson.Field
+		TerminationGracePeriodSeconds respjson.Field
+		UpdatedAt                     respjson.Field
+		Volumes                       respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
 	} `json:"-"`
 }
 
@@ -369,8 +373,10 @@ func (r *DeploymentEnvironmentVariable) UnmarshalJSON(data []byte) error {
 type DeploymentGPUType string
 
 const (
-	DeploymentGPUTypeH100_80gb DeploymentGPUType = "h100-80gb"
-	DeploymentGPUTypeA100_80gb DeploymentGPUType = " a100-80gb"
+	DeploymentGPUTypeH100_80gb    DeploymentGPUType = "h100-80gb"
+	DeploymentGPUTypeH100_40gbMig DeploymentGPUType = "h100-40gb-mig"
+	DeploymentGPUTypeH200_140gb   DeploymentGPUType = "h200-140gb"
+	DeploymentGPUTypeB200_192gb   DeploymentGPUType = "b200-192gb"
 )
 
 // The object type, which is always `deployment`.
@@ -431,15 +437,15 @@ func (r *DeploymentReplicaEvent) UnmarshalJSON(data []byte) error {
 type DeploymentStatus string
 
 const (
-	DeploymentStatusUpdating DeploymentStatus = "Updating"
-	DeploymentStatusScaling  DeploymentStatus = "Scaling"
-	DeploymentStatusReady    DeploymentStatus = "Ready"
-	DeploymentStatusFailed   DeploymentStatus = "Failed"
+	DeploymentStatusUpdating     DeploymentStatus = "Updating"
+	DeploymentStatusScaling      DeploymentStatus = "Scaling"
+	DeploymentStatusReady        DeploymentStatus = "Ready"
+	DeploymentStatusFailed       DeploymentStatus = "Failed"
+	DeploymentStatusScaledToZero DeploymentStatus = "ScaledToZero"
 )
 
 type DeploymentVolume struct {
-	// MountPath is the path in the container where the volume will be mounted (e.g.,
-	// "/data")
+	// MountPath is the path in the container where the volume mounts (e.g., "/data").
 	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
@@ -551,14 +557,14 @@ type BetaJigUpdateParams struct {
 	// ["/bin/sh", "-c"])
 	Command []string `json:"command,omitzero"`
 	// EnvironmentVariables is a list of environment variables to set in the container.
-	// This will replace all existing environment variables
+	// Replaces all existing environment variables.
 	EnvironmentVariables []BetaJigUpdateParamsEnvironmentVariable `json:"environment_variables,omitzero"`
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb")
 	//
-	// Any of "h100-80gb".
+	// Any of "h100-80gb", "h100-40gb-mig", "h200-140gb", "b200-192gb".
 	GPUType BetaJigUpdateParamsGPUType `json:"gpu_type,omitzero"`
-	// Volumes is a list of volume mounts to attach to the container. This will replace
-	// all existing volumes
+	// Volumes is a list of volume mounts to attach to the container. Replaces all
+	// existing volumes.
 	Volumes []BetaJigUpdateParamsVolume `json:"volumes,omitzero"`
 	paramObj
 }
@@ -758,13 +764,15 @@ func (r *BetaJigUpdateParamsEnvironmentVariable) UnmarshalJSON(data []byte) erro
 type BetaJigUpdateParamsGPUType string
 
 const (
-	BetaJigUpdateParamsGPUTypeH100_80gb BetaJigUpdateParamsGPUType = "h100-80gb"
+	BetaJigUpdateParamsGPUTypeH100_80gb    BetaJigUpdateParamsGPUType = "h100-80gb"
+	BetaJigUpdateParamsGPUTypeH100_40gbMig BetaJigUpdateParamsGPUType = "h100-40gb-mig"
+	BetaJigUpdateParamsGPUTypeH200_140gb   BetaJigUpdateParamsGPUType = "h200-140gb"
+	BetaJigUpdateParamsGPUTypeB200_192gb   BetaJigUpdateParamsGPUType = "b200-192gb"
 )
 
 // The properties MountPath, Name are required.
 type BetaJigUpdateParamsVolume struct {
-	// MountPath is the path in the container where the volume will be mounted (e.g.,
-	// "/data")
+	// MountPath is the path in the container where the volume mounts (e.g., "/data").
 	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
@@ -786,7 +794,7 @@ func (r *BetaJigUpdateParamsVolume) UnmarshalJSON(data []byte) error {
 type BetaJigDeployParams struct {
 	// GPUType specifies the GPU hardware to use (e.g., "h100-80gb").
 	//
-	// Any of "h100-80gb".
+	// Any of "h100-80gb", "h100-40gb-mig", "h200-140gb", "b200-192gb".
 	GPUType BetaJigDeployParamsGPUType `json:"gpu_type,omitzero" api:"required"`
 	// Image is the container image to deploy from registry.together.ai.
 	Image string `json:"image" api:"required"`
@@ -802,10 +810,10 @@ type BetaJigDeployParams struct {
 	// if not specified
 	GPUCount param.Opt[int64] `json:"gpu_count,omitzero"`
 	// HealthCheckPath is the HTTP path for health checks (e.g., "/health"). If set,
-	// the platform will check this endpoint to determine container health
+	// the platform checks this endpoint to determine container health.
 	HealthCheckPath param.Opt[string] `json:"health_check_path,omitzero"`
-	// MaxReplicas is the maximum number of container instances that can be scaled up
-	// to. If not set, will be set to MinReplicas
+	// MaxReplicas is the maximum number of container instances. Defaults to
+	// MinReplicas if not set.
 	MaxReplicas param.Opt[int64] `json:"max_replicas,omitzero"`
 	// Memory is the amount of RAM to allocate per container instance in GiB (e.g., 0.5
 	// = 512MiB)
@@ -853,7 +861,10 @@ func (r *BetaJigDeployParams) UnmarshalJSON(data []byte) error {
 type BetaJigDeployParamsGPUType string
 
 const (
-	BetaJigDeployParamsGPUTypeH100_80gb BetaJigDeployParamsGPUType = "h100-80gb"
+	BetaJigDeployParamsGPUTypeH100_80gb    BetaJigDeployParamsGPUType = "h100-80gb"
+	BetaJigDeployParamsGPUTypeH100_40gbMig BetaJigDeployParamsGPUType = "h100-40gb-mig"
+	BetaJigDeployParamsGPUTypeH200_140gb   BetaJigDeployParamsGPUType = "h200-140gb"
+	BetaJigDeployParamsGPUTypeB200_192gb   BetaJigDeployParamsGPUType = "b200-192gb"
 )
 
 // Only one field can be non-zero.
@@ -1041,8 +1052,7 @@ func (r *BetaJigDeployParamsEnvironmentVariable) UnmarshalJSON(data []byte) erro
 
 // The properties MountPath, Name are required.
 type BetaJigDeployParamsVolume struct {
-	// MountPath is the path in the container where the volume will be mounted (e.g.,
-	// "/data")
+	// MountPath is the path in the container where the volume mounts (e.g., "/data").
 	MountPath string `json:"mount_path" api:"required"`
 	// Name is the name of the volume to mount. Must reference an existing volume by
 	// name or ID
@@ -1064,6 +1074,11 @@ func (r *BetaJigDeployParamsVolume) UnmarshalJSON(data []byte) error {
 type BetaJigGetLogsParams struct {
 	// Replica ID to filter logs
 	ReplicaID param.Opt[string] `query:"replica_id,omitzero" json:"-"`
+	// Deployment revision (UUID) to filter logs
+	Revision param.Opt[string] `query:"revision,omitzero" json:"-"`
+	// Deployment image version (tag or last 4 characters of image digest) to filter
+	// logs
+	Version param.Opt[string] `query:"version,omitzero" json:"-"`
 	paramObj
 }
 

@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
@@ -33,14 +34,15 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		Model:        "model",
 		TrainingFile: "training_file",
 		BatchSize: together.FineTuningNewParamsBatchSizeUnion{
-			OfInt: together.Int(0),
+			OfFineTuningNewsBatchSizeString: together.String("max"),
 		},
-		FromCheckpoint:   together.String("from_checkpoint"),
-		FromHfModel:      together.String("from_hf_model"),
-		HfAPIToken:       together.String("hf_api_token"),
-		HfModelRevision:  together.String("hf_model_revision"),
-		HfOutputRepoName: together.String("hf_output_repo_name"),
-		LearningRate:     together.Float(0),
+		FromCheckpoint:            together.String("from_checkpoint"),
+		FromHfModel:               together.String("from_hf_model"),
+		GradientAccumulationSteps: together.Int(0),
+		HfAPIToken:                together.String("hf_api_token"),
+		HfModelRevision:           together.String("hf_model_revision"),
+		HfOutputRepoName:          together.String("hf_output_repo_name"),
+		LearningRate:              together.Float(0),
 		LrScheduler: together.FineTuningNewParamsLrScheduler{
 			LrSchedulerType: "linear",
 			LrSchedulerArgs: together.FineTuningNewParamsLrSchedulerLrSchedulerArgsUnion{
@@ -49,7 +51,8 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 				},
 			},
 		},
-		MaxGradNorm: together.Float(0),
+		MaxGradNorm:  together.Float(0),
+		MaxSeqLength: together.Int(0),
 		MultimodalParams: together.FineTuningNewParamsMultimodalParams{
 			TrainVision: together.Bool(true),
 		},
@@ -60,13 +63,13 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		RandomSeed:   together.Int(0),
 		Suffix:       together.String("suffix"),
 		TrainOnInputs: together.FineTuningNewParamsTrainOnInputsUnion{
-			OfBool: together.Bool(true),
+			OfFineTuningNewsTrainOnInputsString: together.String("auto"),
 		},
 		TrainingMethod: together.FineTuningNewParamsTrainingMethodUnion{
 			OfFineTuningNewsTrainingMethodTrainingMethodSft: &together.FineTuningNewParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
 				TrainOnInputs: together.FineTuningNewParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion{
-					OfBool: together.Bool(true),
+					OfFineTuningNewsTrainingMethodTrainingMethodSftTrainOnInputsString: together.String("auto"),
 				},
 			},
 		},
@@ -247,7 +250,7 @@ func TestFineTuningEstimatePriceWithOptionalParams(t *testing.T) {
 			OfFineTuningEstimatePricesTrainingMethodTrainingMethodSft: &together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
 				TrainOnInputs: together.FineTuningEstimatePriceParamsTrainingMethodTrainingMethodSftTrainOnInputsUnion{
-					OfBool: together.Bool(true),
+					OfFineTuningEstimatePricesTrainingMethodTrainingMethodSftTrainOnInputsString: together.String("auto"),
 				},
 			},
 		},
@@ -302,6 +305,38 @@ func TestFineTuningListEvents(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.FineTuning.ListEvents(context.TODO(), "id")
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestFineTuningListMetricsWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.FineTuning.ListMetrics(
+		context.TODO(),
+		"id",
+		together.FineTuningListMetricsParams{
+			GlobalStepFrom: together.Int(0),
+			GlobalStepTo:   together.Int(0),
+			LoggedAtFrom:   together.Time(time.Now()),
+			LoggedAtTo:     together.Time(time.Now()),
+			Resolution:     together.Int(0),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

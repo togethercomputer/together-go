@@ -112,13 +112,9 @@ func (r *FileList) UnmarshalJSON(data []byte) error {
 type FilePurpose string
 
 const (
-	FilePurposeFineTune       FilePurpose = "fine-tune"
-	FilePurposeEval           FilePurpose = "eval"
-	FilePurposeEvalSample     FilePurpose = "eval-sample"
-	FilePurposeEvalOutput     FilePurpose = "eval-output"
-	FilePurposeEvalSummary    FilePurpose = "eval-summary"
-	FilePurposeBatchGenerated FilePurpose = "batch-generated"
-	FilePurposeBatchAPI       FilePurpose = "batch-api"
+	FilePurposeFineTune FilePurpose = "fine-tune"
+	FilePurposeEval     FilePurpose = "eval"
+	FilePurposeBatchAPI FilePurpose = "batch-api"
 )
 
 // Structured information describing a file uploaded to Together.
@@ -141,8 +137,7 @@ type FileResponse struct {
 	Processed bool `json:"Processed" api:"required"`
 	// The purpose of the file as it was uploaded.
 	//
-	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
-	// "batch-generated", "batch-api".
+	// Any of "fine-tune", "eval", "batch-api".
 	Purpose FilePurpose `json:"purpose" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -199,8 +194,7 @@ type FileUploadParams struct {
 	FileName string `json:"file_name" api:"required"`
 	// The purpose of the file
 	//
-	// Any of "fine-tune", "eval", "eval-sample", "eval-output", "eval-summary",
-	// "batch-generated", "batch-api".
+	// Any of "fine-tune", "eval", "batch-api".
 	Purpose FilePurpose `json:"purpose,omitzero" api:"required"`
 	// The type of the file
 	//

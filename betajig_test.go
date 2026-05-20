@@ -210,6 +210,8 @@ func TestBetaJigGetLogsWithOptionalParams(t *testing.T) {
 		"id",
 		together.BetaJigGetLogsParams{
 			ReplicaID: together.String("replica_id"),
+			Revision:  together.String("revision"),
+			Version:   together.String("version"),
 		},
 	)
 	if err != nil {

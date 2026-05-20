@@ -31,20 +31,20 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 		FrameImages: []together.VideoNewParamsFrameImage{{
 			InputImage: "input_image",
 			Frame: together.VideoNewParamsFrameImageFrameUnion{
-				OfFloat: together.Float(0),
+				OfVideoNewsFrameImageFrameString: together.String("first"),
 			},
 		}},
 		GenerateAudio: together.Bool(true),
 		GuidanceScale: together.Int(0),
 		Height:        together.Int(0),
 		Media: together.VideoNewParamsMedia{
-			AudioInputs: []together.VideoNewParamsMediaAudioInput{{
-				Audio: "audio",
+			AudioInputs: []together.VideoNewParamsMediaAudioInputUnion{{
+				OfString: together.String("string"),
 			}},
 			FrameImages: []together.VideoNewParamsMediaFrameImage{{
 				InputImage: "input_image",
 				Frame: together.VideoNewParamsMediaFrameImageFrameUnion{
-					OfFloat: together.Float(0),
+					OfVideoNewsMediaFrameImageFrameString: together.String("first"),
 				},
 			}},
 			FrameVideos: []together.VideoNewParamsMediaFrameVideo{{
@@ -54,8 +54,8 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 			ReferenceVideos: []together.VideoNewParamsMediaReferenceVideo{{
 				Video: "video",
 			}},
-			SourceVideo: together.VideoNewParamsMediaSourceVideo{
-				Video: "video",
+			SourceVideo: together.VideoNewParamsMediaSourceVideoUnion{
+				OfString: together.String("string"),
 			},
 		},
 		NegativePrompt:  together.String("negative_prompt"),
