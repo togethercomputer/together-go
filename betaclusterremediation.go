@@ -221,6 +221,8 @@ type Remediation struct {
 	EndTime time.Time `json:"end_time" format:"date-time"`
 	// Error message if the remediation failed.
 	ErrorMessage string `json:"error_message"`
+	// Display name of the targeted instance.
+	InstanceName string `json:"instance_name"`
 	// Passive health check event ID that triggered this remediation.
 	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
 	// User-provided reason for the remediation.
@@ -249,6 +251,7 @@ type Remediation struct {
 		CreateTime                respjson.Field
 		EndTime                   respjson.Field
 		ErrorMessage              respjson.Field
+		InstanceName              respjson.Field
 		PassiveHealthCheckEventID respjson.Field
 		Reason                    respjson.Field
 		RequestedBy               respjson.Field
