@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.1 (2026-05-22)
+
+Full Changelog: [v0.10.0...v0.10.1](https://github.com/togethercomputer/together-go/compare/v0.10.0...v0.10.1)
+
+### Documentation
+
+* **api:** update file parameter docs in audiotranscription/audiotranslation ([f698768](https://github.com/togethercomputer/together-go/commit/f6987680ac3f1b7a3c54dcc7377c2c4af8781aec))
+
 ## 0.10.0 (2026-05-20)
 
 Full Changelog: [v0.9.0...v0.10.0](https://github.com/togethercomputer/together-go/compare/v0.9.0...v0.10.0)
