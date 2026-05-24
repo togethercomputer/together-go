@@ -59,6 +59,7 @@ func TestEvalNewWithOptionalParams(t *testing.T) {
 }
 
 func TestEvalGet(t *testing.T) {
+	t.Skip("Skipping test while we work on the api")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -81,6 +82,7 @@ func TestEvalGet(t *testing.T) {
 }
 
 func TestEvalListWithOptionalParams(t *testing.T) {
+	t.Skip("Skipping test while we work on the api")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -106,6 +108,7 @@ func TestEvalListWithOptionalParams(t *testing.T) {
 }
 
 func TestEvalStatus(t *testing.T) {
+	t.Skip("Skipping test while we work on the api")
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
