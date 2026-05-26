@@ -301,7 +301,7 @@ type EvaluationJobResultsEvaluationCompareResults struct {
 	// flipped-order judge fields; in single-pass mode
 	// (disable_position_bias_correction=true) only original-order fields are present.
 	ResultFileID string `json:"result_file_id"`
-	// Number of samples that resulted in a tie
+	// Number of samples that resulted in a tie score
 	Ties int64 `json:"Ties"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -601,7 +601,7 @@ type EvalStatusResponseResultsEvaluationCompareResults struct {
 	// flipped-order judge fields; in single-pass mode
 	// (disable_position_bias_correction=true) only original-order fields are present.
 	ResultFileID string `json:"result_file_id"`
-	// Number of samples that resulted in a tie
+	// Number of samples that resulted in a tie score
 	Ties int64 `json:"Ties"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
