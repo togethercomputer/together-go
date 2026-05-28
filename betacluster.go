@@ -816,9 +816,6 @@ type BetaClusterNewParams struct {
 	CapacityPoolID param.Opt[string] `json:"capacity_pool_id,omitzero"`
 	// Duration in days to keep the cluster running.
 	DurationDays param.Opt[int64] `json:"duration_days,omitzero"`
-	// Whether automated GPU node failover should be enabled for this cluster. By
-	// default, it is disabled.
-	GPUNodeFailoverEnabled param.Opt[bool] `json:"gpu_node_failover_enabled,omitzero"`
 	// Whether to install Traefik ingress controller in the cluster. This field is only
 	// applicable for Kubernetes clusters and is false by default.
 	InstallTraefik param.Opt[bool] `json:"install_traefik,omitzero"`
