@@ -133,30 +133,113 @@ type FileResponse struct {
 	FileType FileType `json:"FileType" api:"required"`
 	// The object type, which is always `file`.
 	Object constant.File `json:"object" default:"file"`
-	// Whether the file has been parsed and analyzed for correctness for fine-tuning.
+	// Deprecated. Whether file has been fully uploaded.
+	//
+	// Deprecated: deprecated
 	Processed bool `json:"Processed" api:"required"`
 	// The purpose of the file as it was uploaded.
 	//
 	// Any of "fine-tune", "eval", "batch-api".
 	Purpose FilePurpose `json:"purpose" api:"required"`
+	// Lifecycle state of the file validation pipeline. Files for non-`fine-tune`
+	// purposes skip validation.
+	//
+	// Any of "PENDING", "QUEUED", "RUNNING", "COMPLETED", "FAILED", "INVALID_FORMAT".
+	ProcessingStatus FileResponseProcessingStatus `json:"processing_status"`
+	// Report produced by the file validation pipeline. Present once validation has
+	// run; absent on files that bypassed validation (non-`fine-tune` purposes) or have
+	// not yet been validated.
+	ValidationReport FileResponseValidationReport `json:"validation_report"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID          respjson.Field
-		Bytes       respjson.Field
-		CreatedAt   respjson.Field
-		Filename    respjson.Field
-		FileType    respjson.Field
-		Object      respjson.Field
-		Processed   respjson.Field
-		Purpose     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		ID               respjson.Field
+		Bytes            respjson.Field
+		CreatedAt        respjson.Field
+		Filename         respjson.Field
+		FileType         respjson.Field
+		Object           respjson.Field
+		Processed        respjson.Field
+		Purpose          respjson.Field
+		ProcessingStatus respjson.Field
+		ValidationReport respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
 func (r FileResponse) RawJSON() string { return r.JSON.raw }
 func (r *FileResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Lifecycle state of the file validation pipeline. Files for non-`fine-tune`
+// purposes skip validation.
+type FileResponseProcessingStatus string
+
+const (
+	FileResponseProcessingStatusPending       FileResponseProcessingStatus = "PENDING"
+	FileResponseProcessingStatusQueued        FileResponseProcessingStatus = "QUEUED"
+	FileResponseProcessingStatusRunning       FileResponseProcessingStatus = "RUNNING"
+	FileResponseProcessingStatusCompleted     FileResponseProcessingStatus = "COMPLETED"
+	FileResponseProcessingStatusFailed        FileResponseProcessingStatus = "FAILED"
+	FileResponseProcessingStatusInvalidFormat FileResponseProcessingStatus = "INVALID_FORMAT"
+)
+
+// Report produced by the file validation pipeline. Present once validation has
+// run; absent on files that bypassed validation (non-`fine-tune` purposes) or have
+// not yet been validated.
+type FileResponseValidationReport struct {
+	// Whether the file passed validation.
+	Valid bool `json:"valid" api:"required"`
+	// Detected dataset format (e.g. `CONVERSATION`, `INSTRUCTION`).
+	DatasetFormat string `json:"dataset_format"`
+	// Whether the dataset carries per-message weights (only possible for
+	// `CONVERSATION` format).
+	DatasetHasMessageWeights bool `json:"dataset_has_message_weights"`
+	// Whether the dataset contains parallel tool-use messages.
+	DatasetHasParallelToolCalls bool `json:"dataset_has_parallel_tool_calls"`
+	// Whether the dataset contains reasoning content.
+	DatasetHasReasoning bool `json:"dataset_has_reasoning"`
+	// Whether the dataset carries per-sample weights.
+	DatasetHasSampleWeights bool `json:"dataset_has_sample_weights"`
+	// Whether the dataset contains tool-use messages.
+	DatasetHasTools bool `json:"dataset_has_tools"`
+	// Whether the dataset contains multimodal content.
+	DatasetIsMultimodal bool `json:"dataset_is_multimodal"`
+	// Human-readable validation error message. Only present when `error_type` is set
+	// (i.e. user-correctable failures).
+	Error string `json:"error"`
+	// Category of validation failure.
+	//
+	// Any of "INVALID_FORMAT".
+	ErrorType string `json:"error_type"`
+	// ID of the file this report describes.
+	FileID string `json:"file_id"`
+	// Number of lines (records) in the dataset.
+	Nlines int64 `json:"nlines"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Valid                       respjson.Field
+		DatasetFormat               respjson.Field
+		DatasetHasMessageWeights    respjson.Field
+		DatasetHasParallelToolCalls respjson.Field
+		DatasetHasReasoning         respjson.Field
+		DatasetHasSampleWeights     respjson.Field
+		DatasetHasTools             respjson.Field
+		DatasetIsMultimodal         respjson.Field
+		Error                       respjson.Field
+		ErrorType                   respjson.Field
+		FileID                      respjson.Field
+		Nlines                      respjson.Field
+		ExtraFields                 map[string]respjson.Field
+		raw                         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FileResponseValidationReport) RawJSON() string { return r.JSON.raw }
+func (r *FileResponseValidationReport) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
