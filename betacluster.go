@@ -148,17 +148,33 @@ type Cluster struct {
 	// "WaitingForSubnet", "WaitingForSharedVolume", "InstallingDrivers",
 	// "RunningAcceptanceTests", "Paused", "OnDemandComputePaused", "Ready",
 	// "Degraded", "Deleting".
-	Status               ClusterStatus        `json:"status" api:"required"`
-	Volumes              []ClusterVolume      `json:"volumes" api:"required"`
-	CapacityPoolID       string               `json:"capacity_pool_id"`
-	ClusterConfig        ClusterClusterConfig `json:"cluster_config"`
-	CreatedAt            time.Time            `json:"created_at" format:"date-time"`
-	DurationHours        int64                `json:"duration_hours"`
-	InstallTraefik       bool                 `json:"install_traefik"`
-	OidcConfig           ClusterOidcConfig    `json:"oidc_config"`
-	ReservationEndTime   time.Time            `json:"reservation_end_time" format:"date-time"`
-	ReservationStartTime time.Time            `json:"reservation_start_time" format:"date-time"`
-	SlurmShmSizeGib      int64                `json:"slurm_shm_size_gib"`
+	Status         ClusterStatus        `json:"status" api:"required"`
+	Volumes        []ClusterVolume      `json:"volumes" api:"required"`
+	CapacityPoolID string               `json:"capacity_pool_id"`
+	ClusterConfig  ClusterClusterConfig `json:"cluster_config"`
+	// Whether the control plane is currently ready.
+	ControlPlaneReady bool      `json:"control_plane_ready"`
+	CreatedAt         time.Time `json:"created_at" format:"date-time"`
+	DurationHours     int64     `json:"duration_hours"`
+	// Timestamp when the cluster first reached the Ready phase.
+	FirstReadyAt   time.Time `json:"first_ready_at" format:"date-time"`
+	InstallTraefik bool      `json:"install_traefik"`
+	// Whether the cluster is managed inside a substrate environment.
+	IsInSubstrate bool `json:"is_in_substrate"`
+	// ID of the machine cluster backing this GPU cluster.
+	MachineClusterID string `json:"machine_cluster_id"`
+	// Internal NVIDIA version ID for this cluster's driver and CUDA combination.
+	NvidiaDriverVersionID string            `json:"nvidia_driver_version_id"`
+	OidcConfig            ClusterOidcConfig `json:"oidc_config"`
+	// Data-volume image name for GPU worker nodes.
+	OsImage              string    `json:"os_image"`
+	ReservationEndTime   time.Time `json:"reservation_end_time" format:"date-time"`
+	ReservationStartTime time.Time `json:"reservation_start_time" format:"date-time"`
+	SlurmShmSizeGib      int64     `json:"slurm_shm_size_gib"`
+	// UMS organization ID associated with this cluster.
+	UmsOrgID string `json:"ums_org_id"`
+	// UMS project ID associated with this cluster.
+	UmsProjectID string `json:"ums_project_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AddOns                   respjson.Field
@@ -183,13 +199,21 @@ type Cluster struct {
 		Volumes                  respjson.Field
 		CapacityPoolID           respjson.Field
 		ClusterConfig            respjson.Field
+		ControlPlaneReady        respjson.Field
 		CreatedAt                respjson.Field
 		DurationHours            respjson.Field
+		FirstReadyAt             respjson.Field
 		InstallTraefik           respjson.Field
+		IsInSubstrate            respjson.Field
+		MachineClusterID         respjson.Field
+		NvidiaDriverVersionID    respjson.Field
 		OidcConfig               respjson.Field
+		OsImage                  respjson.Field
 		ReservationEndTime       respjson.Field
 		ReservationStartTime     respjson.Field
 		SlurmShmSizeGib          respjson.Field
+		UmsOrgID                 respjson.Field
+		UmsProjectID             respjson.Field
 		ExtraFields              map[string]respjson.Field
 		raw                      string
 	} `json:"-"`
@@ -346,6 +370,8 @@ type ClusterControlPlaneNode struct {
 	// Phase transition history for this control plane node.
 	PhaseTransitions []ClusterControlPlaneNodePhaseTransition `json:"phase_transitions" api:"required"`
 	Status           string                                   `json:"status" api:"required"`
+	// Public IPv4 address of the control plane node.
+	PublicIpv4 string `json:"public_ipv4"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		HostName         respjson.Field
@@ -355,6 +381,7 @@ type ClusterControlPlaneNode struct {
 		NumCPUCores      respjson.Field
 		PhaseTransitions respjson.Field
 		Status           respjson.Field
+		PublicIpv4       respjson.Field
 		ExtraFields      map[string]respjson.Field
 		raw              string
 	} `json:"-"`
@@ -411,27 +438,51 @@ type ClusterGPUWorkerNode struct {
 	// Phase transition history for this GPU worker node.
 	PhaseTransitions []ClusterGPUWorkerNodePhaseTransition `json:"phase_transitions" api:"required"`
 	Status           string                                `json:"status" api:"required"`
-	InstanceID       string                                `json:"instance_id"`
+	// Whether auto-remediation is enabled for this node's instance.
+	AutoRemediationEnabled bool `json:"auto_remediation_enabled"`
+	// Ephemeral storage size, such as 1Ti.
+	EphemeralStorage string `json:"ephemeral_storage"`
+	// Number of InfiniBand HCAs.
+	IbHcaCount int64 `json:"ib_hca_count"`
+	// InfiniBand HCA type.
+	IbHcaType  string `json:"ib_hca_type"`
+	InstanceID string `json:"instance_id"`
 	// Remediation represents a node remediation request for an instance. An instance
 	// can have multiple remediations over time (e.g., failed attempts followed by
 	// retries).
-	LatestRemediation   Remediation `json:"latest_remediation"`
-	SlurmWorkerHostname string      `json:"slurm_worker_hostname"`
+	LatestRemediation Remediation `json:"latest_remediation"`
+	// Whether this node is marked for deletion by the operator.
+	MarkedForDeletion bool `json:"marked_for_deletion"`
+	// Number of NVSwitches.
+	NvswitchCount int64 `json:"nvswitch_count"`
+	// NVSwitch type.
+	NvswitchType string `json:"nvswitch_type"`
+	// Public IPv4 address of the GPU worker node.
+	PublicIpv4          string `json:"public_ipv4"`
+	SlurmWorkerHostname string `json:"slurm_worker_hostname"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		HostName            respjson.Field
-		MemoryGib           respjson.Field
-		Networks            respjson.Field
-		NodeID              respjson.Field
-		NumCPUCores         respjson.Field
-		NumGPUs             respjson.Field
-		PhaseTransitions    respjson.Field
-		Status              respjson.Field
-		InstanceID          respjson.Field
-		LatestRemediation   respjson.Field
-		SlurmWorkerHostname respjson.Field
-		ExtraFields         map[string]respjson.Field
-		raw                 string
+		HostName               respjson.Field
+		MemoryGib              respjson.Field
+		Networks               respjson.Field
+		NodeID                 respjson.Field
+		NumCPUCores            respjson.Field
+		NumGPUs                respjson.Field
+		PhaseTransitions       respjson.Field
+		Status                 respjson.Field
+		AutoRemediationEnabled respjson.Field
+		EphemeralStorage       respjson.Field
+		IbHcaCount             respjson.Field
+		IbHcaType              respjson.Field
+		InstanceID             respjson.Field
+		LatestRemediation      respjson.Field
+		MarkedForDeletion      respjson.Field
+		NvswitchCount          respjson.Field
+		NvswitchType           respjson.Field
+		PublicIpv4             respjson.Field
+		SlurmWorkerHostname    respjson.Field
+		ExtraFields            map[string]respjson.Field
+		raw                    string
 	} `json:"-"`
 }
 
