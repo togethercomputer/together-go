@@ -104,7 +104,7 @@ func (r *FineTuningService) Content(ctx context.Context, query FineTuningContent
 }
 
 // Estimate the price of a fine-tuning job.
-func (r *FineTuningService) EstimatePrice(ctx context.Context, body FineTuningEstimatePriceParams, opts ...option.RequestOption) (res *FineTuningEstimatePriceResponse, err error) {
+func (r *FineTuningService) EstimatePrice(ctx context.Context, body FineTuningEstimatePriceParams, opts ...option.RequestOption) (res *FineTuningEstimatePriceResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "fine-tunes/estimate-price"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -2282,7 +2282,57 @@ func (r *FineTuningCancelResponseTrainingTypeLoRaTrainingType) UnmarshalJSON(dat
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type FineTuningEstimatePriceResponse struct {
+// FineTuningEstimatePriceResponseUnion contains all possible properties and values
+// from [FineTuningEstimatePriceResponseAvailableEstimate],
+// [FineTuningEstimatePriceResponseUnavailableEstimate].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type FineTuningEstimatePriceResponseUnion struct {
+	EstimationAvailable bool `json:"estimation_available"`
+	// This field is from variant [FineTuningEstimatePriceResponseAvailableEstimate].
+	AllowedToProceed bool `json:"allowed_to_proceed"`
+	// This field is from variant [FineTuningEstimatePriceResponseAvailableEstimate].
+	EstimatedEvalTokenCount float64 `json:"estimated_eval_token_count"`
+	// This field is from variant [FineTuningEstimatePriceResponseAvailableEstimate].
+	EstimatedTotalPrice float64 `json:"estimated_total_price"`
+	// This field is from variant [FineTuningEstimatePriceResponseAvailableEstimate].
+	EstimatedTrainTokenCount float64 `json:"estimated_train_token_count"`
+	// This field is from variant [FineTuningEstimatePriceResponseAvailableEstimate].
+	UserLimit float64 `json:"user_limit"`
+	// This field is from variant [FineTuningEstimatePriceResponseUnavailableEstimate].
+	UnavailableReason string `json:"unavailable_reason"`
+	JSON              struct {
+		EstimationAvailable      respjson.Field
+		AllowedToProceed         respjson.Field
+		EstimatedEvalTokenCount  respjson.Field
+		EstimatedTotalPrice      respjson.Field
+		EstimatedTrainTokenCount respjson.Field
+		UserLimit                respjson.Field
+		UnavailableReason        respjson.Field
+		raw                      string
+	} `json:"-"`
+}
+
+func (u FineTuningEstimatePriceResponseUnion) AsAvailableEstimate() (v FineTuningEstimatePriceResponseAvailableEstimate) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u FineTuningEstimatePriceResponseUnion) AsUnavailableEstimate() (v FineTuningEstimatePriceResponseUnavailableEstimate) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u FineTuningEstimatePriceResponseUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *FineTuningEstimatePriceResponseUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningEstimatePriceResponseAvailableEstimate struct {
+	// Whether price estimation is available for the requested fine-tune job.
+	EstimationAvailable bool `json:"estimation_available" api:"required"`
 	// Whether you are allowed to proceed with the fine-tuning job.
 	AllowedToProceed bool `json:"allowed_to_proceed"`
 	// The estimated number of tokens for evaluation
@@ -2295,6 +2345,7 @@ type FineTuningEstimatePriceResponse struct {
 	UserLimit float64 `json:"user_limit"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		EstimationAvailable      respjson.Field
 		AllowedToProceed         respjson.Field
 		EstimatedEvalTokenCount  respjson.Field
 		EstimatedTotalPrice      respjson.Field
@@ -2306,8 +2357,28 @@ type FineTuningEstimatePriceResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r FineTuningEstimatePriceResponse) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningEstimatePriceResponse) UnmarshalJSON(data []byte) error {
+func (r FineTuningEstimatePriceResponseAvailableEstimate) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningEstimatePriceResponseAvailableEstimate) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type FineTuningEstimatePriceResponseUnavailableEstimate struct {
+	// Whether price estimation is available for the requested fine-tune job.
+	EstimationAvailable bool `json:"estimation_available" api:"required"`
+	// Reason price estimation is unavailable for the requested fine-tune job.
+	UnavailableReason string `json:"unavailable_reason" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EstimationAvailable respjson.Field
+		UnavailableReason   respjson.Field
+		ExtraFields         map[string]respjson.Field
+		raw                 string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuningEstimatePriceResponseUnavailableEstimate) RawJSON() string { return r.JSON.raw }
+func (r *FineTuningEstimatePriceResponseUnavailableEstimate) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
