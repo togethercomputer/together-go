@@ -2496,7 +2496,8 @@ type FineTuningNewParams struct {
 	NEpochs param.Opt[int64] `json:"n_epochs,omitzero"`
 	// Number of evaluations to be run on a given validation set during training
 	NEvals param.Opt[int64] `json:"n_evals,omitzero"`
-	// Whether to use sequence packing for training.
+	// Whether to use sequence packing for training. This flag has no effect if the
+	// training data is in Parquet format.
 	Packing param.Opt[bool] `json:"packing,omitzero"`
 	// Suffix to add to your fine-tuned model name. Must be at most 64 characters long.
 	Suffix param.Opt[string] `json:"suffix,omitzero"`
