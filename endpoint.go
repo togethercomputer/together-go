@@ -28,7 +28,8 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewEndpointService] method instead.
 type EndpointService struct {
-	Options []option.RequestOption
+	Options  []option.RequestOption
+	Adapters EndpointAdapterService
 }
 
 // NewEndpointService generates a new service that applies the given options to
@@ -37,6 +38,7 @@ type EndpointService struct {
 func NewEndpointService(opts ...option.RequestOption) (r EndpointService) {
 	r = EndpointService{}
 	r.Options = opts
+	r.Adapters = NewEndpointAdapterService(opts...)
 	return
 }
 
