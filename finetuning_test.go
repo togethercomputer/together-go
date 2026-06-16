@@ -56,7 +56,7 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		MultimodalParams: together.FineTuningNewParamsMultimodalParams{
 			TrainVision: together.Bool(true),
 		},
-		NCheckpoints: together.Int(0),
+		NCheckpoints: together.Int(10),
 		NEpochs:      together.Int(0),
 		NEvals:       together.Int(0),
 		Packing:      together.Bool(true),
