@@ -168,30 +168,39 @@ type FinetuneEvent struct {
 	// "checkpoint_save", "billing_limit", "epoch_complete", "training_complete",
 	// "model_compressing", "model_compression_complete", "model_uploading",
 	// "model_upload_complete", "job_complete", "job_error", "cancel_requested",
-	// "job_restarted", "refund", "warning".
+	// "job_restarted", "refund", "warning", "early_stopped".
 	Type     FinetuneEventType `json:"type" api:"required"`
 	WandbURL string            `json:"wandb_url" api:"required"`
+	// For early_stopped events, the best validation loss observed. Null if no
+	// improving evaluation was recorded.
+	EarlyStoppingBestMetricValue float64 `json:"early_stopping_best_metric_value" api:"nullable"`
+	// For early_stopped events, the selected best-checkpoint step when a finite best
+	// metric exists. If early_stopping_best_metric_value is null, this is the halt
+	// step.
+	EarlyStoppingBestStep int64 `json:"early_stopping_best_step" api:"nullable"`
 	// Any of "info", "warning", "error", "legacy_info", "legacy_iwarning",
 	// "legacy_ierror".
 	Level FinetuneEventLevel `json:"level" api:"nullable"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		CheckpointPath respjson.Field
-		CreatedAt      respjson.Field
-		Hash           respjson.Field
-		Message        respjson.Field
-		ModelPath      respjson.Field
-		Object         respjson.Field
-		ParamCount     respjson.Field
-		Step           respjson.Field
-		TokenCount     respjson.Field
-		TotalSteps     respjson.Field
-		TrainingOffset respjson.Field
-		Type           respjson.Field
-		WandbURL       respjson.Field
-		Level          respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
+		CheckpointPath               respjson.Field
+		CreatedAt                    respjson.Field
+		Hash                         respjson.Field
+		Message                      respjson.Field
+		ModelPath                    respjson.Field
+		Object                       respjson.Field
+		ParamCount                   respjson.Field
+		Step                         respjson.Field
+		TokenCount                   respjson.Field
+		TotalSteps                   respjson.Field
+		TrainingOffset               respjson.Field
+		Type                         respjson.Field
+		WandbURL                     respjson.Field
+		EarlyStoppingBestMetricValue respjson.Field
+		EarlyStoppingBestStep        respjson.Field
+		Level                        respjson.Field
+		ExtraFields                  map[string]respjson.Field
+		raw                          string
 	} `json:"-"`
 }
 
@@ -240,33 +249,44 @@ const (
 	FinetuneEventTypeJobRestarted                   FinetuneEventType = "job_restarted"
 	FinetuneEventTypeRefund                         FinetuneEventType = "refund"
 	FinetuneEventTypeWarning                        FinetuneEventType = "warning"
+	FinetuneEventTypeEarlyStopped                   FinetuneEventType = "early_stopped"
 )
 
 type FinetuneResponse struct {
 	ID string `json:"id" api:"required" format:"uuid"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status           FinetuneResponseStatus           `json:"status" api:"required"`
-	BatchSize        FinetuneResponseBatchSizeUnion   `json:"batch_size"`
-	CreatedAt        time.Time                        `json:"created_at" format:"date-time"`
-	EpochsCompleted  int64                            `json:"epochs_completed"`
-	EvalSteps        int64                            `json:"eval_steps"`
-	Events           []FinetuneEvent                  `json:"events"`
-	FromCheckpoint   string                           `json:"from_checkpoint"`
-	FromHfModel      string                           `json:"from_hf_model"`
-	HfModelRevision  string                           `json:"hf_model_revision"`
-	JobID            string                           `json:"job_id"`
-	LearningRate     float64                          `json:"learning_rate"`
-	LrScheduler      FinetuneResponseLrScheduler      `json:"lr_scheduler"`
-	MaxGradNorm      float64                          `json:"max_grad_norm"`
-	Model            string                           `json:"model"`
-	ModelOutputName  string                           `json:"model_output_name"`
-	ModelOutputPath  string                           `json:"model_output_path"`
-	MultimodalParams FinetuneResponseMultimodalParams `json:"multimodal_params"`
-	NCheckpoints     int64                            `json:"n_checkpoints"`
-	NEpochs          int64                            `json:"n_epochs"`
-	NEvals           int64                            `json:"n_evals"`
-	ParamCount       int64                            `json:"param_count"`
+	Status    FinetuneResponseStatus         `json:"status" api:"required"`
+	BatchSize FinetuneResponseBatchSizeUnion `json:"batch_size"`
+	CreatedAt time.Time                      `json:"created_at" format:"date-time"`
+	// Whether the early-stopping criterion triggered.
+	EarlyStopped bool `json:"early_stopped"`
+	// Best validation loss observed, corresponding to early_stopping_best_step. Null
+	// if no improving evaluation was recorded (for example, a non-finite first
+	// evaluation).
+	EarlyStoppingBestMetric float64 `json:"early_stopping_best_metric" api:"nullable"`
+	// Step associated with the selected early-stopping artifact. When
+	// early_stopping_best_metric is null, no finite best metric was recorded; this is
+	// the halt step, not a best-checkpoint step.
+	EarlyStoppingBestStep int64                            `json:"early_stopping_best_step"`
+	EpochsCompleted       int64                            `json:"epochs_completed"`
+	EvalSteps             int64                            `json:"eval_steps"`
+	Events                []FinetuneEvent                  `json:"events"`
+	FromCheckpoint        string                           `json:"from_checkpoint"`
+	FromHfModel           string                           `json:"from_hf_model"`
+	HfModelRevision       string                           `json:"hf_model_revision"`
+	JobID                 string                           `json:"job_id"`
+	LearningRate          float64                          `json:"learning_rate"`
+	LrScheduler           FinetuneResponseLrScheduler      `json:"lr_scheduler"`
+	MaxGradNorm           float64                          `json:"max_grad_norm"`
+	Model                 string                           `json:"model"`
+	ModelOutputName       string                           `json:"model_output_name"`
+	ModelOutputPath       string                           `json:"model_output_path"`
+	MultimodalParams      FinetuneResponseMultimodalParams `json:"multimodal_params"`
+	NCheckpoints          int64                            `json:"n_checkpoints"`
+	NEpochs               int64                            `json:"n_epochs"`
+	NEvals                int64                            `json:"n_evals"`
+	ParamCount            int64                            `json:"param_count"`
 	// Progress information for a fine-tuning job
 	Progress             FinetuneResponseProgress            `json:"progress"`
 	QueueDepth           int64                               `json:"queue_depth"`
@@ -287,47 +307,50 @@ type FinetuneResponse struct {
 	WeightDecay          float64                             `json:"weight_decay"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID                   respjson.Field
-		Status               respjson.Field
-		BatchSize            respjson.Field
-		CreatedAt            respjson.Field
-		EpochsCompleted      respjson.Field
-		EvalSteps            respjson.Field
-		Events               respjson.Field
-		FromCheckpoint       respjson.Field
-		FromHfModel          respjson.Field
-		HfModelRevision      respjson.Field
-		JobID                respjson.Field
-		LearningRate         respjson.Field
-		LrScheduler          respjson.Field
-		MaxGradNorm          respjson.Field
-		Model                respjson.Field
-		ModelOutputName      respjson.Field
-		ModelOutputPath      respjson.Field
-		MultimodalParams     respjson.Field
-		NCheckpoints         respjson.Field
-		NEpochs              respjson.Field
-		NEvals               respjson.Field
-		ParamCount           respjson.Field
-		Progress             respjson.Field
-		QueueDepth           respjson.Field
-		StartedAt            respjson.Field
-		TokenCount           respjson.Field
-		TotalPrice           respjson.Field
-		TrainOnInputs        respjson.Field
-		TrainingFile         respjson.Field
-		TrainingMethod       respjson.Field
-		TrainingType         respjson.Field
-		TrainingfileNumlines respjson.Field
-		TrainingfileSize     respjson.Field
-		UpdatedAt            respjson.Field
-		ValidationFile       respjson.Field
-		WandbProjectName     respjson.Field
-		WandbURL             respjson.Field
-		WarmupRatio          respjson.Field
-		WeightDecay          respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
+		ID                      respjson.Field
+		Status                  respjson.Field
+		BatchSize               respjson.Field
+		CreatedAt               respjson.Field
+		EarlyStopped            respjson.Field
+		EarlyStoppingBestMetric respjson.Field
+		EarlyStoppingBestStep   respjson.Field
+		EpochsCompleted         respjson.Field
+		EvalSteps               respjson.Field
+		Events                  respjson.Field
+		FromCheckpoint          respjson.Field
+		FromHfModel             respjson.Field
+		HfModelRevision         respjson.Field
+		JobID                   respjson.Field
+		LearningRate            respjson.Field
+		LrScheduler             respjson.Field
+		MaxGradNorm             respjson.Field
+		Model                   respjson.Field
+		ModelOutputName         respjson.Field
+		ModelOutputPath         respjson.Field
+		MultimodalParams        respjson.Field
+		NCheckpoints            respjson.Field
+		NEpochs                 respjson.Field
+		NEvals                  respjson.Field
+		ParamCount              respjson.Field
+		Progress                respjson.Field
+		QueueDepth              respjson.Field
+		StartedAt               respjson.Field
+		TokenCount              respjson.Field
+		TotalPrice              respjson.Field
+		TrainOnInputs           respjson.Field
+		TrainingFile            respjson.Field
+		TrainingMethod          respjson.Field
+		TrainingType            respjson.Field
+		TrainingfileNumlines    respjson.Field
+		TrainingfileSize        respjson.Field
+		UpdatedAt               respjson.Field
+		ValidationFile          respjson.Field
+		WandbProjectName        respjson.Field
+		WandbURL                respjson.Field
+		WarmupRatio             respjson.Field
+		WeightDecay             respjson.Field
+		ExtraFields             map[string]respjson.Field
+		raw                     string
 	} `json:"-"`
 }
 
@@ -808,6 +831,15 @@ type FineTuningNewResponse struct {
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
+	// Whether the early-stopping criterion triggered.
+	EarlyStopped bool `json:"early_stopped"`
+	// Best validation loss observed, corresponding to early_stopping_best_step. Null
+	// if no improving evaluation was recorded.
+	EarlyStoppingBestMetric float64 `json:"early_stopping_best_metric" api:"nullable"`
+	// Step associated with the selected early-stopping artifact. When
+	// early_stopping_best_metric is null, no finite best metric was recorded; this is
+	// the halt step, not a best-checkpoint step.
+	EarlyStoppingBestStep int64 `json:"early_stopping_best_step"`
 	// Events related to this fine-tune job
 	Events []FinetuneEvent `json:"events"`
 	// Checkpoint used to continue training
@@ -871,43 +903,46 @@ type FineTuningNewResponse struct {
 	WeightDecay float64 `json:"weight_decay"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID               respjson.Field
-		CreatedAt        respjson.Field
-		Status           respjson.Field
-		UpdatedAt        respjson.Field
-		BatchSize        respjson.Field
-		Events           respjson.Field
-		FromCheckpoint   respjson.Field
-		FromHfModel      respjson.Field
-		HfModelRevision  respjson.Field
-		LearningRate     respjson.Field
-		LrScheduler      respjson.Field
-		MaxGradNorm      respjson.Field
-		MaxSeqLength     respjson.Field
-		Model            respjson.Field
-		ModelOutputName  respjson.Field
-		NCheckpoints     respjson.Field
-		NEpochs          respjson.Field
-		NEvals           respjson.Field
-		OwnerAddress     respjson.Field
-		Packing          respjson.Field
-		Progress         respjson.Field
-		RandomSeed       respjson.Field
-		StartedAt        respjson.Field
-		Suffix           respjson.Field
-		TokenCount       respjson.Field
-		TotalPrice       respjson.Field
-		TrainingFile     respjson.Field
-		TrainingMethod   respjson.Field
-		TrainingType     respjson.Field
-		UserID           respjson.Field
-		ValidationFile   respjson.Field
-		WandbName        respjson.Field
-		WandbProjectName respjson.Field
-		WarmupRatio      respjson.Field
-		WeightDecay      respjson.Field
-		ExtraFields      map[string]respjson.Field
-		raw              string
+		ID                      respjson.Field
+		CreatedAt               respjson.Field
+		Status                  respjson.Field
+		UpdatedAt               respjson.Field
+		BatchSize               respjson.Field
+		EarlyStopped            respjson.Field
+		EarlyStoppingBestMetric respjson.Field
+		EarlyStoppingBestStep   respjson.Field
+		Events                  respjson.Field
+		FromCheckpoint          respjson.Field
+		FromHfModel             respjson.Field
+		HfModelRevision         respjson.Field
+		LearningRate            respjson.Field
+		LrScheduler             respjson.Field
+		MaxGradNorm             respjson.Field
+		MaxSeqLength            respjson.Field
+		Model                   respjson.Field
+		ModelOutputName         respjson.Field
+		NCheckpoints            respjson.Field
+		NEpochs                 respjson.Field
+		NEvals                  respjson.Field
+		OwnerAddress            respjson.Field
+		Packing                 respjson.Field
+		Progress                respjson.Field
+		RandomSeed              respjson.Field
+		StartedAt               respjson.Field
+		Suffix                  respjson.Field
+		TokenCount              respjson.Field
+		TotalPrice              respjson.Field
+		TrainingFile            respjson.Field
+		TrainingMethod          respjson.Field
+		TrainingType            respjson.Field
+		UserID                  respjson.Field
+		ValidationFile          respjson.Field
+		WandbName               respjson.Field
+		WandbProjectName        respjson.Field
+		WarmupRatio             respjson.Field
+		WeightDecay             respjson.Field
+		ExtraFields             map[string]respjson.Field
+		raw                     string
 	} `json:"-"`
 }
 
@@ -1309,6 +1344,15 @@ type FineTuningListResponseData struct {
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
+	// Whether the early-stopping criterion triggered.
+	EarlyStopped bool `json:"early_stopped"`
+	// Best validation loss observed, corresponding to early_stopping_best_step. Null
+	// if no improving evaluation was recorded.
+	EarlyStoppingBestMetric float64 `json:"early_stopping_best_metric" api:"nullable"`
+	// Step associated with the selected early-stopping artifact. When
+	// early_stopping_best_metric is null, no finite best metric was recorded; this is
+	// the halt step, not a best-checkpoint step.
+	EarlyStoppingBestStep int64 `json:"early_stopping_best_step"`
 	// Events related to this fine-tune job
 	Events []FinetuneEvent `json:"events"`
 	// Checkpoint used to continue training
@@ -1372,43 +1416,46 @@ type FineTuningListResponseData struct {
 	WeightDecay float64 `json:"weight_decay"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID               respjson.Field
-		CreatedAt        respjson.Field
-		Status           respjson.Field
-		UpdatedAt        respjson.Field
-		BatchSize        respjson.Field
-		Events           respjson.Field
-		FromCheckpoint   respjson.Field
-		FromHfModel      respjson.Field
-		HfModelRevision  respjson.Field
-		LearningRate     respjson.Field
-		LrScheduler      respjson.Field
-		MaxGradNorm      respjson.Field
-		MaxSeqLength     respjson.Field
-		Model            respjson.Field
-		ModelOutputName  respjson.Field
-		NCheckpoints     respjson.Field
-		NEpochs          respjson.Field
-		NEvals           respjson.Field
-		OwnerAddress     respjson.Field
-		Packing          respjson.Field
-		Progress         respjson.Field
-		RandomSeed       respjson.Field
-		StartedAt        respjson.Field
-		Suffix           respjson.Field
-		TokenCount       respjson.Field
-		TotalPrice       respjson.Field
-		TrainingFile     respjson.Field
-		TrainingMethod   respjson.Field
-		TrainingType     respjson.Field
-		UserID           respjson.Field
-		ValidationFile   respjson.Field
-		WandbName        respjson.Field
-		WandbProjectName respjson.Field
-		WarmupRatio      respjson.Field
-		WeightDecay      respjson.Field
-		ExtraFields      map[string]respjson.Field
-		raw              string
+		ID                      respjson.Field
+		CreatedAt               respjson.Field
+		Status                  respjson.Field
+		UpdatedAt               respjson.Field
+		BatchSize               respjson.Field
+		EarlyStopped            respjson.Field
+		EarlyStoppingBestMetric respjson.Field
+		EarlyStoppingBestStep   respjson.Field
+		Events                  respjson.Field
+		FromCheckpoint          respjson.Field
+		FromHfModel             respjson.Field
+		HfModelRevision         respjson.Field
+		LearningRate            respjson.Field
+		LrScheduler             respjson.Field
+		MaxGradNorm             respjson.Field
+		MaxSeqLength            respjson.Field
+		Model                   respjson.Field
+		ModelOutputName         respjson.Field
+		NCheckpoints            respjson.Field
+		NEpochs                 respjson.Field
+		NEvals                  respjson.Field
+		OwnerAddress            respjson.Field
+		Packing                 respjson.Field
+		Progress                respjson.Field
+		RandomSeed              respjson.Field
+		StartedAt               respjson.Field
+		Suffix                  respjson.Field
+		TokenCount              respjson.Field
+		TotalPrice              respjson.Field
+		TrainingFile            respjson.Field
+		TrainingMethod          respjson.Field
+		TrainingType            respjson.Field
+		UserID                  respjson.Field
+		ValidationFile          respjson.Field
+		WandbName               respjson.Field
+		WandbProjectName        respjson.Field
+		WarmupRatio             respjson.Field
+		WeightDecay             respjson.Field
+		ExtraFields             map[string]respjson.Field
+		raw                     string
 	} `json:"-"`
 }
 
@@ -1807,6 +1854,15 @@ type FineTuningCancelResponse struct {
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
+	// Whether the early-stopping criterion triggered.
+	EarlyStopped bool `json:"early_stopped"`
+	// Best validation loss observed, corresponding to early_stopping_best_step. Null
+	// if no improving evaluation was recorded.
+	EarlyStoppingBestMetric float64 `json:"early_stopping_best_metric" api:"nullable"`
+	// Step associated with the selected early-stopping artifact. When
+	// early_stopping_best_metric is null, no finite best metric was recorded; this is
+	// the halt step, not a best-checkpoint step.
+	EarlyStoppingBestStep int64 `json:"early_stopping_best_step"`
 	// Events related to this fine-tune job
 	Events []FinetuneEvent `json:"events"`
 	// Checkpoint used to continue training
@@ -1870,43 +1926,46 @@ type FineTuningCancelResponse struct {
 	WeightDecay float64 `json:"weight_decay"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID               respjson.Field
-		CreatedAt        respjson.Field
-		Status           respjson.Field
-		UpdatedAt        respjson.Field
-		BatchSize        respjson.Field
-		Events           respjson.Field
-		FromCheckpoint   respjson.Field
-		FromHfModel      respjson.Field
-		HfModelRevision  respjson.Field
-		LearningRate     respjson.Field
-		LrScheduler      respjson.Field
-		MaxGradNorm      respjson.Field
-		MaxSeqLength     respjson.Field
-		Model            respjson.Field
-		ModelOutputName  respjson.Field
-		NCheckpoints     respjson.Field
-		NEpochs          respjson.Field
-		NEvals           respjson.Field
-		OwnerAddress     respjson.Field
-		Packing          respjson.Field
-		Progress         respjson.Field
-		RandomSeed       respjson.Field
-		StartedAt        respjson.Field
-		Suffix           respjson.Field
-		TokenCount       respjson.Field
-		TotalPrice       respjson.Field
-		TrainingFile     respjson.Field
-		TrainingMethod   respjson.Field
-		TrainingType     respjson.Field
-		UserID           respjson.Field
-		ValidationFile   respjson.Field
-		WandbName        respjson.Field
-		WandbProjectName respjson.Field
-		WarmupRatio      respjson.Field
-		WeightDecay      respjson.Field
-		ExtraFields      map[string]respjson.Field
-		raw              string
+		ID                      respjson.Field
+		CreatedAt               respjson.Field
+		Status                  respjson.Field
+		UpdatedAt               respjson.Field
+		BatchSize               respjson.Field
+		EarlyStopped            respjson.Field
+		EarlyStoppingBestMetric respjson.Field
+		EarlyStoppingBestStep   respjson.Field
+		Events                  respjson.Field
+		FromCheckpoint          respjson.Field
+		FromHfModel             respjson.Field
+		HfModelRevision         respjson.Field
+		LearningRate            respjson.Field
+		LrScheduler             respjson.Field
+		MaxGradNorm             respjson.Field
+		MaxSeqLength            respjson.Field
+		Model                   respjson.Field
+		ModelOutputName         respjson.Field
+		NCheckpoints            respjson.Field
+		NEpochs                 respjson.Field
+		NEvals                  respjson.Field
+		OwnerAddress            respjson.Field
+		Packing                 respjson.Field
+		Progress                respjson.Field
+		RandomSeed              respjson.Field
+		StartedAt               respjson.Field
+		Suffix                  respjson.Field
+		TokenCount              respjson.Field
+		TotalPrice              respjson.Field
+		TrainingFile            respjson.Field
+		TrainingMethod          respjson.Field
+		TrainingType            respjson.Field
+		UserID                  respjson.Field
+		ValidationFile          respjson.Field
+		WandbName               respjson.Field
+		WandbProjectName        respjson.Field
+		WarmupRatio             respjson.Field
+		WeightDecay             respjson.Field
+		ExtraFields             map[string]respjson.Field
+		raw                     string
 	} `json:"-"`
 }
 
@@ -2457,10 +2516,26 @@ type FineTuningNewParams struct {
 	Model string `json:"model" api:"required"`
 	// File-ID of a training file uploaded to the Together API
 	TrainingFile string `json:"training_file" api:"required"`
+	// Number of initial evaluations excluded from the early-stopping decision. These
+	// still establish the baseline validation loss but do not count toward patience.
+	// Set to 0 to disable warmup; if omitted, defaults to 1. Only applies when
+	// early_stopping_enabled is true.
+	EarlyStoppingWarmupEvals param.Opt[int64] `json:"early_stopping_warmup_evals,omitzero"`
 	// Random seed for reproducible training. When set, the same seed produces the same
 	// run (e.g. data shuffle, init). If omitted or null, the server applies its
 	// default seed (e.g. 42).
 	RandomSeed param.Opt[int64] `json:"random_seed,omitzero"`
+	// Whether to stop training early when validation loss stops improving. Requires a
+	// validation_file, and n_evals must be at least early_stopping_patience +
+	// early_stopping_warmup_evals + 1 so a plateau can be detected.
+	EarlyStoppingEnabled param.Opt[bool] `json:"early_stopping_enabled,omitzero"`
+	// Minimum decrease in validation loss for an evaluation to count as an
+	// improvement. Larger values treat small gains as non-improvements, causing
+	// training to stop sooner. Only applies when early_stopping_enabled is true.
+	EarlyStoppingMinDelta param.Opt[float64] `json:"early_stopping_min_delta,omitzero"`
+	// Number of consecutive evaluations with no improvement in validation loss to
+	// allow before stopping. Only applies when early_stopping_enabled is true.
+	EarlyStoppingPatience param.Opt[int64] `json:"early_stopping_patience,omitzero"`
 	// The checkpoint identifier to continue training from a previous fine-tuning job.
 	// Format is `{$JOB_ID}` or `{$OUTPUT_MODEL_NAME}` or `{$JOB_ID}:{$STEP}` or
 	// `{$OUTPUT_MODEL_NAME}:{$STEP}`. The step value is optional; without it, uses the
