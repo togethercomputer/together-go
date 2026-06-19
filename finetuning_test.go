@@ -36,6 +36,10 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		BatchSize: together.FineTuningNewParamsBatchSizeUnion{
 			OfFineTuningNewsBatchSizeString: together.String("max"),
 		},
+		EarlyStoppingEnabled:      together.Bool(true),
+		EarlyStoppingMinDelta:     together.Float(0),
+		EarlyStoppingPatience:     together.Int(1),
+		EarlyStoppingWarmupEvals:  together.Int(0),
 		FromCheckpoint:            together.String("from_checkpoint"),
 		FromHfModel:               together.String("from_hf_model"),
 		GradientAccumulationSteps: together.Int(0),
