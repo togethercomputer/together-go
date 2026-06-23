@@ -152,3 +152,16 @@ func (r *Client) Patch(ctx context.Context, path string, params any, res any, op
 func (r *Client) Delete(ctx context.Context, path string, params any, res any, opts ...option.RequestOption) error {
 	return r.Execute(ctx, http.MethodDelete, path, params, res, opts...)
 }
+
+// Returns identity information about the authenticated API key. Useful for
+// confirming which project and organization a key is scoped to, and for obtaining
+// the project slug used to compose the `model` value
+// (`<project_slug>/<endpoint_slug>`) in dedicated endpoint inference calls.
+// Requires a Bearer API key in the `Authorization` header. Cookie, session, and
+// SLS JWT credentials are not accepted.
+func (r *Client) Whoami(ctx context.Context, opts ...option.RequestOption) (res *WhoamiResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "whoami"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
