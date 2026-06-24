@@ -155,7 +155,10 @@ type Cluster struct {
 	// Whether the control plane is currently ready.
 	ControlPlaneReady bool      `json:"control_plane_ready"`
 	CreatedAt         time.Time `json:"created_at" format:"date-time"`
-	DurationHours     int64     `json:"duration_hours"`
+	// GPU worker nodes retained after they left the live data plane. These are
+	// separate from gpu_worker_nodes and must not be counted as live capacity.
+	DeletedGPUWorkerNodes []ClusterDeletedGPUWorkerNode `json:"deleted_gpu_worker_nodes"`
+	DurationHours         int64                         `json:"duration_hours"`
 	// Timestamp when the cluster first reached the Ready phase.
 	FirstReadyAt   time.Time `json:"first_ready_at" format:"date-time"`
 	InstallTraefik bool      `json:"install_traefik"`
@@ -163,6 +166,9 @@ type Cluster struct {
 	IsInSubstrate bool `json:"is_in_substrate"`
 	// ID of the machine cluster backing this GPU cluster.
 	MachineClusterID string `json:"machine_cluster_id"`
+	// Recent node lifecycle events such as scale-up, scale-down, and preemption.
+	// Combine these with live and deleted node lists to render the cluster timeline.
+	NodeLifecycleEvents []ClusterNodeLifecycleEvent `json:"node_lifecycle_events"`
 	// Internal NVIDIA version ID for this cluster's driver and CUDA combination.
 	NvidiaDriverVersionID string            `json:"nvidia_driver_version_id"`
 	OidcConfig            ClusterOidcConfig `json:"oidc_config"`
@@ -201,11 +207,13 @@ type Cluster struct {
 		ClusterConfig            respjson.Field
 		ControlPlaneReady        respjson.Field
 		CreatedAt                respjson.Field
+		DeletedGPUWorkerNodes    respjson.Field
 		DurationHours            respjson.Field
 		FirstReadyAt             respjson.Field
 		InstallTraefik           respjson.Field
 		IsInSubstrate            respjson.Field
 		MachineClusterID         respjson.Field
+		NodeLifecycleEvents      respjson.Field
 		NvidiaDriverVersionID    respjson.Field
 		OidcConfig               respjson.Field
 		OsImage                  respjson.Field
@@ -440,6 +448,9 @@ type ClusterGPUWorkerNode struct {
 	Status           string                                `json:"status" api:"required"`
 	// Whether auto-remediation is enabled for this node's instance.
 	AutoRemediationEnabled bool `json:"auto_remediation_enabled"`
+	// Timestamp when the node left the live data plane. Only set for
+	// deleted_gpu_worker_nodes.
+	DeletedAt time.Time `json:"deleted_at" format:"date-time"`
 	// Ephemeral storage size, such as 1Ti.
 	EphemeralStorage string `json:"ephemeral_storage"`
 	// Number of InfiniBand HCAs.
@@ -471,6 +482,7 @@ type ClusterGPUWorkerNode struct {
 		PhaseTransitions       respjson.Field
 		Status                 respjson.Field
 		AutoRemediationEnabled respjson.Field
+		DeletedAt              respjson.Field
 		EphemeralStorage       respjson.Field
 		IbHcaCount             respjson.Field
 		IbHcaType              respjson.Field
@@ -689,6 +701,126 @@ type ClusterClusterConfigSlurmStartupScripts struct {
 // Returns the unmodified JSON received from the API
 func (r ClusterClusterConfigSlurmStartupScripts) RawJSON() string { return r.JSON.raw }
 func (r *ClusterClusterConfigSlurmStartupScripts) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ClusterDeletedGPUWorkerNode struct {
+	HostName    string   `json:"host_name" api:"required"`
+	MemoryGib   float64  `json:"memory_gib" api:"required"`
+	Networks    []string `json:"networks" api:"required"`
+	NodeID      string   `json:"node_id" api:"required"`
+	NumCPUCores int64    `json:"num_cpu_cores" api:"required"`
+	NumGPUs     int64    `json:"num_gpus" api:"required"`
+	// Phase transition history for this GPU worker node.
+	PhaseTransitions []ClusterDeletedGPUWorkerNodePhaseTransition `json:"phase_transitions" api:"required"`
+	Status           string                                       `json:"status" api:"required"`
+	// Whether auto-remediation is enabled for this node's instance.
+	AutoRemediationEnabled bool `json:"auto_remediation_enabled"`
+	// Timestamp when the node left the live data plane. Only set for
+	// deleted_gpu_worker_nodes.
+	DeletedAt time.Time `json:"deleted_at" format:"date-time"`
+	// Ephemeral storage size, such as 1Ti.
+	EphemeralStorage string `json:"ephemeral_storage"`
+	// Number of InfiniBand HCAs.
+	IbHcaCount int64 `json:"ib_hca_count"`
+	// InfiniBand HCA type.
+	IbHcaType  string `json:"ib_hca_type"`
+	InstanceID string `json:"instance_id"`
+	// Remediation represents a node remediation request for an instance. An instance
+	// can have multiple remediations over time (e.g., failed attempts followed by
+	// retries).
+	LatestRemediation Remediation `json:"latest_remediation"`
+	// Whether this node is marked for deletion by the operator.
+	MarkedForDeletion bool `json:"marked_for_deletion"`
+	// Number of NVSwitches.
+	NvswitchCount int64 `json:"nvswitch_count"`
+	// NVSwitch type.
+	NvswitchType string `json:"nvswitch_type"`
+	// Public IPv4 address of the GPU worker node.
+	PublicIpv4          string `json:"public_ipv4"`
+	SlurmWorkerHostname string `json:"slurm_worker_hostname"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		HostName               respjson.Field
+		MemoryGib              respjson.Field
+		Networks               respjson.Field
+		NodeID                 respjson.Field
+		NumCPUCores            respjson.Field
+		NumGPUs                respjson.Field
+		PhaseTransitions       respjson.Field
+		Status                 respjson.Field
+		AutoRemediationEnabled respjson.Field
+		DeletedAt              respjson.Field
+		EphemeralStorage       respjson.Field
+		IbHcaCount             respjson.Field
+		IbHcaType              respjson.Field
+		InstanceID             respjson.Field
+		LatestRemediation      respjson.Field
+		MarkedForDeletion      respjson.Field
+		NvswitchCount          respjson.Field
+		NvswitchType           respjson.Field
+		PublicIpv4             respjson.Field
+		SlurmWorkerHostname    respjson.Field
+		ExtraFields            map[string]respjson.Field
+		raw                    string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterDeletedGPUWorkerNode) RawJSON() string { return r.JSON.raw }
+func (r *ClusterDeletedGPUWorkerNode) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ClusterDeletedGPUWorkerNodePhaseTransition struct {
+	// Node phase.
+	//
+	// Any of "NODE_PHASE_PENDING", "NODE_PHASE_SCHEDULING", "NODE_PHASE_BOOTING",
+	// "NODE_PHASE_BOOTSTRAPPING", "NODE_PHASE_RUNNING", "NODE_PHASE_SUCCEEDED",
+	// "NODE_PHASE_FAILED", "NODE_PHASE_PAUSED".
+	Phase string `json:"phase" api:"required"`
+	// Timestamp when the phase transition occurred.
+	TransitionTime time.Time `json:"transition_time" api:"required" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Phase          respjson.Field
+		TransitionTime respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterDeletedGPUWorkerNodePhaseTransition) RawJSON() string { return r.JSON.raw }
+func (r *ClusterDeletedGPUWorkerNodePhaseTransition) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Node lifecycle event included in a GPU cluster timeline.
+type ClusterNodeLifecycleEvent struct {
+	// Human-readable lifecycle event message.
+	Message string `json:"message" api:"required"`
+	// Tenant node name this lifecycle event applies to.
+	NodeID string `json:"node_id" api:"required"`
+	// Lifecycle event reason, for example TogetherScaledUp, TogetherScaledDown, or
+	// TogetherPreempted.
+	Reason string `json:"reason" api:"required"`
+	// Event timestamp.
+	Timestamp time.Time `json:"timestamp" api:"required" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Message     respjson.Field
+		NodeID      respjson.Field
+		Reason      respjson.Field
+		Timestamp   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterNodeLifecycleEvent) RawJSON() string { return r.JSON.raw }
+func (r *ClusterNodeLifecycleEvent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

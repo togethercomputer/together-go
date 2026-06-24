@@ -2457,17 +2457,29 @@ func (r *FineTuningListCheckpointsResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// A checkpoint available for a fine-tuning job.
 type FineTuningListCheckpointsResponseData struct {
+	// Display label for the checkpoint, including the final or intermediate checkpoint
+	// step.
 	CheckpointType string `json:"checkpoint_type" api:"required"`
-	CreatedAt      string `json:"created_at" api:"required"`
-	Path           string `json:"path" api:"required"`
-	Step           int64  `json:"step" api:"required"`
+	// Timestamp when the checkpoint was created.
+	CreatedAt string `json:"created_at" api:"required"`
+	// Storage path for the checkpoint artifact.
+	Path string `json:"path" api:"required"`
+	// Step represented by the checkpoint; final checkpoints use the shipped model
+	// step.
+	Step int64 `json:"step" api:"required"`
+	// Canonical artifact selector for checkpoint download requests.
+	//
+	// Any of "model", "adapter".
+	Checkpoint string `json:"checkpoint"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CheckpointType respjson.Field
 		CreatedAt      respjson.Field
 		Path           respjson.Field
 		Step           respjson.Field
+		Checkpoint     respjson.Field
 		ExtraFields    map[string]respjson.Field
 		raw            string
 	} `json:"-"`
