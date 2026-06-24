@@ -128,6 +128,7 @@ func TestBetaClusterRemediationApproveWithOptionalParams(t *testing.T) {
 			ClusterID:  "cluster_id",
 			InstanceID: "instance_id",
 			Comment:    together.String("comment"),
+			Mode:       together.BetaClusterRemediationApproveParamsModeRemediationModeVmOnly,
 		},
 	)
 	if err != nil {

@@ -464,8 +464,22 @@ func (r BetaClusterRemediationListParams) URLQuery() (v url.Values, err error) {
 type BetaClusterRemediationApproveParams struct {
 	ClusterID  string `path:"cluster_id" api:"required" json:"-"`
 	InstanceID string `path:"instance_id" api:"required" json:"-"`
-	// Comment explaining the action.
+	// Approval comment explaining the decision.
 	Comment param.Opt[string] `json:"comment,omitzero"`
+	// Remediation mode to use after approval. When omitted, the remediation keeps its
+	// existing mode.
+	//
+	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
+	//     available host.
+	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
+	//     provisions a new one on a different host.
+	//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+	//     provisioning a replacement.
+	//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+	//
+	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
+	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
+	Mode BetaClusterRemediationApproveParamsMode `json:"mode,omitzero"`
 	paramObj
 }
 
@@ -476,6 +490,25 @@ func (r BetaClusterRemediationApproveParams) MarshalJSON() (data []byte, err err
 func (r *BetaClusterRemediationApproveParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// Remediation mode to use after approval. When omitted, the remediation keeps its
+// existing mode.
+//
+//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
+//     available host.
+//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
+//     provisions a new one on a different host.
+//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+//     provisioning a replacement.
+//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+type BetaClusterRemediationApproveParamsMode string
+
+const (
+	BetaClusterRemediationApproveParamsModeRemediationModeVmOnly                  BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_VM_ONLY"
+	BetaClusterRemediationApproveParamsModeRemediationModeHostAware               BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_HOST_AWARE"
+	BetaClusterRemediationApproveParamsModeRemediationModeEvictWithoutReplacement BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
+	BetaClusterRemediationApproveParamsModeRemediationModeRebootVm                BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_REBOOT_VM"
+)
 
 type BetaClusterRemediationCancelParams struct {
 	// The cluster ID.
