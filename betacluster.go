@@ -134,9 +134,15 @@ type Cluster struct {
 	GPUType        ClusterGPUType         `json:"gpu_type" api:"required"`
 	GPUWorkerNodes []ClusterGPUWorkerNode `json:"gpu_worker_nodes" api:"required"`
 	KubeConfig     string                 `json:"kube_config" api:"required"`
+	// Number of GPUs to draw from a capacity pool. A component of the overall
+	// num_gpus, alongside num_reserved_gpus.
+	NumCapacityPoolGPUs int64 `json:"num_capacity_pool_gpus" api:"required"`
 	// Number of CPU-only worker nodes in the cluster.
-	NumCPUWorkers       int64  `json:"num_cpu_workers" api:"required"`
-	NumGPUs             int64  `json:"num_gpus" api:"required"`
+	NumCPUWorkers int64 `json:"num_cpu_workers" api:"required"`
+	NumGPUs       int64 `json:"num_gpus" api:"required"`
+	// Number of prepaid reserved GPUs for this cluster. A component of the overall
+	// num_gpus, alongside num_capacity_pool_gpus.
+	NumReservedGPUs     int64  `json:"num_reserved_gpus" api:"required"`
 	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
 	// Cluster-level phase transition history.
 	PhaseTransitions []ClusterPhaseTransition `json:"phase_transitions" api:"required"`
@@ -195,8 +201,10 @@ type Cluster struct {
 		GPUType                  respjson.Field
 		GPUWorkerNodes           respjson.Field
 		KubeConfig               respjson.Field
+		NumCapacityPoolGPUs      respjson.Field
 		NumCPUWorkers            respjson.Field
 		NumGPUs                  respjson.Field
+		NumReservedGPUs          respjson.Field
 		NvidiaDriverVersion      respjson.Field
 		PhaseTransitions         respjson.Field
 		ProjectID                respjson.Field
@@ -607,11 +615,14 @@ type ClusterClusterConfig struct {
 	LoadBalancer string `json:"load_balancer" api:"required"`
 	// NVIDIA GPU Operator chart/version for the tenant cluster (e.g. v24.6.2). When
 	// omitted, a service default is applied.
-	GPUOperatorVersion         string                            `json:"gpu_operator_version"`
-	Ingress                    ClusterClusterConfigIngress       `json:"ingress"`
-	JumphostEnabled            bool                              `json:"jumphost_enabled"`
-	KubernetesDashboardEnabled bool                              `json:"kubernetes_dashboard_enabled"`
-	Observability              ClusterClusterConfigObservability `json:"observability"`
+	GPUOperatorVersion         string                      `json:"gpu_operator_version"`
+	Ingress                    ClusterClusterConfigIngress `json:"ingress"`
+	JumphostEnabled            bool                        `json:"jumphost_enabled"`
+	KubernetesDashboardEnabled bool                        `json:"kubernetes_dashboard_enabled"`
+	// NVIDIA Network Operator chart/version for the tenant cluster (e.g. v24.7.0).
+	// When omitted, a service default is applied.
+	NetworkOperatorVersion string                            `json:"network_operator_version"`
+	Observability          ClusterClusterConfigObservability `json:"observability"`
 	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 	// init, extra conf).
 	SlurmStartupScripts ClusterClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts"`
@@ -622,6 +633,7 @@ type ClusterClusterConfig struct {
 		Ingress                    respjson.Field
 		JumphostEnabled            respjson.Field
 		KubernetesDashboardEnabled respjson.Field
+		NetworkOperatorVersion     respjson.Field
 		Observability              respjson.Field
 		SlurmStartupScripts        respjson.Field
 		ExtraFields                map[string]respjson.Field
@@ -1094,6 +1106,8 @@ type BetaClusterNewParamsAcceptanceTestsParams struct {
 	NcclMultiNodeSkipped param.Opt[bool] `json:"nccl_multi_node_skipped,omitzero"`
 	// Skip NCCL single-node acceptance test.
 	NcclSingleNodeSkipped param.Opt[bool] `json:"nccl_single_node_skipped,omitzero"`
+	// Skip storage-performance acceptance test.
+	StorageSkipped param.Opt[bool] `json:"storage_skipped,omitzero"`
 	// DCGM diagnostic depth. SHORT = readiness; MEDIUM = default; LONG = system
 	// validation; EXTENDED = memtest. An omitted value selects MEDIUM when enabled.
 	//
@@ -1181,11 +1195,14 @@ type BetaClusterNewParamsClusterConfig struct {
 	LoadBalancer string `json:"load_balancer,omitzero" api:"required"`
 	// NVIDIA GPU Operator chart/version for the tenant cluster (e.g. v24.6.2). When
 	// omitted, a service default is applied.
-	GPUOperatorVersion         param.Opt[string]                              `json:"gpu_operator_version,omitzero"`
-	JumphostEnabled            param.Opt[bool]                                `json:"jumphost_enabled,omitzero"`
-	KubernetesDashboardEnabled param.Opt[bool]                                `json:"kubernetes_dashboard_enabled,omitzero"`
-	Ingress                    BetaClusterNewParamsClusterConfigIngress       `json:"ingress,omitzero"`
-	Observability              BetaClusterNewParamsClusterConfigObservability `json:"observability,omitzero"`
+	GPUOperatorVersion         param.Opt[string] `json:"gpu_operator_version,omitzero"`
+	JumphostEnabled            param.Opt[bool]   `json:"jumphost_enabled,omitzero"`
+	KubernetesDashboardEnabled param.Opt[bool]   `json:"kubernetes_dashboard_enabled,omitzero"`
+	// NVIDIA Network Operator chart/version for the tenant cluster (e.g. v24.7.0).
+	// When omitted, a service default is applied.
+	NetworkOperatorVersion param.Opt[string]                              `json:"network_operator_version,omitzero"`
+	Ingress                BetaClusterNewParamsClusterConfigIngress       `json:"ingress,omitzero"`
+	Observability          BetaClusterNewParamsClusterConfigObservability `json:"observability,omitzero"`
 	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 	// init, extra conf).
 	SlurmStartupScripts BetaClusterNewParamsClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts,omitzero"`
@@ -1324,6 +1341,10 @@ func (r *BetaClusterNewParamsSharedVolume) UnmarshalJSON(data []byte) error {
 }
 
 type BetaClusterUpdateParams struct {
+	// Number of GPUs to draw from the cluster's capacity pool. Only valid for clusters
+	// created with a capacity_pool_id. Must be a multiple of 8 and not exceed
+	// num_gpus. When omitted, the current value is preserved.
+	NumCapacityPoolGPUs param.Opt[int64] `json:"num_capacity_pool_gpus,omitzero"`
 	// Target GPU count for the cluster. When omitted, the server keeps the current GPU
 	// count from cluster metadata (use for config-only or decommission-time-only
 	// updates).
@@ -1418,11 +1439,14 @@ type BetaClusterUpdateParamsClusterConfig struct {
 	LoadBalancer string `json:"load_balancer,omitzero" api:"required"`
 	// NVIDIA GPU Operator chart/version for the tenant cluster (e.g. v24.6.2). When
 	// omitted, a service default is applied.
-	GPUOperatorVersion         param.Opt[string]                                 `json:"gpu_operator_version,omitzero"`
-	JumphostEnabled            param.Opt[bool]                                   `json:"jumphost_enabled,omitzero"`
-	KubernetesDashboardEnabled param.Opt[bool]                                   `json:"kubernetes_dashboard_enabled,omitzero"`
-	Ingress                    BetaClusterUpdateParamsClusterConfigIngress       `json:"ingress,omitzero"`
-	Observability              BetaClusterUpdateParamsClusterConfigObservability `json:"observability,omitzero"`
+	GPUOperatorVersion         param.Opt[string] `json:"gpu_operator_version,omitzero"`
+	JumphostEnabled            param.Opt[bool]   `json:"jumphost_enabled,omitzero"`
+	KubernetesDashboardEnabled param.Opt[bool]   `json:"kubernetes_dashboard_enabled,omitzero"`
+	// NVIDIA Network Operator chart/version for the tenant cluster (e.g. v24.7.0).
+	// When omitted, a service default is applied.
+	NetworkOperatorVersion param.Opt[string]                                 `json:"network_operator_version,omitzero"`
+	Ingress                BetaClusterUpdateParamsClusterConfigIngress       `json:"ingress,omitzero"`
+	Observability          BetaClusterUpdateParamsClusterConfigObservability `json:"observability,omitzero"`
 	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 	// init, extra conf).
 	SlurmStartupScripts BetaClusterUpdateParamsClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts,omitzero"`
