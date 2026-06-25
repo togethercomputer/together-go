@@ -149,18 +149,10 @@ func (r *FineTuningService) ListMetrics(ctx context.Context, id string, query Fi
 }
 
 type FinetuneEvent struct {
-	CheckpointPath string `json:"checkpoint_path" api:"required"`
-	CreatedAt      string `json:"created_at" api:"required"`
-	Hash           string `json:"hash" api:"required"`
-	Message        string `json:"message" api:"required"`
-	ModelPath      string `json:"model_path" api:"required"`
+	CreatedAt string `json:"created_at" api:"required"`
+	Message   string `json:"message" api:"required"`
 	// The object type, which is always `fine-tune-event`.
-	Object         constant.FineTuneEvent `json:"object" default:"fine-tune-event"`
-	ParamCount     int64                  `json:"param_count" api:"required"`
-	Step           int64                  `json:"step" api:"required"`
-	TokenCount     int64                  `json:"token_count" api:"required"`
-	TotalSteps     int64                  `json:"total_steps" api:"required"`
-	TrainingOffset int64                  `json:"training_offset" api:"required"`
+	Object constant.FineTuneEvent `json:"object" default:"fine-tune-event"`
 	// Any of "job_pending", "job_start", "job_stopped", "model_downloading",
 	// "model_download_complete", "training_data_downloading",
 	// "training_data_download_complete", "validation_data_downloading",
@@ -169,8 +161,8 @@ type FinetuneEvent struct {
 	// "model_compressing", "model_compression_complete", "model_uploading",
 	// "model_upload_complete", "job_complete", "job_error", "cancel_requested",
 	// "job_restarted", "refund", "warning", "early_stopped".
-	Type     FinetuneEventType `json:"type" api:"required"`
-	WandbURL string            `json:"wandb_url" api:"required"`
+	Type           FinetuneEventType `json:"type" api:"required"`
+	CheckpointPath string            `json:"checkpoint_path"`
 	// For early_stopped events, the best validation loss observed. Null if no
 	// improving evaluation was recorded.
 	EarlyStoppingBestMetricValue float64 `json:"early_stopping_best_metric_value" api:"nullable"`
@@ -180,25 +172,29 @@ type FinetuneEvent struct {
 	EarlyStoppingBestStep int64 `json:"early_stopping_best_step" api:"nullable"`
 	// Any of "info", "warning", "error", "legacy_info", "legacy_iwarning",
 	// "legacy_ierror".
-	Level FinetuneEventLevel `json:"level" api:"nullable"`
+	Level      FinetuneEventLevel `json:"level" api:"nullable"`
+	ModelPath  string             `json:"model_path"`
+	ParamCount int64              `json:"param_count"`
+	Step       int64              `json:"step"`
+	TokenCount int64              `json:"token_count"`
+	TotalSteps int64              `json:"total_steps"`
+	WandbURL   string             `json:"wandb_url"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		CheckpointPath               respjson.Field
 		CreatedAt                    respjson.Field
-		Hash                         respjson.Field
 		Message                      respjson.Field
-		ModelPath                    respjson.Field
 		Object                       respjson.Field
+		Type                         respjson.Field
+		CheckpointPath               respjson.Field
+		EarlyStoppingBestMetricValue respjson.Field
+		EarlyStoppingBestStep        respjson.Field
+		Level                        respjson.Field
+		ModelPath                    respjson.Field
 		ParamCount                   respjson.Field
 		Step                         respjson.Field
 		TokenCount                   respjson.Field
 		TotalSteps                   respjson.Field
-		TrainingOffset               respjson.Field
-		Type                         respjson.Field
 		WandbURL                     respjson.Field
-		EarlyStoppingBestMetricValue respjson.Field
-		EarlyStoppingBestStep        respjson.Field
-		Level                        respjson.Field
 		ExtraFields                  map[string]respjson.Field
 		raw                          string
 	} `json:"-"`
@@ -889,8 +885,6 @@ type FineTuningNewResponse struct {
 	TrainingMethod FineTuningNewResponseTrainingMethodUnion `json:"training_method"`
 	// Type of training used (full or LoRA)
 	TrainingType FineTuningNewResponseTrainingTypeUnion `json:"training_type"`
-	// Identifier for who created the job.
-	UserID string `json:"user_id"`
 	// File-ID of the validation file
 	ValidationFile string `json:"validation_file"`
 	// Weights & Biases run name
@@ -935,7 +929,6 @@ type FineTuningNewResponse struct {
 		TrainingFile            respjson.Field
 		TrainingMethod          respjson.Field
 		TrainingType            respjson.Field
-		UserID                  respjson.Field
 		ValidationFile          respjson.Field
 		WandbName               respjson.Field
 		WandbProjectName        respjson.Field
@@ -1402,8 +1395,6 @@ type FineTuningListResponseData struct {
 	TrainingMethod FineTuningListResponseDataTrainingMethodUnion `json:"training_method"`
 	// Type of training used (full or LoRA)
 	TrainingType FineTuningListResponseDataTrainingTypeUnion `json:"training_type"`
-	// Identifier for who created the job.
-	UserID string `json:"user_id"`
 	// File-ID of the validation file
 	ValidationFile string `json:"validation_file"`
 	// Weights & Biases run name
@@ -1448,7 +1439,6 @@ type FineTuningListResponseData struct {
 		TrainingFile            respjson.Field
 		TrainingMethod          respjson.Field
 		TrainingType            respjson.Field
-		UserID                  respjson.Field
 		ValidationFile          respjson.Field
 		WandbName               respjson.Field
 		WandbProjectName        respjson.Field
@@ -1912,8 +1902,6 @@ type FineTuningCancelResponse struct {
 	TrainingMethod FineTuningCancelResponseTrainingMethodUnion `json:"training_method"`
 	// Type of training used (full or LoRA)
 	TrainingType FineTuningCancelResponseTrainingTypeUnion `json:"training_type"`
-	// Identifier for who created the job.
-	UserID string `json:"user_id"`
 	// File-ID of the validation file
 	ValidationFile string `json:"validation_file"`
 	// Weights & Biases run name
@@ -1958,7 +1946,6 @@ type FineTuningCancelResponse struct {
 		TrainingFile            respjson.Field
 		TrainingMethod          respjson.Field
 		TrainingType            respjson.Field
-		UserID                  respjson.Field
 		ValidationFile          respjson.Field
 		WandbName               respjson.Field
 		WandbProjectName        respjson.Field
