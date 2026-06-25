@@ -42,6 +42,7 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 			GPUBurnSkipped:        together.Bool(true),
 			NcclMultiNodeSkipped:  together.Bool(true),
 			NcclSingleNodeSkipped: together.Bool(true),
+			StorageSkipped:        together.Bool(true),
 		},
 		AddOns: []together.BetaClusterNewParamsAddOn{{
 			AddOnType: "add_on_type",
@@ -67,6 +68,7 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 			},
 			JumphostEnabled:            together.Bool(true),
 			KubernetesDashboardEnabled: together.Bool(true),
+			NetworkOperatorVersion:     together.String("network_operator_version"),
 			Observability: together.BetaClusterNewParamsClusterConfigObservability{
 				Enabled: together.Bool(true),
 			},
@@ -174,6 +176,7 @@ func TestBetaClusterUpdateWithOptionalParams(t *testing.T) {
 				},
 				JumphostEnabled:            together.Bool(true),
 				KubernetesDashboardEnabled: together.Bool(true),
+				NetworkOperatorVersion:     together.String("network_operator_version"),
 				Observability: together.BetaClusterUpdateParamsClusterConfigObservability{
 					Enabled: together.Bool(true),
 				},
@@ -187,11 +190,12 @@ func TestBetaClusterUpdateWithOptionalParams(t *testing.T) {
 					WorkerProlog:      together.String("worker_prolog"),
 				},
 			},
-			ClusterType:        together.BetaClusterUpdateParamsClusterTypeKubernetes,
-			NumGPUs:            together.Int(0),
-			NumPreemptibleGPUs: together.Int(0),
-			NumReservedGPUs:    together.Int(0),
-			ReservationEndTime: together.Time(time.Now()),
+			ClusterType:         together.BetaClusterUpdateParamsClusterTypeKubernetes,
+			NumCapacityPoolGPUs: together.Int(0),
+			NumGPUs:             together.Int(0),
+			NumPreemptibleGPUs:  together.Int(0),
+			NumReservedGPUs:     together.Int(0),
+			ReservationEndTime:  together.Time(time.Now()),
 		},
 	)
 	if err != nil {

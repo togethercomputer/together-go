@@ -2425,6 +2425,9 @@ type FineTuningEstimatePriceResponseUnavailableEstimate struct {
 	// Whether price estimation is available for the requested fine-tune job.
 	EstimationAvailable bool `json:"estimation_available" api:"required"`
 	// Reason price estimation is unavailable for the requested fine-tune job.
+	//
+	// Any of "multimodal_dataset", "train_file_not_validated",
+	// "eval_file_not_validated", "train_file_invalid", "eval_file_invalid".
 	UnavailableReason string `json:"unavailable_reason" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
