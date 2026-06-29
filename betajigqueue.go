@@ -55,6 +55,15 @@ func (r *BetaJigQueueService) Cancel(ctx context.Context, body BetaJigQueueCance
 	return res, err
 }
 
+// Cancel all pending jobs for the given model. Running jobs are left untouched.
+// Returns the number of jobs that were canceled.
+func (r *BetaJigQueueService) Clear(ctx context.Context, body BetaJigQueueClearParams, opts ...option.RequestOption) (res *BetaJigQueueClearResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "queue/clear"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return res, err
+}
+
 // Get the current queue statistics for a model, including pending and running job
 // counts.
 func (r *BetaJigQueueService) Metrics(ctx context.Context, query BetaJigQueueMetricsParams, opts ...option.RequestOption) (res *BetaJigQueueMetricsResponse, err error) {
@@ -178,6 +187,24 @@ const (
 	BetaJigQueueCancelResponseStatusFailed   BetaJigQueueCancelResponseStatus = "failed"
 )
 
+// Count of pending jobs canceled by the clear operation.
+type BetaJigQueueClearResponse struct {
+	// Number of pending jobs that were canceled
+	CanceledCount int64 `json:"canceled_count" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CanceledCount respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BetaJigQueueClearResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaJigQueueClearResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Queue job counts for a model.
 type BetaJigQueueMetricsResponse struct {
 	// Number of jobs currently being processed
@@ -249,6 +276,20 @@ func (r BetaJigQueueCancelParams) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaJigQueueCancelParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type BetaJigQueueClearParams struct {
+	// Model identifier whose pending jobs should be canceled
+	Model string `json:"model" api:"required"`
+	paramObj
+}
+
+func (r BetaJigQueueClearParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigQueueClearParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigQueueClearParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
