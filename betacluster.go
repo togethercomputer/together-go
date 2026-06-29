@@ -243,10 +243,12 @@ func (r *Cluster) UnmarshalJSON(data []byte) error {
 
 // AddOnInfo is returned in cluster responses and add-on CRUD operations.
 type ClusterAddOn struct {
-	AddOnType string             `json:"add_on_type" api:"required"`
-	Config    ClusterAddOnConfig `json:"config" api:"required"`
-	Name      string             `json:"name" api:"required"`
-	State     ClusterAddOnState  `json:"state" api:"required"`
+	AddOnType string `json:"add_on_type" api:"required"`
+	// Configuration for a cluster add-on.
+	Config ClusterAddOnConfig `json:"config" api:"required"`
+	Name   string             `json:"name" api:"required"`
+	// State for a cluster add-on.
+	State ClusterAddOnState `json:"state" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AddOnType   respjson.Field
@@ -264,13 +266,17 @@ func (r *ClusterAddOn) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Configuration for a cluster add-on.
 type ClusterAddOnConfig struct {
 	Dashboard ClusterAddOnConfigDashboard `json:"dashboard"`
 	Ingress   ClusterAddOnConfigIngress   `json:"ingress"`
+	// Configuration for the Model Aware TorchPass add-on.
+	Torchpass ClusterAddOnConfigTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Dashboard   respjson.Field
 		Ingress     respjson.Field
+		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -314,13 +320,35 @@ func (r *ClusterAddOnConfigIngress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Configuration for the Model Aware TorchPass add-on.
+type ClusterAddOnConfigTorchpass struct {
+	// Whether to enable the Model Aware TorchPass add-on.
+	Enabled bool `json:"enabled"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterAddOnConfigTorchpass) RawJSON() string { return r.JSON.raw }
+func (r *ClusterAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// State for a cluster add-on.
 type ClusterAddOnState struct {
 	Dashboard ClusterAddOnStateDashboard `json:"dashboard"`
 	Ingress   ClusterAddOnStateIngress   `json:"ingress"`
+	// State for the Model Aware TorchPass add-on.
+	Torchpass ClusterAddOnStateTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Dashboard   respjson.Field
 		Ingress     respjson.Field
+		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -357,6 +385,21 @@ type ClusterAddOnStateIngress struct {
 // Returns the unmodified JSON received from the API
 func (r ClusterAddOnStateIngress) RawJSON() string { return r.JSON.raw }
 func (r *ClusterAddOnStateIngress) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// State for the Model Aware TorchPass add-on.
+type ClusterAddOnStateTorchpass struct {
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterAddOnStateTorchpass) RawJSON() string { return r.JSON.raw }
+func (r *ClusterAddOnStateTorchpass) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -626,6 +669,9 @@ type ClusterClusterConfig struct {
 	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 	// init, extra conf).
 	SlurmStartupScripts ClusterClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts"`
+	// Whether this cluster uses a per-cluster SSH certificate authority for
+	// OIDC-signed SSH access.
+	SSHCaEnabled bool `json:"ssh_ca_enabled"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		LoadBalancer               respjson.Field
@@ -636,6 +682,7 @@ type ClusterClusterConfig struct {
 		NetworkOperatorVersion     respjson.Field
 		Observability              respjson.Field
 		SlurmStartupScripts        respjson.Field
+		SSHCaEnabled               respjson.Field
 		ExtraFields                map[string]respjson.Field
 		raw                        string
 	} `json:"-"`
@@ -1133,10 +1180,11 @@ func init() {
 
 // The properties AddOnType, Name are required.
 type BetaClusterNewParamsAddOn struct {
-	// Type of add-on. Valid values: 'dashboard', 'ingress'.
+	// Type of add-on. Valid values: 'dashboard', 'ingress', 'torchpass'.
 	AddOnType string `json:"add_on_type" api:"required"`
 	// Human-readable name for this add-on instance.
-	Name   string                          `json:"name" api:"required"`
+	Name string `json:"name" api:"required"`
+	// Configuration for a cluster add-on.
 	Config BetaClusterNewParamsAddOnConfig `json:"config,omitzero"`
 	paramObj
 }
@@ -1149,9 +1197,12 @@ func (r *BetaClusterNewParamsAddOn) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Configuration for a cluster add-on.
 type BetaClusterNewParamsAddOnConfig struct {
 	Dashboard BetaClusterNewParamsAddOnConfigDashboard `json:"dashboard,omitzero"`
 	Ingress   BetaClusterNewParamsAddOnConfigIngress   `json:"ingress,omitzero"`
+	// Configuration for the Model Aware TorchPass add-on.
+	Torchpass BetaClusterNewParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
 }
 
@@ -1189,6 +1240,21 @@ func (r *BetaClusterNewParamsAddOnConfigIngress) UnmarshalJSON(data []byte) erro
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Configuration for the Model Aware TorchPass add-on.
+type BetaClusterNewParamsAddOnConfigTorchpass struct {
+	// Whether to enable the Model Aware TorchPass add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r BetaClusterNewParamsAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
+	type shadow BetaClusterNewParamsAddOnConfigTorchpass
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaClusterNewParamsAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // The property LoadBalancer is required.
 type BetaClusterNewParamsClusterConfig struct {
 	// Any of "NONE", "TRAEFIK", "NGINX", "ISTIO".
@@ -1200,9 +1266,12 @@ type BetaClusterNewParamsClusterConfig struct {
 	KubernetesDashboardEnabled param.Opt[bool]   `json:"kubernetes_dashboard_enabled,omitzero"`
 	// NVIDIA Network Operator chart/version for the tenant cluster (e.g. v24.7.0).
 	// When omitted, a service default is applied.
-	NetworkOperatorVersion param.Opt[string]                              `json:"network_operator_version,omitzero"`
-	Ingress                BetaClusterNewParamsClusterConfigIngress       `json:"ingress,omitzero"`
-	Observability          BetaClusterNewParamsClusterConfigObservability `json:"observability,omitzero"`
+	NetworkOperatorVersion param.Opt[string] `json:"network_operator_version,omitzero"`
+	// Whether this cluster uses a per-cluster SSH certificate authority for
+	// OIDC-signed SSH access.
+	SSHCaEnabled  param.Opt[bool]                                `json:"ssh_ca_enabled,omitzero"`
+	Ingress       BetaClusterNewParamsClusterConfigIngress       `json:"ingress,omitzero"`
+	Observability BetaClusterNewParamsClusterConfigObservability `json:"observability,omitzero"`
 	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 	// init, extra conf).
 	SlurmStartupScripts BetaClusterNewParamsClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts,omitzero"`
@@ -1380,7 +1449,8 @@ func (r *BetaClusterUpdateParams) UnmarshalJSON(data []byte) error {
 // The property Name is required.
 type BetaClusterUpdateParamsAddOn struct {
 	// Name of the add-on to update. Must match an existing add-on on the cluster.
-	Name   string                             `json:"name" api:"required"`
+	Name string `json:"name" api:"required"`
+	// Configuration for a cluster add-on.
 	Config BetaClusterUpdateParamsAddOnConfig `json:"config,omitzero"`
 	paramObj
 }
@@ -1393,9 +1463,12 @@ func (r *BetaClusterUpdateParamsAddOn) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Configuration for a cluster add-on.
 type BetaClusterUpdateParamsAddOnConfig struct {
 	Dashboard BetaClusterUpdateParamsAddOnConfigDashboard `json:"dashboard,omitzero"`
 	Ingress   BetaClusterUpdateParamsAddOnConfigIngress   `json:"ingress,omitzero"`
+	// Configuration for the Model Aware TorchPass add-on.
+	Torchpass BetaClusterUpdateParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
 }
 
@@ -1433,6 +1506,21 @@ func (r *BetaClusterUpdateParamsAddOnConfigIngress) UnmarshalJSON(data []byte) e
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Configuration for the Model Aware TorchPass add-on.
+type BetaClusterUpdateParamsAddOnConfigTorchpass struct {
+	// Whether to enable the Model Aware TorchPass add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r BetaClusterUpdateParamsAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
+	type shadow BetaClusterUpdateParamsAddOnConfigTorchpass
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaClusterUpdateParamsAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // The property LoadBalancer is required.
 type BetaClusterUpdateParamsClusterConfig struct {
 	// Any of "NONE", "TRAEFIK", "NGINX", "ISTIO".
@@ -1444,9 +1532,12 @@ type BetaClusterUpdateParamsClusterConfig struct {
 	KubernetesDashboardEnabled param.Opt[bool]   `json:"kubernetes_dashboard_enabled,omitzero"`
 	// NVIDIA Network Operator chart/version for the tenant cluster (e.g. v24.7.0).
 	// When omitted, a service default is applied.
-	NetworkOperatorVersion param.Opt[string]                                 `json:"network_operator_version,omitzero"`
-	Ingress                BetaClusterUpdateParamsClusterConfigIngress       `json:"ingress,omitzero"`
-	Observability          BetaClusterUpdateParamsClusterConfigObservability `json:"observability,omitzero"`
+	NetworkOperatorVersion param.Opt[string] `json:"network_operator_version,omitzero"`
+	// Whether this cluster uses a per-cluster SSH certificate authority for
+	// OIDC-signed SSH access.
+	SSHCaEnabled  param.Opt[bool]                                   `json:"ssh_ca_enabled,omitzero"`
+	Ingress       BetaClusterUpdateParamsClusterConfigIngress       `json:"ingress,omitzero"`
+	Observability BetaClusterUpdateParamsClusterConfigObservability `json:"observability,omitzero"`
 	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 	// init, extra conf).
 	SlurmStartupScripts BetaClusterUpdateParamsClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts,omitzero"`
