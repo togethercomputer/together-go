@@ -54,6 +54,9 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 				Ingress: together.BetaClusterNewParamsAddOnConfigIngress{
 					Enabled: together.Bool(true),
 				},
+				Torchpass: together.BetaClusterNewParamsAddOnConfigTorchpass{
+					Enabled: together.Bool(true),
+				},
 			},
 		}},
 		AutoScale:        together.Bool(true),
@@ -81,6 +84,7 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 				WorkerEpilog:      together.String("worker_epilog"),
 				WorkerProlog:      together.String("worker_prolog"),
 			},
+			SSHCaEnabled: together.Bool(true),
 		},
 		ClusterType:         together.BetaClusterNewParamsClusterTypeKubernetes,
 		DurationDays:        together.Int(0),
@@ -166,6 +170,9 @@ func TestBetaClusterUpdateWithOptionalParams(t *testing.T) {
 					Ingress: together.BetaClusterUpdateParamsAddOnConfigIngress{
 						Enabled: together.Bool(true),
 					},
+					Torchpass: together.BetaClusterUpdateParamsAddOnConfigTorchpass{
+						Enabled: together.Bool(true),
+					},
 				},
 			}},
 			ClusterConfig: together.BetaClusterUpdateParamsClusterConfig{
@@ -189,6 +196,7 @@ func TestBetaClusterUpdateWithOptionalParams(t *testing.T) {
 					WorkerEpilog:      together.String("worker_epilog"),
 					WorkerProlog:      together.String("worker_prolog"),
 				},
+				SSHCaEnabled: together.Bool(true),
 			},
 			ClusterType:         together.BetaClusterUpdateParamsClusterTypeKubernetes,
 			NumCapacityPoolGPUs: together.Int(0),
