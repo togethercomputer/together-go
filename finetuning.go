@@ -3114,8 +3114,9 @@ func (r FineTuningDeleteParams) URLQuery() (v url.Values, err error) {
 type FineTuningContentParams struct {
 	// Fine-tune ID to download. A string that starts with `ft-`.
 	FtID string `query:"ft_id" api:"required" json:"-"`
-	// Specifies step number for checkpoint to download. Ignores `checkpoint` value if
-	// set.
+	// Specifies the checkpoint step to download from the list checkpoints response. A
+	// final checkpoint step downloads the final model; 0 or omitted downloads the
+	// final model by default. Ignores `checkpoint` value if set.
 	CheckpointStep param.Opt[int64] `query:"checkpoint_step,omitzero" json:"-"`
 	// Specifies checkpoint type to download - `merged` vs `adapter`. This field is
 	// required if the checkpoint_step is not set.
