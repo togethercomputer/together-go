@@ -223,6 +223,9 @@ type Remediation struct {
 	ErrorMessage string `json:"error_message"`
 	// Display name of the targeted instance.
 	InstanceName string `json:"instance_name"`
+	// Passive health check alerts linked to this remediation, including resolved
+	// alerts.
+	LinkedAlerts []RemediationLinkedAlert `json:"linked_alerts"`
 	// Passive health check event ID that triggered this remediation.
 	PassiveHealthCheckEventID string `json:"passive_health_check_event_id"`
 	// User-provided reason for the remediation.
@@ -252,6 +255,7 @@ type Remediation struct {
 		EndTime                   respjson.Field
 		ErrorMessage              respjson.Field
 		InstanceName              respjson.Field
+		LinkedAlerts              respjson.Field
 		PassiveHealthCheckEventID respjson.Field
 		Reason                    respjson.Field
 		RequestedBy               respjson.Field
@@ -330,6 +334,53 @@ const (
 	RemediationTriggerRemediationTriggerAutomated RemediationTrigger = "REMEDIATION_TRIGGER_AUTOMATED"
 )
 
+// Passive health check alert returned by the health check API.
+type RemediationLinkedAlert struct {
+	// Alertmanager alert name.
+	AlertName string `json:"alert_name" api:"required"`
+	// Alertmanager annotations as key-value strings.
+	Annotations map[string]string `json:"annotations" api:"required"`
+	// Cluster UUID the alert was raised against.
+	ClusterID string `json:"cluster_id" api:"required"`
+	// Primary key UUID for the passive health check alert.
+	PassiveHealthCheckAlertID string `json:"passive_health_check_alert_id" api:"required"`
+	// Canonical severity tier for the alert.
+	//
+	// Any of "PHC_SEVERITY_INFO", "PHC_SEVERITY_WARNING", "PHC_SEVERITY_CRITICAL".
+	Severity string `json:"severity" api:"required"`
+	// Time when the underlying alert first fired.
+	StartedAt time.Time `json:"started_at" api:"required" format:"date-time"`
+	// VM name extracted from the Alertmanager labels.
+	TargetVm string `json:"target_vm" api:"required"`
+	// Resolved instance UUID. Empty until the alert is joined to an instance.
+	InstanceID string `json:"instance_id"`
+	// Remediation intent UUID attached to this alert, if any.
+	NodeRemediationIntentID string `json:"node_remediation_intent_id"`
+	// Time when the underlying alert resolved. Empty while the alert is firing.
+	ResolvedAt time.Time `json:"resolved_at" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AlertName                 respjson.Field
+		Annotations               respjson.Field
+		ClusterID                 respjson.Field
+		PassiveHealthCheckAlertID respjson.Field
+		Severity                  respjson.Field
+		StartedAt                 respjson.Field
+		TargetVm                  respjson.Field
+		InstanceID                respjson.Field
+		NodeRemediationIntentID   respjson.Field
+		ResolvedAt                respjson.Field
+		ExtraFields               map[string]respjson.Field
+		raw                       string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RemediationLinkedAlert) RawJSON() string { return r.JSON.raw }
+func (r *RemediationLinkedAlert) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Remediation represents a node remediation request for an instance. An instance
 // can have multiple remediations over time (e.g., failed attempts followed by
 // retries).
@@ -356,6 +407,22 @@ func (r RemediationParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *RemediationParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Passive health check alert returned by the health check API.
+//
+// The properties AlertName, Annotations, ClusterID, PassiveHealthCheckAlertID,
+// Severity, StartedAt, TargetVm are required.
+type RemediationLinkedAlertParam struct {
+	paramObj
+}
+
+func (r RemediationLinkedAlertParam) MarshalJSON() (data []byte, err error) {
+	type shadow RemediationLinkedAlertParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RemediationLinkedAlertParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
