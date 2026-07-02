@@ -252,7 +252,9 @@ type FinetuneResponse struct {
 	ID string `json:"id" api:"required" format:"uuid"`
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
-	Status    FinetuneResponseStatus         `json:"status" api:"required"`
+	Status FinetuneResponseStatus `json:"status" api:"required"`
+	// ID of the user who owns the fine-tune job.
+	UserID    string                         `json:"user_id" api:"required"`
 	BatchSize FinetuneResponseBatchSizeUnion `json:"batch_size"`
 	CreatedAt time.Time                      `json:"created_at" format:"date-time"`
 	// Whether the early-stopping criterion triggered.
@@ -305,6 +307,7 @@ type FinetuneResponse struct {
 	JSON struct {
 		ID                      respjson.Field
 		Status                  respjson.Field
+		UserID                  respjson.Field
 		BatchSize               respjson.Field
 		CreatedAt               respjson.Field
 		EarlyStopped            respjson.Field
@@ -828,6 +831,8 @@ type FineTuningNewResponse struct {
 	Status FineTuningNewResponseStatus `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
+	// ID of the user who owns the fine-tune job.
+	UserID string `json:"user_id" api:"required"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Whether the early-stopping criterion triggered.
@@ -904,6 +909,7 @@ type FineTuningNewResponse struct {
 		CreatedAt               respjson.Field
 		Status                  respjson.Field
 		UpdatedAt               respjson.Field
+		UserID                  respjson.Field
 		BatchSize               respjson.Field
 		EarlyStopped            respjson.Field
 		EarlyStoppingBestMetric respjson.Field
@@ -1341,6 +1347,8 @@ type FineTuningListResponseData struct {
 	Status string `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
+	// ID of the user who owns the fine-tune job.
+	UserID string `json:"user_id" api:"required"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Whether the early-stopping criterion triggered.
@@ -1417,6 +1425,7 @@ type FineTuningListResponseData struct {
 		CreatedAt               respjson.Field
 		Status                  respjson.Field
 		UpdatedAt               respjson.Field
+		UserID                  respjson.Field
 		BatchSize               respjson.Field
 		EarlyStopped            respjson.Field
 		EarlyStoppingBestMetric respjson.Field
@@ -1851,6 +1860,8 @@ type FineTuningCancelResponse struct {
 	Status FineTuningCancelResponseStatus `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
+	// ID of the user who owns the fine-tune job.
+	UserID string `json:"user_id" api:"required"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
 	// Whether the early-stopping criterion triggered.
@@ -1927,6 +1938,7 @@ type FineTuningCancelResponse struct {
 		CreatedAt               respjson.Field
 		Status                  respjson.Field
 		UpdatedAt               respjson.Field
+		UserID                  respjson.Field
 		BatchSize               respjson.Field
 		EarlyStopped            respjson.Field
 		EarlyStoppingBestMetric respjson.Field
