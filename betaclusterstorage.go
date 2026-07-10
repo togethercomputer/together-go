@@ -174,6 +174,9 @@ type BetaClusterStorageNewParams struct {
 	VolumeName string `json:"volume_name" api:"required"`
 	// When true, the shared volume is not deleted when the cluster is decommissioned.
 	IsLifecycleIndependent param.Opt[bool] `json:"is_lifecycle_independent,omitzero"`
+	// Project ID that will own the volume. When omitted, the caller's default project
+	// is used.
+	ProjectID param.Opt[string] `json:"project_id,omitzero"`
 	paramObj
 }
 

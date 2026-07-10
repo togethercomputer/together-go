@@ -109,6 +109,7 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 			SizeTib:                0,
 			VolumeName:             "volume_name",
 			IsLifecycleIndependent: together.Bool(true),
+			ProjectID:              together.String("project_id"),
 		},
 		SlurmImage:      together.String("slurm_image"),
 		SlurmShmSizeGib: together.Int(0),
