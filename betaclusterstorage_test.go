@@ -30,6 +30,7 @@ func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
 		SizeTib:                0,
 		VolumeName:             "volume_name",
 		IsLifecycleIndependent: together.Bool(true),
+		ProjectID:              together.String("project_id"),
 	})
 	if err != nil {
 		var apierr *together.Error

@@ -186,9 +186,15 @@ type Remediation struct {
 	//     available host.
 	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
 	//     provisions a new one on a different host.
+	//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+	//     provisioning a replacement.
+	//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+	//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Cordons and power-cycles the bare-metal
+	//     host while preserving host and node identity.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
+	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM",
+	// "REMEDIATION_MODE_HOST_POWER_CYCLE".
 	Mode RemediationMode `json:"mode" api:"required"`
 	// RemediationState represents the lifecycle state of a remediation.
 	//
@@ -200,9 +206,11 @@ type Remediation struct {
 	//   - `CANCELLED`: Cancelled by user or system.
 	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
 	//     processing.
+	//   - `QUARANTINING`: Cordoning or preparing the host before remediation.
+	//   - `QUARANTINED`: Host has been cordoned or isolated for remediation.
 	//
 	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
+	// "CANCELLED", "AUTO_RESOLVED", "QUARANTINING", "QUARANTINED".
 	State RemediationState `json:"state" api:"required"`
 	// RemediationTrigger specifies how the remediation was triggered.
 	//
@@ -290,6 +298,11 @@ func (r Remediation) ToParam() RemediationParam {
 //     available host.
 //   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
 //     provisions a new one on a different host.
+//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+//     provisioning a replacement.
+//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Cordons and power-cycles the bare-metal
+//     host while preserving host and node identity.
 type RemediationMode string
 
 const (
@@ -297,6 +310,7 @@ const (
 	RemediationModeRemediationModeHostAware               RemediationMode = "REMEDIATION_MODE_HOST_AWARE"
 	RemediationModeRemediationModeEvictWithoutReplacement RemediationMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
 	RemediationModeRemediationModeRebootVm                RemediationMode = "REMEDIATION_MODE_REBOOT_VM"
+	RemediationModeRemediationModeHostPowerCycle          RemediationMode = "REMEDIATION_MODE_HOST_POWER_CYCLE"
 )
 
 // RemediationState represents the lifecycle state of a remediation.
@@ -309,6 +323,8 @@ const (
 //   - `CANCELLED`: Cancelled by user or system.
 //   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
 //     processing.
+//   - `QUARANTINING`: Cordoning or preparing the host before remediation.
+//   - `QUARANTINED`: Host has been cordoned or isolated for remediation.
 type RemediationState string
 
 const (
@@ -319,6 +335,8 @@ const (
 	RemediationStateFailed          RemediationState = "FAILED"
 	RemediationStateCancelled       RemediationState = "CANCELLED"
 	RemediationStateAutoResolved    RemediationState = "AUTO_RESOLVED"
+	RemediationStateQuarantining    RemediationState = "QUARANTINING"
+	RemediationStateQuarantined     RemediationState = "QUARANTINED"
 )
 
 // RemediationTrigger specifies how the remediation was triggered.
@@ -393,9 +411,15 @@ type RemediationParam struct {
 	//     available host.
 	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
 	//     provisions a new one on a different host.
+	//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+	//     provisioning a replacement.
+	//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+	//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Cordons and power-cycles the bare-metal
+	//     host while preserving host and node identity.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
+	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM",
+	// "REMEDIATION_MODE_HOST_POWER_CYCLE".
 	Mode RemediationMode `json:"mode,omitzero" api:"required"`
 	// User-provided reason for the remediation.
 	Reason param.Opt[string] `json:"reason,omitzero"`
@@ -495,7 +519,8 @@ type BetaClusterRemediationListParams struct {
 	// specified modes.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
+	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM",
+	// "REMEDIATION_MODE_HOST_POWER_CYCLE".
 	Mode []string `query:"mode,omitzero" json:"-"`
 	// Filter by state(s). Returns remediations matching any of the specified states.
 	//
@@ -507,9 +532,11 @@ type BetaClusterRemediationListParams struct {
 	//   - `CANCELLED`: Cancelled by user or system.
 	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
 	//     processing.
+	//   - `QUARANTINING`: Cordoning or preparing the host before remediation.
+	//   - `QUARANTINED`: Host has been cordoned or isolated for remediation.
 	//
 	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
-	// "CANCELLED", "AUTO_RESOLVED".
+	// "CANCELLED", "AUTO_RESOLVED", "QUARANTINING", "QUARANTINED".
 	State []string `query:"state,omitzero" json:"-"`
 	// Filter by trigger type(s). Returns remediations matching any of the specified
 	// triggers.
@@ -543,9 +570,13 @@ type BetaClusterRemediationApproveParams struct {
 	//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
 	//     provisioning a replacement.
 	//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+	//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Power-cycles the bare-metal host after
+	//     cordoning it. This mode cannot be set as an approval override; create a host
+	//     power-cycle remediation directly.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
-	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM".
+	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM",
+	// "REMEDIATION_MODE_HOST_POWER_CYCLE".
 	Mode BetaClusterRemediationApproveParamsMode `json:"mode,omitzero"`
 	paramObj
 }
@@ -568,6 +599,9 @@ func (r *BetaClusterRemediationApproveParams) UnmarshalJSON(data []byte) error {
 //   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
 //     provisioning a replacement.
 //   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Power-cycles the bare-metal host after
+//     cordoning it. This mode cannot be set as an approval override; create a host
+//     power-cycle remediation directly.
 type BetaClusterRemediationApproveParamsMode string
 
 const (
@@ -575,6 +609,7 @@ const (
 	BetaClusterRemediationApproveParamsModeRemediationModeHostAware               BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_HOST_AWARE"
 	BetaClusterRemediationApproveParamsModeRemediationModeEvictWithoutReplacement BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT"
 	BetaClusterRemediationApproveParamsModeRemediationModeRebootVm                BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_REBOOT_VM"
+	BetaClusterRemediationApproveParamsModeRemediationModeHostPowerCycle          BetaClusterRemediationApproveParamsMode = "REMEDIATION_MODE_HOST_POWER_CYCLE"
 )
 
 type BetaClusterRemediationCancelParams struct {
