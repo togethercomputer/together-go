@@ -149,7 +149,7 @@ func (r *FineTuningService) ListMetrics(ctx context.Context, id string, query Fi
 }
 
 // Get model limits for a specific fine-tuning model.
-func (r *FineTuningService) ModelLimits(ctx context.Context, query FineTuningModelLimitsParams, opts ...option.RequestOption) (res *FineTuningModelLimitsResponse, err error) {
+func (r *FineTuningService) ModelLimits(ctx context.Context, query FineTuningModelLimitsParams, opts ...option.RequestOption) (res *FinetuneModelLimits, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "fine-tunes/models/limits"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
@@ -255,6 +255,130 @@ const (
 	FinetuneEventTypeWarning                        FinetuneEventType = "warning"
 	FinetuneEventTypeEarlyStopped                   FinetuneEventType = "early_stopped"
 )
+
+// Model limits for fine-tuning.
+type FinetuneModelLimits struct {
+	// Default gradient accumulation steps used when a fine-tune request omits the
+	// value or sets it to 0.
+	DefaultGradientAccumulationSteps int64 `json:"default_gradient_accumulation_steps" api:"required"`
+	// Limits for LoRA training.
+	LoraTraining FinetuneModelLimitsLoraTraining `json:"lora_training" api:"required"`
+	// Maximum learning rate.
+	MaxLearningRate float64 `json:"max_learning_rate" api:"required"`
+	// Maximum number of checkpoints that can be saved during a fine-tuning job.
+	MaxNumCheckpoints int64 `json:"max_num_checkpoints" api:"required"`
+	// Maximum number of training epochs.
+	MaxNumEpochs int64 `json:"max_num_epochs" api:"required"`
+	// Maximum number of evaluations.
+	MaxNumEvals int64 `json:"max_num_evals" api:"required"`
+	// Maximum sequence length supported for DPO training.
+	MaxSeqLengthDpo int64 `json:"max_seq_length_dpo" api:"required"`
+	// Maximum sequence length supported for SFT training.
+	MaxSeqLengthSft int64 `json:"max_seq_length_sft" api:"required"`
+	// Whether a merged checkpoint (the base model with the trained LoRA adapter fused
+	// in) is produced for LoRA fine-tunes of this model, in addition to the standalone
+	// adapter.
+	MergeOutputLora bool `json:"merge_output_lora" api:"required"`
+	// Minimum learning rate.
+	MinLearningRate float64 `json:"min_learning_rate" api:"required"`
+	// Minimum value allowed for the max_seq_length hyperparameter.
+	MinMaxSeqLength int64 `json:"min_max_seq_length" api:"required"`
+	// The name of the model.
+	ModelName string `json:"model_name" api:"required"`
+	// Whether the model supports full (non-LoRA) fine-tuning. When false, only LoRA
+	// fine-tuning is available and the full_training limits are reported as zero.
+	SupportsFullTraining bool `json:"supports_full_training" api:"required"`
+	// Whether the model supports reasoning.
+	SupportsReasoning bool `json:"supports_reasoning" api:"required"`
+	// Whether the model supports tool/function calling.
+	SupportsTools bool `json:"supports_tools" api:"required"`
+	// Whether the model supports vision/multimodal inputs.
+	SupportsVision bool `json:"supports_vision" api:"required"`
+	// Limits for full training.
+	FullTraining FinetuneModelLimitsFullTraining `json:"full_training"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		DefaultGradientAccumulationSteps respjson.Field
+		LoraTraining                     respjson.Field
+		MaxLearningRate                  respjson.Field
+		MaxNumCheckpoints                respjson.Field
+		MaxNumEpochs                     respjson.Field
+		MaxNumEvals                      respjson.Field
+		MaxSeqLengthDpo                  respjson.Field
+		MaxSeqLengthSft                  respjson.Field
+		MergeOutputLora                  respjson.Field
+		MinLearningRate                  respjson.Field
+		MinMaxSeqLength                  respjson.Field
+		ModelName                        respjson.Field
+		SupportsFullTraining             respjson.Field
+		SupportsReasoning                respjson.Field
+		SupportsTools                    respjson.Field
+		SupportsVision                   respjson.Field
+		FullTraining                     respjson.Field
+		ExtraFields                      map[string]respjson.Field
+		raw                              string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneModelLimits) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneModelLimits) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Limits for LoRA training.
+type FinetuneModelLimitsLoraTraining struct {
+	// Maximum batch size for SFT LoRA training.
+	MaxBatchSize int64 `json:"max_batch_size" api:"required"`
+	// Maximum batch size for DPO LoRA training.
+	MaxBatchSizeDpo int64 `json:"max_batch_size_dpo" api:"required"`
+	// Maximum LoRA rank.
+	MaxRank int64 `json:"max_rank" api:"required"`
+	// Minimum batch size for LoRA training.
+	MinBatchSize int64 `json:"min_batch_size" api:"required"`
+	// Available target modules for LoRA.
+	TargetModules []string `json:"target_modules" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MaxBatchSize    respjson.Field
+		MaxBatchSizeDpo respjson.Field
+		MaxRank         respjson.Field
+		MinBatchSize    respjson.Field
+		TargetModules   respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneModelLimitsLoraTraining) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneModelLimitsLoraTraining) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Limits for full training.
+type FinetuneModelLimitsFullTraining struct {
+	// Maximum batch size for SFT full training.
+	MaxBatchSize int64 `json:"max_batch_size" api:"required"`
+	// Maximum batch size for DPO full training.
+	MaxBatchSizeDpo int64 `json:"max_batch_size_dpo" api:"required"`
+	// Minimum batch size for full training.
+	MinBatchSize int64 `json:"min_batch_size" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MaxBatchSize    respjson.Field
+		MaxBatchSizeDpo respjson.Field
+		MinBatchSize    respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FinetuneModelLimitsFullTraining) RawJSON() string { return r.JSON.raw }
+func (r *FinetuneModelLimitsFullTraining) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 type FinetuneResponse struct {
 	ID string `json:"id" api:"required" format:"uuid"`
@@ -2542,130 +2666,6 @@ type FineTuningListMetricsResponse struct {
 // Returns the unmodified JSON received from the API
 func (r FineTuningListMetricsResponse) RawJSON() string { return r.JSON.raw }
 func (r *FineTuningListMetricsResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Model limits for fine-tuning.
-type FineTuningModelLimitsResponse struct {
-	// Default gradient accumulation steps used when a fine-tune request omits the
-	// value or sets it to 0.
-	DefaultGradientAccumulationSteps int64 `json:"default_gradient_accumulation_steps" api:"required"`
-	// Limits for LoRA training.
-	LoraTraining FineTuningModelLimitsResponseLoraTraining `json:"lora_training" api:"required"`
-	// Maximum learning rate.
-	MaxLearningRate float64 `json:"max_learning_rate" api:"required"`
-	// Maximum number of checkpoints that can be saved during a fine-tuning job.
-	MaxNumCheckpoints int64 `json:"max_num_checkpoints" api:"required"`
-	// Maximum number of training epochs.
-	MaxNumEpochs int64 `json:"max_num_epochs" api:"required"`
-	// Maximum number of evaluations.
-	MaxNumEvals int64 `json:"max_num_evals" api:"required"`
-	// Maximum sequence length supported for DPO training.
-	MaxSeqLengthDpo int64 `json:"max_seq_length_dpo" api:"required"`
-	// Maximum sequence length supported for SFT training.
-	MaxSeqLengthSft int64 `json:"max_seq_length_sft" api:"required"`
-	// Whether a merged checkpoint (the base model with the trained LoRA adapter fused
-	// in) is produced for LoRA fine-tunes of this model, in addition to the standalone
-	// adapter.
-	MergeOutputLora bool `json:"merge_output_lora" api:"required"`
-	// Minimum learning rate.
-	MinLearningRate float64 `json:"min_learning_rate" api:"required"`
-	// Minimum value allowed for the max_seq_length hyperparameter.
-	MinMaxSeqLength int64 `json:"min_max_seq_length" api:"required"`
-	// The name of the model.
-	ModelName string `json:"model_name" api:"required"`
-	// Whether the model supports full (non-LoRA) fine-tuning. When false, only LoRA
-	// fine-tuning is available and the full_training limits are reported as zero.
-	SupportsFullTraining bool `json:"supports_full_training" api:"required"`
-	// Whether the model supports reasoning.
-	SupportsReasoning bool `json:"supports_reasoning" api:"required"`
-	// Whether the model supports tool/function calling.
-	SupportsTools bool `json:"supports_tools" api:"required"`
-	// Whether the model supports vision/multimodal inputs.
-	SupportsVision bool `json:"supports_vision" api:"required"`
-	// Limits for full training.
-	FullTraining FineTuningModelLimitsResponseFullTraining `json:"full_training"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		DefaultGradientAccumulationSteps respjson.Field
-		LoraTraining                     respjson.Field
-		MaxLearningRate                  respjson.Field
-		MaxNumCheckpoints                respjson.Field
-		MaxNumEpochs                     respjson.Field
-		MaxNumEvals                      respjson.Field
-		MaxSeqLengthDpo                  respjson.Field
-		MaxSeqLengthSft                  respjson.Field
-		MergeOutputLora                  respjson.Field
-		MinLearningRate                  respjson.Field
-		MinMaxSeqLength                  respjson.Field
-		ModelName                        respjson.Field
-		SupportsFullTraining             respjson.Field
-		SupportsReasoning                respjson.Field
-		SupportsTools                    respjson.Field
-		SupportsVision                   respjson.Field
-		FullTraining                     respjson.Field
-		ExtraFields                      map[string]respjson.Field
-		raw                              string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FineTuningModelLimitsResponse) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningModelLimitsResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Limits for LoRA training.
-type FineTuningModelLimitsResponseLoraTraining struct {
-	// Maximum batch size for SFT LoRA training.
-	MaxBatchSize int64 `json:"max_batch_size" api:"required"`
-	// Maximum batch size for DPO LoRA training.
-	MaxBatchSizeDpo int64 `json:"max_batch_size_dpo" api:"required"`
-	// Maximum LoRA rank.
-	MaxRank int64 `json:"max_rank" api:"required"`
-	// Minimum batch size for LoRA training.
-	MinBatchSize int64 `json:"min_batch_size" api:"required"`
-	// Available target modules for LoRA.
-	TargetModules []string `json:"target_modules" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		MaxBatchSize    respjson.Field
-		MaxBatchSizeDpo respjson.Field
-		MaxRank         respjson.Field
-		MinBatchSize    respjson.Field
-		TargetModules   respjson.Field
-		ExtraFields     map[string]respjson.Field
-		raw             string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FineTuningModelLimitsResponseLoraTraining) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningModelLimitsResponseLoraTraining) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Limits for full training.
-type FineTuningModelLimitsResponseFullTraining struct {
-	// Maximum batch size for SFT full training.
-	MaxBatchSize int64 `json:"max_batch_size" api:"required"`
-	// Maximum batch size for DPO full training.
-	MaxBatchSizeDpo int64 `json:"max_batch_size_dpo" api:"required"`
-	// Minimum batch size for full training.
-	MinBatchSize int64 `json:"min_batch_size" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		MaxBatchSize    respjson.Field
-		MaxBatchSizeDpo respjson.Field
-		MinBatchSize    respjson.Field
-		ExtraFields     map[string]respjson.Field
-		raw             string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r FineTuningModelLimitsResponseFullTraining) RawJSON() string { return r.JSON.raw }
-func (r *FineTuningModelLimitsResponseFullTraining) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
