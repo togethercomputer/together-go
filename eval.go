@@ -202,15 +202,15 @@ func (r *EvaluationJobResultsUnion) UnmarshalJSON(data []byte) error {
 
 type EvaluationJobResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of invalid labels
 	InvalidLabelCount float64 `json:"invalid_label_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// JSON string representing label counts
 	LabelCounts string `json:"label_counts"`
 	// Pecentage of pass labels.
-	PassPercentage float64 `json:"pass_percentage" api:"nullable" format:"integer"`
+	PassPercentage float64 `json:"pass_percentage" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -235,13 +235,13 @@ func (r *EvaluationJobResultsEvaluationClassifyResults) UnmarshalJSON(data []byt
 type EvaluationJobResultsEvaluationScoreResults struct {
 	AggregatedScores EvaluationJobResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
-	FailedSamples float64 `json:"failed_samples" format:"integer"`
+	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// number of invalid scores generated from model
-	InvalidScoreCount float64 `json:"invalid_score_count" format:"integer"`
+	InvalidScoreCount float64 `json:"invalid_score_count"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -291,11 +291,11 @@ type EvaluationJobResultsEvaluationCompareResults struct {
 	// Number of samples where model B was judged the winner
 	BWins int64 `json:"B_wins"`
 	// Number of generation failures across model A and model B.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of judge inference failures. In the default two-pass mode
 	// (disable_position_bias_correction=false) this is the combined failure count from
 	// both the original-order and flipped-order judge passes.
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// File ID of the detailed output file. Each row contains the original input fields
 	// plus judge outputs. In two-pass mode the file includes both original-order and
 	// flipped-order judge fields; in single-pass mode
@@ -502,15 +502,15 @@ func (r *EvalStatusResponseResultsUnion) UnmarshalJSON(data []byte) error {
 
 type EvalStatusResponseResultsEvaluationClassifyResults struct {
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of invalid labels
 	InvalidLabelCount float64 `json:"invalid_label_count" api:"nullable"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// JSON string representing label counts
 	LabelCounts string `json:"label_counts"`
 	// Pecentage of pass labels.
-	PassPercentage float64 `json:"pass_percentage" api:"nullable" format:"integer"`
+	PassPercentage float64 `json:"pass_percentage" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -535,13 +535,13 @@ func (r *EvalStatusResponseResultsEvaluationClassifyResults) UnmarshalJSON(data 
 type EvalStatusResponseResultsEvaluationScoreResults struct {
 	AggregatedScores EvalStatusResponseResultsEvaluationScoreResultsAggregatedScores `json:"aggregated_scores"`
 	// number of failed samples generated from model
-	FailedSamples float64 `json:"failed_samples" format:"integer"`
+	FailedSamples float64 `json:"failed_samples"`
 	// Number of failed generations.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// number of invalid scores generated from model
-	InvalidScoreCount float64 `json:"invalid_score_count" format:"integer"`
+	InvalidScoreCount float64 `json:"invalid_score_count"`
 	// Number of failed judge generations
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// Data File ID
 	ResultFileID string `json:"result_file_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -591,11 +591,11 @@ type EvalStatusResponseResultsEvaluationCompareResults struct {
 	// Number of samples where model B was judged the winner
 	BWins int64 `json:"B_wins"`
 	// Number of generation failures across model A and model B.
-	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable" format:"integer"`
+	GenerationFailCount float64 `json:"generation_fail_count" api:"nullable"`
 	// Number of judge inference failures. In the default two-pass mode
 	// (disable_position_bias_correction=false) this is the combined failure count from
 	// both the original-order and flipped-order judge passes.
-	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable" format:"integer"`
+	JudgeFailCount float64 `json:"judge_fail_count" api:"nullable"`
 	// File ID of the detailed output file. Each row contains the original input fields
 	// plus judge outputs. In two-pass mode the file includes both original-order and
 	// flipped-order judge fields; in single-pass mode

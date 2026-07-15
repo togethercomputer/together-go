@@ -229,7 +229,7 @@ func TestBetaClusterListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Beta.Clusters.List(context.TODO(), together.BetaClusterListParams{
-		ProjectID: together.String("project_id"),
+		ProjectID: together.String("projectId"),
 	})
 	if err != nil {
 		var apierr *together.Error

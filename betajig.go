@@ -109,6 +109,16 @@ func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGe
 	return res, err
 }
 
+type ContainerDeploymentStatus string
+
+const (
+	ContainerDeploymentStatusUpdating     ContainerDeploymentStatus = "Updating"
+	ContainerDeploymentStatusScaling      ContainerDeploymentStatus = "Scaling"
+	ContainerDeploymentStatusReady        ContainerDeploymentStatus = "Ready"
+	ContainerDeploymentStatusFailed       ContainerDeploymentStatus = "Failed"
+	ContainerDeploymentStatusScaledToZero ContainerDeploymentStatus = "ScaledToZero"
+)
+
 type Deployment struct {
 	// ID is the unique identifier of the deployment
 	ID string `json:"id"`
@@ -164,7 +174,7 @@ type Deployment struct {
 	// Ready, Failed)
 	//
 	// Any of "Updating", "Scaling", "Ready", "Failed", "ScaledToZero".
-	Status DeploymentStatus `json:"status"`
+	Status ContainerDeploymentStatus `json:"status"`
 	// Storage is the amount of storage (in MB or units as defined by the platform)
 	// allocated to each replica
 	Storage int64 `json:"storage"`
@@ -317,7 +327,7 @@ func (r *DeploymentAutoscalingQueueAutoscalingConfig) UnmarshalJSON(data []byte)
 
 // Autoscaling config for CustomMetric metric
 type DeploymentAutoscalingCustomMetricAutoscalingConfig struct {
-	// CustomMetricName is the Prometheus metric name. Required. Must match
+	// CustomMetricName is the Prometheus metric name. Must match
 	// [a-zA-Z\_:][a-zA-Z0-9_:]\*
 	CustomMetricName string `json:"custom_metric_name"`
 	// Metric must be CustomMetric
@@ -431,18 +441,6 @@ func (r DeploymentReplicaEvent) RawJSON() string { return r.JSON.raw }
 func (r *DeploymentReplicaEvent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-// Status represents the overall status of the deployment (e.g., Updating, Scaling,
-// Ready, Failed)
-type DeploymentStatus string
-
-const (
-	DeploymentStatusUpdating     DeploymentStatus = "Updating"
-	DeploymentStatusScaling      DeploymentStatus = "Scaling"
-	DeploymentStatusReady        DeploymentStatus = "Ready"
-	DeploymentStatusFailed       DeploymentStatus = "Failed"
-	DeploymentStatusScaledToZero DeploymentStatus = "ScaledToZero"
-)
 
 type DeploymentVolume struct {
 	// MountPath is the path in the container where the volume mounts (e.g., "/data").
@@ -711,7 +709,7 @@ func init() {
 
 // Autoscaling config for CustomMetric metric
 type BetaJigUpdateParamsAutoscalingCustomMetricAutoscalingConfig struct {
-	// CustomMetricName is the Prometheus metric name. Required. Must match
+	// CustomMetricName is the Prometheus metric name. Must match
 	// [a-zA-Z\_:][a-zA-Z0-9_:]\*
 	CustomMetricName param.Opt[string] `json:"custom_metric_name,omitzero"`
 	// Target is the threshold value. Default: 500
@@ -1001,7 +999,7 @@ func init() {
 
 // Autoscaling config for CustomMetric metric
 type BetaJigDeployParamsAutoscalingCustomMetricAutoscalingConfig struct {
-	// CustomMetricName is the Prometheus metric name. Required. Must match
+	// CustomMetricName is the Prometheus metric name. Must match
 	// [a-zA-Z\_:][a-zA-Z0-9_:]\*
 	CustomMetricName param.Opt[string] `json:"custom_metric_name,omitzero"`
 	// Target is the threshold value. Default: 500

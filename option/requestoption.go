@@ -266,6 +266,17 @@ func WithEnvironmentProduction() RequestOption {
 	return requestconfig.WithDefaultBaseURL("https://api.together.ai/v1/")
 }
 
+// WithProjectID returns a RequestOption that sets the client setting "project_id".
+func WithProjectID(value string) RequestOption {
+	return requestconfig.PreRequestOptionFunc(func(r *requestconfig.RequestConfig) error {
+		if value == "" {
+			return fmt.Errorf("default param cannot be empty string")
+		}
+		r.ProjectID = &value
+		return nil
+	})
+}
+
 // WithAPIKey returns a RequestOption that sets the client setting "api_key".
 func WithAPIKey(value string) RequestOption {
 	return requestconfig.RequestOptionFunc(func(r *requestconfig.RequestConfig) error {

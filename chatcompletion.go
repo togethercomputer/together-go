@@ -39,6 +39,7 @@ func NewChatCompletionService(opts ...option.RequestOption) (r ChatCompletionSer
 // and multi-turn conversations with system, user, and assistant messages.
 func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (res *ChatCompletion, err error) {
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithBaseURL("https://api-inference.together.ai/v1/")}, opts...)
 	path := "chat/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
@@ -53,6 +54,7 @@ func (r *ChatCompletionService) NewStreaming(ctx context.Context, body ChatCompl
 	)
 	opts = slices.Concat(r.Options, opts)
 	opts = append(opts, option.WithJSONSet("stream", true))
+	opts = append([]option.RequestOption{option.WithBaseURL("https://api-inference.together.ai/v1/")}, opts...)
 	path := "chat/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
 	return ssestream.NewStream[ChatCompletionChunk](ssestream.NewDecoder(raw), err)
