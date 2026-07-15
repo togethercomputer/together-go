@@ -294,8 +294,37 @@ This library provides some conveniences for working with paginated list endpoint
 
 You can use `.ListAutoPaging()` methods to iterate through items across all pages:
 
+```go
+iter := client.Beta.Endpoints.ListAutoPaging(context.TODO(), together.BetaEndpointListParams{
+	ProjectID: together.String("projectId"),
+})
+// Automatically fetches more pages as needed.
+for iter.Next() {
+	endpoint := iter.Current()
+	fmt.Printf("%+v\n", endpoint)
+}
+if err := iter.Err(); err != nil {
+	panic(err.Error())
+}
+```
+
 Or you can use simple `.List()` methods to fetch a single page and receive a standard response object
 with additional helper methods like `.GetNextPage()`, e.g.:
+
+```go
+page, err := client.Beta.Endpoints.List(context.TODO(), together.BetaEndpointListParams{
+	ProjectID: together.String("projectId"),
+})
+for page != nil {
+	for _, endpoint := range page.Data {
+		fmt.Printf("%+v\n", endpoint)
+	}
+	page, err = page.GetNextPage()
+}
+if err != nil {
+	panic(err.Error())
+}
+```
 
 ### Errors
 

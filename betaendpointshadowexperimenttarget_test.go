@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
+func TestBetaEndpointShadowExperimentTargetNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,12 +25,13 @@ func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.New(context.TODO(), together.BetaClusterStorageNewParams{
-		Region:                 "region",
-		SizeTib:                0,
-		VolumeName:             "volume_name",
-		IsLifecycleIndependent: together.Bool(true),
-		ProjectID:              together.String("project_id"),
+	_, err := client.Beta.Endpoints.ShadowExperiments.Targets.New(context.TODO(), together.BetaEndpointShadowExperimentTargetNewParams{
+		ProjectID:          together.String("projectId"),
+		EndpointID:         "endpointId",
+		ExperimentID:       "experimentId",
+		Name:               "name",
+		TargetDeploymentID: "targetDeploymentId",
+		Description:        together.String("description"),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -41,7 +42,7 @@ func TestBetaClusterStorageNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageGet(t *testing.T) {
+func TestBetaEndpointShadowExperimentTargetGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -53,7 +54,15 @@ func TestBetaClusterStorageGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.Get(context.TODO(), "volume_id")
+	_, err := client.Beta.Endpoints.ShadowExperiments.Targets.Get(
+		context.TODO(),
+		"id",
+		together.BetaEndpointShadowExperimentTargetGetParams{
+			ProjectID:    together.String("projectId"),
+			EndpointID:   "endpointId",
+			ExperimentID: "experimentId",
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -63,7 +72,7 @@ func TestBetaClusterStorageGet(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
+func TestBetaEndpointShadowExperimentTargetUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -75,10 +84,20 @@ func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.Update(context.TODO(), together.BetaClusterStorageUpdateParams{
-		VolumeID: "volume_id",
-		SizeTib:  together.Int(0),
-	})
+	_, err := client.Beta.Endpoints.ShadowExperiments.Targets.Update(
+		context.TODO(),
+		"id",
+		together.BetaEndpointShadowExperimentTargetUpdateParams{
+			ProjectID:          together.String("projectId"),
+			EndpointID:         "endpointId",
+			ExperimentID:       "experimentId",
+			UpdateMask:         "updateMask",
+			Description:        together.String("description"),
+			Etag:               together.String("etag"),
+			Name:               together.String("name"),
+			TargetDeploymentID: together.String("targetDeploymentId"),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -88,7 +107,7 @@ func TestBetaClusterStorageUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageListWithOptionalParams(t *testing.T) {
+func TestBetaEndpointShadowExperimentTargetListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -100,9 +119,16 @@ func TestBetaClusterStorageListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.List(context.TODO(), together.BetaClusterStorageListParams{
-		ProjectID: together.String("projectId"),
-	})
+	_, err := client.Beta.Endpoints.ShadowExperiments.Targets.List(
+		context.TODO(),
+		"endpointId",
+		"experimentId",
+		together.BetaEndpointShadowExperimentTargetListParams{
+			ProjectID: together.String("projectId"),
+			After:     together.String("after"),
+			Limit:     together.Int(0),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -112,7 +138,7 @@ func TestBetaClusterStorageListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaClusterStorageDelete(t *testing.T) {
+func TestBetaEndpointShadowExperimentTargetDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -124,7 +150,16 @@ func TestBetaClusterStorageDelete(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Clusters.Storage.Delete(context.TODO(), "volume_id")
+	_, err := client.Beta.Endpoints.ShadowExperiments.Targets.Delete(
+		context.TODO(),
+		"id",
+		together.BetaEndpointShadowExperimentTargetDeleteParams{
+			ProjectID:    together.String("projectId"),
+			EndpointID:   "endpointId",
+			ExperimentID: "experimentId",
+			Etag:         together.String("etag"),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

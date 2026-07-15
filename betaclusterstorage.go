@@ -208,7 +208,9 @@ type BetaClusterStorageListParams struct {
 	// Optional UMS project ID to filter volumes by. When set, only volumes belonging
 	// to this project are returned. The caller must be a member of the project;
 	// otherwise the result set will be empty.
-	ProjectID param.Opt[string] `query:"project_id,omitzero" json:"-"`
+	//
+	// Use [option.WithProjectID] on the client to set a global default for this field.
+	ProjectID param.Opt[string] `query:"projectId,omitzero" json:"-"`
 	paramObj
 }
 

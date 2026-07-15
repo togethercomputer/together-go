@@ -22,6 +22,8 @@ type WhoamiResponse struct {
 	// `<project_slug>/<endpoint_slug>` to form the `model` value in dedicated endpoint
 	// inference calls.
 	ProjectSlug string `json:"project_slug" api:"required"`
+	// The ID of the authenticated user, if available.
+	UserID string `json:"user_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		APIKeyID         respjson.Field
@@ -30,6 +32,7 @@ type WhoamiResponse struct {
 		ProjectID        respjson.Field
 		ProjectName      respjson.Field
 		ProjectSlug      respjson.Field
+		UserID           respjson.Field
 		ExtraFields      map[string]respjson.Field
 		raw              string
 	} `json:"-"`

@@ -22,6 +22,7 @@ import (
 	"github.com/togethercomputer/together-go/internal/apierror"
 	"github.com/togethercomputer/together-go/internal/apiform"
 	"github.com/togethercomputer/together-go/internal/apiquery"
+	"github.com/togethercomputer/together-go/packages/param"
 )
 
 func getDefaultHeaders() map[string]string {
@@ -196,6 +197,12 @@ func NewRequestConfig(ctx context.Context, method string, u string, body any, ds
 	return &cfg, nil
 }
 
+func UseDefaultParam[T comparable](dst *param.Opt[T], src *T) {
+	if param.IsOmitted(*dst) && src != nil {
+		*dst = param.NewOpt(*src)
+	}
+}
+
 // This interface is primarily used to describe an [*http.Client], but also
 // supports custom HTTP implementations.
 type HTTPDoer interface {
@@ -219,6 +226,7 @@ type RequestConfig struct {
 	HTTPClient     *http.Client
 	Middlewares    []middleware
 	APIKey         string
+	ProjectID      *string
 	// If ResponseBodyInto not nil, then we will attempt to deserialize into
 	// ResponseBodyInto. If Destination is a []byte, then it will return the body as
 	// is.
@@ -592,6 +600,7 @@ func (cfg *RequestConfig) Clone(ctx context.Context) *RequestConfig {
 		BaseURL:        cfg.BaseURL,
 		HTTPClient:     cfg.HTTPClient,
 		Middlewares:    cfg.Middlewares,
+		ProjectID:      cfg.ProjectID,
 		APIKey:         cfg.APIKey,
 	}
 
