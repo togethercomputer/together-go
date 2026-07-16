@@ -386,9 +386,13 @@ type FinetuneResponse struct {
 	// "cancel_requested", "cancelled", "error", "completed".
 	Status FinetuneResponseStatus `json:"status" api:"required"`
 	// ID of the user who owns the fine-tune job.
-	UserID    string                         `json:"user_id" api:"required"`
-	BatchSize FinetuneResponseBatchSizeUnion `json:"batch_size"`
-	CreatedAt time.Time                      `json:"created_at" format:"date-time"`
+	UserID string `json:"user_id" api:"required"`
+	// Together model registry object ID for the final adapter weights on LoRA jobs.
+	AdapterObjectID string `json:"adapter_object_id"`
+	// Together model registry revision ID for the final adapter weights on LoRA jobs.
+	AdapterObjectRevisionID string                         `json:"adapter_object_revision_id"`
+	BatchSize               FinetuneResponseBatchSizeUnion `json:"batch_size"`
+	CreatedAt               time.Time                      `json:"created_at" format:"date-time"`
 	// Whether the early-stopping criterion triggered.
 	EarlyStopped bool `json:"early_stopped"`
 	// Best validation loss observed, corresponding to early_stopping_best_step. Null
@@ -398,18 +402,22 @@ type FinetuneResponse struct {
 	// Step associated with the selected early-stopping artifact. When
 	// early_stopping_best_metric is null, no finite best metric was recorded; this is
 	// the halt step, not a best-checkpoint step.
-	EarlyStoppingBestStep int64                            `json:"early_stopping_best_step"`
-	EpochsCompleted       int64                            `json:"epochs_completed"`
-	EvalSteps             int64                            `json:"eval_steps"`
-	Events                []FinetuneEvent                  `json:"events"`
-	FromCheckpoint        string                           `json:"from_checkpoint"`
-	FromHfModel           string                           `json:"from_hf_model"`
-	HfModelRevision       string                           `json:"hf_model_revision"`
-	JobID                 string                           `json:"job_id"`
-	LearningRate          float64                          `json:"learning_rate"`
-	LrScheduler           FinetuneResponseLrScheduler      `json:"lr_scheduler"`
-	MaxGradNorm           float64                          `json:"max_grad_norm"`
-	Model                 string                           `json:"model"`
+	EarlyStoppingBestStep int64                       `json:"early_stopping_best_step"`
+	EpochsCompleted       int64                       `json:"epochs_completed"`
+	EvalSteps             int64                       `json:"eval_steps"`
+	Events                []FinetuneEvent             `json:"events"`
+	FromCheckpoint        string                      `json:"from_checkpoint"`
+	FromHfModel           string                      `json:"from_hf_model"`
+	HfModelRevision       string                      `json:"hf_model_revision"`
+	JobID                 string                      `json:"job_id"`
+	LearningRate          float64                     `json:"learning_rate"`
+	LrScheduler           FinetuneResponseLrScheduler `json:"lr_scheduler"`
+	MaxGradNorm           float64                     `json:"max_grad_norm"`
+	Model                 string                      `json:"model"`
+	// Together model registry object ID for the final model weights (e.g. `ml_...`).
+	ModelObjectID string `json:"model_object_id"`
+	// Together model registry revision ID for the final model weights (e.g. `rv_...`).
+	ModelObjectRevisionID string                           `json:"model_object_revision_id"`
 	ModelOutputName       string                           `json:"model_output_name"`
 	ModelOutputPath       string                           `json:"model_output_path"`
 	MultimodalParams      FinetuneResponseMultimodalParams `json:"multimodal_params"`
@@ -440,6 +448,8 @@ type FinetuneResponse struct {
 		ID                      respjson.Field
 		Status                  respjson.Field
 		UserID                  respjson.Field
+		AdapterObjectID         respjson.Field
+		AdapterObjectRevisionID respjson.Field
 		BatchSize               respjson.Field
 		CreatedAt               respjson.Field
 		EarlyStopped            respjson.Field
@@ -456,6 +466,8 @@ type FinetuneResponse struct {
 		LrScheduler             respjson.Field
 		MaxGradNorm             respjson.Field
 		Model                   respjson.Field
+		ModelObjectID           respjson.Field
+		ModelObjectRevisionID   respjson.Field
 		ModelOutputName         respjson.Field
 		ModelOutputPath         respjson.Field
 		MultimodalParams        respjson.Field
@@ -2619,15 +2631,21 @@ type FineTuningListCheckpointsResponseData struct {
 	//
 	// Any of "model", "adapter".
 	Checkpoint string `json:"checkpoint"`
+	// Together model registry object ID for the checkpoint artifact (e.g. `ml_...`).
+	ObjectID string `json:"object_id"`
+	// Together model registry revision ID for the checkpoint artifact (e.g. `rv_...`).
+	ObjectRevisionID string `json:"object_revision_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		CheckpointType respjson.Field
-		CreatedAt      respjson.Field
-		Path           respjson.Field
-		Step           respjson.Field
-		Checkpoint     respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
+		CheckpointType   respjson.Field
+		CreatedAt        respjson.Field
+		Path             respjson.Field
+		Step             respjson.Field
+		Checkpoint       respjson.Field
+		ObjectID         respjson.Field
+		ObjectRevisionID respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
 	} `json:"-"`
 }
 
