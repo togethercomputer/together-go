@@ -43,7 +43,7 @@ jobs:
 
       - name: Mint STLC app token (scoped to SDK staging repos)
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: actions/create-github-app-token@5b4d10e164315c2e22856860367ed9879a607c1d # v3
         with:
           client-id: ${{ secrets.STLC_WORKFLOW_APP_CLIENT_ID }}
           private-key: ${{ secrets.STLC_WORKFLOW_APP_PRIVATE_KEY }}
