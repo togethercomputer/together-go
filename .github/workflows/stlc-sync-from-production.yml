@@ -5,8 +5,8 @@
 # pull, reusing the stlc app token the promote workflow already uses).
 #
 # ── Per-repo substitutions (do this once per target) ────────────────────────
-#   <STAGING_REPO>      the staging repo this file lives in  (e.g. <org>/<api>-python-staging)
-#   <PRODUCTION_REPO>   the matching public production repo  (e.g. <org>/<api>-python)
+#   <STAGING_REPO>      the staging repo this file lives in  (e.g. <org>/<api>-go-staging)
+#   <PRODUCTION_REPO>   the matching public production repo  (e.g. <org>/<api>-go)
 # Each target (python, go, typescript, terraform) gets its own copy with its own
 # two values. The stlc app token is the same one promote already needs.
 
