@@ -11,8 +11,6 @@ permissions:
 jobs:
   promote:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     env:
       PRODUCTION_REPO: togethercomputer/together-go
     steps:
@@ -24,7 +22,7 @@ jobs:
 
       - name: Mint STLC app token (scoped to SDK staging repos)
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@v3
         with:
           client-id: ${{ secrets.STLC_WORKFLOW_APP_CLIENT_ID }}
           private-key: ${{ secrets.STLC_WORKFLOW_APP_PRIVATE_KEY }}
@@ -44,7 +42,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git remote add production \
-            "https://x-access-token:$(GH_TOKEN)@github.com/${PRODUCTION_REPO}.git"
+            "https://x-access-token:$(gh auth token)@github.com/${PRODUCTION_REPO}.git"
           git fetch production main
 
       - name: Check if production is already in sync
