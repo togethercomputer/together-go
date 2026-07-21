@@ -272,6 +272,8 @@ type ClusterAddOnConfig struct {
 	// Configuration for the Headlamp Kubernetes dashboard add-on.
 	Headlamp ClusterAddOnConfigHeadlamp `json:"headlamp"`
 	Ingress  ClusterAddOnConfigIngress  `json:"ingress"`
+	// Configuration for the Slurm Web add-on.
+	SlurmWeb ClusterAddOnConfigSlurmWeb `json:"slurm_web"`
 	// Configuration for the Model Aware TorchPass add-on.
 	Torchpass ClusterAddOnConfigTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -279,6 +281,7 @@ type ClusterAddOnConfig struct {
 		Dashboard   respjson.Field
 		Headlamp    respjson.Field
 		Ingress     respjson.Field
+		SlurmWeb    respjson.Field
 		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
@@ -341,6 +344,24 @@ func (r *ClusterAddOnConfigIngress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Configuration for the Slurm Web add-on.
+type ClusterAddOnConfigSlurmWeb struct {
+	// Whether to enable the Slurm Web add-on.
+	Enabled bool `json:"enabled"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterAddOnConfigSlurmWeb) RawJSON() string { return r.JSON.raw }
+func (r *ClusterAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Configuration for the Model Aware TorchPass add-on.
 type ClusterAddOnConfigTorchpass struct {
 	// Whether to enable the Model Aware TorchPass add-on.
@@ -365,6 +386,8 @@ type ClusterAddOnState struct {
 	// State for the Headlamp Kubernetes dashboard add-on.
 	Headlamp ClusterAddOnStateHeadlamp `json:"headlamp"`
 	Ingress  ClusterAddOnStateIngress  `json:"ingress"`
+	// State for the Slurm Web add-on.
+	SlurmWeb ClusterAddOnStateSlurmWeb `json:"slurm_web"`
 	// State for the Model Aware TorchPass add-on.
 	Torchpass ClusterAddOnStateTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -372,6 +395,7 @@ type ClusterAddOnState struct {
 		Dashboard   respjson.Field
 		Headlamp    respjson.Field
 		Ingress     respjson.Field
+		SlurmWeb    respjson.Field
 		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
@@ -424,6 +448,21 @@ type ClusterAddOnStateIngress struct {
 // Returns the unmodified JSON received from the API
 func (r ClusterAddOnStateIngress) RawJSON() string { return r.JSON.raw }
 func (r *ClusterAddOnStateIngress) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// State for the Slurm Web add-on.
+type ClusterAddOnStateSlurmWeb struct {
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterAddOnStateSlurmWeb) RawJSON() string { return r.JSON.raw }
+func (r *ClusterAddOnStateSlurmWeb) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1242,6 +1281,8 @@ type BetaClusterNewParamsAddOnConfig struct {
 	// Configuration for the Headlamp Kubernetes dashboard add-on.
 	Headlamp BetaClusterNewParamsAddOnConfigHeadlamp `json:"headlamp,omitzero"`
 	Ingress  BetaClusterNewParamsAddOnConfigIngress  `json:"ingress,omitzero"`
+	// Configuration for the Slurm Web add-on.
+	SlurmWeb BetaClusterNewParamsAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
 	// Configuration for the Model Aware TorchPass add-on.
 	Torchpass BetaClusterNewParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
@@ -1293,6 +1334,21 @@ func (r BetaClusterNewParamsAddOnConfigIngress) MarshalJSON() (data []byte, err 
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaClusterNewParamsAddOnConfigIngress) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Slurm Web add-on.
+type BetaClusterNewParamsAddOnConfigSlurmWeb struct {
+	// Whether to enable the Slurm Web add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r BetaClusterNewParamsAddOnConfigSlurmWeb) MarshalJSON() (data []byte, err error) {
+	type shadow BetaClusterNewParamsAddOnConfigSlurmWeb
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaClusterNewParamsAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1528,6 +1584,8 @@ type BetaClusterUpdateParamsAddOnConfig struct {
 	// Configuration for the Headlamp Kubernetes dashboard add-on.
 	Headlamp BetaClusterUpdateParamsAddOnConfigHeadlamp `json:"headlamp,omitzero"`
 	Ingress  BetaClusterUpdateParamsAddOnConfigIngress  `json:"ingress,omitzero"`
+	// Configuration for the Slurm Web add-on.
+	SlurmWeb BetaClusterUpdateParamsAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
 	// Configuration for the Model Aware TorchPass add-on.
 	Torchpass BetaClusterUpdateParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
@@ -1579,6 +1637,21 @@ func (r BetaClusterUpdateParamsAddOnConfigIngress) MarshalJSON() (data []byte, e
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaClusterUpdateParamsAddOnConfigIngress) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Slurm Web add-on.
+type BetaClusterUpdateParamsAddOnConfigSlurmWeb struct {
+	// Whether to enable the Slurm Web add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r BetaClusterUpdateParamsAddOnConfigSlurmWeb) MarshalJSON() (data []byte, err error) {
+	type shadow BetaClusterUpdateParamsAddOnConfigSlurmWeb
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaClusterUpdateParamsAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

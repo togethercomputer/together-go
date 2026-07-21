@@ -57,6 +57,9 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 				Ingress: together.BetaClusterNewParamsAddOnConfigIngress{
 					Enabled: together.Bool(true),
 				},
+				SlurmWeb: together.BetaClusterNewParamsAddOnConfigSlurmWeb{
+					Enabled: together.Bool(true),
+				},
 				Torchpass: together.BetaClusterNewParamsAddOnConfigTorchpass{
 					Enabled: together.Bool(true),
 				},
@@ -175,6 +178,9 @@ func TestBetaClusterUpdateWithOptionalParams(t *testing.T) {
 						Enabled: together.Bool(true),
 					},
 					Ingress: together.BetaClusterUpdateParamsAddOnConfigIngress{
+						Enabled: together.Bool(true),
+					},
+					SlurmWeb: together.BetaClusterUpdateParamsAddOnConfigSlurmWeb{
 						Enabled: together.Bool(true),
 					},
 					Torchpass: together.BetaClusterUpdateParamsAddOnConfigTorchpass{
