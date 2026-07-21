@@ -95,7 +95,7 @@ func (r *BetaEndpointService) Get(ctx context.Context, id string, query BetaEndp
 	return res, err
 }
 
-// Updates mutable endpoint fields such as its inference name, visibility, or
+// Updates mutable endpoint fields such as its endpoint string, visibility, or
 // deployment traffic split. Use `updateMask` to select fields explicitly and
 // `etag` in the request body for optimistic concurrency.
 func (r *BetaEndpointService) Update(ctx context.Context, id string, params BetaEndpointUpdateParams, opts ...option.RequestOption) (res *Endpoint, err error) {
@@ -2347,7 +2347,7 @@ type BetaEndpointUpdateParams struct {
 	// Current endpoint version. The update is rejected if this value no longer
 	// matches.
 	Etag param.Opt[string] `json:"etag,omitzero"`
-	// Updated inference-addressable endpoint name.
+	// Updated endpoint string.
 	Name param.Opt[string] `json:"name,omitzero"`
 	// Replacement live traffic split. Use an empty list to stop routing live traffic.
 	TrafficSplit []EndpointTrafficSplitEntryParam `json:"trafficSplit,omitzero"`

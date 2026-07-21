@@ -205,8 +205,8 @@ type BetaEndpointDeploymentNewParams struct {
 	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
 	// Autoscaling configuration for a deployment.
 	Autoscaling DeploymentAutoscalingParam `json:"autoscaling,omitzero" api:"required"`
-	// Name for the deployment within its endpoint. Returned as a project- and
-	// endpoint-qualified inference name.
+	// Name for the deployment within its endpoint. Returned as a fully-qualified
+	// endpoint string.
 	Name string `json:"name" api:"required"`
 	// When true, validates the request without creating or provisioning a deployment.
 	ValidateOnly param.Opt[bool] `query:"validateOnly,omitzero" json:"-"`
@@ -328,7 +328,7 @@ type BetaEndpointDeploymentUpdateParams struct {
 	// Current deployment version. The update is rejected if this value no longer
 	// matches.
 	Etag param.Opt[string] `json:"etag,omitzero"`
-	// Updated inference-addressable deployment name.
+	// Updated endpoint string.
 	Name param.Opt[string] `json:"name,omitzero"`
 	// Autoscaling configuration for a deployment.
 	Autoscaling DeploymentAutoscalingParam `json:"autoscaling,omitzero"`
