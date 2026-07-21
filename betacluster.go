@@ -269,12 +269,15 @@ func (r *ClusterAddOn) UnmarshalJSON(data []byte) error {
 // Configuration for a cluster add-on.
 type ClusterAddOnConfig struct {
 	Dashboard ClusterAddOnConfigDashboard `json:"dashboard"`
-	Ingress   ClusterAddOnConfigIngress   `json:"ingress"`
+	// Configuration for the Headlamp Kubernetes dashboard add-on.
+	Headlamp ClusterAddOnConfigHeadlamp `json:"headlamp"`
+	Ingress  ClusterAddOnConfigIngress  `json:"ingress"`
 	// Configuration for the Model Aware TorchPass add-on.
 	Torchpass ClusterAddOnConfigTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Dashboard   respjson.Field
+		Headlamp    respjson.Field
 		Ingress     respjson.Field
 		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -301,6 +304,24 @@ type ClusterAddOnConfigDashboard struct {
 // Returns the unmodified JSON received from the API
 func (r ClusterAddOnConfigDashboard) RawJSON() string { return r.JSON.raw }
 func (r *ClusterAddOnConfigDashboard) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Headlamp Kubernetes dashboard add-on.
+type ClusterAddOnConfigHeadlamp struct {
+	// Whether to enable the Headlamp Kubernetes dashboard add-on.
+	Enabled bool `json:"enabled"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Enabled     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterAddOnConfigHeadlamp) RawJSON() string { return r.JSON.raw }
+func (r *ClusterAddOnConfigHeadlamp) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -341,12 +362,15 @@ func (r *ClusterAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
 // State for a cluster add-on.
 type ClusterAddOnState struct {
 	Dashboard ClusterAddOnStateDashboard `json:"dashboard"`
-	Ingress   ClusterAddOnStateIngress   `json:"ingress"`
+	// State for the Headlamp Kubernetes dashboard add-on.
+	Headlamp ClusterAddOnStateHeadlamp `json:"headlamp"`
+	Ingress  ClusterAddOnStateIngress  `json:"ingress"`
 	// State for the Model Aware TorchPass add-on.
 	Torchpass ClusterAddOnStateTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Dashboard   respjson.Field
+		Headlamp    respjson.Field
 		Ingress     respjson.Field
 		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
@@ -371,6 +395,21 @@ type ClusterAddOnStateDashboard struct {
 // Returns the unmodified JSON received from the API
 func (r ClusterAddOnStateDashboard) RawJSON() string { return r.JSON.raw }
 func (r *ClusterAddOnStateDashboard) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// State for the Headlamp Kubernetes dashboard add-on.
+type ClusterAddOnStateHeadlamp struct {
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterAddOnStateHeadlamp) RawJSON() string { return r.JSON.raw }
+func (r *ClusterAddOnStateHeadlamp) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1200,7 +1239,9 @@ func (r *BetaClusterNewParamsAddOn) UnmarshalJSON(data []byte) error {
 // Configuration for a cluster add-on.
 type BetaClusterNewParamsAddOnConfig struct {
 	Dashboard BetaClusterNewParamsAddOnConfigDashboard `json:"dashboard,omitzero"`
-	Ingress   BetaClusterNewParamsAddOnConfigIngress   `json:"ingress,omitzero"`
+	// Configuration for the Headlamp Kubernetes dashboard add-on.
+	Headlamp BetaClusterNewParamsAddOnConfigHeadlamp `json:"headlamp,omitzero"`
+	Ingress  BetaClusterNewParamsAddOnConfigIngress  `json:"ingress,omitzero"`
 	// Configuration for the Model Aware TorchPass add-on.
 	Torchpass BetaClusterNewParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
@@ -1224,6 +1265,21 @@ func (r BetaClusterNewParamsAddOnConfigDashboard) MarshalJSON() (data []byte, er
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaClusterNewParamsAddOnConfigDashboard) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Headlamp Kubernetes dashboard add-on.
+type BetaClusterNewParamsAddOnConfigHeadlamp struct {
+	// Whether to enable the Headlamp Kubernetes dashboard add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r BetaClusterNewParamsAddOnConfigHeadlamp) MarshalJSON() (data []byte, err error) {
+	type shadow BetaClusterNewParamsAddOnConfigHeadlamp
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaClusterNewParamsAddOnConfigHeadlamp) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1469,7 +1525,9 @@ func (r *BetaClusterUpdateParamsAddOn) UnmarshalJSON(data []byte) error {
 // Configuration for a cluster add-on.
 type BetaClusterUpdateParamsAddOnConfig struct {
 	Dashboard BetaClusterUpdateParamsAddOnConfigDashboard `json:"dashboard,omitzero"`
-	Ingress   BetaClusterUpdateParamsAddOnConfigIngress   `json:"ingress,omitzero"`
+	// Configuration for the Headlamp Kubernetes dashboard add-on.
+	Headlamp BetaClusterUpdateParamsAddOnConfigHeadlamp `json:"headlamp,omitzero"`
+	Ingress  BetaClusterUpdateParamsAddOnConfigIngress  `json:"ingress,omitzero"`
 	// Configuration for the Model Aware TorchPass add-on.
 	Torchpass BetaClusterUpdateParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
@@ -1493,6 +1551,21 @@ func (r BetaClusterUpdateParamsAddOnConfigDashboard) MarshalJSON() (data []byte,
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaClusterUpdateParamsAddOnConfigDashboard) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Headlamp Kubernetes dashboard add-on.
+type BetaClusterUpdateParamsAddOnConfigHeadlamp struct {
+	// Whether to enable the Headlamp Kubernetes dashboard add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r BetaClusterUpdateParamsAddOnConfigHeadlamp) MarshalJSON() (data []byte, err error) {
+	type shadow BetaClusterUpdateParamsAddOnConfigHeadlamp
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaClusterUpdateParamsAddOnConfigHeadlamp) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

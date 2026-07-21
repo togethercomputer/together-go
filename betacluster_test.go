@@ -51,6 +51,9 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 				Dashboard: together.BetaClusterNewParamsAddOnConfigDashboard{
 					Enabled: together.Bool(true),
 				},
+				Headlamp: together.BetaClusterNewParamsAddOnConfigHeadlamp{
+					Enabled: together.Bool(true),
+				},
 				Ingress: together.BetaClusterNewParamsAddOnConfigIngress{
 					Enabled: together.Bool(true),
 				},
@@ -166,6 +169,9 @@ func TestBetaClusterUpdateWithOptionalParams(t *testing.T) {
 				Name: "name",
 				Config: together.BetaClusterUpdateParamsAddOnConfig{
 					Dashboard: together.BetaClusterUpdateParamsAddOnConfigDashboard{
+						Enabled: together.Bool(true),
+					},
+					Headlamp: together.BetaClusterUpdateParamsAddOnConfigHeadlamp{
 						Enabled: together.Bool(true),
 					},
 					Ingress: together.BetaClusterUpdateParamsAddOnConfigIngress{
