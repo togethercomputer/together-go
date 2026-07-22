@@ -156,6 +156,92 @@ func (r *FineTuningService) ModelLimits(ctx context.Context, query FineTuningMod
 	return res, err
 }
 
+// Preview how sampled rows from a fine-tuning training file will be tokenized
+// before packing.
+func (r *FineTuningService) Preview(ctx context.Context, body FineTuningPreviewParams, opts ...option.RequestOption) (res *FineTunePreviewResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	path := "fine-tunes/preview"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
+	return res, err
+}
+
+// Tokenized preview for sampled rows from a fine-tuning training file.
+type FineTunePreviewResponse struct {
+	// Detected SFT dataset format for the sampled rows.
+	//
+	// Any of "general", "conversation", "instruction".
+	DatasetFormat FineTunePreviewResponseDatasetFormat `json:"dataset_format" api:"required"`
+	// Maximum sequence length configured for the requested model.
+	MaxSeqLength int64 `json:"max_seq_length" api:"required"`
+	// Name of the base model used to tokenize the sampled rows.
+	Model string `json:"model" api:"required"`
+	// Tokenized preview rows, in the same order as the sampled training file rows.
+	Rows []FineTunePreviewRow `json:"rows" api:"required"`
+	// Whether prompt or user-message tokens contribute to training loss.
+	TrainOnInputs bool `json:"train_on_inputs" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		DatasetFormat respjson.Field
+		MaxSeqLength  respjson.Field
+		Model         respjson.Field
+		Rows          respjson.Field
+		TrainOnInputs respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTunePreviewResponse) RawJSON() string { return r.JSON.raw }
+func (r *FineTunePreviewResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Detected SFT dataset format for the sampled rows.
+type FineTunePreviewResponseDatasetFormat string
+
+const (
+	FineTunePreviewResponseDatasetFormatGeneral      FineTunePreviewResponseDatasetFormat = "general"
+	FineTunePreviewResponseDatasetFormatConversation FineTunePreviewResponseDatasetFormat = "conversation"
+	FineTunePreviewResponseDatasetFormatInstruction  FineTunePreviewResponseDatasetFormat = "instruction"
+)
+
+// Tokenized representation of one sampled fine-tuning row.
+type FineTunePreviewRow struct {
+	// Token IDs produced for the sampled row.
+	InputIDs []int64 `json:"input_ids" api:"required"`
+	// Training labels for each token; masked tokens use -100.
+	Labels []int64 `json:"labels" api:"required"`
+	// Total number of tokens in the preview row after truncation.
+	NumTokens int64 `json:"num_tokens" api:"required"`
+	// Number of tokens in the row that contribute to training loss.
+	NumTrainedTokens int64 `json:"num_trained_tokens" api:"required"`
+	// Raw token strings produced for the sampled row.
+	Tokens []string `json:"tokens" api:"required"`
+	// Half-open token index ranges that contribute to training loss.
+	TrainedSpans [][]int64 `json:"trained_spans" api:"required"`
+	// Whether the row was truncated to the model maximum sequence length.
+	Truncated bool `json:"truncated" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		InputIDs         respjson.Field
+		Labels           respjson.Field
+		NumTokens        respjson.Field
+		NumTrainedTokens respjson.Field
+		Tokens           respjson.Field
+		TrainedSpans     respjson.Field
+		Truncated        respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTunePreviewRow) RawJSON() string { return r.JSON.raw }
+func (r *FineTunePreviewRow) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type FinetuneEvent struct {
 	CreatedAt string `json:"created_at" api:"required"`
 	Message   string `json:"message" api:"required"`
@@ -3659,3 +3745,37 @@ func (r FineTuningModelLimitsParams) URLQuery() (v url.Values, err error) {
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
+
+type FineTuningPreviewParams struct {
+	// Name of the base model whose tokenizer and chat template will be used.
+	Model string `json:"model" api:"required"`
+	// File-ID of the uploaded JSONL training file to sample for preview.
+	TrainingFile string `json:"training_file" api:"required"`
+	// Maximum number of rows from the start of the training file to tokenize.
+	TopK param.Opt[int64] `json:"top_k,omitzero"`
+	// Whether prompt or user-message tokens should contribute to training loss in the
+	// preview.
+	TrainOnInputs param.Opt[bool] `json:"train_on_inputs,omitzero"`
+	// Fine-tuning method to preview. Only supervised fine-tuning is currently
+	// supported.
+	//
+	// Any of "sft".
+	TrainingMethod FineTuningPreviewParamsTrainingMethod `json:"training_method,omitzero"`
+	paramObj
+}
+
+func (r FineTuningPreviewParams) MarshalJSON() (data []byte, err error) {
+	type shadow FineTuningPreviewParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *FineTuningPreviewParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Fine-tuning method to preview. Only supervised fine-tuning is currently
+// supported.
+type FineTuningPreviewParamsTrainingMethod string
+
+const (
+	FineTuningPreviewParamsTrainingMethodSft FineTuningPreviewParamsTrainingMethod = "sft"
+)
