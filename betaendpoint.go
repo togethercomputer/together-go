@@ -905,9 +905,9 @@ type EndpointDeploymentSummary struct {
 	Autoscaling EndpointDeploymentSummaryAutoscaling `json:"autoscaling" api:"required"`
 	// Timestamp when the deployment was created.
 	CreatedAt time.Time `json:"createdAt" api:"required" format:"date-time"`
-	// Hardware configuration selected by the deployment's config, such as its GPU type
-	// and count.
-	Hardware string `json:"hardware" api:"required"`
+	// Estimated fraction from 0 to 1 of endpoint traffic currently routed to this
+	// deployment.
+	EstimatedEffectiveTrafficShare float64 `json:"estimatedEffectiveTrafficShare" api:"required"`
 	// Resource name of the served model in the form
 	// `projects/{projectId}/models/{modelId}/revisions/{revisionId}`. For public
 	// models, the model's owning project may differ from the deployment's project.
@@ -932,9 +932,9 @@ type EndpointDeploymentSummary struct {
 	TrafficMode EndpointDeploymentSummaryTrafficMode `json:"trafficMode" api:"required"`
 	// Number of replicas the autoscaler currently wants across all regions.
 	DesiredReplicas int64 `json:"desiredReplicas"`
-	// Estimated fraction from 0 to 1 of endpoint traffic currently routed to this
-	// deployment.
-	EstimatedEffectiveTrafficShare float64 `json:"estimatedEffectiveTrafficShare"`
+	// Hardware configuration selected by the deployment's config, such as its GPU type
+	// and count.
+	Hardware string `json:"hardware"`
 	// Number of replicas currently ready to serve requests across all regions.
 	ReadyReplicas int64 `json:"readyReplicas"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -942,14 +942,14 @@ type EndpointDeploymentSummary struct {
 		ID                             respjson.Field
 		Autoscaling                    respjson.Field
 		CreatedAt                      respjson.Field
-		Hardware                       respjson.Field
+		EstimatedEffectiveTrafficShare respjson.Field
 		Model                          respjson.Field
 		ModelID                        respjson.Field
 		Name                           respjson.Field
 		State                          respjson.Field
 		TrafficMode                    respjson.Field
 		DesiredReplicas                respjson.Field
-		EstimatedEffectiveTrafficShare respjson.Field
+		Hardware                       respjson.Field
 		ReadyReplicas                  respjson.Field
 		ExtraFields                    map[string]respjson.Field
 		raw                            string
