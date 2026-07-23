@@ -475,6 +475,9 @@ type FinetuneResponse struct {
 	UserID string `json:"user_id" api:"required"`
 	// Together model registry object ID for the final adapter weights on LoRA jobs.
 	AdapterObjectID string `json:"adapter_object_id"`
+	// Together model registry name for the final adapter weights on LoRA jobs,
+	// formatted as `<project_slug>/<model_name>-adapter`.
+	AdapterObjectName string `json:"adapter_object_name"`
 	// Together model registry revision ID for the final adapter weights on LoRA jobs.
 	AdapterObjectRevisionID string                         `json:"adapter_object_revision_id"`
 	BatchSize               FinetuneResponseBatchSizeUnion `json:"batch_size"`
@@ -502,6 +505,9 @@ type FinetuneResponse struct {
 	Model                 string                      `json:"model"`
 	// Together model registry object ID for the final model weights (e.g. `ml_...`).
 	ModelObjectID string `json:"model_object_id"`
+	// Together model registry name for the final model weights, formatted as
+	// `<project_slug>/<model_name>`.
+	ModelObjectName string `json:"model_object_name"`
 	// Together model registry revision ID for the final model weights (e.g. `rv_...`).
 	ModelObjectRevisionID string                           `json:"model_object_revision_id"`
 	ModelOutputName       string                           `json:"model_output_name"`
@@ -535,6 +541,7 @@ type FinetuneResponse struct {
 		Status                  respjson.Field
 		UserID                  respjson.Field
 		AdapterObjectID         respjson.Field
+		AdapterObjectName       respjson.Field
 		AdapterObjectRevisionID respjson.Field
 		BatchSize               respjson.Field
 		CreatedAt               respjson.Field
@@ -553,6 +560,7 @@ type FinetuneResponse struct {
 		MaxGradNorm             respjson.Field
 		Model                   respjson.Field
 		ModelObjectID           respjson.Field
+		ModelObjectName         respjson.Field
 		ModelObjectRevisionID   respjson.Field
 		ModelOutputName         respjson.Field
 		ModelOutputPath         respjson.Field
@@ -2719,6 +2727,9 @@ type FineTuningListCheckpointsResponseData struct {
 	Checkpoint string `json:"checkpoint"`
 	// Together model registry object ID for the checkpoint artifact (e.g. `ml_...`).
 	ObjectID string `json:"object_id"`
+	// Together model registry name for the checkpoint artifact, formatted as
+	// `<project_slug>/<checkpoint_name>`.
+	ObjectName string `json:"object_name"`
 	// Together model registry revision ID for the checkpoint artifact (e.g. `rv_...`).
 	ObjectRevisionID string `json:"object_revision_id"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -2729,6 +2740,7 @@ type FineTuningListCheckpointsResponseData struct {
 		Step             respjson.Field
 		Checkpoint       respjson.Field
 		ObjectID         respjson.Field
+		ObjectName       respjson.Field
 		ObjectRevisionID respjson.Field
 		ExtraFields      map[string]respjson.Field
 		raw              string
