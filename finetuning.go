@@ -471,7 +471,7 @@ type FinetuneResponse struct {
 	// Any of "pending", "queued", "running", "compressing", "uploading",
 	// "cancel_requested", "cancelled", "error", "completed".
 	Status FinetuneResponseStatus `json:"status" api:"required"`
-	// ID of the user who owns the fine-tune job.
+	// ID of the user who created the fine-tune job.
 	UserID string `json:"user_id" api:"required"`
 	// Together model registry object ID for the final adapter weights on LoRA jobs.
 	AdapterObjectID string `json:"adapter_object_id"`
@@ -1069,7 +1069,7 @@ type FineTuningNewResponse struct {
 	Status FineTuningNewResponseStatus `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
-	// ID of the user who owns the fine-tune job.
+	// ID of the user who created the fine-tune job.
 	UserID string `json:"user_id" api:"required"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
@@ -1585,7 +1585,7 @@ type FineTuningListResponseData struct {
 	Status string `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
-	// ID of the user who owns the fine-tune job.
+	// ID of the user who created the fine-tune job.
 	UserID string `json:"user_id" api:"required"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
@@ -2098,7 +2098,7 @@ type FineTuningCancelResponse struct {
 	Status FineTuningCancelResponseStatus `json:"status" api:"required"`
 	// Last update timestamp of the fine-tune job
 	UpdatedAt time.Time `json:"updated_at" api:"required" format:"date-time"`
-	// ID of the user who owns the fine-tune job.
+	// ID of the user who created the fine-tune job.
 	UserID string `json:"user_id" api:"required"`
 	// Batch size used for training
 	BatchSize int64 `json:"batch_size"`
