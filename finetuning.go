@@ -518,23 +518,24 @@ type FinetuneResponse struct {
 	NEvals                int64                            `json:"n_evals"`
 	ParamCount            int64                            `json:"param_count"`
 	// Progress information for a fine-tuning job
-	Progress             FinetuneResponseProgress            `json:"progress"`
-	QueueDepth           int64                               `json:"queue_depth"`
-	StartedAt            time.Time                           `json:"started_at" format:"date-time"`
-	TokenCount           int64                               `json:"token_count"`
-	TotalPrice           int64                               `json:"total_price"`
-	TrainOnInputs        FinetuneResponseTrainOnInputsUnion  `json:"train_on_inputs"`
-	TrainingFile         string                              `json:"training_file"`
-	TrainingMethod       FinetuneResponseTrainingMethodUnion `json:"training_method"`
-	TrainingType         FinetuneResponseTrainingTypeUnion   `json:"training_type"`
-	TrainingfileNumlines int64                               `json:"trainingfile_numlines"`
-	TrainingfileSize     int64                               `json:"trainingfile_size"`
-	UpdatedAt            time.Time                           `json:"updated_at" format:"date-time"`
-	ValidationFile       string                              `json:"validation_file"`
-	WandbProjectName     string                              `json:"wandb_project_name"`
-	WandbURL             string                              `json:"wandb_url"`
-	WarmupRatio          float64                             `json:"warmup_ratio"`
-	WeightDecay          float64                             `json:"weight_decay"`
+	Progress       FinetuneResponseProgress            `json:"progress"`
+	QueueDepth     int64                               `json:"queue_depth"`
+	StartedAt      time.Time                           `json:"started_at" format:"date-time"`
+	TokenCount     int64                               `json:"token_count"`
+	TotalPrice     int64                               `json:"total_price"`
+	TrainOnInputs  FinetuneResponseTrainOnInputsUnion  `json:"train_on_inputs"`
+	TrainingFile   string                              `json:"training_file"`
+	TrainingMethod FinetuneResponseTrainingMethodUnion `json:"training_method"`
+	// LoRA training configuration for a fine-tuning job.
+	TrainingType         FinetuneResponseTrainingTypeUnion `json:"training_type"`
+	TrainingfileNumlines int64                             `json:"trainingfile_numlines"`
+	TrainingfileSize     int64                             `json:"trainingfile_size"`
+	UpdatedAt            time.Time                         `json:"updated_at" format:"date-time"`
+	ValidationFile       string                            `json:"validation_file"`
+	WandbProjectName     string                            `json:"wandb_project_name"`
+	WandbURL             string                            `json:"wandb_url"`
+	WarmupRatio          float64                           `json:"warmup_ratio"`
+	WeightDecay          float64                           `json:"weight_decay"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID                      respjson.Field
@@ -1029,15 +1030,22 @@ func (r *FinetuneResponseTrainingTypeFullTrainingType) UnmarshalJSON(data []byte
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// LoRA training configuration for a fine-tuning job.
 type FinetuneResponseTrainingTypeLoRaTrainingType struct {
+	// Scaling factor applied to the LoRA adapter weights.
 	LoraAlpha int64 `json:"lora_alpha" api:"required"`
-	LoraR     int64 `json:"lora_r" api:"required"`
+	// Rank of the LoRA adapter matrices.
+	LoraR int64 `json:"lora_r" api:"required"`
+	// Identifies this request as a LoRA fine-tune.
+	//
 	// Any of "Lora".
-	Type        string  `json:"type" api:"required"`
+	Type string `json:"type" api:"required"`
+	// Dropout probability applied to LoRA adapter inputs.
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
 	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
-	// modules on compatible models.
+	// modules on compatible models. Fine-tunes that target any expert module produce
+	// adapter-only output.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1529,15 +1537,22 @@ func (r *FineTuningNewResponseTrainingTypeFullTrainingType) UnmarshalJSON(data [
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// LoRA training configuration for a fine-tuning job.
 type FineTuningNewResponseTrainingTypeLoRaTrainingType struct {
+	// Scaling factor applied to the LoRA adapter weights.
 	LoraAlpha int64 `json:"lora_alpha" api:"required"`
-	LoraR     int64 `json:"lora_r" api:"required"`
+	// Rank of the LoRA adapter matrices.
+	LoraR int64 `json:"lora_r" api:"required"`
+	// Identifies this request as a LoRA fine-tune.
+	//
 	// Any of "Lora".
-	Type        string  `json:"type" api:"required"`
+	Type string `json:"type" api:"required"`
+	// Dropout probability applied to LoRA adapter inputs.
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
 	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
-	// modules on compatible models.
+	// modules on compatible models. Fine-tunes that target any expert module produce
+	// adapter-only output.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -2041,15 +2056,22 @@ func (r *FineTuningListResponseDataTrainingTypeFullTrainingType) UnmarshalJSON(d
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// LoRA training configuration for a fine-tuning job.
 type FineTuningListResponseDataTrainingTypeLoRaTrainingType struct {
+	// Scaling factor applied to the LoRA adapter weights.
 	LoraAlpha int64 `json:"lora_alpha" api:"required"`
-	LoraR     int64 `json:"lora_r" api:"required"`
+	// Rank of the LoRA adapter matrices.
+	LoraR int64 `json:"lora_r" api:"required"`
+	// Identifies this request as a LoRA fine-tune.
+	//
 	// Any of "Lora".
-	Type        string  `json:"type" api:"required"`
+	Type string `json:"type" api:"required"`
+	// Dropout probability applied to LoRA adapter inputs.
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
 	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
-	// modules on compatible models.
+	// modules on compatible models. Fine-tunes that target any expert module produce
+	// adapter-only output.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -2562,15 +2584,22 @@ func (r *FineTuningCancelResponseTrainingTypeFullTrainingType) UnmarshalJSON(dat
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// LoRA training configuration for a fine-tuning job.
 type FineTuningCancelResponseTrainingTypeLoRaTrainingType struct {
+	// Scaling factor applied to the LoRA adapter weights.
 	LoraAlpha int64 `json:"lora_alpha" api:"required"`
-	LoraR     int64 `json:"lora_r" api:"required"`
+	// Rank of the LoRA adapter matrices.
+	LoraR int64 `json:"lora_r" api:"required"`
+	// Identifies this request as a LoRA fine-tune.
+	//
 	// Any of "Lora".
-	Type        string  `json:"type" api:"required"`
+	Type string `json:"type" api:"required"`
+	// Dropout probability applied to LoRA adapter inputs.
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
 	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
-	// modules on compatible models.
+	// modules on compatible models. Fine-tunes that target any expert module produce
+	// adapter-only output.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -3329,16 +3358,24 @@ func init() {
 	)
 }
 
+// LoRA training configuration for a fine-tuning job.
+//
 // The properties LoraAlpha, LoraR, Type are required.
 type FineTuningNewParamsTrainingTypeLoRaTrainingType struct {
+	// Scaling factor applied to the LoRA adapter weights.
 	LoraAlpha int64 `json:"lora_alpha" api:"required"`
-	LoraR     int64 `json:"lora_r" api:"required"`
+	// Rank of the LoRA adapter matrices.
+	LoraR int64 `json:"lora_r" api:"required"`
+	// Identifies this request as a LoRA fine-tune.
+	//
 	// Any of "Lora".
-	Type        string             `json:"type,omitzero" api:"required"`
+	Type string `json:"type,omitzero" api:"required"`
+	// Dropout probability applied to LoRA adapter inputs.
 	LoraDropout param.Opt[float64] `json:"lora_dropout,omitzero"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
 	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
-	// modules on compatible models.
+	// modules on compatible models. Fine-tunes that target any expert module produce
+	// adapter-only output.
 	LoraTrainableModules param.Opt[string] `json:"lora_trainable_modules,omitzero"`
 	paramObj
 }
@@ -3692,16 +3729,24 @@ func init() {
 	)
 }
 
+// LoRA training configuration for a fine-tuning job.
+//
 // The properties LoraAlpha, LoraR, Type are required.
 type FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType struct {
+	// Scaling factor applied to the LoRA adapter weights.
 	LoraAlpha int64 `json:"lora_alpha" api:"required"`
-	LoraR     int64 `json:"lora_r" api:"required"`
+	// Rank of the LoRA adapter matrices.
+	LoraR int64 `json:"lora_r" api:"required"`
+	// Identifies this request as a LoRA fine-tune.
+	//
 	// Any of "Lora".
-	Type        string             `json:"type,omitzero" api:"required"`
+	Type string `json:"type,omitzero" api:"required"`
+	// Dropout probability applied to LoRA adapter inputs.
 	LoraDropout param.Opt[float64] `json:"lora_dropout,omitzero"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
 	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
-	// modules on compatible models.
+	// modules on compatible models. Fine-tunes that target any expert module produce
+	// adapter-only output.
 	LoraTrainableModules param.Opt[string] `json:"lora_trainable_modules,omitzero"`
 	paramObj
 }
