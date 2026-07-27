@@ -1036,8 +1036,8 @@ type FinetuneResponseTrainingTypeLoRaTrainingType struct {
 	Type        string  `json:"type" api:"required"`
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
-	// expert modules (`w_up`, `w_gate`, `w_down`) are supported on compatible models
-	// and cannot be mixed with attention modules.
+	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
+	// modules on compatible models.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1536,8 +1536,8 @@ type FineTuningNewResponseTrainingTypeLoRaTrainingType struct {
 	Type        string  `json:"type" api:"required"`
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
-	// expert modules (`w_up`, `w_gate`, `w_down`) are supported on compatible models
-	// and cannot be mixed with attention modules.
+	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
+	// modules on compatible models.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -2048,8 +2048,8 @@ type FineTuningListResponseDataTrainingTypeLoRaTrainingType struct {
 	Type        string  `json:"type" api:"required"`
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
-	// expert modules (`w_up`, `w_gate`, `w_down`) are supported on compatible models
-	// and cannot be mixed with attention modules.
+	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
+	// modules on compatible models.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -2569,8 +2569,8 @@ type FineTuningCancelResponseTrainingTypeLoRaTrainingType struct {
 	Type        string  `json:"type" api:"required"`
 	LoraDropout float64 `json:"lora_dropout"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
-	// expert modules (`w_up`, `w_gate`, `w_down`) are supported on compatible models
-	// and cannot be mixed with attention modules.
+	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
+	// modules on compatible models.
 	LoraTrainableModules string `json:"lora_trainable_modules"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -3337,8 +3337,8 @@ type FineTuningNewParamsTrainingTypeLoRaTrainingType struct {
 	Type        string             `json:"type,omitzero" api:"required"`
 	LoraDropout param.Opt[float64] `json:"lora_dropout,omitzero"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
-	// expert modules (`w_up`, `w_gate`, `w_down`) are supported on compatible models
-	// and cannot be mixed with attention modules.
+	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
+	// modules on compatible models.
 	LoraTrainableModules param.Opt[string] `json:"lora_trainable_modules,omitzero"`
 	paramObj
 }
@@ -3700,8 +3700,8 @@ type FineTuningEstimatePriceParamsTrainingTypeLoRaTrainingType struct {
 	Type        string             `json:"type,omitzero" api:"required"`
 	LoraDropout param.Opt[float64] `json:"lora_dropout,omitzero"`
 	// Comma-separated LoRA target modules. Use `all-linear` for model defaults; MoE
-	// expert modules (`w_up`, `w_gate`, `w_down`) are supported on compatible models
-	// and cannot be mixed with attention modules.
+	// expert modules (`w_up`, `w_gate`, `w_down`) can be combined with attention
+	// modules on compatible models.
 	LoraTrainableModules param.Opt[string] `json:"lora_trainable_modules,omitzero"`
 	paramObj
 }
