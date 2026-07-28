@@ -2467,7 +2467,7 @@ type BetaEndpointListEventsParams struct {
 	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
 	// Cursor from a previous endpoint event list response.
 	After param.Opt[string] `query:"after,omitzero" json:"-"`
-	// Maximum number of events to return. Max 500, defaults to 50.
+	// Maximum number of events to return. Max 10000, defaults to 50.
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
 	// Return only events at or after this time.
 	Since param.Opt[time.Time] `query:"since,omitzero" format:"date-time" json:"-"`
