@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.12.0](https://github.com/togethercomputer/together-go/compare/v0.11.0...v0.12.0) (2026-07-28)
+
+
+### Features
+
+* add fine-tunes preview endpoint ([751e4c5](https://github.com/togethercomputer/together-go/commit/751e4c512e7092516fd47ac3b6806993588693c0))
+* add headlamp add-on to gpu cluster ([96fe8ea](https://github.com/togethercomputer/together-go/commit/96fe8ead31b7412efd92d421e69d147d15c3816b))
+* add Slurm Web addon to gpu cluster ([89bbf1e](https://github.com/togethercomputer/together-go/commit/89bbf1eb0a242e6433f12bee0a472b9f193d441d))
+
+
+### Bug Fixes
+
+* **openapi:** remove rollout abort route ([d7b4717](https://github.com/togethercomputer/together-go/commit/d7b4717927af7c894af1b040f10db326208fab27))
+* **openapi:** sync RL model input chunk schema ([747f364](https://github.com/togethercomputer/together-go/commit/747f364a9205aa13744602a29425b715ef31ecd5))
+* **openapi:** sync RL sampling contract ([452c599](https://github.com/togethercomputer/together-go/commit/452c5995227ba2ba6333cd4221197ba5367d9c4b))
+* Revert server host change for chat completions inference ([01aa25e](https://github.com/togethercomputer/together-go/commit/01aa25ee7e6c9582da16fa363d037fac41ad7ae7))
+* **rl:** align CISPO/DRO loss schema names with GRPO/PPO (all-caps acronyms) ([7329d72](https://github.com/togethercomputer/together-go/commit/7329d72480cb42a1f46ec301552572f498cc50a2))
+* **stlc:** generate cross-entropy loss params type ([a647049](https://github.com/togethercomputer/together-go/commit/a6470498639cbb3085222f3f1aa365471c3350a1))
+* Update types for deployment summary to acknowledge optionality on hardware property ([8b56f2c](https://github.com/togethercomputer/together-go/commit/8b56f2cab31206c80d35be9ca28d1ad9b663b7d5))
+
+
+### Documentation
+
+* **openapi:** allow combined LoRA target modules ([7afe744](https://github.com/togethercomputer/together-go/commit/7afe7442f1722da23b1412e9c72486c22b89a7b7))
+* **openapi:** clarify fine-tune user id creator ([c35b741](https://github.com/togethercomputer/together-go/commit/c35b7410577efd1778208ba3f1c49b829fc20e33))
+* **openapi:** clarify RL loss mask optionality ([8d123a5](https://github.com/togethercomputer/together-go/commit/8d123a50cde44e63728945f3e9939de71f56fde7))
+* sync endpoint events limit ([01b3e00](https://github.com/togethercomputer/together-go/commit/01b3e00e1f7b4d3563de973682a2346b49ff13f4))
+
+
+### Refactors
+
+* generate better code ([263bd0b](https://github.com/togethercomputer/together-go/commit/263bd0b4f44cba39b299e8c35ea6054c1a43ee43))
+
 ## [0.11.0](https://github.com/togethercomputer/together-go/compare/v0.10.0...v0.11.0) (2026-07-16)
 
 
