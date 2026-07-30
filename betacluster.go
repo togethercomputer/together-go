@@ -130,7 +130,7 @@ type Cluster struct {
 	// update; persists until changed.
 	DesiredPreemptibleGPUs int64 `json:"desired_preemptible_gpus" api:"required"`
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
-	// "H100_SXM_INF".
+	// "H100_SXM_INF", "B300_SXM".
 	GPUType        ClusterGPUType         `json:"gpu_type" api:"required"`
 	GPUWorkerNodes []ClusterGPUWorkerNode `json:"gpu_worker_nodes" api:"required"`
 	KubeConfig     string                 `json:"kube_config" api:"required"`
@@ -563,6 +563,7 @@ const (
 	ClusterGPUTypeL40Pcie    ClusterGPUType = "L40_PCIE"
 	ClusterGPUTypeB200Sxm    ClusterGPUType = "B200_SXM"
 	ClusterGPUTypeH100SxmInf ClusterGPUType = "H100_SXM_INF"
+	ClusterGPUTypeB300Sxm    ClusterGPUType = "B300_SXM"
 )
 
 type ClusterGPUWorkerNode struct {
@@ -1110,7 +1111,7 @@ type BetaClusterNewParams struct {
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
-	// "H100_SXM_INF".
+	// "H100_SXM_INF", "B300_SXM".
 	GPUType BetaClusterNewParamsGPUType `json:"gpu_type,omitzero" api:"required"`
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
@@ -1214,6 +1215,7 @@ const (
 	BetaClusterNewParamsGPUTypeL40Pcie    BetaClusterNewParamsGPUType = "L40_PCIE"
 	BetaClusterNewParamsGPUTypeB200Sxm    BetaClusterNewParamsGPUType = "B200_SXM"
 	BetaClusterNewParamsGPUTypeH100SxmInf BetaClusterNewParamsGPUType = "H100_SXM_INF"
+	BetaClusterNewParamsGPUTypeB300Sxm    BetaClusterNewParamsGPUType = "B300_SXM"
 )
 
 // AcceptanceTestsParams groups all GPU acceptance test options when enabled is
