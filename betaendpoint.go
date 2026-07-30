@@ -602,9 +602,10 @@ type Endpoint struct {
 	// Lightweight summaries of deployments under this endpoint. Retrieve a deployment
 	// through the endpoint's deployment API for full details.
 	Deployments []EndpointDeploymentSummary `json:"deployments" api:"required"`
-	// Serving class of the endpoint.
+	// Serving class of the endpoint. Reserved endpoints use reserved capacity.
 	//
-	// Any of "ENDPOINT_TYPE_DEDICATED", "ENDPOINT_TYPE_SERVERLESS".
+	// Any of "ENDPOINT_TYPE_DEDICATED", "ENDPOINT_TYPE_SERVERLESS",
+	// "ENDPOINT_TYPE_RESERVED".
 	EndpointType EndpointEndpointType `json:"endpointType" api:"required"`
 	// Opaque version tag for optimistic concurrency control. Supply on update/delete
 	// to ensure consistent read-modify-write. If not set, the write overwrites based
@@ -653,12 +654,13 @@ func (r *Endpoint) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Serving class of the endpoint.
+// Serving class of the endpoint. Reserved endpoints use reserved capacity.
 type EndpointEndpointType string
 
 const (
 	EndpointEndpointTypeEndpointTypeDedicated  EndpointEndpointType = "ENDPOINT_TYPE_DEDICATED"
 	EndpointEndpointTypeEndpointTypeServerless EndpointEndpointType = "ENDPOINT_TYPE_SERVERLESS"
+	EndpointEndpointTypeEndpointTypeReserved   EndpointEndpointType = "ENDPOINT_TYPE_RESERVED"
 )
 
 // Who can discover the endpoint. `VISIBILITY_PRIVATE` restricts it to the project;

@@ -462,7 +462,8 @@ type SupportedModel struct {
 	OutputModalities []string `json:"outputModalities" api:"required"`
 	// Product surfaces where the model is offered.
 	//
-	// Any of "PRODUCT_SERVERLESS", "PRODUCT_DEDICATED", "PRODUCT_FINE_TUNING".
+	// Any of "PRODUCT_SERVERLESS", "PRODUCT_DEDICATED", "PRODUCT_FINE_TUNING",
+	// "PRODUCT_RESERVED".
 	Products []string `json:"products" api:"required"`
 	// Organization or publisher associated with the model.
 	Publisher string `json:"publisher" api:"required"`
