@@ -214,8 +214,9 @@ type ShadowExperimentTarget struct {
 	// Human-readable target name, unique within the shadow experiment. At most 256
 	// characters.
 	Name string `json:"name" api:"required"`
-	// Deployment under the parent endpoint that receives mirrored traffic. Shadow
-	// targets should be excluded from the endpoint's live traffic split.
+	// Deployment under the parent endpoint that receives mirrored traffic. It must not
+	// be a live traffic-split member or the source or target of an active rollout;
+	// traffic-split weight 0 warm-up targets are allowed.
 	TargetDeploymentID string `json:"targetDeploymentId" api:"required"`
 	// Output only. Timestamp when the target was last updated.
 	UpdatedAt time.Time `json:"updatedAt" api:"required" format:"date-time"`
@@ -269,8 +270,9 @@ type BetaEndpointShadowExperimentTargetNewParams struct {
 	// Human-readable target name, unique within the shadow experiment. At most 256
 	// characters.
 	Name string `json:"name" api:"required"`
-	// Deployment under the parent endpoint that receives mirrored traffic. Exclude it
-	// from the endpoint's live traffic split.
+	// Deployment under the parent endpoint that receives mirrored traffic. It must not
+	// be a live traffic-split member or the source or target of an active rollout;
+	// traffic-split weight 0 warm-up targets are allowed.
 	TargetDeploymentID string `json:"targetDeploymentId" api:"required"`
 	// Optional free-form target description.
 	Description param.Opt[string] `json:"description,omitzero"`
@@ -315,8 +317,9 @@ type BetaEndpointShadowExperimentTargetUpdateParams struct {
 	Etag param.Opt[string] `json:"etag,omitzero"`
 	// Updated human-readable target name.
 	Name param.Opt[string] `json:"name,omitzero"`
-	// Replacement deployment under the parent endpoint. Exclude it from the endpoint's
-	// live traffic split.
+	// Replacement deployment under the parent endpoint. It must not be a live
+	// traffic-split member or the source or target of an active rollout; traffic-split
+	// weight 0 warm-up targets are allowed.
 	TargetDeploymentID param.Opt[string] `json:"targetDeploymentId,omitzero"`
 	paramObj
 }
