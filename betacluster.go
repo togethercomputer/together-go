@@ -1073,17 +1073,23 @@ func (r *BetaClusterListRegionsResponseRegion) UnmarshalJSON(data []byte) error 
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// CUDA/NVIDIA driver versions pair available in the region to use in the create
-// cluster request.
+// NVIDIA software configuration available in the region.
 type BetaClusterListRegionsResponseRegionDriverVersion struct {
-	// CUDA driver version.
+	// Semantic CUDA version without operating system text.
 	CudaVersion string `json:"cuda_version" api:"required"`
 	// NVIDIA driver version.
 	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
+	// Region-specific NVIDIA catalog ID to send as nvidia_version_id when creating a
+	// cluster.
+	ID string `json:"id"`
+	// Operating system image family for this catalog entry.
+	Os string `json:"os"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CudaVersion         respjson.Field
 		NvidiaDriverVersion respjson.Field
+		ID                  respjson.Field
+		Os                  respjson.Field
 		ExtraFields         map[string]respjson.Field
 		raw                 string
 	} `json:"-"`
@@ -1106,8 +1112,6 @@ type BetaClusterNewParams struct {
 	BillingType BetaClusterNewParamsBillingType `json:"billing_type,omitzero" api:"required"`
 	// Name of the GPU cluster.
 	ClusterName string `json:"cluster_name" api:"required"`
-	// CUDA version for this cluster. For example, 12.5
-	CudaVersion string `json:"cuda_version" api:"required"`
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
@@ -1116,9 +1120,6 @@ type BetaClusterNewParams struct {
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
 	NumGPUs int64 `json:"num_gpus" api:"required"`
-	// Nvidia driver version for this cluster. For example, 550. Only some combination
-	// of cuda_version and nvidia_driver_version are supported.
-	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
 	// Region to create the GPU cluster in. Usable regions can be found from
 	// `client.clusters.list_regions()`
 	Region string `json:"region" api:"required"`
@@ -1135,6 +1136,11 @@ type BetaClusterNewParams struct {
 	// ID of the capacity pool to use for the cluster. This field is optional and only
 	// applicable if the cluster is created from a capacity pool.
 	CapacityPoolID param.Opt[string] `json:"capacity_pool_id,omitzero"`
+	// Legacy CUDA selector for this cluster. Bare semantic values such as 12.5 select
+	// ubuntu-22.04; existing OS-suffixed values remain accepted for compatibility.
+	// Must be paired with nvidia_driver_version. Prefer nvidia_version_id for new
+	// integrations.
+	CudaVersion param.Opt[string] `json:"cuda_version,omitzero"`
 	// Duration in days to keep the cluster running.
 	DurationDays param.Opt[int64] `json:"duration_days,omitzero"`
 	// Whether to install Traefik ingress controller in the cluster. This field is only
@@ -1151,6 +1157,12 @@ type BetaClusterNewParams struct {
 	// Number of prepaid (PLG) reserved GPUs for this cluster. When omitted for
 	// RESERVED billing on create, the server defaults this to num_gpus.
 	NumReservedGPUs param.Opt[int64] `json:"num_reserved_gpus,omitzero"`
+	// Legacy NVIDIA driver selector for this cluster. For example, 550. Must be paired
+	// with cuda_version. Prefer nvidia_version_id for new integrations.
+	NvidiaDriverVersion param.Opt[string] `json:"nvidia_driver_version,omitzero"`
+	// Canonical region-specific NVIDIA version ID. If cuda_version and
+	// nvidia_driver_version are also set, they must resolve to the same catalog entry.
+	NvidiaVersionID param.Opt[string] `json:"nvidia_version_id,omitzero"`
 	// Project ID for the cluster. If not set, the project from the request context is
 	// used.
 	ProjectID param.Opt[string] `json:"project_id,omitzero"`
