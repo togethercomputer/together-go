@@ -628,7 +628,7 @@ type Endpoint struct {
 	//
 	// Any of "VISIBILITY_PRIVATE", "VISIBILITY_INTERNAL".
 	Visibility EndpointVisibility `json:"visibility" api:"required"`
-	// ID of the currently active rollout, or empty if none.
+	// ID of the currently active rollout in an in-flight state, including paused.
 	ActiveRolloutID string `json:"activeRolloutId"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
