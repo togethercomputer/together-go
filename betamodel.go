@@ -559,6 +559,9 @@ type SupportedModelDeploymentProfile struct {
 	// `projects/{projectId}/models/{modelId}[/revisions/{revisionId}]`. Omitted when
 	// the profile does not pin model weights.
 	Model string `json:"model" api:"required"`
+	// Fully-qualified deploy model name in the form `{projectSlug}/{modelName}`, such
+	// as `Qwen/Qwen3.5-9B-FP8`; empty when no public model is linked.
+	ModelName string `json:"modelName" api:"required"`
 	// Free-form parallelism spec for the profile, such as TP8, TP4, EP, or PD;
 	// supersedes tensor_parallel_size.
 	Parallelism string `json:"parallelism" api:"required"`
@@ -581,6 +584,7 @@ type SupportedModelDeploymentProfile struct {
 		GPUCount                  respjson.Field
 		GPUType                   respjson.Field
 		Model                     respjson.Field
+		ModelName                 respjson.Field
 		Parallelism               respjson.Field
 		PerformanceBenchmarks     respjson.Field
 		ProfileID                 respjson.Field
