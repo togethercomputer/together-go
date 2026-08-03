@@ -165,6 +165,19 @@ func (r *FineTuningService) Preview(ctx context.Context, body FineTuningPreviewP
 	return res, err
 }
 
+// Get a presigned URL for the tokenized dataset archive generated for a fine-tune
+// job.
+func (r *FineTuningService) GetTokenizedDataset(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuneTokenizedDatasetRetrieveResponse, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("fine-tunes/%s/download-tokenized-dataset", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
 // Tokenized preview for sampled rows from a fine-tuning training file.
 type FineTunePreviewResponse struct {
 	// Detected SFT dataset format for the sampled rows.
@@ -242,6 +255,36 @@ func (r *FineTunePreviewRow) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Presigned download metadata for a fine-tune tokenized dataset archive.
+type FineTuneTokenizedDatasetRetrieveResponse struct {
+	// MIME type for the tokenized dataset archive.
+	ContentType string `json:"content_type" api:"required"`
+	// Time when the presigned download URL expires.
+	ExpiresAt time.Time `json:"expires_at" api:"required" format:"date-time"`
+	// Archive filename to use when saving the downloaded tokenized dataset.
+	Filename string `json:"filename" api:"required"`
+	// Archive size in bytes.
+	Size int64 `json:"size" api:"required"`
+	// Presigned URL for downloading the tokenized dataset archive.
+	URL string `json:"url" api:"required" format:"uri"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ContentType respjson.Field
+		ExpiresAt   respjson.Field
+		Filename    respjson.Field
+		Size        respjson.Field
+		URL         respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r FineTuneTokenizedDatasetRetrieveResponse) RawJSON() string { return r.JSON.raw }
+func (r *FineTuneTokenizedDatasetRetrieveResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type FinetuneEvent struct {
 	CreatedAt string `json:"created_at" api:"required"`
 	Message   string `json:"message" api:"required"`
@@ -254,7 +297,8 @@ type FinetuneEvent struct {
 	// "checkpoint_save", "billing_limit", "epoch_complete", "training_complete",
 	// "model_compressing", "model_compression_complete", "model_uploading",
 	// "model_upload_complete", "job_complete", "job_error", "cancel_requested",
-	// "job_restarted", "refund", "warning", "early_stopped".
+	// "job_restarted", "refund", "warning", "early_stopped",
+	// "tokenized_dataset_upload_complete".
 	Type           FinetuneEventType `json:"type" api:"required"`
 	CheckpointPath string            `json:"checkpoint_path"`
 	// For early_stopped events, the best validation loss observed. Null if no
@@ -271,8 +315,10 @@ type FinetuneEvent struct {
 	ParamCount int64              `json:"param_count"`
 	Step       int64              `json:"step"`
 	TokenCount int64              `json:"token_count"`
-	TotalSteps int64              `json:"total_steps"`
-	WandbURL   string             `json:"wandb_url"`
+	// Storage path for the tokenized dataset archive associated with this event.
+	TokenizedDatasetPath string `json:"tokenized_dataset_path"`
+	TotalSteps           int64  `json:"total_steps"`
+	WandbURL             string `json:"wandb_url"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		CreatedAt                    respjson.Field
@@ -287,6 +333,7 @@ type FinetuneEvent struct {
 		ParamCount                   respjson.Field
 		Step                         respjson.Field
 		TokenCount                   respjson.Field
+		TokenizedDatasetPath         respjson.Field
 		TotalSteps                   respjson.Field
 		WandbURL                     respjson.Field
 		ExtraFields                  map[string]respjson.Field
@@ -340,6 +387,7 @@ const (
 	FinetuneEventTypeRefund                         FinetuneEventType = "refund"
 	FinetuneEventTypeWarning                        FinetuneEventType = "warning"
 	FinetuneEventTypeEarlyStopped                   FinetuneEventType = "early_stopped"
+	FinetuneEventTypeTokenizedDatasetUploadComplete FinetuneEventType = "tokenized_dataset_upload_complete"
 )
 
 // Model limits for fine-tuning.
@@ -518,14 +566,18 @@ type FinetuneResponse struct {
 	NEvals                int64                            `json:"n_evals"`
 	ParamCount            int64                            `json:"param_count"`
 	// Progress information for a fine-tuning job
-	Progress       FinetuneResponseProgress            `json:"progress"`
-	QueueDepth     int64                               `json:"queue_depth"`
-	StartedAt      time.Time                           `json:"started_at" format:"date-time"`
-	TokenCount     int64                               `json:"token_count"`
-	TotalPrice     int64                               `json:"total_price"`
-	TrainOnInputs  FinetuneResponseTrainOnInputsUnion  `json:"train_on_inputs"`
-	TrainingFile   string                              `json:"training_file"`
-	TrainingMethod FinetuneResponseTrainingMethodUnion `json:"training_method"`
+	Progress   FinetuneResponseProgress `json:"progress"`
+	QueueDepth int64                    `json:"queue_depth"`
+	StartedAt  time.Time                `json:"started_at" format:"date-time"`
+	TokenCount int64                    `json:"token_count"`
+	// Storage path for the tokenized dataset archive generated for this fine-tune job.
+	TokenizedDatasetPath string `json:"tokenized_dataset_path"`
+	// Timestamp when the tokenized dataset archive was uploaded.
+	TokenizedDatasetUploadedAt time.Time                           `json:"tokenized_dataset_uploaded_at" format:"date-time"`
+	TotalPrice                 int64                               `json:"total_price"`
+	TrainOnInputs              FinetuneResponseTrainOnInputsUnion  `json:"train_on_inputs"`
+	TrainingFile               string                              `json:"training_file"`
+	TrainingMethod             FinetuneResponseTrainingMethodUnion `json:"training_method"`
 	// LoRA training configuration for a fine-tuning job.
 	TrainingType         FinetuneResponseTrainingTypeUnion `json:"training_type"`
 	TrainingfileNumlines int64                             `json:"trainingfile_numlines"`
@@ -538,57 +590,59 @@ type FinetuneResponse struct {
 	WeightDecay          float64                           `json:"weight_decay"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID                      respjson.Field
-		Status                  respjson.Field
-		UserID                  respjson.Field
-		AdapterObjectID         respjson.Field
-		AdapterObjectName       respjson.Field
-		AdapterObjectRevisionID respjson.Field
-		BatchSize               respjson.Field
-		CreatedAt               respjson.Field
-		EarlyStopped            respjson.Field
-		EarlyStoppingBestMetric respjson.Field
-		EarlyStoppingBestStep   respjson.Field
-		EpochsCompleted         respjson.Field
-		EvalSteps               respjson.Field
-		Events                  respjson.Field
-		FromCheckpoint          respjson.Field
-		FromHfModel             respjson.Field
-		HfModelRevision         respjson.Field
-		JobID                   respjson.Field
-		LearningRate            respjson.Field
-		LrScheduler             respjson.Field
-		MaxGradNorm             respjson.Field
-		Model                   respjson.Field
-		ModelObjectID           respjson.Field
-		ModelObjectName         respjson.Field
-		ModelObjectRevisionID   respjson.Field
-		ModelOutputName         respjson.Field
-		ModelOutputPath         respjson.Field
-		MultimodalParams        respjson.Field
-		NCheckpoints            respjson.Field
-		NEpochs                 respjson.Field
-		NEvals                  respjson.Field
-		ParamCount              respjson.Field
-		Progress                respjson.Field
-		QueueDepth              respjson.Field
-		StartedAt               respjson.Field
-		TokenCount              respjson.Field
-		TotalPrice              respjson.Field
-		TrainOnInputs           respjson.Field
-		TrainingFile            respjson.Field
-		TrainingMethod          respjson.Field
-		TrainingType            respjson.Field
-		TrainingfileNumlines    respjson.Field
-		TrainingfileSize        respjson.Field
-		UpdatedAt               respjson.Field
-		ValidationFile          respjson.Field
-		WandbProjectName        respjson.Field
-		WandbURL                respjson.Field
-		WarmupRatio             respjson.Field
-		WeightDecay             respjson.Field
-		ExtraFields             map[string]respjson.Field
-		raw                     string
+		ID                         respjson.Field
+		Status                     respjson.Field
+		UserID                     respjson.Field
+		AdapterObjectID            respjson.Field
+		AdapterObjectName          respjson.Field
+		AdapterObjectRevisionID    respjson.Field
+		BatchSize                  respjson.Field
+		CreatedAt                  respjson.Field
+		EarlyStopped               respjson.Field
+		EarlyStoppingBestMetric    respjson.Field
+		EarlyStoppingBestStep      respjson.Field
+		EpochsCompleted            respjson.Field
+		EvalSteps                  respjson.Field
+		Events                     respjson.Field
+		FromCheckpoint             respjson.Field
+		FromHfModel                respjson.Field
+		HfModelRevision            respjson.Field
+		JobID                      respjson.Field
+		LearningRate               respjson.Field
+		LrScheduler                respjson.Field
+		MaxGradNorm                respjson.Field
+		Model                      respjson.Field
+		ModelObjectID              respjson.Field
+		ModelObjectName            respjson.Field
+		ModelObjectRevisionID      respjson.Field
+		ModelOutputName            respjson.Field
+		ModelOutputPath            respjson.Field
+		MultimodalParams           respjson.Field
+		NCheckpoints               respjson.Field
+		NEpochs                    respjson.Field
+		NEvals                     respjson.Field
+		ParamCount                 respjson.Field
+		Progress                   respjson.Field
+		QueueDepth                 respjson.Field
+		StartedAt                  respjson.Field
+		TokenCount                 respjson.Field
+		TokenizedDatasetPath       respjson.Field
+		TokenizedDatasetUploadedAt respjson.Field
+		TotalPrice                 respjson.Field
+		TrainOnInputs              respjson.Field
+		TrainingFile               respjson.Field
+		TrainingMethod             respjson.Field
+		TrainingType               respjson.Field
+		TrainingfileNumlines       respjson.Field
+		TrainingfileSize           respjson.Field
+		UpdatedAt                  respjson.Field
+		ValidationFile             respjson.Field
+		WandbProjectName           respjson.Field
+		WandbURL                   respjson.Field
+		WarmupRatio                respjson.Field
+		WeightDecay                respjson.Field
+		ExtraFields                map[string]respjson.Field
+		raw                        string
 	} `json:"-"`
 }
 
