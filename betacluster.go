@@ -1075,20 +1075,20 @@ func (r *BetaClusterListRegionsResponseRegion) UnmarshalJSON(data []byte) error 
 
 // NVIDIA software configuration available in the region.
 type BetaClusterListRegionsResponseRegionDriverVersion struct {
+	// Region-specific NVIDIA catalog ID to send as nvidia_version_id when creating a
+	// cluster.
+	ID string `json:"id" api:"required"`
 	// Semantic CUDA version without operating system text.
 	CudaVersion string `json:"cuda_version" api:"required"`
 	// NVIDIA driver version.
 	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
-	// Region-specific NVIDIA catalog ID to send as nvidia_version_id when creating a
-	// cluster.
-	ID string `json:"id"`
 	// Operating system image family for this catalog entry.
-	Os string `json:"os"`
+	Os string `json:"os" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		ID                  respjson.Field
 		CudaVersion         respjson.Field
 		NvidiaDriverVersion respjson.Field
-		ID                  respjson.Field
 		Os                  respjson.Field
 		ExtraFields         map[string]respjson.Field
 		raw                 string
