@@ -195,20 +195,22 @@ type CompletionChunkChoiceDelta struct {
 	Role    string `json:"role" api:"required"`
 	Content string `json:"content" api:"nullable"`
 	// Deprecated: deprecated
-	FunctionCall CompletionChunkChoiceDeltaFunctionCall `json:"function_call" api:"nullable"`
-	Reasoning    string                                 `json:"reasoning" api:"nullable"`
-	TokenID      int64                                  `json:"token_id"`
-	ToolCalls    []ToolChoice                           `json:"tool_calls"`
+	FunctionCall     CompletionChunkChoiceDeltaFunctionCall `json:"function_call" api:"nullable"`
+	Reasoning        string                                 `json:"reasoning" api:"nullable"`
+	ReasoningContent string                                 `json:"reasoning_content" api:"nullable"`
+	TokenID          int64                                  `json:"token_id"`
+	ToolCalls        []ToolChoice                           `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Role         respjson.Field
-		Content      respjson.Field
-		FunctionCall respjson.Field
-		Reasoning    respjson.Field
-		TokenID      respjson.Field
-		ToolCalls    respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
+		Role             respjson.Field
+		Content          respjson.Field
+		FunctionCall     respjson.Field
+		Reasoning        respjson.Field
+		ReasoningContent respjson.Field
+		TokenID          respjson.Field
+		ToolCalls        respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
 	} `json:"-"`
 }
 
