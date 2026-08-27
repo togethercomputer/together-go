@@ -10,6 +10,10 @@ Methods:
 
 # Beta
 
+## Organization
+
+### Usage
+
 ## Endpoints
 
 Params Types:

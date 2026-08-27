@@ -131,7 +131,7 @@ func TestBetaJigDeployWithOptionalParams(t *testing.T) {
 	_, err := client.Beta.Jig.Deploy(context.TODO(), together.BetaJigDeployParams{
 		GPUType: together.BetaJigDeployParamsGPUTypeH100_80gb,
 		Image:   "image",
-		Name:    "x",
+		Name:    "xxxx",
 		Args:    []string{"string"},
 		Autoscaling: together.BetaJigDeployParamsAutoscalingUnion{
 			OfBetaJigDeploysAutoscalingHTTPAutoscalingConfig: &together.BetaJigDeployParamsAutoscalingHTTPAutoscalingConfig{

@@ -34,6 +34,7 @@ type Model string               // Always "model"
 type Rerank string              // Always "rerank"
 type Text string                // Always "text"
 type TextCompletion string      // Always "text.completion"
+type Usd string                 // Always "USD"
 
 func (c AudioTtsChunk) Default() AudioTtsChunk             { return "audio.tts.chunk" }
 func (c ChatCompletion) Default() ChatCompletion           { return "chat.completion" }
@@ -51,6 +52,7 @@ func (c Model) Default() Model                             { return "model" }
 func (c Rerank) Default() Rerank                           { return "rerank" }
 func (c Text) Default() Text                               { return "text" }
 func (c TextCompletion) Default() TextCompletion           { return "text.completion" }
+func (c Usd) Default() Usd                                 { return "USD" }
 
 func (c AudioTtsChunk) MarshalJSON() ([]byte, error)       { return marshalString(c) }
 func (c ChatCompletion) MarshalJSON() ([]byte, error)      { return marshalString(c) }
@@ -68,6 +70,7 @@ func (c Model) MarshalJSON() ([]byte, error)               { return marshalStrin
 func (c Rerank) MarshalJSON() ([]byte, error)              { return marshalString(c) }
 func (c Text) MarshalJSON() ([]byte, error)                { return marshalString(c) }
 func (c TextCompletion) MarshalJSON() ([]byte, error)      { return marshalString(c) }
+func (c Usd) MarshalJSON() ([]byte, error)                 { return marshalString(c) }
 
 type constant[T any] interface {
 	Constant[T]

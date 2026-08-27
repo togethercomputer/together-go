@@ -356,7 +356,9 @@ const (
 type RemediationLinkedAlert struct {
 	// Alertmanager alert name.
 	AlertName string `json:"alert_name" api:"required"`
-	// Alertmanager annotations as key-value strings.
+	// Typed content parsed from passive health check alert annotations.
+	Annotation RemediationLinkedAlertAnnotation `json:"annotation" api:"required"`
+	// Legacy Alertmanager annotations as key-value strings.
 	Annotations map[string]string `json:"annotations" api:"required"`
 	// Cluster UUID the alert was raised against.
 	ClusterID string `json:"cluster_id" api:"required"`
@@ -379,6 +381,7 @@ type RemediationLinkedAlert struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AlertName                 respjson.Field
+		Annotation                respjson.Field
 		Annotations               respjson.Field
 		ClusterID                 respjson.Field
 		PassiveHealthCheckAlertID respjson.Field
@@ -396,6 +399,96 @@ type RemediationLinkedAlert struct {
 // Returns the unmodified JSON received from the API
 func (r RemediationLinkedAlert) RawJSON() string { return r.JSON.raw }
 func (r *RemediationLinkedAlert) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Typed content parsed from passive health check alert annotations.
+type RemediationLinkedAlertAnnotation struct {
+	// Static explanation for the alert.
+	Description string `json:"description" api:"required"`
+	// Per-firing summary line parsed from the evidence annotation.
+	SummaryLine string `json:"summary_line" api:"required"`
+	// Alert title from the Alertmanager summary annotation.
+	Title string `json:"title" api:"required"`
+	// Details for a Slurm node unavailable passive health check alert.
+	SlurmNodeUnavailable RemediationLinkedAlertAnnotationSlurmNodeUnavailable `json:"slurm_node_unavailable"`
+	// Details for a DmesgXidError passive health check alert.
+	Xid RemediationLinkedAlertAnnotationXid `json:"xid"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Description          respjson.Field
+		SummaryLine          respjson.Field
+		Title                respjson.Field
+		SlurmNodeUnavailable respjson.Field
+		Xid                  respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RemediationLinkedAlertAnnotation) RawJSON() string { return r.JSON.raw }
+func (r *RemediationLinkedAlertAnnotation) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Details for a Slurm node unavailable passive health check alert.
+type RemediationLinkedAlertAnnotationSlurmNodeUnavailable struct {
+	// Drain reason reported for the unavailable Slurm node.
+	Reason string `json:"reason" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Reason      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RemediationLinkedAlertAnnotationSlurmNodeUnavailable) RawJSON() string { return r.JSON.raw }
+func (r *RemediationLinkedAlertAnnotationSlurmNodeUnavailable) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Details for a DmesgXidError passive health check alert.
+type RemediationLinkedAlertAnnotationXid struct {
+	// Xid events observed during the alert window.
+	Events []RemediationLinkedAlertAnnotationXidEvent `json:"events" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Events      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RemediationLinkedAlertAnnotationXid) RawJSON() string { return r.JSON.raw }
+func (r *RemediationLinkedAlertAnnotationXid) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// One NVIDIA Xid code observed during the alert window.
+type RemediationLinkedAlertAnnotationXidEvent struct {
+	// Number of times this Xid code appeared in the alert window.
+	Count int64 `json:"count" api:"required"`
+	// Driver mnemonic for the Xid code when metadata is available.
+	Mnemonic string `json:"mnemonic" api:"required"`
+	// NVIDIA Xid code, such as `79`.
+	XidCode string `json:"xid_code" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Count       respjson.Field
+		Mnemonic    respjson.Field
+		XidCode     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RemediationLinkedAlertAnnotationXidEvent) RawJSON() string { return r.JSON.raw }
+func (r *RemediationLinkedAlertAnnotationXidEvent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -436,8 +529,8 @@ func (r *RemediationParam) UnmarshalJSON(data []byte) error {
 
 // Passive health check alert returned by the health check API.
 //
-// The properties AlertName, Annotations, ClusterID, PassiveHealthCheckAlertID,
-// Severity, StartedAt, TargetVm are required.
+// The properties AlertName, Annotation, Annotations, ClusterID,
+// PassiveHealthCheckAlertID, Severity, StartedAt, TargetVm are required.
 type RemediationLinkedAlertParam struct {
 	paramObj
 }
@@ -447,6 +540,70 @@ func (r RemediationLinkedAlertParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *RemediationLinkedAlertParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Typed content parsed from passive health check alert annotations.
+//
+// The properties Description, SummaryLine, Title are required.
+type RemediationLinkedAlertAnnotationParam struct {
+	// Details for a Slurm node unavailable passive health check alert.
+	SlurmNodeUnavailable RemediationLinkedAlertAnnotationSlurmNodeUnavailableParam `json:"slurm_node_unavailable,omitzero"`
+	// Details for a DmesgXidError passive health check alert.
+	Xid RemediationLinkedAlertAnnotationXidParam `json:"xid,omitzero"`
+	paramObj
+}
+
+func (r RemediationLinkedAlertAnnotationParam) MarshalJSON() (data []byte, err error) {
+	type shadow RemediationLinkedAlertAnnotationParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RemediationLinkedAlertAnnotationParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Details for a Slurm node unavailable passive health check alert.
+//
+// The property Reason is required.
+type RemediationLinkedAlertAnnotationSlurmNodeUnavailableParam struct {
+	paramObj
+}
+
+func (r RemediationLinkedAlertAnnotationSlurmNodeUnavailableParam) MarshalJSON() (data []byte, err error) {
+	type shadow RemediationLinkedAlertAnnotationSlurmNodeUnavailableParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RemediationLinkedAlertAnnotationSlurmNodeUnavailableParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Details for a DmesgXidError passive health check alert.
+//
+// The property Events is required.
+type RemediationLinkedAlertAnnotationXidParam struct {
+	paramObj
+}
+
+func (r RemediationLinkedAlertAnnotationXidParam) MarshalJSON() (data []byte, err error) {
+	type shadow RemediationLinkedAlertAnnotationXidParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RemediationLinkedAlertAnnotationXidParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// One NVIDIA Xid code observed during the alert window.
+//
+// The properties Count, Mnemonic, XidCode are required.
+type RemediationLinkedAlertAnnotationXidEventParam struct {
+	paramObj
+}
+
+func (r RemediationLinkedAlertAnnotationXidEventParam) MarshalJSON() (data []byte, err error) {
+	type shadow RemediationLinkedAlertAnnotationXidEventParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RemediationLinkedAlertAnnotationXidEventParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

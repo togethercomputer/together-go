@@ -796,8 +796,9 @@ type BetaJigDeployParams struct {
 	GPUType BetaJigDeployParamsGPUType `json:"gpu_type,omitzero" api:"required"`
 	// Image is the container image to deploy from registry.together.ai.
 	Image string `json:"image" api:"required"`
-	// Name is the unique identifier for your deployment. Must contain only
-	// alphanumeric characters, underscores, or hyphens (1-100 characters)
+	// Name is the unique identifier for your deployment. Must contain lowercase
+	// letters, numbers, or hyphens, start with a lowercase letter or number, and be
+	// 4-63 characters. It cannot be changed.
 	Name string `json:"name" api:"required"`
 	// CPU is the number of CPU cores to allocate per container instance (e.g., 0.1 =
 	// 100 milli cores)
