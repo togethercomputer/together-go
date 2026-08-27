@@ -387,8 +387,10 @@ func (r DeploymentAutoscaling) ToParam() DeploymentAutoscalingParam {
 
 // Metric and target used by the autoscaler to recommend a replica count.
 type DeploymentAutoscalingScalingMetric struct {
-	// Metric name, such as `gpu_utilization`, `ttft`, `inflight_requests`,
-	// `e2e_latency`, `throughput_per_replica`, or `decoding_speed`.
+	// Autoscaling metric name from the server allowlist.
+	//
+	// Any of "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization",
+	// "inflight_requests", "throughput_per_replica", "token_utilization", "ttft".
 	Name string `json:"name" api:"required"`
 	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
 	// 100, value uses an absolute measurement, and average value uses a per-replica
@@ -453,9 +455,11 @@ func (r *DeploymentAutoscalingParam) UnmarshalJSON(data []byte) error {
 //
 // The properties Name, Target, Type are required.
 type DeploymentAutoscalingScalingMetricParam struct {
-	// Metric name, such as `gpu_utilization`, `ttft`, `inflight_requests`,
-	// `e2e_latency`, `throughput_per_replica`, or `decoding_speed`.
-	Name string `json:"name" api:"required"`
+	// Autoscaling metric name from the server allowlist.
+	//
+	// Any of "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization",
+	// "inflight_requests", "throughput_per_replica", "token_utilization", "ttft".
+	Name string `json:"name,omitzero" api:"required"`
 	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
 	// 100, value uses an absolute measurement, and average value uses a per-replica
 	// measurement.
@@ -480,6 +484,9 @@ func (r *DeploymentAutoscalingScalingMetricParam) UnmarshalJSON(data []byte) err
 }
 
 func init() {
+	apijson.RegisterFieldValidator[DeploymentAutoscalingScalingMetricParam](
+		"name", "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization", "inflight_requests", "throughput_per_replica", "token_utilization", "ttft",
+	)
 	apijson.RegisterFieldValidator[DeploymentAutoscalingScalingMetricParam](
 		"type", "METRIC_TARGET_TYPE_VALUE", "METRIC_TARGET_TYPE_UTILIZATION", "METRIC_TARGET_TYPE_AVERAGE_VALUE",
 	)
