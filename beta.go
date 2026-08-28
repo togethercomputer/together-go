@@ -17,6 +17,7 @@ type BetaService struct {
 	Organization BetaOrganizationService
 	Endpoints    BetaEndpointService
 	Models       BetaModelService
+	Rl           BetaRlService
 	Jig          BetaJigService
 	Clusters     BetaClusterService
 }
@@ -30,6 +31,7 @@ func NewBetaService(opts ...option.RequestOption) (r BetaService) {
 	r.Organization = NewBetaOrganizationService(opts...)
 	r.Endpoints = NewBetaEndpointService(opts...)
 	r.Models = NewBetaModelService(opts...)
+	r.Rl = NewBetaRlService(opts...)
 	r.Jig = NewBetaJigService(opts...)
 	r.Clusters = NewBetaClusterService(opts...)
 	return
