@@ -37,7 +37,7 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 				ScaleToZeroWindow: together.String("-160513s"),
 				ScaleUpWindow:     together.String("-160513s"),
 				ScalingMetrics: []together.DeploymentAutoscalingScalingMetricParam{{
-					Name:       "cache_hit_rate",
+					Name:       "active_sessions",
 					Target:     0,
 					Type:       "METRIC_TARGET_TYPE_VALUE",
 					Percentile: together.String("percentile"),
@@ -125,7 +125,7 @@ func TestBetaEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
 				ScaleToZeroWindow: together.String("-160513s"),
 				ScaleUpWindow:     together.String("-160513s"),
 				ScalingMetrics: []together.DeploymentAutoscalingScalingMetricParam{{
-					Name:       "cache_hit_rate",
+					Name:       "active_sessions",
 					Target:     0,
 					Type:       "METRIC_TARGET_TYPE_VALUE",
 					Percentile: together.String("percentile"),

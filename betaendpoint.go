@@ -389,8 +389,9 @@ func (r DeploymentAutoscaling) ToParam() DeploymentAutoscalingParam {
 type DeploymentAutoscalingScalingMetric struct {
 	// Autoscaling metric name from the server allowlist.
 	//
-	// Any of "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization",
-	// "inflight_requests", "throughput_per_replica", "token_utilization", "ttft".
+	// Any of "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency",
+	// "gpu_utilization", "inflight_requests", "throughput_per_replica",
+	// "token_utilization", "ttft".
 	Name string `json:"name" api:"required"`
 	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
 	// 100, value uses an absolute measurement, and average value uses a per-replica
@@ -457,8 +458,9 @@ func (r *DeploymentAutoscalingParam) UnmarshalJSON(data []byte) error {
 type DeploymentAutoscalingScalingMetricParam struct {
 	// Autoscaling metric name from the server allowlist.
 	//
-	// Any of "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization",
-	// "inflight_requests", "throughput_per_replica", "token_utilization", "ttft".
+	// Any of "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency",
+	// "gpu_utilization", "inflight_requests", "throughput_per_replica",
+	// "token_utilization", "ttft".
 	Name string `json:"name,omitzero" api:"required"`
 	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
 	// 100, value uses an absolute measurement, and average value uses a per-replica
@@ -485,7 +487,7 @@ func (r *DeploymentAutoscalingScalingMetricParam) UnmarshalJSON(data []byte) err
 
 func init() {
 	apijson.RegisterFieldValidator[DeploymentAutoscalingScalingMetricParam](
-		"name", "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization", "inflight_requests", "throughput_per_replica", "token_utilization", "ttft",
+		"name", "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization", "inflight_requests", "throughput_per_replica", "token_utilization", "ttft",
 	)
 	apijson.RegisterFieldValidator[DeploymentAutoscalingScalingMetricParam](
 		"type", "METRIC_TARGET_TYPE_VALUE", "METRIC_TARGET_TYPE_UTILIZATION", "METRIC_TARGET_TYPE_AVERAGE_VALUE",
