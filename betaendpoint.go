@@ -496,6 +496,8 @@ func init() {
 
 // Inline placement parameters expanded into scheduling rules by the server.
 type DeploymentPlacementConfig struct {
+	// Compliance regimes required by a deployment placement policy.
+	CompliancePolicy DeploymentPlacementConfigCompliancePolicy `json:"compliancePolicy"`
 	// How strictly the regions list is enforced.
 	//
 	// Any of "ENFORCEMENT_REQUIRED", "ENFORCEMENT_PREFERRED".
@@ -505,10 +507,11 @@ type DeploymentPlacementConfig struct {
 	Regions []string `json:"regions"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Constraint  respjson.Field
-		Regions     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		CompliancePolicy respjson.Field
+		Constraint       respjson.Field
+		Regions          respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
 	} `json:"-"`
 }
 
@@ -528,6 +531,24 @@ func (r DeploymentPlacementConfig) ToParam() DeploymentPlacementConfigParam {
 	return param.Override[DeploymentPlacementConfigParam](json.RawMessage(r.RawJSON()))
 }
 
+// Compliance regimes required by a deployment placement policy.
+type DeploymentPlacementConfigCompliancePolicy struct {
+	// Restrict placement to HIPAA-attested clusters.
+	Hipaa bool `json:"hipaa"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Hipaa       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentPlacementConfigCompliancePolicy) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentPlacementConfigCompliancePolicy) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // How strictly the regions list is enforced.
 type DeploymentPlacementConfigConstraint string
 
@@ -538,6 +559,8 @@ const (
 
 // Inline placement parameters expanded into scheduling rules by the server.
 type DeploymentPlacementConfigParam struct {
+	// Compliance regimes required by a deployment placement policy.
+	CompliancePolicy DeploymentPlacementConfigCompliancePolicyParam `json:"compliancePolicy,omitzero"`
 	// How strictly the regions list is enforced.
 	//
 	// Any of "ENFORCEMENT_REQUIRED", "ENFORCEMENT_PREFERRED".
@@ -553,6 +576,21 @@ func (r DeploymentPlacementConfigParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *DeploymentPlacementConfigParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Compliance regimes required by a deployment placement policy.
+type DeploymentPlacementConfigCompliancePolicyParam struct {
+	// Restrict placement to HIPAA-attested clusters.
+	Hipaa param.Opt[bool] `json:"hipaa,omitzero"`
+	paramObj
+}
+
+func (r DeploymentPlacementConfigCompliancePolicyParam) MarshalJSON() (data []byte, err error) {
+	type shadow DeploymentPlacementConfigCompliancePolicyParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *DeploymentPlacementConfigCompliancePolicyParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

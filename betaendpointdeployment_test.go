@@ -54,6 +54,9 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 			Placement: together.BetaEndpointDeploymentNewParamsPlacementUnion{
 				OfInline: &together.BetaEndpointDeploymentNewParamsPlacementInline{
 					Inline: together.DeploymentPlacementConfigParam{
+						CompliancePolicy: together.DeploymentPlacementConfigCompliancePolicyParam{
+							Hipaa: together.Bool(true),
+						},
 						Constraint: together.DeploymentPlacementConfigConstraintEnforcementRequired,
 						Regions:    []string{"string"},
 					},
