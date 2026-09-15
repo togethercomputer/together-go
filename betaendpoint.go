@@ -32,6 +32,7 @@ type BetaEndpointService struct {
 	PlacementProfiles BetaEndpointPlacementProfileService
 	AbExperiments     BetaEndpointAbExperimentService
 	ShadowExperiments BetaEndpointShadowExperimentService
+	Rollouts          BetaEndpointRolloutService
 	Hardware          BetaEndpointHardwareService
 	Adapters          BetaEndpointAdapterService
 	Deployments       BetaEndpointDeploymentService
@@ -46,6 +47,7 @@ func NewBetaEndpointService(opts ...option.RequestOption) (r BetaEndpointService
 	r.PlacementProfiles = NewBetaEndpointPlacementProfileService(opts...)
 	r.AbExperiments = NewBetaEndpointAbExperimentService(opts...)
 	r.ShadowExperiments = NewBetaEndpointShadowExperimentService(opts...)
+	r.Rollouts = NewBetaEndpointRolloutService(opts...)
 	r.Hardware = NewBetaEndpointHardwareService(opts...)
 	r.Adapters = NewBetaEndpointAdapterService(opts...)
 	r.Deployments = NewBetaEndpointDeploymentService(opts...)
