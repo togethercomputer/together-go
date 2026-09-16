@@ -32,10 +32,10 @@ func TestBetaEndpointRolloutNewWithOptionalParams(t *testing.T) {
 			ProjectID:          together.String("projectId"),
 			SourceDeploymentID: "dep_source123",
 			TargetDeploymentID: "dep_target456",
-			BlueGreen:          together.BetaEndpointRolloutNewParamsBlueGreen{},
-			Canary: together.BetaEndpointRolloutNewParamsCanary{
+			BlueGreen:          together.BlueGreenConfigParam{},
+			Canary: together.CanaryConfigParam{
 				StepInterval: together.String("300s"),
-				Steps: []together.BetaEndpointRolloutNewParamsCanaryStep{{
+				Steps: []together.RolloutStepParam{{
 					Traffic:  25,
 					Replicas: together.Int(0),
 				}, {
@@ -48,21 +48,21 @@ func TestBetaEndpointRolloutNewWithOptionalParams(t *testing.T) {
 			},
 			FinalSourceReplicas: together.Int(0),
 			FinalTargetReplicas: together.Int(0),
-			Metrics: []together.BetaEndpointRolloutNewParamsMetric{{
-				Name:       "router_latency",
+			Metrics: []together.MetricRuleParam{{
+				Name:       together.MetricRuleNameRouterLatency,
 				Percentile: together.Int(95),
-				RegressionCheck: together.BetaEndpointRolloutNewParamsMetricRegressionCheck{
-					Direction:            "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
+				RegressionCheck: together.RegressionCheckParam{
+					Direction:            together.RegressionCheckDirectionRegressionDirectionHigherIsWorse,
 					MaxRegressionPercent: together.Float(0),
 				},
-				Stat: "METRIC_STAT_TYPE_PERCENTILE",
-				ThresholdCheck: together.BetaEndpointRolloutNewParamsMetricThresholdCheck{
-					Operator: "THRESHOLD_OPERATOR_LT",
+				Stat: together.MetricRuleStatMetricStatTypePercentile,
+				ThresholdCheck: together.ThresholdCheckParam{
+					Operator: together.ThresholdCheckOperatorThresholdOperatorLt,
 					Value:    together.Float(30000),
 				},
 				Window: together.String("300s"),
 			}},
-			Rolling: together.BetaEndpointRolloutNewParamsRolling{},
+			Rolling: together.RollingConfigParam{},
 		},
 	)
 	if err != nil {
@@ -246,10 +246,10 @@ func TestBetaEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
 			ProjectID:          together.String("projectId"),
 			SourceDeploymentID: "dep_source123",
 			TargetDeploymentID: "dep_target456",
-			BlueGreen:          together.BetaEndpointRolloutPreviewDefaultsParamsBlueGreen{},
-			Canary: together.BetaEndpointRolloutPreviewDefaultsParamsCanary{
+			BlueGreen:          together.BlueGreenConfigParam{},
+			Canary: together.CanaryConfigParam{
 				StepInterval: together.String("300s"),
-				Steps: []together.BetaEndpointRolloutPreviewDefaultsParamsCanaryStep{{
+				Steps: []together.RolloutStepParam{{
 					Traffic:  25,
 					Replicas: together.Int(0),
 				}, {
@@ -262,21 +262,21 @@ func TestBetaEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
 			},
 			FinalSourceReplicas: together.Int(0),
 			FinalTargetReplicas: together.Int(0),
-			Metrics: []together.BetaEndpointRolloutPreviewDefaultsParamsMetric{{
-				Name:       "inflight_requests",
+			Metrics: []together.MetricRuleParam{{
+				Name:       together.MetricRuleNameInflightRequests,
 				Percentile: together.Int(95),
-				RegressionCheck: together.BetaEndpointRolloutPreviewDefaultsParamsMetricRegressionCheck{
-					Direction:            "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
+				RegressionCheck: together.RegressionCheckParam{
+					Direction:            together.RegressionCheckDirectionRegressionDirectionHigherIsWorse,
 					MaxRegressionPercent: together.Float(0),
 				},
-				Stat: "METRIC_STAT_TYPE_PERCENTILE",
-				ThresholdCheck: together.BetaEndpointRolloutPreviewDefaultsParamsMetricThresholdCheck{
-					Operator: "THRESHOLD_OPERATOR_LT",
+				Stat: together.MetricRuleStatMetricStatTypePercentile,
+				ThresholdCheck: together.ThresholdCheckParam{
+					Operator: together.ThresholdCheckOperatorThresholdOperatorLt,
 					Value:    together.Float(30000),
 				},
 				Window: together.String("300s"),
 			}},
-			Rolling: together.BetaEndpointRolloutPreviewDefaultsParamsRolling{},
+			Rolling: together.RollingConfigParam{},
 		},
 	)
 	if err != nil {

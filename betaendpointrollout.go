@@ -4,6 +4,7 @@ package together
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -318,6 +319,448 @@ func (r *BetaEndpointRolloutService) Start(ctx context.Context, id string, body 
 	return res, err
 }
 
+// Blue-green strategy configuration for a single cutover to the target deployment.
+type BlueGreenConfig struct {
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BlueGreenConfig) RawJSON() string { return r.JSON.raw }
+func (r *BlueGreenConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this BlueGreenConfig to a BlueGreenConfigParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// BlueGreenConfigParam.Overrides()
+func (r BlueGreenConfig) ToParam() BlueGreenConfigParam {
+	return param.Override[BlueGreenConfigParam](json.RawMessage(r.RawJSON()))
+}
+
+// Blue-green strategy configuration for a single cutover to the target deployment.
+type BlueGreenConfigParam struct {
+	paramObj
+}
+
+func (r BlueGreenConfigParam) MarshalJSON() (data []byte, err error) {
+	type shadow BlueGreenConfigParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BlueGreenConfigParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Canary strategy configuration for gradual traffic progression. An empty config
+// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
+// left by cancel, the default ladder is derived at start from the pair's current
+// served share so it begins above it.
+type CanaryConfig struct {
+	// Optional positive soak between steps. Defaults to 3m if omitted, and grows to
+	// cover metric rule windows plus ingestion lag.
+	StepInterval string `json:"stepInterval"`
+	// Optional progression steps. Defaults to 5, 25, 50, 100 percent when empty;
+	// explicit steps must increase and end at 100 percent.
+	Steps []RolloutStep `json:"steps"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		StepInterval respjson.Field
+		Steps        respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r CanaryConfig) RawJSON() string { return r.JSON.raw }
+func (r *CanaryConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this CanaryConfig to a CanaryConfigParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// CanaryConfigParam.Overrides()
+func (r CanaryConfig) ToParam() CanaryConfigParam {
+	return param.Override[CanaryConfigParam](json.RawMessage(r.RawJSON()))
+}
+
+// Canary strategy configuration for gradual traffic progression. An empty config
+// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
+// left by cancel, the default ladder is derived at start from the pair's current
+// served share so it begins above it.
+type CanaryConfigParam struct {
+	// Optional positive soak between steps. Defaults to 3m if omitted, and grows to
+	// cover metric rule windows plus ingestion lag.
+	StepInterval param.Opt[string] `json:"stepInterval,omitzero"`
+	// Optional progression steps. Defaults to 5, 25, 50, 100 percent when empty;
+	// explicit steps must increase and end at 100 percent.
+	Steps []RolloutStepParam `json:"steps,omitzero"`
+	paramObj
+}
+
+func (r CanaryConfigParam) MarshalJSON() (data []byte, err error) {
+	type shadow CanaryConfigParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *CanaryConfigParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Observed metric result enriched with rollout rule criteria and the rule's
+// recorded verdict. Unmeasured rules are synthesized with verdict
+// METRIC_VERDICT_UNAVAILABLE and no source or target value.
+type MetricResult struct {
+	// Evaluation form used by the metric rule.
+	//
+	// Any of "METRIC_CHECK_TYPE_THRESHOLD", "METRIC_CHECK_TYPE_REGRESSION".
+	Check MetricResultCheck `json:"check"`
+	// Direction that indicates whether higher or lower values are worse.
+	//
+	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
+	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
+	Direction MetricResultDirection `json:"direction"`
+	// Rule-specific failure text. Set only when verdict is METRIC_VERDICT_BREACHED and
+	// the gate recorded one.
+	FailureReason string `json:"failureReason"`
+	// Regression percentage limit used when check is METRIC_CHECK_TYPE_REGRESSION.
+	MaxRegressionPercent float64 `json:"maxRegressionPercent"`
+	// Metric name as exported to the observability backend.
+	Name string `json:"name"`
+	// Threshold comparison operator.
+	//
+	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
+	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
+	Operator MetricResultOperator `json:"operator"`
+	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
+	Percentile int64 `json:"percentile"`
+	// Observed source baseline. Set only for regression checks with a recorded
+	// observation; a 0 reading serializes explicitly.
+	SourceValue float64 `json:"sourceValue"`
+	// Aggregation used for the metric.
+	//
+	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
+	Stat MetricResultStat `json:"stat"`
+	// Observed target value. Set when the gate recorded an observation; absent on
+	// synthesized unavailable results. A 0 reading serializes explicitly.
+	TargetValue float64 `json:"targetValue"`
+	// Threshold criteria used when check is METRIC_CHECK_TYPE_THRESHOLD.
+	Threshold float64 `json:"threshold"`
+	// Rule decision recorded by the metric gate. Absent when no decision was recorded.
+	//
+	// Any of "METRIC_VERDICT_PASS", "METRIC_VERDICT_BREACHED",
+	// "METRIC_VERDICT_UNAVAILABLE".
+	Verdict MetricResultVerdict `json:"verdict"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Check                respjson.Field
+		Direction            respjson.Field
+		FailureReason        respjson.Field
+		MaxRegressionPercent respjson.Field
+		Name                 respjson.Field
+		Operator             respjson.Field
+		Percentile           respjson.Field
+		SourceValue          respjson.Field
+		Stat                 respjson.Field
+		TargetValue          respjson.Field
+		Threshold            respjson.Field
+		Verdict              respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r MetricResult) RawJSON() string { return r.JSON.raw }
+func (r *MetricResult) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Evaluation form used by the metric rule.
+type MetricResultCheck string
+
+const (
+	MetricResultCheckMetricCheckTypeThreshold  MetricResultCheck = "METRIC_CHECK_TYPE_THRESHOLD"
+	MetricResultCheckMetricCheckTypeRegression MetricResultCheck = "METRIC_CHECK_TYPE_REGRESSION"
+)
+
+// Direction that indicates whether higher or lower values are worse.
+type MetricResultDirection string
+
+const (
+	MetricResultDirectionRegressionDirectionHigherIsWorse MetricResultDirection = "REGRESSION_DIRECTION_HIGHER_IS_WORSE"
+	MetricResultDirectionRegressionDirectionLowerIsWorse  MetricResultDirection = "REGRESSION_DIRECTION_LOWER_IS_WORSE"
+)
+
+// Threshold comparison operator.
+type MetricResultOperator string
+
+const (
+	MetricResultOperatorThresholdOperatorGt  MetricResultOperator = "THRESHOLD_OPERATOR_GT"
+	MetricResultOperatorThresholdOperatorGte MetricResultOperator = "THRESHOLD_OPERATOR_GTE"
+	MetricResultOperatorThresholdOperatorLt  MetricResultOperator = "THRESHOLD_OPERATOR_LT"
+	MetricResultOperatorThresholdOperatorLte MetricResultOperator = "THRESHOLD_OPERATOR_LTE"
+)
+
+// Aggregation used for the metric.
+type MetricResultStat string
+
+const (
+	MetricResultStatMetricStatTypeAvg        MetricResultStat = "METRIC_STAT_TYPE_AVG"
+	MetricResultStatMetricStatTypePercentile MetricResultStat = "METRIC_STAT_TYPE_PERCENTILE"
+)
+
+// Rule decision recorded by the metric gate. Absent when no decision was recorded.
+type MetricResultVerdict string
+
+const (
+	MetricResultVerdictMetricVerdictPass        MetricResultVerdict = "METRIC_VERDICT_PASS"
+	MetricResultVerdictMetricVerdictBreached    MetricResultVerdict = "METRIC_VERDICT_BREACHED"
+	MetricResultVerdictMetricVerdictUnavailable MetricResultVerdict = "METRIC_VERDICT_UNAVAILABLE"
+)
+
+// Metric gate evaluated during a rollout.
+type MetricRule struct {
+	// Required catalogue key for the metric to gate on. `serving_latency` is retired.
+	//
+	// Any of "inflight_requests", "router_error_rate", "router_latency".
+	Name MetricRuleName `json:"name" api:"required"`
+	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
+	Percentile int64 `json:"percentile"`
+	// Regression criteria that fail when the target regresses against the source
+	// beyond a limit.
+	RegressionCheck RegressionCheck `json:"regressionCheck"`
+	// Aggregation used for the metric. Optional for router_error_rate and
+	// inflight_requests; omitted values default to METRIC_STAT_TYPE_AVG. Required for
+	// router_latency, where AVG or PERCENTILE may be used.
+	//
+	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
+	Stat MetricRuleStat `json:"stat"`
+	// Threshold criteria that fail when the target metric violates the configured
+	// bound.
+	ThresholdCheck ThresholdCheck `json:"thresholdCheck"`
+	// Optional query window for the metric. Defaults to the step soak duration.
+	Window string `json:"window"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name            respjson.Field
+		Percentile      respjson.Field
+		RegressionCheck respjson.Field
+		Stat            respjson.Field
+		ThresholdCheck  respjson.Field
+		Window          respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r MetricRule) RawJSON() string { return r.JSON.raw }
+func (r *MetricRule) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this MetricRule to a MetricRuleParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// MetricRuleParam.Overrides()
+func (r MetricRule) ToParam() MetricRuleParam {
+	return param.Override[MetricRuleParam](json.RawMessage(r.RawJSON()))
+}
+
+// Required catalogue key for the metric to gate on. `serving_latency` is retired.
+type MetricRuleName string
+
+const (
+	MetricRuleNameInflightRequests MetricRuleName = "inflight_requests"
+	MetricRuleNameRouterErrorRate  MetricRuleName = "router_error_rate"
+	MetricRuleNameRouterLatency    MetricRuleName = "router_latency"
+)
+
+// Aggregation used for the metric. Optional for router_error_rate and
+// inflight_requests; omitted values default to METRIC_STAT_TYPE_AVG. Required for
+// router_latency, where AVG or PERCENTILE may be used.
+type MetricRuleStat string
+
+const (
+	MetricRuleStatMetricStatTypeAvg        MetricRuleStat = "METRIC_STAT_TYPE_AVG"
+	MetricRuleStatMetricStatTypePercentile MetricRuleStat = "METRIC_STAT_TYPE_PERCENTILE"
+)
+
+// Metric gate evaluated during a rollout.
+//
+// The property Name is required.
+type MetricRuleParam struct {
+	// Required catalogue key for the metric to gate on. `serving_latency` is retired.
+	//
+	// Any of "inflight_requests", "router_error_rate", "router_latency".
+	Name MetricRuleName `json:"name,omitzero" api:"required"`
+	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
+	Percentile param.Opt[int64] `json:"percentile,omitzero"`
+	// Optional query window for the metric. Defaults to the step soak duration.
+	Window param.Opt[string] `json:"window,omitzero"`
+	// Regression criteria that fail when the target regresses against the source
+	// beyond a limit.
+	RegressionCheck RegressionCheckParam `json:"regressionCheck,omitzero"`
+	// Aggregation used for the metric. Optional for router_error_rate and
+	// inflight_requests; omitted values default to METRIC_STAT_TYPE_AVG. Required for
+	// router_latency, where AVG or PERCENTILE may be used.
+	//
+	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
+	Stat MetricRuleStat `json:"stat,omitzero"`
+	// Threshold criteria that fail when the target metric violates the configured
+	// bound.
+	ThresholdCheck ThresholdCheckParam `json:"thresholdCheck,omitzero"`
+	paramObj
+}
+
+func (r MetricRuleParam) MarshalJSON() (data []byte, err error) {
+	type shadow MetricRuleParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *MetricRuleParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Pause metadata returned while a rollout is paused.
+type PauseInfo struct {
+	// Timestamp when the rollout was paused.
+	PausedAt time.Time `json:"pausedAt" api:"required" format:"date-time"`
+	// Human-readable reason recorded when the rollout was paused.
+	Reason string `json:"reason"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		PausedAt    respjson.Field
+		Reason      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r PauseInfo) RawJSON() string { return r.JSON.raw }
+func (r *PauseInfo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Regression criteria that fail when the target regresses against the source
+// beyond a limit.
+type RegressionCheck struct {
+	// Required direction that indicates whether higher or lower metric values are
+	// worse.
+	//
+	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
+	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
+	Direction RegressionCheckDirection `json:"direction" api:"required"`
+	// Finite maximum allowed regression percentage, greater than or equal to 0.
+	// Omitting this value is read as 0. A value of 0 is the strictest budget; any
+	// regression fails, and exactly-at-budget passes.
+	MaxRegressionPercent float64 `json:"maxRegressionPercent"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Direction            respjson.Field
+		MaxRegressionPercent respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RegressionCheck) RawJSON() string { return r.JSON.raw }
+func (r *RegressionCheck) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this RegressionCheck to a RegressionCheckParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// RegressionCheckParam.Overrides()
+func (r RegressionCheck) ToParam() RegressionCheckParam {
+	return param.Override[RegressionCheckParam](json.RawMessage(r.RawJSON()))
+}
+
+// Required direction that indicates whether higher or lower metric values are
+// worse.
+type RegressionCheckDirection string
+
+const (
+	RegressionCheckDirectionRegressionDirectionHigherIsWorse RegressionCheckDirection = "REGRESSION_DIRECTION_HIGHER_IS_WORSE"
+	RegressionCheckDirectionRegressionDirectionLowerIsWorse  RegressionCheckDirection = "REGRESSION_DIRECTION_LOWER_IS_WORSE"
+)
+
+// Regression criteria that fail when the target regresses against the source
+// beyond a limit.
+//
+// The property Direction is required.
+type RegressionCheckParam struct {
+	// Required direction that indicates whether higher or lower metric values are
+	// worse.
+	//
+	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
+	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
+	Direction RegressionCheckDirection `json:"direction,omitzero" api:"required"`
+	// Finite maximum allowed regression percentage, greater than or equal to 0.
+	// Omitting this value is read as 0. A value of 0 is the strictest budget; any
+	// regression fails, and exactly-at-budget passes.
+	MaxRegressionPercent param.Opt[float64] `json:"maxRegressionPercent,omitzero"`
+	paramObj
+}
+
+func (r RegressionCheckParam) MarshalJSON() (data []byte, err error) {
+	type shadow RegressionCheckParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RegressionCheckParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Rolling strategy configuration for capacity-preserving batches that ramp target
+// replicas up while draining source replicas.
+type RollingConfig struct {
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RollingConfig) RawJSON() string { return r.JSON.raw }
+func (r *RollingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this RollingConfig to a RollingConfigParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// RollingConfigParam.Overrides()
+func (r RollingConfig) ToParam() RollingConfigParam {
+	return param.Override[RollingConfigParam](json.RawMessage(r.RawJSON()))
+}
+
+// Rolling strategy configuration for capacity-preserving batches that ramp target
+// replicas up while draining source replicas.
+type RollingConfigParam struct {
+	paramObj
+}
+
+func (r RollingConfigParam) MarshalJSON() (data []byte, err error) {
+	type shadow RollingConfigParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RollingConfigParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Public view of a rollout resource, including runtime progress and any pause or
 // abort reason.
 type Rollout struct {
@@ -355,7 +798,7 @@ type Rollout struct {
 	// Output only. Opaque version tag for optimistic concurrency control.
 	Etag string `json:"etag"`
 	// Pause metadata returned while a rollout is paused.
-	PauseInfo RolloutPauseInfo `json:"pauseInfo"`
+	PauseInfo PauseInfo `json:"pauseInfo"`
 	// Output only. Timestamp when the rollout started running.
 	StartedAt time.Time `json:"startedAt" format:"date-time"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -400,156 +843,17 @@ const (
 	RolloutStateRolloutStatePausing      RolloutState = "ROLLOUT_STATE_PAUSING"
 )
 
-// Derived runtime progress for a rollout.
-type RolloutStatus struct {
-	// Per-step rollout execution summaries.
-	Steps []RolloutStatusStep `json:"steps" api:"required"`
-	// Total number of steps in the rollout progression. Always serializes when status
-	// is present.
-	TotalSteps int64 `json:"totalSteps" api:"required"`
-	// Structured reason a rollout stopped progressing.
-	Condition RolloutStatusCondition `json:"condition"`
-	// Informational conditions that describe the rollout's current state. Omitted when
-	// empty; clients should treat an absent key as an empty list.
-	Conditions []RolloutStatusCondition `json:"conditions"`
-	// Timestamp of the most recent progress update.
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Steps       respjson.Field
-		TotalSteps  respjson.Field
-		Condition   respjson.Field
-		Conditions  respjson.Field
-		UpdatedAt   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
+// Output only. Rollout strategy selected at creation.
+type RolloutStrategy string
 
-// Returns the unmodified JSON received from the API
-func (r RolloutStatus) RawJSON() string { return r.JSON.raw }
-func (r *RolloutStatus) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Collapsed execution state for one rollout step.
-type RolloutStatusStep struct {
-	// Timestamp when this step finished, was skipped over, or the rollout ended on it.
-	// Unset while in progress.
-	CompletedAt time.Time `json:"completedAt" format:"date-time"`
-	// Failure reason set only when this step failed.
-	FailureReason string `json:"failureReason"`
-	// Metric gate results for this step, enriched with criteria and verdict.
-	// Unmeasured rules appear as synthesized rows with verdict
-	// METRIC_VERDICT_UNAVAILABLE and no measured values.
-	Metrics []RolloutStatusStepMetric `json:"metrics"`
-	// Timestamp when this step's first sub-step ran. Unset for steps no sub-step
-	// reached.
-	StartedAt time.Time `json:"startedAt" format:"date-time"`
-	// Outcome of this step. Finished steps are PASSED, the live step mirrors the
-	// rollout state, skipped-over steps are SKIPPED, and unreached steps are PENDING.
-	//
-	// Any of "ROLLOUT_STEP_STATE_PENDING", "ROLLOUT_STEP_STATE_RUNNING",
-	// "ROLLOUT_STEP_STATE_PASSED", "ROLLOUT_STEP_STATE_FAILED",
-	// "ROLLOUT_STEP_STATE_PAUSED", "ROLLOUT_STEP_STATE_CANCELED",
-	// "ROLLOUT_STEP_STATE_SKIPPED".
-	State string `json:"state"`
-	// Index of this step in the rollout progression. Step 0 serializes explicitly.
-	StepIndex int64 `json:"stepIndex"`
-	// Target traffic percentage configured for this step. Always serializes for
-	// recorded steps.
-	TargetTrafficPercent int64 `json:"targetTrafficPercent"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CompletedAt          respjson.Field
-		FailureReason        respjson.Field
-		Metrics              respjson.Field
-		StartedAt            respjson.Field
-		State                respjson.Field
-		StepIndex            respjson.Field
-		TargetTrafficPercent respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutStatusStep) RawJSON() string { return r.JSON.raw }
-func (r *RolloutStatusStep) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Observed metric result enriched with rollout rule criteria and the rule's
-// recorded verdict. Unmeasured rules are synthesized with verdict
-// METRIC_VERDICT_UNAVAILABLE and no source or target value.
-type RolloutStatusStepMetric struct {
-	// Evaluation form used by the metric rule.
-	//
-	// Any of "METRIC_CHECK_TYPE_THRESHOLD", "METRIC_CHECK_TYPE_REGRESSION".
-	Check string `json:"check"`
-	// Direction that indicates whether higher or lower values are worse.
-	//
-	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
-	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
-	Direction string `json:"direction"`
-	// Rule-specific failure text. Set only when verdict is METRIC_VERDICT_BREACHED and
-	// the gate recorded one.
-	FailureReason string `json:"failureReason"`
-	// Regression percentage limit used when check is METRIC_CHECK_TYPE_REGRESSION.
-	MaxRegressionPercent float64 `json:"maxRegressionPercent"`
-	// Metric name as exported to the observability backend.
-	Name string `json:"name"`
-	// Threshold comparison operator.
-	//
-	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
-	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
-	Operator string `json:"operator"`
-	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
-	Percentile int64 `json:"percentile"`
-	// Observed source baseline. Set only for regression checks with a recorded
-	// observation; a 0 reading serializes explicitly.
-	SourceValue float64 `json:"sourceValue"`
-	// Aggregation used for the metric.
-	//
-	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
-	Stat string `json:"stat"`
-	// Observed target value. Set when the gate recorded an observation; absent on
-	// synthesized unavailable results. A 0 reading serializes explicitly.
-	TargetValue float64 `json:"targetValue"`
-	// Threshold criteria used when check is METRIC_CHECK_TYPE_THRESHOLD.
-	Threshold float64 `json:"threshold"`
-	// Rule decision recorded by the metric gate. Absent when no decision was recorded.
-	//
-	// Any of "METRIC_VERDICT_PASS", "METRIC_VERDICT_BREACHED",
-	// "METRIC_VERDICT_UNAVAILABLE".
-	Verdict string `json:"verdict"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Check                respjson.Field
-		Direction            respjson.Field
-		FailureReason        respjson.Field
-		MaxRegressionPercent respjson.Field
-		Name                 respjson.Field
-		Operator             respjson.Field
-		Percentile           respjson.Field
-		SourceValue          respjson.Field
-		Stat                 respjson.Field
-		TargetValue          respjson.Field
-		Threshold            respjson.Field
-		Verdict              respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutStatusStepMetric) RawJSON() string { return r.JSON.raw }
-func (r *RolloutStatusStepMetric) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	RolloutStrategyRolloutStrategyTypeRolling   RolloutStrategy = "ROLLOUT_STRATEGY_TYPE_ROLLING"
+	RolloutStrategyRolloutStrategyTypeCanary    RolloutStrategy = "ROLLOUT_STRATEGY_TYPE_CANARY"
+	RolloutStrategyRolloutStrategyTypeBlueGreen RolloutStrategy = "ROLLOUT_STRATEGY_TYPE_BLUE_GREEN"
+)
 
 // Structured reason a rollout stopped progressing.
-type RolloutStatusCondition struct {
+type RolloutCondition struct {
 	// Step index where the condition arose. Step 0 serializes explicitly.
 	AtStep int64 `json:"atStep"`
 	// Category that classifies why the rollout stopped.
@@ -567,20 +871,20 @@ type RolloutStatusCondition struct {
 	// "ROLLOUT_FAILURE_CATEGORY_POLICY_INFEASIBLE",
 	// "ROLLOUT_FAILURE_CATEGORY_UNDER_SERVED",
 	// "ROLLOUT_FAILURE_CATEGORY_ENTITLEMENT_LAPSED".
-	Category string `json:"category"`
+	Category RolloutConditionCategory `json:"category"`
 	// Human-readable explanation for the condition.
 	Message string `json:"message"`
 	// Metrics observed at the failing gate, enriched with their criteria. Unmeasured
 	// rules appear as synthesized rows with verdict METRIC_VERDICT_UNAVAILABLE and no
 	// measured values.
-	Metrics []RolloutStatusConditionMetric `json:"metrics"`
+	Metrics []MetricResult `json:"metrics"`
 	// Timestamp when the condition was observed.
 	ObservedAt time.Time `json:"observedAt" format:"date-time"`
 	// Informational condition type. `CapacityLimited` means the current step advanced
 	// partially because full capacity was not placeable.
 	//
 	// Any of "CapacityLimited".
-	Type string `json:"type"`
+	Type RolloutConditionType `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		AtStep      respjson.Field
@@ -595,109 +899,37 @@ type RolloutStatusCondition struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r RolloutStatusCondition) RawJSON() string { return r.JSON.raw }
-func (r *RolloutStatusCondition) UnmarshalJSON(data []byte) error {
+func (r RolloutCondition) RawJSON() string { return r.JSON.raw }
+func (r *RolloutCondition) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Observed metric result enriched with rollout rule criteria and the rule's
-// recorded verdict. Unmeasured rules are synthesized with verdict
-// METRIC_VERDICT_UNAVAILABLE and no source or target value.
-type RolloutStatusConditionMetric struct {
-	// Evaluation form used by the metric rule.
-	//
-	// Any of "METRIC_CHECK_TYPE_THRESHOLD", "METRIC_CHECK_TYPE_REGRESSION".
-	Check string `json:"check"`
-	// Direction that indicates whether higher or lower values are worse.
-	//
-	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
-	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
-	Direction string `json:"direction"`
-	// Rule-specific failure text. Set only when verdict is METRIC_VERDICT_BREACHED and
-	// the gate recorded one.
-	FailureReason string `json:"failureReason"`
-	// Regression percentage limit used when check is METRIC_CHECK_TYPE_REGRESSION.
-	MaxRegressionPercent float64 `json:"maxRegressionPercent"`
-	// Metric name as exported to the observability backend.
-	Name string `json:"name"`
-	// Threshold comparison operator.
-	//
-	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
-	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
-	Operator string `json:"operator"`
-	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
-	Percentile int64 `json:"percentile"`
-	// Observed source baseline. Set only for regression checks with a recorded
-	// observation; a 0 reading serializes explicitly.
-	SourceValue float64 `json:"sourceValue"`
-	// Aggregation used for the metric.
-	//
-	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
-	Stat string `json:"stat"`
-	// Observed target value. Set when the gate recorded an observation; absent on
-	// synthesized unavailable results. A 0 reading serializes explicitly.
-	TargetValue float64 `json:"targetValue"`
-	// Threshold criteria used when check is METRIC_CHECK_TYPE_THRESHOLD.
-	Threshold float64 `json:"threshold"`
-	// Rule decision recorded by the metric gate. Absent when no decision was recorded.
-	//
-	// Any of "METRIC_VERDICT_PASS", "METRIC_VERDICT_BREACHED",
-	// "METRIC_VERDICT_UNAVAILABLE".
-	Verdict string `json:"verdict"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Check                respjson.Field
-		Direction            respjson.Field
-		FailureReason        respjson.Field
-		MaxRegressionPercent respjson.Field
-		Name                 respjson.Field
-		Operator             respjson.Field
-		Percentile           respjson.Field
-		SourceValue          respjson.Field
-		Stat                 respjson.Field
-		TargetValue          respjson.Field
-		Threshold            respjson.Field
-		Verdict              respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutStatusConditionMetric) RawJSON() string { return r.JSON.raw }
-func (r *RolloutStatusConditionMetric) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Output only. Rollout strategy selected at creation.
-type RolloutStrategy string
+// Category that classifies why the rollout stopped.
+type RolloutConditionCategory string
 
 const (
-	RolloutStrategyRolloutStrategyTypeRolling   RolloutStrategy = "ROLLOUT_STRATEGY_TYPE_ROLLING"
-	RolloutStrategyRolloutStrategyTypeCanary    RolloutStrategy = "ROLLOUT_STRATEGY_TYPE_CANARY"
-	RolloutStrategyRolloutStrategyTypeBlueGreen RolloutStrategy = "ROLLOUT_STRATEGY_TYPE_BLUE_GREEN"
+	RolloutConditionCategoryRolloutFailureCategoryMetricRegression   RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_METRIC_REGRESSION"
+	RolloutConditionCategoryRolloutFailureCategoryMetricsUnavailable RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_METRICS_UNAVAILABLE"
+	RolloutConditionCategoryRolloutFailureCategoryTargetNotReady     RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_TARGET_NOT_READY"
+	RolloutConditionCategoryRolloutFailureCategorySourceNotDrained   RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_SOURCE_NOT_DRAINED"
+	RolloutConditionCategoryRolloutFailureCategoryHealthRegression   RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_HEALTH_REGRESSION"
+	RolloutConditionCategoryRolloutFailureCategoryCapacityExhausted  RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_CAPACITY_EXHAUSTED"
+	RolloutConditionCategoryRolloutFailureCategoryRoutingError       RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_ROUTING_ERROR"
+	RolloutConditionCategoryRolloutFailureCategoryDependencyOutage   RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_DEPENDENCY_OUTAGE"
+	RolloutConditionCategoryRolloutFailureCategoryAbortedByOperator  RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_ABORTED_BY_OPERATOR"
+	RolloutConditionCategoryRolloutFailureCategoryInternal           RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_INTERNAL"
+	RolloutConditionCategoryRolloutFailureCategoryPolicyInfeasible   RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_POLICY_INFEASIBLE"
+	RolloutConditionCategoryRolloutFailureCategoryUnderServed        RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_UNDER_SERVED"
+	RolloutConditionCategoryRolloutFailureCategoryEntitlementLapsed  RolloutConditionCategory = "ROLLOUT_FAILURE_CATEGORY_ENTITLEMENT_LAPSED"
 )
 
-// Pause metadata returned while a rollout is paused.
-type RolloutPauseInfo struct {
-	// Timestamp when the rollout was paused.
-	PausedAt time.Time `json:"pausedAt" api:"required" format:"date-time"`
-	// Human-readable reason recorded when the rollout was paused.
-	Reason string `json:"reason"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		PausedAt    respjson.Field
-		Reason      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
+// Informational condition type. `CapacityLimited` means the current step advanced
+// partially because full capacity was not placeable.
+type RolloutConditionType string
 
-// Returns the unmodified JSON received from the API
-func (r RolloutPauseInfo) RawJSON() string { return r.JSON.raw }
-func (r *RolloutPauseInfo) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	RolloutConditionTypeCapacityLimited RolloutConditionType = "CapacityLimited"
+)
 
 // Completed create-form state — the caller's spec with defaulted values filled in,
 // the steps the rollout is expected to walk, and the capacity context the defaults
@@ -721,7 +953,7 @@ type RolloutDefaultsPreview struct {
 	Warnings []RolloutDefaultsPreviewWarning `json:"warnings" api:"required"`
 	// Steps the rollout is expected to walk when the caller leaves steps unset.
 	// Display only. Empty when the caller supplied steps or no ladder applies.
-	EstimatedEffectiveSteps []RolloutDefaultsPreviewEstimatedEffectiveStep `json:"estimatedEffectiveSteps"`
+	EstimatedEffectiveSteps []RolloutStep `json:"estimatedEffectiveSteps"`
 	// Percentage of the pair's traffic currently reaching the target, the floor the
 	// suggested steps start above. Unset when not a frozen pair or unknown; 0 is a
 	// real measurement.
@@ -760,12 +992,12 @@ type RolloutDefaultsPreviewSpec struct {
 	// Deployment that traffic shifts toward.
 	TargetDeploymentID string `json:"targetDeploymentId" api:"required"`
 	// Blue-green strategy configuration for a single cutover to the target deployment.
-	BlueGreen RolloutDefaultsPreviewSpecBlueGreen `json:"blueGreen"`
+	BlueGreen BlueGreenConfig `json:"blueGreen"`
 	// Canary strategy configuration for gradual traffic progression. An empty config
 	// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
 	// left by cancel, the default ladder is derived at start from the pair's current
 	// served share so it begins above it.
-	Canary RolloutDefaultsPreviewSpecCanary `json:"canary"`
+	Canary CanaryConfig `json:"canary"`
 	// Optional final replica count for the source deployment. Defaults to 0, which
 	// drains and stops the source.
 	FinalSourceReplicas int64 `json:"finalSourceReplicas"`
@@ -785,10 +1017,10 @@ type RolloutDefaultsPreviewSpec struct {
 	FinalTargetReplicas int64 `json:"finalTargetReplicas"`
 	// Optional metric gates evaluated after each step's soak. Canary only; rejected on
 	// rolling and blue-green rollouts.
-	Metrics []RolloutDefaultsPreviewSpecMetric `json:"metrics"`
+	Metrics []MetricRule `json:"metrics"`
 	// Rolling strategy configuration for capacity-preserving batches that ramp target
 	// replicas up while draining source replicas.
-	Rolling RolloutDefaultsPreviewSpecRolling `json:"rolling"`
+	Rolling RollingConfig `json:"rolling"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SourceDeploymentID  respjson.Field
@@ -807,185 +1039,6 @@ type RolloutDefaultsPreviewSpec struct {
 // Returns the unmodified JSON received from the API
 func (r RolloutDefaultsPreviewSpec) RawJSON() string { return r.JSON.raw }
 func (r *RolloutDefaultsPreviewSpec) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Blue-green strategy configuration for a single cutover to the target deployment.
-type RolloutDefaultsPreviewSpecBlueGreen struct {
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewSpecBlueGreen) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewSpecBlueGreen) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Canary strategy configuration for gradual traffic progression. An empty config
-// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
-// left by cancel, the default ladder is derived at start from the pair's current
-// served share so it begins above it.
-type RolloutDefaultsPreviewSpecCanary struct {
-	// Optional positive soak between steps. Defaults to 3m if omitted, and grows to
-	// cover metric rule windows plus ingestion lag.
-	StepInterval string `json:"stepInterval"`
-	// Optional progression steps. Defaults to 5, 25, 50, 100 percent when empty;
-	// explicit steps must increase and end at 100 percent.
-	Steps []RolloutDefaultsPreviewSpecCanaryStep `json:"steps"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		StepInterval respjson.Field
-		Steps        respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewSpecCanary) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewSpecCanary) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// One stage of a canary rollout progression.
-type RolloutDefaultsPreviewSpecCanaryStep struct {
-	// Required percentage of traffic on the target deployment for this step.
-	Traffic int64 `json:"traffic" api:"required"`
-	// Optional explicit target replica count for this step.
-	Replicas int64 `json:"replicas"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Traffic     respjson.Field
-		Replicas    respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewSpecCanaryStep) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewSpecCanaryStep) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Metric gate evaluated during a rollout.
-type RolloutDefaultsPreviewSpecMetric struct {
-	// Required catalogue key for the metric to gate on. `serving_latency` is retired.
-	//
-	// Any of "inflight_requests", "router_error_rate", "router_latency".
-	Name string `json:"name" api:"required"`
-	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
-	Percentile int64 `json:"percentile"`
-	// Regression criteria that fail when the target regresses against the source
-	// beyond a limit.
-	RegressionCheck RolloutDefaultsPreviewSpecMetricRegressionCheck `json:"regressionCheck"`
-	// Aggregation used for the metric. Optional for router_error_rate and
-	// inflight_requests; omitted values default to METRIC_STAT_TYPE_AVG. Required for
-	// router_latency, where AVG or PERCENTILE may be used.
-	//
-	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
-	Stat string `json:"stat"`
-	// Threshold criteria that fail when the target metric violates the configured
-	// bound.
-	ThresholdCheck RolloutDefaultsPreviewSpecMetricThresholdCheck `json:"thresholdCheck"`
-	// Optional query window for the metric. Defaults to the step soak duration.
-	Window string `json:"window"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name            respjson.Field
-		Percentile      respjson.Field
-		RegressionCheck respjson.Field
-		Stat            respjson.Field
-		ThresholdCheck  respjson.Field
-		Window          respjson.Field
-		ExtraFields     map[string]respjson.Field
-		raw             string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewSpecMetric) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewSpecMetric) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Regression criteria that fail when the target regresses against the source
-// beyond a limit.
-type RolloutDefaultsPreviewSpecMetricRegressionCheck struct {
-	// Required direction that indicates whether higher or lower metric values are
-	// worse.
-	//
-	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
-	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
-	Direction string `json:"direction" api:"required"`
-	// Finite maximum allowed regression percentage, greater than or equal to 0.
-	// Omitting this value is read as 0. A value of 0 is the strictest budget; any
-	// regression fails, and exactly-at-budget passes.
-	MaxRegressionPercent float64 `json:"maxRegressionPercent"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Direction            respjson.Field
-		MaxRegressionPercent respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewSpecMetricRegressionCheck) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewSpecMetricRegressionCheck) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Threshold criteria that fail when the target metric violates the configured
-// bound.
-type RolloutDefaultsPreviewSpecMetricThresholdCheck struct {
-	// Required comparison operator applied to the target metric value.
-	//
-	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
-	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
-	Operator string `json:"operator" api:"required"`
-	// Finite threshold value. Interpreted in the metric's unit: router_error_rate is a
-	// ratio in [0, 1], router_latency is milliseconds, and inflight_requests is
-	// in-flight requests per ready replica averaged over the rule window. Thresholds
-	// that no achievable value could pass, or that every achievable value passes, are
-	// rejected at create.
-	//
-	// Omitting this value is read as 0. Set 0 explicitly for the strictest threshold:
-	// nothing at all is tolerated.
-	Value float64 `json:"value"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Operator    respjson.Field
-		Value       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewSpecMetricThresholdCheck) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewSpecMetricThresholdCheck) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Rolling strategy configuration for capacity-preserving batches that ramp target
-// replicas up while draining source replicas.
-type RolloutDefaultsPreviewSpecRolling struct {
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewSpecRolling) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewSpecRolling) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1012,8 +1065,40 @@ func (r *RolloutDefaultsPreviewWarning) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Derived runtime progress for a rollout.
+type RolloutStatus struct {
+	// Per-step rollout execution summaries.
+	Steps []RolloutStepStatus `json:"steps" api:"required"`
+	// Total number of steps in the rollout progression. Always serializes when status
+	// is present.
+	TotalSteps int64 `json:"totalSteps" api:"required"`
+	// Structured reason a rollout stopped progressing.
+	Condition RolloutCondition `json:"condition"`
+	// Informational conditions that describe the rollout's current state. Omitted when
+	// empty; clients should treat an absent key as an empty list.
+	Conditions []RolloutCondition `json:"conditions"`
+	// Timestamp of the most recent progress update.
+	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Steps       respjson.Field
+		TotalSteps  respjson.Field
+		Condition   respjson.Field
+		Conditions  respjson.Field
+		UpdatedAt   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RolloutStatus) RawJSON() string { return r.JSON.raw }
+func (r *RolloutStatus) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // One stage of a canary rollout progression.
-type RolloutDefaultsPreviewEstimatedEffectiveStep struct {
+type RolloutStep struct {
 	// Required percentage of traffic on the target deployment for this step.
 	Traffic int64 `json:"traffic" api:"required"`
 	// Optional explicit target replica count for this step.
@@ -1028,8 +1113,178 @@ type RolloutDefaultsPreviewEstimatedEffectiveStep struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r RolloutDefaultsPreviewEstimatedEffectiveStep) RawJSON() string { return r.JSON.raw }
-func (r *RolloutDefaultsPreviewEstimatedEffectiveStep) UnmarshalJSON(data []byte) error {
+func (r RolloutStep) RawJSON() string { return r.JSON.raw }
+func (r *RolloutStep) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this RolloutStep to a RolloutStepParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// RolloutStepParam.Overrides()
+func (r RolloutStep) ToParam() RolloutStepParam {
+	return param.Override[RolloutStepParam](json.RawMessage(r.RawJSON()))
+}
+
+// One stage of a canary rollout progression.
+//
+// The property Traffic is required.
+type RolloutStepParam struct {
+	// Required percentage of traffic on the target deployment for this step.
+	Traffic int64 `json:"traffic" api:"required"`
+	// Optional explicit target replica count for this step.
+	Replicas param.Opt[int64] `json:"replicas,omitzero"`
+	paramObj
+}
+
+func (r RolloutStepParam) MarshalJSON() (data []byte, err error) {
+	type shadow RolloutStepParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *RolloutStepParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Collapsed execution state for one rollout step.
+type RolloutStepStatus struct {
+	// Timestamp when this step finished, was skipped over, or the rollout ended on it.
+	// Unset while in progress.
+	CompletedAt time.Time `json:"completedAt" format:"date-time"`
+	// Failure reason set only when this step failed.
+	FailureReason string `json:"failureReason"`
+	// Metric gate results for this step, enriched with criteria and verdict.
+	// Unmeasured rules appear as synthesized rows with verdict
+	// METRIC_VERDICT_UNAVAILABLE and no measured values.
+	Metrics []MetricResult `json:"metrics"`
+	// Timestamp when this step's first sub-step ran. Unset for steps no sub-step
+	// reached.
+	StartedAt time.Time `json:"startedAt" format:"date-time"`
+	// Outcome of this step. Finished steps are PASSED, the live step mirrors the
+	// rollout state, skipped-over steps are SKIPPED, and unreached steps are PENDING.
+	//
+	// Any of "ROLLOUT_STEP_STATE_PENDING", "ROLLOUT_STEP_STATE_RUNNING",
+	// "ROLLOUT_STEP_STATE_PASSED", "ROLLOUT_STEP_STATE_FAILED",
+	// "ROLLOUT_STEP_STATE_PAUSED", "ROLLOUT_STEP_STATE_CANCELED",
+	// "ROLLOUT_STEP_STATE_SKIPPED".
+	State RolloutStepStatusState `json:"state"`
+	// Index of this step in the rollout progression. Step 0 serializes explicitly.
+	StepIndex int64 `json:"stepIndex"`
+	// Target traffic percentage configured for this step. Always serializes for
+	// recorded steps.
+	TargetTrafficPercent int64 `json:"targetTrafficPercent"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CompletedAt          respjson.Field
+		FailureReason        respjson.Field
+		Metrics              respjson.Field
+		StartedAt            respjson.Field
+		State                respjson.Field
+		StepIndex            respjson.Field
+		TargetTrafficPercent respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RolloutStepStatus) RawJSON() string { return r.JSON.raw }
+func (r *RolloutStepStatus) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Outcome of this step. Finished steps are PASSED, the live step mirrors the
+// rollout state, skipped-over steps are SKIPPED, and unreached steps are PENDING.
+type RolloutStepStatusState string
+
+const (
+	RolloutStepStatusStateRolloutStepStatePending  RolloutStepStatusState = "ROLLOUT_STEP_STATE_PENDING"
+	RolloutStepStatusStateRolloutStepStateRunning  RolloutStepStatusState = "ROLLOUT_STEP_STATE_RUNNING"
+	RolloutStepStatusStateRolloutStepStatePassed   RolloutStepStatusState = "ROLLOUT_STEP_STATE_PASSED"
+	RolloutStepStatusStateRolloutStepStateFailed   RolloutStepStatusState = "ROLLOUT_STEP_STATE_FAILED"
+	RolloutStepStatusStateRolloutStepStatePaused   RolloutStepStatusState = "ROLLOUT_STEP_STATE_PAUSED"
+	RolloutStepStatusStateRolloutStepStateCanceled RolloutStepStatusState = "ROLLOUT_STEP_STATE_CANCELED"
+	RolloutStepStatusStateRolloutStepStateSkipped  RolloutStepStatusState = "ROLLOUT_STEP_STATE_SKIPPED"
+)
+
+// Threshold criteria that fail when the target metric violates the configured
+// bound.
+type ThresholdCheck struct {
+	// Required comparison operator applied to the target metric value.
+	//
+	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
+	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
+	Operator ThresholdCheckOperator `json:"operator" api:"required"`
+	// Finite threshold value. Interpreted in the metric's unit: router_error_rate is a
+	// ratio in [0, 1], router_latency is milliseconds, and inflight_requests is
+	// in-flight requests per ready replica averaged over the rule window. Thresholds
+	// that no achievable value could pass, or that every achievable value passes, are
+	// rejected at create.
+	//
+	// Omitting this value is read as 0. Set 0 explicitly for the strictest threshold:
+	// nothing at all is tolerated.
+	Value float64 `json:"value"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Operator    respjson.Field
+		Value       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ThresholdCheck) RawJSON() string { return r.JSON.raw }
+func (r *ThresholdCheck) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this ThresholdCheck to a ThresholdCheckParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// ThresholdCheckParam.Overrides()
+func (r ThresholdCheck) ToParam() ThresholdCheckParam {
+	return param.Override[ThresholdCheckParam](json.RawMessage(r.RawJSON()))
+}
+
+// Required comparison operator applied to the target metric value.
+type ThresholdCheckOperator string
+
+const (
+	ThresholdCheckOperatorThresholdOperatorGt  ThresholdCheckOperator = "THRESHOLD_OPERATOR_GT"
+	ThresholdCheckOperatorThresholdOperatorGte ThresholdCheckOperator = "THRESHOLD_OPERATOR_GTE"
+	ThresholdCheckOperatorThresholdOperatorLt  ThresholdCheckOperator = "THRESHOLD_OPERATOR_LT"
+	ThresholdCheckOperatorThresholdOperatorLte ThresholdCheckOperator = "THRESHOLD_OPERATOR_LTE"
+)
+
+// Threshold criteria that fail when the target metric violates the configured
+// bound.
+//
+// The property Operator is required.
+type ThresholdCheckParam struct {
+	// Required comparison operator applied to the target metric value.
+	//
+	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
+	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
+	Operator ThresholdCheckOperator `json:"operator,omitzero" api:"required"`
+	// Finite threshold value. Interpreted in the metric's unit: router_error_rate is a
+	// ratio in [0, 1], router_latency is milliseconds, and inflight_requests is
+	// in-flight requests per ready replica averaged over the rule window. Thresholds
+	// that no achievable value could pass, or that every achievable value passes, are
+	// rejected at create.
+	//
+	// Omitting this value is read as 0. Set 0 explicitly for the strictest threshold:
+	// nothing at all is tolerated.
+	Value param.Opt[float64] `json:"value,omitzero"`
+	paramObj
+}
+
+func (r ThresholdCheckParam) MarshalJSON() (data []byte, err error) {
+	type shadow ThresholdCheckParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ThresholdCheckParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1075,18 +1330,18 @@ type BetaEndpointRolloutNewParams struct {
 	// FINAL_BELOW_SOURCE_MIN.
 	FinalTargetReplicas param.Opt[int64] `json:"finalTargetReplicas,omitzero"`
 	// Blue-green strategy configuration for a single cutover to the target deployment.
-	BlueGreen BetaEndpointRolloutNewParamsBlueGreen `json:"blueGreen,omitzero"`
+	BlueGreen BlueGreenConfigParam `json:"blueGreen,omitzero"`
 	// Canary strategy configuration for gradual traffic progression. An empty config
 	// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
 	// left by cancel, the default ladder is derived at start from the pair's current
 	// served share so it begins above it.
-	Canary BetaEndpointRolloutNewParamsCanary `json:"canary,omitzero"`
+	Canary CanaryConfigParam `json:"canary,omitzero"`
 	// Optional metric gates evaluated after each step's soak. Canary only; rejected on
 	// rolling and blue-green rollouts.
-	Metrics []BetaEndpointRolloutNewParamsMetric `json:"metrics,omitzero"`
+	Metrics []MetricRuleParam `json:"metrics,omitzero"`
 	// Rolling strategy configuration for capacity-preserving batches that ramp target
 	// replicas up while draining source replicas.
-	Rolling BetaEndpointRolloutNewParamsRolling `json:"rolling,omitzero"`
+	Rolling RollingConfigParam `json:"rolling,omitzero"`
 	paramObj
 }
 
@@ -1095,186 +1350,6 @@ func (r BetaEndpointRolloutNewParams) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaEndpointRolloutNewParams) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Blue-green strategy configuration for a single cutover to the target deployment.
-type BetaEndpointRolloutNewParamsBlueGreen struct {
-	paramObj
-}
-
-func (r BetaEndpointRolloutNewParamsBlueGreen) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutNewParamsBlueGreen
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutNewParamsBlueGreen) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Canary strategy configuration for gradual traffic progression. An empty config
-// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
-// left by cancel, the default ladder is derived at start from the pair's current
-// served share so it begins above it.
-type BetaEndpointRolloutNewParamsCanary struct {
-	// Optional positive soak between steps. Defaults to 3m if omitted, and grows to
-	// cover metric rule windows plus ingestion lag.
-	StepInterval param.Opt[string] `json:"stepInterval,omitzero"`
-	// Optional progression steps. Defaults to 5, 25, 50, 100 percent when empty;
-	// explicit steps must increase and end at 100 percent.
-	Steps []BetaEndpointRolloutNewParamsCanaryStep `json:"steps,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutNewParamsCanary) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutNewParamsCanary
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutNewParamsCanary) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// One stage of a canary rollout progression.
-//
-// The property Traffic is required.
-type BetaEndpointRolloutNewParamsCanaryStep struct {
-	// Required percentage of traffic on the target deployment for this step.
-	Traffic int64 `json:"traffic" api:"required"`
-	// Optional explicit target replica count for this step.
-	Replicas param.Opt[int64] `json:"replicas,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutNewParamsCanaryStep) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutNewParamsCanaryStep
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutNewParamsCanaryStep) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Metric gate evaluated during a rollout.
-//
-// The property Name is required.
-type BetaEndpointRolloutNewParamsMetric struct {
-	// Required catalogue key for the metric to gate on. `serving_latency` is retired.
-	//
-	// Any of "inflight_requests", "router_error_rate", "router_latency".
-	Name string `json:"name,omitzero" api:"required"`
-	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
-	Percentile param.Opt[int64] `json:"percentile,omitzero"`
-	// Optional query window for the metric. Defaults to the step soak duration.
-	Window param.Opt[string] `json:"window,omitzero"`
-	// Regression criteria that fail when the target regresses against the source
-	// beyond a limit.
-	RegressionCheck BetaEndpointRolloutNewParamsMetricRegressionCheck `json:"regressionCheck,omitzero"`
-	// Aggregation used for the metric. Optional for router_error_rate and
-	// inflight_requests; omitted values default to METRIC_STAT_TYPE_AVG. Required for
-	// router_latency, where AVG or PERCENTILE may be used.
-	//
-	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
-	Stat string `json:"stat,omitzero"`
-	// Threshold criteria that fail when the target metric violates the configured
-	// bound.
-	ThresholdCheck BetaEndpointRolloutNewParamsMetricThresholdCheck `json:"thresholdCheck,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutNewParamsMetric) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutNewParamsMetric
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutNewParamsMetric) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[BetaEndpointRolloutNewParamsMetric](
-		"name", "inflight_requests", "router_error_rate", "router_latency",
-	)
-	apijson.RegisterFieldValidator[BetaEndpointRolloutNewParamsMetric](
-		"stat", "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE",
-	)
-}
-
-// Regression criteria that fail when the target regresses against the source
-// beyond a limit.
-//
-// The property Direction is required.
-type BetaEndpointRolloutNewParamsMetricRegressionCheck struct {
-	// Required direction that indicates whether higher or lower metric values are
-	// worse.
-	//
-	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
-	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
-	Direction string `json:"direction,omitzero" api:"required"`
-	// Finite maximum allowed regression percentage, greater than or equal to 0.
-	// Omitting this value is read as 0. A value of 0 is the strictest budget; any
-	// regression fails, and exactly-at-budget passes.
-	MaxRegressionPercent param.Opt[float64] `json:"maxRegressionPercent,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutNewParamsMetricRegressionCheck) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutNewParamsMetricRegressionCheck
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutNewParamsMetricRegressionCheck) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[BetaEndpointRolloutNewParamsMetricRegressionCheck](
-		"direction", "REGRESSION_DIRECTION_HIGHER_IS_WORSE", "REGRESSION_DIRECTION_LOWER_IS_WORSE",
-	)
-}
-
-// Threshold criteria that fail when the target metric violates the configured
-// bound.
-//
-// The property Operator is required.
-type BetaEndpointRolloutNewParamsMetricThresholdCheck struct {
-	// Required comparison operator applied to the target metric value.
-	//
-	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
-	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
-	Operator string `json:"operator,omitzero" api:"required"`
-	// Finite threshold value. Interpreted in the metric's unit: router_error_rate is a
-	// ratio in [0, 1], router_latency is milliseconds, and inflight_requests is
-	// in-flight requests per ready replica averaged over the rule window. Thresholds
-	// that no achievable value could pass, or that every achievable value passes, are
-	// rejected at create.
-	//
-	// Omitting this value is read as 0. Set 0 explicitly for the strictest threshold:
-	// nothing at all is tolerated.
-	Value param.Opt[float64] `json:"value,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutNewParamsMetricThresholdCheck) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutNewParamsMetricThresholdCheck
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutNewParamsMetricThresholdCheck) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[BetaEndpointRolloutNewParamsMetricThresholdCheck](
-		"operator", "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE", "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE",
-	)
-}
-
-// Rolling strategy configuration for capacity-preserving batches that ramp target
-// replicas up while draining source replicas.
-type BetaEndpointRolloutNewParamsRolling struct {
-	paramObj
-}
-
-func (r BetaEndpointRolloutNewParamsRolling) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutNewParamsRolling
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutNewParamsRolling) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1429,18 +1504,18 @@ type BetaEndpointRolloutPreviewDefaultsParams struct {
 	// FINAL_BELOW_SOURCE_MIN.
 	FinalTargetReplicas param.Opt[int64] `json:"finalTargetReplicas,omitzero"`
 	// Blue-green strategy configuration for a single cutover to the target deployment.
-	BlueGreen BetaEndpointRolloutPreviewDefaultsParamsBlueGreen `json:"blueGreen,omitzero"`
+	BlueGreen BlueGreenConfigParam `json:"blueGreen,omitzero"`
 	// Canary strategy configuration for gradual traffic progression. An empty config
 	// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
 	// left by cancel, the default ladder is derived at start from the pair's current
 	// served share so it begins above it.
-	Canary BetaEndpointRolloutPreviewDefaultsParamsCanary `json:"canary,omitzero"`
+	Canary CanaryConfigParam `json:"canary,omitzero"`
 	// Optional metric gates evaluated after each step's soak. Canary only; rejected on
 	// rolling and blue-green rollouts.
-	Metrics []BetaEndpointRolloutPreviewDefaultsParamsMetric `json:"metrics,omitzero"`
+	Metrics []MetricRuleParam `json:"metrics,omitzero"`
 	// Rolling strategy configuration for capacity-preserving batches that ramp target
 	// replicas up while draining source replicas.
-	Rolling BetaEndpointRolloutPreviewDefaultsParamsRolling `json:"rolling,omitzero"`
+	Rolling RollingConfigParam `json:"rolling,omitzero"`
 	paramObj
 }
 
@@ -1449,186 +1524,6 @@ func (r BetaEndpointRolloutPreviewDefaultsParams) MarshalJSON() (data []byte, er
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaEndpointRolloutPreviewDefaultsParams) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Blue-green strategy configuration for a single cutover to the target deployment.
-type BetaEndpointRolloutPreviewDefaultsParamsBlueGreen struct {
-	paramObj
-}
-
-func (r BetaEndpointRolloutPreviewDefaultsParamsBlueGreen) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutPreviewDefaultsParamsBlueGreen
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutPreviewDefaultsParamsBlueGreen) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Canary strategy configuration for gradual traffic progression. An empty config
-// uses the default 5, 25, 50, 100 percent ladder; over a frozen traffic-split pair
-// left by cancel, the default ladder is derived at start from the pair's current
-// served share so it begins above it.
-type BetaEndpointRolloutPreviewDefaultsParamsCanary struct {
-	// Optional positive soak between steps. Defaults to 3m if omitted, and grows to
-	// cover metric rule windows plus ingestion lag.
-	StepInterval param.Opt[string] `json:"stepInterval,omitzero"`
-	// Optional progression steps. Defaults to 5, 25, 50, 100 percent when empty;
-	// explicit steps must increase and end at 100 percent.
-	Steps []BetaEndpointRolloutPreviewDefaultsParamsCanaryStep `json:"steps,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutPreviewDefaultsParamsCanary) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutPreviewDefaultsParamsCanary
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutPreviewDefaultsParamsCanary) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// One stage of a canary rollout progression.
-//
-// The property Traffic is required.
-type BetaEndpointRolloutPreviewDefaultsParamsCanaryStep struct {
-	// Required percentage of traffic on the target deployment for this step.
-	Traffic int64 `json:"traffic" api:"required"`
-	// Optional explicit target replica count for this step.
-	Replicas param.Opt[int64] `json:"replicas,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutPreviewDefaultsParamsCanaryStep) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutPreviewDefaultsParamsCanaryStep
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutPreviewDefaultsParamsCanaryStep) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Metric gate evaluated during a rollout.
-//
-// The property Name is required.
-type BetaEndpointRolloutPreviewDefaultsParamsMetric struct {
-	// Required catalogue key for the metric to gate on. `serving_latency` is retired.
-	//
-	// Any of "inflight_requests", "router_error_rate", "router_latency".
-	Name string `json:"name,omitzero" api:"required"`
-	// Percentile value, such as 99. Set only when stat is METRIC_STAT_TYPE_PERCENTILE.
-	Percentile param.Opt[int64] `json:"percentile,omitzero"`
-	// Optional query window for the metric. Defaults to the step soak duration.
-	Window param.Opt[string] `json:"window,omitzero"`
-	// Regression criteria that fail when the target regresses against the source
-	// beyond a limit.
-	RegressionCheck BetaEndpointRolloutPreviewDefaultsParamsMetricRegressionCheck `json:"regressionCheck,omitzero"`
-	// Aggregation used for the metric. Optional for router_error_rate and
-	// inflight_requests; omitted values default to METRIC_STAT_TYPE_AVG. Required for
-	// router_latency, where AVG or PERCENTILE may be used.
-	//
-	// Any of "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE".
-	Stat string `json:"stat,omitzero"`
-	// Threshold criteria that fail when the target metric violates the configured
-	// bound.
-	ThresholdCheck BetaEndpointRolloutPreviewDefaultsParamsMetricThresholdCheck `json:"thresholdCheck,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutPreviewDefaultsParamsMetric) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutPreviewDefaultsParamsMetric
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutPreviewDefaultsParamsMetric) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[BetaEndpointRolloutPreviewDefaultsParamsMetric](
-		"name", "inflight_requests", "router_error_rate", "router_latency",
-	)
-	apijson.RegisterFieldValidator[BetaEndpointRolloutPreviewDefaultsParamsMetric](
-		"stat", "METRIC_STAT_TYPE_AVG", "METRIC_STAT_TYPE_PERCENTILE",
-	)
-}
-
-// Regression criteria that fail when the target regresses against the source
-// beyond a limit.
-//
-// The property Direction is required.
-type BetaEndpointRolloutPreviewDefaultsParamsMetricRegressionCheck struct {
-	// Required direction that indicates whether higher or lower metric values are
-	// worse.
-	//
-	// Any of "REGRESSION_DIRECTION_HIGHER_IS_WORSE",
-	// "REGRESSION_DIRECTION_LOWER_IS_WORSE".
-	Direction string `json:"direction,omitzero" api:"required"`
-	// Finite maximum allowed regression percentage, greater than or equal to 0.
-	// Omitting this value is read as 0. A value of 0 is the strictest budget; any
-	// regression fails, and exactly-at-budget passes.
-	MaxRegressionPercent param.Opt[float64] `json:"maxRegressionPercent,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutPreviewDefaultsParamsMetricRegressionCheck) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutPreviewDefaultsParamsMetricRegressionCheck
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutPreviewDefaultsParamsMetricRegressionCheck) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[BetaEndpointRolloutPreviewDefaultsParamsMetricRegressionCheck](
-		"direction", "REGRESSION_DIRECTION_HIGHER_IS_WORSE", "REGRESSION_DIRECTION_LOWER_IS_WORSE",
-	)
-}
-
-// Threshold criteria that fail when the target metric violates the configured
-// bound.
-//
-// The property Operator is required.
-type BetaEndpointRolloutPreviewDefaultsParamsMetricThresholdCheck struct {
-	// Required comparison operator applied to the target metric value.
-	//
-	// Any of "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE",
-	// "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE".
-	Operator string `json:"operator,omitzero" api:"required"`
-	// Finite threshold value. Interpreted in the metric's unit: router_error_rate is a
-	// ratio in [0, 1], router_latency is milliseconds, and inflight_requests is
-	// in-flight requests per ready replica averaged over the rule window. Thresholds
-	// that no achievable value could pass, or that every achievable value passes, are
-	// rejected at create.
-	//
-	// Omitting this value is read as 0. Set 0 explicitly for the strictest threshold:
-	// nothing at all is tolerated.
-	Value param.Opt[float64] `json:"value,omitzero"`
-	paramObj
-}
-
-func (r BetaEndpointRolloutPreviewDefaultsParamsMetricThresholdCheck) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutPreviewDefaultsParamsMetricThresholdCheck
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutPreviewDefaultsParamsMetricThresholdCheck) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[BetaEndpointRolloutPreviewDefaultsParamsMetricThresholdCheck](
-		"operator", "THRESHOLD_OPERATOR_GT", "THRESHOLD_OPERATOR_GTE", "THRESHOLD_OPERATOR_LT", "THRESHOLD_OPERATOR_LTE",
-	)
-}
-
-// Rolling strategy configuration for capacity-preserving batches that ramp target
-// replicas up while draining source replicas.
-type BetaEndpointRolloutPreviewDefaultsParamsRolling struct {
-	paramObj
-}
-
-func (r BetaEndpointRolloutPreviewDefaultsParamsRolling) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointRolloutPreviewDefaultsParamsRolling
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *BetaEndpointRolloutPreviewDefaultsParamsRolling) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

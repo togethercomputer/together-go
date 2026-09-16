@@ -103,13 +103,75 @@ func (r *BetaModelConfigService) ListAutoPaging(ctx context.Context, params Beta
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, params, opts...))
 }
 
+// Certification result for a model, config, and optional draft-model combination.
+type Certification struct {
+	// Whether the model and config combination passed certification.
+	//
+	// Any of "CERTIFICATION_TYPE_CERTIFIED", "CERTIFICATION_TYPE_UNCERTIFIED".
+	CertificationType CertificationCertificationType `json:"certificationType" api:"required"`
+	// Time when the certification decision was recorded.
+	CertifiedAt time.Time `json:"certifiedAt" api:"required" format:"date-time"`
+	// Service or reviewer that recorded the certification.
+	CertifiedBy string `json:"certifiedBy" api:"required"`
+	// Resource name of the certified model.
+	Model string `json:"model" api:"required"`
+	// Revision identifier of the certified model.
+	ModelRevisionID string `json:"modelRevisionId" api:"required"`
+	// Product or serving environment for which the combination was evaluated.
+	//
+	// Any of "CERTIFICATION_TARGET_DE_SERVERLESS", "CERTIFICATION_TARGET_MRE".
+	Target CertificationTarget `json:"target" api:"required"`
+	// Resource name of the certified draft model.
+	DraftModel string `json:"draftModel"`
+	// Revision identifier of the certified draft model.
+	DraftModelRevisionID string `json:"draftModelRevisionId"`
+	// Human-readable certification notes or limitations.
+	Notes string `json:"notes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CertificationType    respjson.Field
+		CertifiedAt          respjson.Field
+		CertifiedBy          respjson.Field
+		Model                respjson.Field
+		ModelRevisionID      respjson.Field
+		Target               respjson.Field
+		DraftModel           respjson.Field
+		DraftModelRevisionID respjson.Field
+		Notes                respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r Certification) RawJSON() string { return r.JSON.raw }
+func (r *Certification) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Whether the model and config combination passed certification.
+type CertificationCertificationType string
+
+const (
+	CertificationCertificationTypeCertificationTypeCertified   CertificationCertificationType = "CERTIFICATION_TYPE_CERTIFIED"
+	CertificationCertificationTypeCertificationTypeUncertified CertificationCertificationType = "CERTIFICATION_TYPE_UNCERTIFIED"
+)
+
+// Product or serving environment for which the combination was evaluated.
+type CertificationTarget string
+
+const (
+	CertificationTargetCertificationTargetDeServerless CertificationTarget = "CERTIFICATION_TARGET_DE_SERVERLESS"
+	CertificationTargetCertificationTargetMre          CertificationTarget = "CERTIFICATION_TARGET_MRE"
+)
+
 // Immutable, user-facing configuration revision that defines how a compatible
 // model runs, including engine and hardware selectors.
 type Config struct {
 	// Config revision identifier.
 	ID string `json:"id" api:"required"`
 	// Model, hardware, and runtime combinations certified for this config revision.
-	Certifications []ConfigCertification `json:"certifications" api:"required"`
+	Certifications []Certification `json:"certifications" api:"required"`
 	// ID of the project that owns the config revision. Public configs may be owned by
 	// a different project than the deployment.
 	ProjectID string `json:"projectId" api:"required"`
@@ -119,7 +181,7 @@ type Config struct {
 	// Deprecated. Use `referenceModel`. Reference model identifier.
 	ReferenceModelID string `json:"referenceModelId" api:"required"`
 	// Hardware and runtime selectors used to place and configure replicas.
-	Selectors []ConfigSelector `json:"selectors" api:"required"`
+	Selectors []Selector `json:"selectors" api:"required"`
 	// Resource name of the draft model, using
 	// `projects/{draftProject}/models/{modelId}`; empty when speculative decoding is
 	// not enabled.
@@ -144,54 +206,8 @@ func (r *Config) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Certification result for a model, config, and optional draft-model combination.
-type ConfigCertification struct {
-	// Whether the model and config combination passed certification.
-	//
-	// Any of "CERTIFICATION_TYPE_CERTIFIED", "CERTIFICATION_TYPE_UNCERTIFIED".
-	CertificationType string `json:"certificationType" api:"required"`
-	// Time when the certification decision was recorded.
-	CertifiedAt time.Time `json:"certifiedAt" api:"required" format:"date-time"`
-	// Service or reviewer that recorded the certification.
-	CertifiedBy string `json:"certifiedBy" api:"required"`
-	// Resource name of the certified model.
-	Model string `json:"model" api:"required"`
-	// Revision identifier of the certified model.
-	ModelRevisionID string `json:"modelRevisionId" api:"required"`
-	// Product or serving environment for which the combination was evaluated.
-	//
-	// Any of "CERTIFICATION_TARGET_DE_SERVERLESS", "CERTIFICATION_TARGET_MRE".
-	Target string `json:"target" api:"required"`
-	// Resource name of the certified draft model.
-	DraftModel string `json:"draftModel"`
-	// Revision identifier of the certified draft model.
-	DraftModelRevisionID string `json:"draftModelRevisionId"`
-	// Human-readable certification notes or limitations.
-	Notes string `json:"notes"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CertificationType    respjson.Field
-		CertifiedAt          respjson.Field
-		CertifiedBy          respjson.Field
-		Model                respjson.Field
-		ModelRevisionID      respjson.Field
-		Target               respjson.Field
-		DraftModel           respjson.Field
-		DraftModelRevisionID respjson.Field
-		Notes                respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ConfigCertification) RawJSON() string { return r.JSON.raw }
-func (r *ConfigCertification) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Hardware or runtime requirement expressed as a key-value pair.
-type ConfigSelector struct {
+type Selector struct {
 	// Selector name, such as GPU type, GPU count, or optimization profile.
 	Key string `json:"key" api:"required"`
 	// Required value for the selector.
@@ -206,8 +222,8 @@ type ConfigSelector struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ConfigSelector) RawJSON() string { return r.JSON.raw }
-func (r *ConfigSelector) UnmarshalJSON(data []byte) error {
+func (r Selector) RawJSON() string { return r.JSON.raw }
+func (r *Selector) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

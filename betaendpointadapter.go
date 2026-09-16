@@ -199,6 +199,80 @@ func (r *BetaEndpointAdapterService) Delete(ctx context.Context, id string, para
 	return res, err
 }
 
+// Controller-reported load state for an adapter on one deployment cluster.
+type DeploymentAdapterStatus struct {
+	// Adapter model identifier for this status row.
+	AdapterModelID string `json:"adapterModelId" api:"required"`
+	// Cluster reporting this adapter status.
+	ClusterID string `json:"clusterId" api:"required"`
+	// Number of pods that failed to load the adapter.
+	FailedPodCount int64 `json:"failedPodCount" api:"required"`
+	// Number of pods with the adapter ready to serve.
+	ReadyPodCount int64 `json:"readyPodCount" api:"required"`
+	// Current adapter load state in this cluster.
+	//
+	// Any of "ADAPTER_LOAD_STATE_PENDING", "ADAPTER_LOAD_STATE_LOADING",
+	// "ADAPTER_LOAD_STATE_READY", "ADAPTER_LOAD_STATE_REMOVING",
+	// "ADAPTER_LOAD_STATE_FAILED".
+	State DeploymentAdapterStatusState `json:"state" api:"required"`
+	// Total pods expected to report adapter load state.
+	TotalPodCount int64 `json:"totalPodCount" api:"required"`
+	// Resource name of the adapter model, using
+	// projects/{projectId}/models/{adapterModelId}.
+	AdapterModel string `json:"adapterModel"`
+	// Time when the adapter first reached READY in this cluster.
+	LoadedAt time.Time `json:"loadedAt" format:"date-time"`
+	// Human-readable details about the current adapter state.
+	Message string `json:"message"`
+	// Adapter row etag observed by the controller when it wrote this status.
+	RealizedEtag string `json:"realizedEtag"`
+	// Resource name of the adapter model revision currently loaded in this cluster,
+	// using projects/{projectId}/models/{adapterModelId}/revisions/{revisionId}.
+	RealizedRevision string `json:"realizedRevision"`
+	// Adapter revision currently loaded on pods in this cluster.
+	RealizedRevisionID string `json:"realizedRevisionId"`
+	// Stable reason code for the current adapter state.
+	Reason string `json:"reason"`
+	// Time when this adapter status was last updated.
+	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AdapterModelID     respjson.Field
+		ClusterID          respjson.Field
+		FailedPodCount     respjson.Field
+		ReadyPodCount      respjson.Field
+		State              respjson.Field
+		TotalPodCount      respjson.Field
+		AdapterModel       respjson.Field
+		LoadedAt           respjson.Field
+		Message            respjson.Field
+		RealizedEtag       respjson.Field
+		RealizedRevision   respjson.Field
+		RealizedRevisionID respjson.Field
+		Reason             respjson.Field
+		UpdatedAt          respjson.Field
+		ExtraFields        map[string]respjson.Field
+		raw                string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentAdapterStatus) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentAdapterStatus) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Current adapter load state in this cluster.
+type DeploymentAdapterStatusState string
+
+const (
+	DeploymentAdapterStatusStateAdapterLoadStatePending  DeploymentAdapterStatusState = "ADAPTER_LOAD_STATE_PENDING"
+	DeploymentAdapterStatusStateAdapterLoadStateLoading  DeploymentAdapterStatusState = "ADAPTER_LOAD_STATE_LOADING"
+	DeploymentAdapterStatusStateAdapterLoadStateReady    DeploymentAdapterStatusState = "ADAPTER_LOAD_STATE_READY"
+	DeploymentAdapterStatusStateAdapterLoadStateRemoving DeploymentAdapterStatusState = "ADAPTER_LOAD_STATE_REMOVING"
+	DeploymentAdapterStatusStateAdapterLoadStateFailed   DeploymentAdapterStatusState = "ADAPTER_LOAD_STATE_FAILED"
+)
+
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterNewResponse struct {
 	// Adapter model identifier attached to the deployment.
@@ -208,7 +282,7 @@ type BetaEndpointAdapterNewResponse struct {
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
 	// Per-cluster adapter load state reported by the controller.
-	PerCluster []BetaEndpointAdapterNewResponsePerCluster `json:"perCluster" api:"required"`
+	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -234,69 +308,6 @@ func (r *BetaEndpointAdapterNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Controller-reported load state for an adapter on one deployment cluster.
-type BetaEndpointAdapterNewResponsePerCluster struct {
-	// Adapter model identifier for this status row.
-	AdapterModelID string `json:"adapterModelId" api:"required"`
-	// Cluster reporting this adapter status.
-	ClusterID string `json:"clusterId" api:"required"`
-	// Number of pods that failed to load the adapter.
-	FailedPodCount int64 `json:"failedPodCount" api:"required"`
-	// Number of pods with the adapter ready to serve.
-	ReadyPodCount int64 `json:"readyPodCount" api:"required"`
-	// Current adapter load state in this cluster.
-	//
-	// Any of "ADAPTER_LOAD_STATE_PENDING", "ADAPTER_LOAD_STATE_LOADING",
-	// "ADAPTER_LOAD_STATE_READY", "ADAPTER_LOAD_STATE_REMOVING",
-	// "ADAPTER_LOAD_STATE_FAILED".
-	State string `json:"state" api:"required"`
-	// Total pods expected to report adapter load state.
-	TotalPodCount int64 `json:"totalPodCount" api:"required"`
-	// Resource name of the adapter model, using
-	// projects/{projectId}/models/{adapterModelId}.
-	AdapterModel string `json:"adapterModel"`
-	// Time when the adapter first reached READY in this cluster.
-	LoadedAt time.Time `json:"loadedAt" format:"date-time"`
-	// Human-readable details about the current adapter state.
-	Message string `json:"message"`
-	// Adapter row etag observed by the controller when it wrote this status.
-	RealizedEtag string `json:"realizedEtag"`
-	// Resource name of the adapter model revision currently loaded in this cluster,
-	// using projects/{projectId}/models/{adapterModelId}/revisions/{revisionId}.
-	RealizedRevision string `json:"realizedRevision"`
-	// Adapter revision currently loaded on pods in this cluster.
-	RealizedRevisionID string `json:"realizedRevisionId"`
-	// Stable reason code for the current adapter state.
-	Reason string `json:"reason"`
-	// Time when this adapter status was last updated.
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AdapterModelID     respjson.Field
-		ClusterID          respjson.Field
-		FailedPodCount     respjson.Field
-		ReadyPodCount      respjson.Field
-		State              respjson.Field
-		TotalPodCount      respjson.Field
-		AdapterModel       respjson.Field
-		LoadedAt           respjson.Field
-		Message            respjson.Field
-		RealizedEtag       respjson.Field
-		RealizedRevision   respjson.Field
-		RealizedRevisionID respjson.Field
-		Reason             respjson.Field
-		UpdatedAt          respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAdapterNewResponsePerCluster) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAdapterNewResponsePerCluster) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterGetResponse struct {
 	// Adapter model identifier attached to the deployment.
@@ -306,7 +317,7 @@ type BetaEndpointAdapterGetResponse struct {
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
 	// Per-cluster adapter load state reported by the controller.
-	PerCluster []BetaEndpointAdapterGetResponsePerCluster `json:"perCluster" api:"required"`
+	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -332,69 +343,6 @@ func (r *BetaEndpointAdapterGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Controller-reported load state for an adapter on one deployment cluster.
-type BetaEndpointAdapterGetResponsePerCluster struct {
-	// Adapter model identifier for this status row.
-	AdapterModelID string `json:"adapterModelId" api:"required"`
-	// Cluster reporting this adapter status.
-	ClusterID string `json:"clusterId" api:"required"`
-	// Number of pods that failed to load the adapter.
-	FailedPodCount int64 `json:"failedPodCount" api:"required"`
-	// Number of pods with the adapter ready to serve.
-	ReadyPodCount int64 `json:"readyPodCount" api:"required"`
-	// Current adapter load state in this cluster.
-	//
-	// Any of "ADAPTER_LOAD_STATE_PENDING", "ADAPTER_LOAD_STATE_LOADING",
-	// "ADAPTER_LOAD_STATE_READY", "ADAPTER_LOAD_STATE_REMOVING",
-	// "ADAPTER_LOAD_STATE_FAILED".
-	State string `json:"state" api:"required"`
-	// Total pods expected to report adapter load state.
-	TotalPodCount int64 `json:"totalPodCount" api:"required"`
-	// Resource name of the adapter model, using
-	// projects/{projectId}/models/{adapterModelId}.
-	AdapterModel string `json:"adapterModel"`
-	// Time when the adapter first reached READY in this cluster.
-	LoadedAt time.Time `json:"loadedAt" format:"date-time"`
-	// Human-readable details about the current adapter state.
-	Message string `json:"message"`
-	// Adapter row etag observed by the controller when it wrote this status.
-	RealizedEtag string `json:"realizedEtag"`
-	// Resource name of the adapter model revision currently loaded in this cluster,
-	// using projects/{projectId}/models/{adapterModelId}/revisions/{revisionId}.
-	RealizedRevision string `json:"realizedRevision"`
-	// Adapter revision currently loaded on pods in this cluster.
-	RealizedRevisionID string `json:"realizedRevisionId"`
-	// Stable reason code for the current adapter state.
-	Reason string `json:"reason"`
-	// Time when this adapter status was last updated.
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AdapterModelID     respjson.Field
-		ClusterID          respjson.Field
-		FailedPodCount     respjson.Field
-		ReadyPodCount      respjson.Field
-		State              respjson.Field
-		TotalPodCount      respjson.Field
-		AdapterModel       respjson.Field
-		LoadedAt           respjson.Field
-		Message            respjson.Field
-		RealizedEtag       respjson.Field
-		RealizedRevision   respjson.Field
-		RealizedRevisionID respjson.Field
-		Reason             respjson.Field
-		UpdatedAt          respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAdapterGetResponsePerCluster) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAdapterGetResponsePerCluster) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterUpdateResponse struct {
 	// Adapter model identifier attached to the deployment.
@@ -404,7 +352,7 @@ type BetaEndpointAdapterUpdateResponse struct {
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
 	// Per-cluster adapter load state reported by the controller.
-	PerCluster []BetaEndpointAdapterUpdateResponsePerCluster `json:"perCluster" api:"required"`
+	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -430,69 +378,6 @@ func (r *BetaEndpointAdapterUpdateResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Controller-reported load state for an adapter on one deployment cluster.
-type BetaEndpointAdapterUpdateResponsePerCluster struct {
-	// Adapter model identifier for this status row.
-	AdapterModelID string `json:"adapterModelId" api:"required"`
-	// Cluster reporting this adapter status.
-	ClusterID string `json:"clusterId" api:"required"`
-	// Number of pods that failed to load the adapter.
-	FailedPodCount int64 `json:"failedPodCount" api:"required"`
-	// Number of pods with the adapter ready to serve.
-	ReadyPodCount int64 `json:"readyPodCount" api:"required"`
-	// Current adapter load state in this cluster.
-	//
-	// Any of "ADAPTER_LOAD_STATE_PENDING", "ADAPTER_LOAD_STATE_LOADING",
-	// "ADAPTER_LOAD_STATE_READY", "ADAPTER_LOAD_STATE_REMOVING",
-	// "ADAPTER_LOAD_STATE_FAILED".
-	State string `json:"state" api:"required"`
-	// Total pods expected to report adapter load state.
-	TotalPodCount int64 `json:"totalPodCount" api:"required"`
-	// Resource name of the adapter model, using
-	// projects/{projectId}/models/{adapterModelId}.
-	AdapterModel string `json:"adapterModel"`
-	// Time when the adapter first reached READY in this cluster.
-	LoadedAt time.Time `json:"loadedAt" format:"date-time"`
-	// Human-readable details about the current adapter state.
-	Message string `json:"message"`
-	// Adapter row etag observed by the controller when it wrote this status.
-	RealizedEtag string `json:"realizedEtag"`
-	// Resource name of the adapter model revision currently loaded in this cluster,
-	// using projects/{projectId}/models/{adapterModelId}/revisions/{revisionId}.
-	RealizedRevision string `json:"realizedRevision"`
-	// Adapter revision currently loaded on pods in this cluster.
-	RealizedRevisionID string `json:"realizedRevisionId"`
-	// Stable reason code for the current adapter state.
-	Reason string `json:"reason"`
-	// Time when this adapter status was last updated.
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AdapterModelID     respjson.Field
-		ClusterID          respjson.Field
-		FailedPodCount     respjson.Field
-		ReadyPodCount      respjson.Field
-		State              respjson.Field
-		TotalPodCount      respjson.Field
-		AdapterModel       respjson.Field
-		LoadedAt           respjson.Field
-		Message            respjson.Field
-		RealizedEtag       respjson.Field
-		RealizedRevision   respjson.Field
-		RealizedRevisionID respjson.Field
-		Reason             respjson.Field
-		UpdatedAt          respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAdapterUpdateResponsePerCluster) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAdapterUpdateResponsePerCluster) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterListResponse struct {
 	// Adapter model identifier attached to the deployment.
@@ -502,7 +387,7 @@ type BetaEndpointAdapterListResponse struct {
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
 	// Per-cluster adapter load state reported by the controller.
-	PerCluster []BetaEndpointAdapterListResponsePerCluster `json:"perCluster" api:"required"`
+	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -525,69 +410,6 @@ type BetaEndpointAdapterListResponse struct {
 // Returns the unmodified JSON received from the API
 func (r BetaEndpointAdapterListResponse) RawJSON() string { return r.JSON.raw }
 func (r *BetaEndpointAdapterListResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Controller-reported load state for an adapter on one deployment cluster.
-type BetaEndpointAdapterListResponsePerCluster struct {
-	// Adapter model identifier for this status row.
-	AdapterModelID string `json:"adapterModelId" api:"required"`
-	// Cluster reporting this adapter status.
-	ClusterID string `json:"clusterId" api:"required"`
-	// Number of pods that failed to load the adapter.
-	FailedPodCount int64 `json:"failedPodCount" api:"required"`
-	// Number of pods with the adapter ready to serve.
-	ReadyPodCount int64 `json:"readyPodCount" api:"required"`
-	// Current adapter load state in this cluster.
-	//
-	// Any of "ADAPTER_LOAD_STATE_PENDING", "ADAPTER_LOAD_STATE_LOADING",
-	// "ADAPTER_LOAD_STATE_READY", "ADAPTER_LOAD_STATE_REMOVING",
-	// "ADAPTER_LOAD_STATE_FAILED".
-	State string `json:"state" api:"required"`
-	// Total pods expected to report adapter load state.
-	TotalPodCount int64 `json:"totalPodCount" api:"required"`
-	// Resource name of the adapter model, using
-	// projects/{projectId}/models/{adapterModelId}.
-	AdapterModel string `json:"adapterModel"`
-	// Time when the adapter first reached READY in this cluster.
-	LoadedAt time.Time `json:"loadedAt" format:"date-time"`
-	// Human-readable details about the current adapter state.
-	Message string `json:"message"`
-	// Adapter row etag observed by the controller when it wrote this status.
-	RealizedEtag string `json:"realizedEtag"`
-	// Resource name of the adapter model revision currently loaded in this cluster,
-	// using projects/{projectId}/models/{adapterModelId}/revisions/{revisionId}.
-	RealizedRevision string `json:"realizedRevision"`
-	// Adapter revision currently loaded on pods in this cluster.
-	RealizedRevisionID string `json:"realizedRevisionId"`
-	// Stable reason code for the current adapter state.
-	Reason string `json:"reason"`
-	// Time when this adapter status was last updated.
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AdapterModelID     respjson.Field
-		ClusterID          respjson.Field
-		FailedPodCount     respjson.Field
-		ReadyPodCount      respjson.Field
-		State              respjson.Field
-		TotalPodCount      respjson.Field
-		AdapterModel       respjson.Field
-		LoadedAt           respjson.Field
-		Message            respjson.Field
-		RealizedEtag       respjson.Field
-		RealizedRevision   respjson.Field
-		RealizedRevisionID respjson.Field
-		Reason             respjson.Field
-		UpdatedAt          respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAdapterListResponsePerCluster) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAdapterListResponsePerCluster) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

@@ -342,8 +342,50 @@ const (
 	ModelVisibilityVisibilityInternal ModelVisibility = "VISIBILITY_INTERNAL"
 )
 
-// Architecture, size, precision, and speculative-decoding metadata derived from
-// the model files.
+// Number of model parameters stored in one numerical data type.
+type ModelDtypeCount struct {
+	// Number of model parameters stored with this data type.
+	Count string `json:"count" api:"required"`
+	// Numerical data type, such as `float16`, `bfloat16`, or `int8`.
+	Dtype string `json:"dtype" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Count       respjson.Field
+		Dtype       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ModelDtypeCount) RawJSON() string { return r.JSON.raw }
+func (r *ModelDtypeCount) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Model parameter count and precision breakdown.
+type ModelParametersResp struct {
+	// Parameter counts grouped by numerical data type.
+	ByDtype []ModelDtypeCount `json:"byDtype" api:"required"`
+	// Total number of parameters in the model weights.
+	Total string `json:"total" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ByDtype     respjson.Field
+		Total       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ModelParametersResp) RawJSON() string { return r.JSON.raw }
+func (r *ModelParametersResp) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Architecture, size, precision, and speculative-decoding metadata for model
+// weights.
 type ModelWeights struct {
 	// Model architecture detected from the weight metadata.
 	Architecture string `json:"architecture"`
@@ -352,19 +394,19 @@ type ModelWeights struct {
 	// Draft-model speculator family for draft speculative decoding.
 	//
 	// Any of "DRAFT_SPECULATOR_TYPE_EAGLE", "DRAFT_SPECULATOR_TYPE_PHOENIX".
-	DraftSpeculatorType string `json:"draftSpeculatorType"`
+	DraftSpeculatorType ModelWeightsDraftSpeculatorType `json:"draftSpeculatorType"`
 	// Total parameter count and breakdown by numerical data type.
-	Parameters ModelWeightsParameters `json:"parameters"`
+	Parameters ModelParametersResp `json:"parameters"`
 	// Speculative decoding mechanism for speculator weights.
 	//
 	// Any of "SPECULATOR_MECHANISM_DRAFT", "SPECULATOR_MECHANISM_LOOKAHEAD",
 	// "SPECULATOR_MECHANISM_MTP".
-	SpeculatorMechanism string `json:"speculatorMechanism"`
+	SpeculatorMechanism ModelWeightsSpeculatorMechanism `json:"speculatorMechanism"`
 	// Role of the weights: full model, speculative draft model, or LoRA adapter.
 	//
 	// Any of "WEIGHTS_TYPE_DEFAULT", "WEIGHTS_TYPE_SPECULATOR",
 	// "WEIGHTS_TYPE_ADAPTER".
-	Type string `json:"type"`
+	Type ModelWeightsType `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Architecture        respjson.Field
@@ -384,47 +426,31 @@ func (r *ModelWeights) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Total parameter count and breakdown by numerical data type.
-type ModelWeightsParameters struct {
-	// Parameter counts grouped by numerical data type.
-	ByDtype []ModelWeightsParametersByDtype `json:"byDtype" api:"required"`
-	// Total number of parameters in the model weights.
-	Total string `json:"total" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ByDtype     respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
+// Draft-model speculator family for draft speculative decoding.
+type ModelWeightsDraftSpeculatorType string
 
-// Returns the unmodified JSON received from the API
-func (r ModelWeightsParameters) RawJSON() string { return r.JSON.raw }
-func (r *ModelWeightsParameters) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	ModelWeightsDraftSpeculatorTypeDraftSpeculatorTypeEagle   ModelWeightsDraftSpeculatorType = "DRAFT_SPECULATOR_TYPE_EAGLE"
+	ModelWeightsDraftSpeculatorTypeDraftSpeculatorTypePhoenix ModelWeightsDraftSpeculatorType = "DRAFT_SPECULATOR_TYPE_PHOENIX"
+)
 
-// Number of model parameters stored in one numerical data type.
-type ModelWeightsParametersByDtype struct {
-	// Number of model parameters stored with this data type.
-	Count string `json:"count" api:"required"`
-	// Numerical data type, such as `float16`, `bfloat16`, or `int8`.
-	Dtype string `json:"dtype" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Count       respjson.Field
-		Dtype       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
+// Speculative decoding mechanism for speculator weights.
+type ModelWeightsSpeculatorMechanism string
 
-// Returns the unmodified JSON received from the API
-func (r ModelWeightsParametersByDtype) RawJSON() string { return r.JSON.raw }
-func (r *ModelWeightsParametersByDtype) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
+const (
+	ModelWeightsSpeculatorMechanismSpeculatorMechanismDraft     ModelWeightsSpeculatorMechanism = "SPECULATOR_MECHANISM_DRAFT"
+	ModelWeightsSpeculatorMechanismSpeculatorMechanismLookahead ModelWeightsSpeculatorMechanism = "SPECULATOR_MECHANISM_LOOKAHEAD"
+	ModelWeightsSpeculatorMechanismSpeculatorMechanismMtp       ModelWeightsSpeculatorMechanism = "SPECULATOR_MECHANISM_MTP"
+)
+
+// Role of the weights: full model, speculative draft model, or LoRA adapter.
+type ModelWeightsType string
+
+const (
+	ModelWeightsTypeWeightsTypeDefault    ModelWeightsType = "WEIGHTS_TYPE_DEFAULT"
+	ModelWeightsTypeWeightsTypeSpeculator ModelWeightsType = "WEIGHTS_TYPE_SPECULATOR"
+	ModelWeightsTypeWeightsTypeAdapter    ModelWeightsType = "WEIGHTS_TYPE_ADAPTER"
+)
 
 // Curated catalog entry for a platform-supported model.
 type SupportedModel struct {

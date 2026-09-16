@@ -31,15 +31,39 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 		together.BetaEndpointDeploymentNewParams{
 			ProjectID: together.String("projectId"),
 			Autoscaling: together.DeploymentAutoscalingParam{
-				MaxReplicas:       together.Int(0),
-				MinReplicas:       together.Int(0),
+				MaxReplicas: together.Int(0),
+				MinReplicas: together.Int(0),
+				ScaleDown: together.ScalingRulesParam{
+					Policies: []together.ScalingPolicyParam{{
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePercent,
+						Value:         25,
+					}, {
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePods,
+						Value:         10,
+					}},
+					SelectPolicy: together.ScalingRulesSelectPolicyScalingPolicySelectMin,
+				},
 				ScaleDownWindow:   together.String("-160513s"),
 				ScaleToZeroWindow: together.String("-160513s"),
-				ScaleUpWindow:     together.String("-160513s"),
-				ScalingMetrics: []together.DeploymentAutoscalingScalingMetricParam{{
-					Name:       "active_sessions",
+				ScaleUp: together.ScalingRulesParam{
+					Policies: []together.ScalingPolicyParam{{
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePercent,
+						Value:         25,
+					}, {
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePods,
+						Value:         10,
+					}},
+					SelectPolicy: together.ScalingRulesSelectPolicyScalingPolicySelectMin,
+				},
+				ScaleUpWindow: together.String("-160513s"),
+				ScalingMetrics: []together.ScalingMetricParam{{
+					Name:       together.ScalingMetricNameActiveSessions,
 					Target:     0,
-					Type:       "METRIC_TARGET_TYPE_VALUE",
+					Type:       together.ScalingMetricTypeMetricTargetTypeValue,
 					Percentile: together.String("percentile"),
 				}},
 			},
@@ -122,15 +146,39 @@ func TestBetaEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
 			EndpointID: "endpointId",
 			UpdateMask: together.String("updateMask"),
 			Autoscaling: together.DeploymentAutoscalingParam{
-				MaxReplicas:       together.Int(0),
-				MinReplicas:       together.Int(0),
+				MaxReplicas: together.Int(0),
+				MinReplicas: together.Int(0),
+				ScaleDown: together.ScalingRulesParam{
+					Policies: []together.ScalingPolicyParam{{
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePercent,
+						Value:         25,
+					}, {
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePods,
+						Value:         10,
+					}},
+					SelectPolicy: together.ScalingRulesSelectPolicyScalingPolicySelectMin,
+				},
 				ScaleDownWindow:   together.String("-160513s"),
 				ScaleToZeroWindow: together.String("-160513s"),
-				ScaleUpWindow:     together.String("-160513s"),
-				ScalingMetrics: []together.DeploymentAutoscalingScalingMetricParam{{
-					Name:       "active_sessions",
+				ScaleUp: together.ScalingRulesParam{
+					Policies: []together.ScalingPolicyParam{{
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePercent,
+						Value:         25,
+					}, {
+						PeriodSeconds: 60,
+						Type:          together.ScalingPolicyTypeScalingPolicyTypePods,
+						Value:         10,
+					}},
+					SelectPolicy: together.ScalingRulesSelectPolicyScalingPolicySelectMin,
+				},
+				ScaleUpWindow: together.String("-160513s"),
+				ScalingMetrics: []together.ScalingMetricParam{{
+					Name:       together.ScalingMetricNameActiveSessions,
 					Target:     0,
-					Type:       "METRIC_TARGET_TYPE_VALUE",
+					Type:       together.ScalingMetricTypeMetricTargetTypeValue,
 					Percentile: together.String("percentile"),
 				}},
 			},

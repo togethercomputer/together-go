@@ -348,23 +348,29 @@ type DeploymentAutoscaling struct {
 	// Minimum number of replicas. Omit on update to preserve the current value. Set
 	// both `minReplicas` and `maxReplicas` to `0` to stop the deployment.
 	MinReplicas int64 `json:"minReplicas"`
+	// Rate limits applied after stabilization and before replica bounds.
+	ScaleDown ScalingRules `json:"scaleDown"`
 	// Time a lower replica recommendation must remain stable before scaling down.
 	// Defaults to `5m`.
 	ScaleDownWindow string `json:"scaleDownWindow"`
 	// Idle period after which the deployment automatically stops and releases its
 	// replicas.
 	ScaleToZeroWindow string `json:"scaleToZeroWindow"`
+	// Rate limits applied after stabilization and before replica bounds.
+	ScaleUp ScalingRules `json:"scaleUp"`
 	// Stabilization window before scaling up.
 	ScaleUpWindow string `json:"scaleUpWindow"`
 	// Metrics and targets that drive replica recommendations. When omitted, the
 	// platform uses concurrent in-flight requests per replica.
-	ScalingMetrics []DeploymentAutoscalingScalingMetric `json:"scalingMetrics"`
+	ScalingMetrics []ScalingMetric `json:"scalingMetrics"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		MaxReplicas       respjson.Field
 		MinReplicas       respjson.Field
+		ScaleDown         respjson.Field
 		ScaleDownWindow   respjson.Field
 		ScaleToZeroWindow respjson.Field
+		ScaleUp           respjson.Field
 		ScaleUpWindow     respjson.Field
 		ScalingMetrics    respjson.Field
 		ExtraFields       map[string]respjson.Field
@@ -387,43 +393,6 @@ func (r DeploymentAutoscaling) ToParam() DeploymentAutoscalingParam {
 	return param.Override[DeploymentAutoscalingParam](json.RawMessage(r.RawJSON()))
 }
 
-// Metric and target used by the autoscaler to recommend a replica count.
-type DeploymentAutoscalingScalingMetric struct {
-	// Autoscaling metric name from the server allowlist.
-	//
-	// Any of "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency",
-	// "gpu_utilization", "inflight_requests", "throughput_per_replica",
-	// "token_utilization", "ttft".
-	Name string `json:"name" api:"required"`
-	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
-	// 100, value uses an absolute measurement, and average value uses a per-replica
-	// measurement.
-	Target float64 `json:"target" api:"required"`
-	// Whether `target` is an absolute value, a utilization percentage, or a
-	// per-replica average.
-	//
-	// Any of "METRIC_TARGET_TYPE_VALUE", "METRIC_TARGET_TYPE_UTILIZATION",
-	// "METRIC_TARGET_TYPE_AVERAGE_VALUE".
-	Type string `json:"type" api:"required"`
-	// Percentile to evaluate for latency-based metrics: `p50`, `p90`, `p95`, or `p99`.
-	Percentile string `json:"percentile"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Name        respjson.Field
-		Target      respjson.Field
-		Type        respjson.Field
-		Percentile  respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r DeploymentAutoscalingScalingMetric) RawJSON() string { return r.JSON.raw }
-func (r *DeploymentAutoscalingScalingMetric) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Autoscaling configuration for a deployment.
 type DeploymentAutoscalingParam struct {
 	// Maximum number of replicas. Defaults to `minReplicas`; omitting it on update
@@ -440,9 +409,13 @@ type DeploymentAutoscalingParam struct {
 	ScaleToZeroWindow param.Opt[string] `json:"scaleToZeroWindow,omitzero"`
 	// Stabilization window before scaling up.
 	ScaleUpWindow param.Opt[string] `json:"scaleUpWindow,omitzero"`
+	// Rate limits applied after stabilization and before replica bounds.
+	ScaleDown ScalingRulesParam `json:"scaleDown,omitzero"`
+	// Rate limits applied after stabilization and before replica bounds.
+	ScaleUp ScalingRulesParam `json:"scaleUp,omitzero"`
 	// Metrics and targets that drive replica recommendations. When omitted, the
 	// platform uses concurrent in-flight requests per replica.
-	ScalingMetrics []DeploymentAutoscalingScalingMetricParam `json:"scalingMetrics,omitzero"`
+	ScalingMetrics []ScalingMetricParam `json:"scalingMetrics,omitzero"`
 	paramObj
 }
 
@@ -454,46 +427,46 @@ func (r *DeploymentAutoscalingParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Metric and target used by the autoscaler to recommend a replica count.
-//
-// The properties Name, Target, Type are required.
-type DeploymentAutoscalingScalingMetricParam struct {
-	// Autoscaling metric name from the server allowlist.
-	//
-	// Any of "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency",
-	// "gpu_utilization", "inflight_requests", "throughput_per_replica",
-	// "token_utilization", "ttft".
-	Name string `json:"name,omitzero" api:"required"`
-	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
-	// 100, value uses an absolute measurement, and average value uses a per-replica
-	// measurement.
-	Target float64 `json:"target" api:"required"`
-	// Whether `target` is an absolute value, a utilization percentage, or a
-	// per-replica average.
-	//
-	// Any of "METRIC_TARGET_TYPE_VALUE", "METRIC_TARGET_TYPE_UTILIZATION",
-	// "METRIC_TARGET_TYPE_AVERAGE_VALUE".
-	Type string `json:"type,omitzero" api:"required"`
-	// Percentile to evaluate for latency-based metrics: `p50`, `p90`, `p95`, or `p99`.
-	Percentile param.Opt[string] `json:"percentile,omitzero"`
-	paramObj
+// Operational metrics for one deployment under an endpoint.
+type DeploymentMetrics struct {
+	// ID of the deployment summarized by these metrics.
+	DeploymentID string `json:"deploymentId"`
+	// ID of the deployment's parent endpoint.
+	EndpointID string `json:"endpointId"`
+	// Error rate and counts by error type.
+	ErrorMetrics ErrorMetrics `json:"errorMetrics"`
+	// Time-to-first-token, end-to-end, and inter-token latency percentiles.
+	LatencyMetrics LatencyMetrics `json:"latencyMetrics"`
+	// Request counts and rates.
+	RequestMetrics RequestMetrics `json:"requestMetrics"`
+	// Average CPU, GPU, memory, and network utilization.
+	ResourceUtilization ResourceUtilization `json:"resourceUtilization"`
+	// Token, request, and batching throughput.
+	ThroughputMetrics ThroughputMetrics `json:"throughputMetrics"`
+	// Closed-open time range covered by the metrics.
+	TimeRange MetricsTimeRange `json:"timeRange"`
+	// Input and output token totals and averages.
+	TokenMetrics TokenMetrics `json:"tokenMetrics"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		DeploymentID        respjson.Field
+		EndpointID          respjson.Field
+		ErrorMetrics        respjson.Field
+		LatencyMetrics      respjson.Field
+		RequestMetrics      respjson.Field
+		ResourceUtilization respjson.Field
+		ThroughputMetrics   respjson.Field
+		TimeRange           respjson.Field
+		TokenMetrics        respjson.Field
+		ExtraFields         map[string]respjson.Field
+		raw                 string
+	} `json:"-"`
 }
 
-func (r DeploymentAutoscalingScalingMetricParam) MarshalJSON() (data []byte, err error) {
-	type shadow DeploymentAutoscalingScalingMetricParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *DeploymentAutoscalingScalingMetricParam) UnmarshalJSON(data []byte) error {
+// Returns the unmodified JSON received from the API
+func (r DeploymentMetrics) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentMetrics) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[DeploymentAutoscalingScalingMetricParam](
-		"name", "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency", "gpu_utilization", "inflight_requests", "throughput_per_replica", "token_utilization", "ttft",
-	)
-	apijson.RegisterFieldValidator[DeploymentAutoscalingScalingMetricParam](
-		"type", "METRIC_TARGET_TYPE_VALUE", "METRIC_TARGET_TYPE_UTILIZATION", "METRIC_TARGET_TYPE_AVERAGE_VALUE",
-	)
 }
 
 // Inline placement parameters expanded into scheduling rules by the server.
@@ -779,7 +752,7 @@ type EndpointDeployment struct {
 	// Placement controls where a deployment is scheduled.
 	Placement EndpointDeploymentPlacementUnion `json:"placement"`
 	// Runtime information derived from the deployment's configuration.
-	RuntimeInfo EndpointDeploymentRuntimeInfo `json:"runtimeInfo"`
+	RuntimeInfo RuntimeInfo `json:"runtimeInfo"`
 	// Pinned draft-model resource used for speculative decoding, in the same form as
 	// `model`. Omitted when speculative decoding is disabled.
 	Speculator string `json:"speculator"`
@@ -918,33 +891,6 @@ type EndpointDeploymentPlacementProfile struct {
 // Returns the unmodified JSON received from the API
 func (r EndpointDeploymentPlacementProfile) RawJSON() string { return r.JSON.raw }
 func (r *EndpointDeploymentPlacementProfile) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Runtime information derived from the deployment's configuration.
-type EndpointDeploymentRuntimeInfo struct {
-	// Serving engine, such as `vllm`, `trtllm`, or `sglang`.
-	EngineType string `json:"engineType"`
-	// Version of the serving engine.
-	EngineVersion string `json:"engineVersion"`
-	// Whether the runtime accepts tool and function-calling requests.
-	FunctionCallingSupported bool `json:"functionCallingSupported"`
-	// Whether the runtime can constrain generation to a structured output schema.
-	StructuredOutputSupported bool `json:"structuredOutputSupported"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EngineType                respjson.Field
-		EngineVersion             respjson.Field
-		FunctionCallingSupported  respjson.Field
-		StructuredOutputSupported respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r EndpointDeploymentRuntimeInfo) RawJSON() string { return r.JSON.raw }
-func (r *EndpointDeploymentRuntimeInfo) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1107,6 +1053,445 @@ func (r *EndpointTrafficSplitEntryParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Error rate and aggregate counts by error type. Individual error samples are not
+// included.
+type ErrorMetrics struct {
+	// Percentage in [0, 100].
+	ErrorRate float64 `json:"errorRate"`
+	// Counts of errors keyed by error type (e.g. HTTP status code or error kind).
+	ErrorsByType map[string]string `json:"errorsByType"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ErrorRate    respjson.Field
+		ErrorsByType respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ErrorMetrics) RawJSON() string { return r.JSON.raw }
+func (r *ErrorMetrics) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Time-to-first-token, end-to-end, and inter-token latency percentiles in
+// milliseconds.
+type LatencyMetrics struct {
+	// 50th-percentile inter-token latency, in milliseconds.
+	ItlP50Ms float64 `json:"itlP50Ms"`
+	// 90th-percentile inter-token latency, in milliseconds.
+	ItlP90Ms float64 `json:"itlP90Ms"`
+	// 99th-percentile inter-token latency, in milliseconds.
+	ItlP99Ms float64 `json:"itlP99Ms"`
+	// 50th-percentile end-to-end request latency, in milliseconds.
+	LatencyP50Ms float64 `json:"latencyP50Ms"`
+	// 90th-percentile end-to-end request latency, in milliseconds.
+	LatencyP90Ms float64 `json:"latencyP90Ms"`
+	// 99th-percentile end-to-end request latency, in milliseconds.
+	LatencyP99Ms float64 `json:"latencyP99Ms"`
+	// 50th-percentile time to first token, in milliseconds.
+	TtftP50Ms float64 `json:"ttftP50Ms"`
+	// 90th-percentile time to first token, in milliseconds.
+	TtftP90Ms float64 `json:"ttftP90Ms"`
+	// 99th-percentile time to first token, in milliseconds.
+	TtftP99Ms float64 `json:"ttftP99Ms"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ItlP50Ms     respjson.Field
+		ItlP90Ms     respjson.Field
+		ItlP99Ms     respjson.Field
+		LatencyP50Ms respjson.Field
+		LatencyP90Ms respjson.Field
+		LatencyP99Ms respjson.Field
+		TtftP50Ms    respjson.Field
+		TtftP90Ms    respjson.Field
+		TtftP99Ms    respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r LatencyMetrics) RawJSON() string { return r.JSON.raw }
+func (r *LatencyMetrics) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Closed-open time range used by metrics and analytics responses.
+type MetricsTimeRange struct {
+	// Exclusive end of the time range.
+	EndTime time.Time `json:"endTime" format:"date-time"`
+	// Inclusive start of the time range.
+	StartTime time.Time `json:"startTime" format:"date-time"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EndTime     respjson.Field
+		StartTime   respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r MetricsTimeRange) RawJSON() string { return r.JSON.raw }
+func (r *MetricsTimeRange) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Request counts, rate, and status-code distribution over a time range.
+type RequestMetrics struct {
+	// Requests that failed during the time range.
+	FailedRequests string `json:"failedRequests"`
+	// Request counts keyed by HTTP status code.
+	RequestsByStatusCode map[string]string `json:"requestsByStatusCode"`
+	// Average requests per second over the time range.
+	RequestsPerSecond float64 `json:"requestsPerSecond"`
+	// Requests completed successfully during the time range.
+	SuccessfulRequests string `json:"successfulRequests"`
+	// Total requests received during the time range.
+	TotalRequests string `json:"totalRequests"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		FailedRequests       respjson.Field
+		RequestsByStatusCode respjson.Field
+		RequestsPerSecond    respjson.Field
+		SuccessfulRequests   respjson.Field
+		TotalRequests        respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RequestMetrics) RawJSON() string { return r.JSON.raw }
+func (r *RequestMetrics) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Average compute, memory, and network utilization for replicas over a time range.
+type ResourceUtilization struct {
+	// Average CPU utilization across replicas, as a percentage.
+	CPUUtilization float64 `json:"cpuUtilization"`
+	// Average GPU memory utilization across replicas, as a percentage.
+	GPUMemoryUtilization float64 `json:"gpuMemoryUtilization"`
+	// Average GPU compute utilization across replicas, as a percentage.
+	GPUUtilization float64 `json:"gpuUtilization"`
+	// Average system memory utilization across replicas, as a percentage.
+	MemoryUtilization float64 `json:"memoryUtilization"`
+	// Average network throughput across replicas, in megabits per second.
+	NetworkBandwidthMbps float64 `json:"networkBandwidthMbps"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CPUUtilization       respjson.Field
+		GPUMemoryUtilization respjson.Field
+		GPUUtilization       respjson.Field
+		MemoryUtilization    respjson.Field
+		NetworkBandwidthMbps respjson.Field
+		ExtraFields          map[string]respjson.Field
+		raw                  string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ResourceUtilization) RawJSON() string { return r.JSON.raw }
+func (r *ResourceUtilization) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Runtime information derived from the deployment's configuration.
+type RuntimeInfo struct {
+	// Serving engine, such as `vllm`, `trtllm`, or `sglang`.
+	EngineType string `json:"engineType"`
+	// Version of the serving engine.
+	EngineVersion string `json:"engineVersion"`
+	// Whether the runtime accepts tool and function-calling requests.
+	FunctionCallingSupported bool `json:"functionCallingSupported"`
+	// Whether the runtime can constrain generation to a structured output schema.
+	StructuredOutputSupported bool `json:"structuredOutputSupported"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		EngineType                respjson.Field
+		EngineVersion             respjson.Field
+		FunctionCallingSupported  respjson.Field
+		StructuredOutputSupported respjson.Field
+		ExtraFields               map[string]respjson.Field
+		raw                       string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r RuntimeInfo) RawJSON() string { return r.JSON.raw }
+func (r *RuntimeInfo) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Metric and target used by the autoscaler to recommend a replica count.
+type ScalingMetric struct {
+	// Autoscaling metric name from the server allowlist.
+	//
+	// Any of "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency",
+	// "gpu_utilization", "inflight_requests", "throughput_per_replica",
+	// "token_utilization", "ttft".
+	Name ScalingMetricName `json:"name" api:"required"`
+	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
+	// 100, value uses an absolute measurement, and average value uses a per-replica
+	// measurement.
+	Target float64 `json:"target" api:"required"`
+	// Whether `target` is an absolute value, a utilization percentage, or a
+	// per-replica average.
+	//
+	// Any of "METRIC_TARGET_TYPE_VALUE", "METRIC_TARGET_TYPE_UTILIZATION",
+	// "METRIC_TARGET_TYPE_AVERAGE_VALUE".
+	Type ScalingMetricType `json:"type" api:"required"`
+	// Percentile to evaluate for latency-based metrics: `p50`, `p90`, `p95`, or `p99`.
+	Percentile string `json:"percentile"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name        respjson.Field
+		Target      respjson.Field
+		Type        respjson.Field
+		Percentile  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ScalingMetric) RawJSON() string { return r.JSON.raw }
+func (r *ScalingMetric) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this ScalingMetric to a ScalingMetricParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// ScalingMetricParam.Overrides()
+func (r ScalingMetric) ToParam() ScalingMetricParam {
+	return param.Override[ScalingMetricParam](json.RawMessage(r.RawJSON()))
+}
+
+// Autoscaling metric name from the server allowlist.
+type ScalingMetricName string
+
+const (
+	ScalingMetricNameActiveSessions       ScalingMetricName = "active_sessions"
+	ScalingMetricNameCacheHitRate         ScalingMetricName = "cache_hit_rate"
+	ScalingMetricNameDecodingSpeed        ScalingMetricName = "decoding_speed"
+	ScalingMetricNameE2ELatency           ScalingMetricName = "e2e_latency"
+	ScalingMetricNameGPUUtilization       ScalingMetricName = "gpu_utilization"
+	ScalingMetricNameInflightRequests     ScalingMetricName = "inflight_requests"
+	ScalingMetricNameThroughputPerReplica ScalingMetricName = "throughput_per_replica"
+	ScalingMetricNameTokenUtilization     ScalingMetricName = "token_utilization"
+	ScalingMetricNameTtft                 ScalingMetricName = "ttft"
+)
+
+// Whether `target` is an absolute value, a utilization percentage, or a
+// per-replica average.
+type ScalingMetricType string
+
+const (
+	ScalingMetricTypeMetricTargetTypeValue        ScalingMetricType = "METRIC_TARGET_TYPE_VALUE"
+	ScalingMetricTypeMetricTargetTypeUtilization  ScalingMetricType = "METRIC_TARGET_TYPE_UTILIZATION"
+	ScalingMetricTypeMetricTargetTypeAverageValue ScalingMetricType = "METRIC_TARGET_TYPE_AVERAGE_VALUE"
+)
+
+// Metric and target used by the autoscaler to recommend a replica count.
+//
+// The properties Name, Target, Type are required.
+type ScalingMetricParam struct {
+	// Autoscaling metric name from the server allowlist.
+	//
+	// Any of "active_sessions", "cache_hit_rate", "decoding_speed", "e2e_latency",
+	// "gpu_utilization", "inflight_requests", "throughput_per_replica",
+	// "token_utilization", "ttft".
+	Name ScalingMetricName `json:"name,omitzero" api:"required"`
+	// Target interpreted according to `type`. Utilization uses a percentage from 0 to
+	// 100, value uses an absolute measurement, and average value uses a per-replica
+	// measurement.
+	Target float64 `json:"target" api:"required"`
+	// Whether `target` is an absolute value, a utilization percentage, or a
+	// per-replica average.
+	//
+	// Any of "METRIC_TARGET_TYPE_VALUE", "METRIC_TARGET_TYPE_UTILIZATION",
+	// "METRIC_TARGET_TYPE_AVERAGE_VALUE".
+	Type ScalingMetricType `json:"type,omitzero" api:"required"`
+	// Percentile to evaluate for latency-based metrics: `p50`, `p90`, `p95`, or `p99`.
+	Percentile param.Opt[string] `json:"percentile,omitzero"`
+	paramObj
+}
+
+func (r ScalingMetricParam) MarshalJSON() (data []byte, err error) {
+	type shadow ScalingMetricParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ScalingMetricParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Replica rate-limit policy applied over a trailing window.
+type ScalingPolicy struct {
+	// Trailing rate-limit window in seconds, from 1 to 1800.
+	PeriodSeconds int64 `json:"periodSeconds" api:"required"`
+	// Whether `value` is a replica count or a percentage of the replica count at the
+	// start of the trailing period. Scaling events within that period count against
+	// the allowance; percentages are rounded to whole replicas.
+	//
+	// Any of "SCALING_POLICY_TYPE_PODS", "SCALING_POLICY_TYPE_PERCENT".
+	Type ScalingPolicyType `json:"type" api:"required"`
+	// Positive replica count or percentage used as the rate-limit amount.
+	Value int64 `json:"value" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		PeriodSeconds respjson.Field
+		Type          respjson.Field
+		Value         respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ScalingPolicy) RawJSON() string { return r.JSON.raw }
+func (r *ScalingPolicy) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this ScalingPolicy to a ScalingPolicyParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// ScalingPolicyParam.Overrides()
+func (r ScalingPolicy) ToParam() ScalingPolicyParam {
+	return param.Override[ScalingPolicyParam](json.RawMessage(r.RawJSON()))
+}
+
+// Whether `value` is a replica count or a percentage of the replica count at the
+// start of the trailing period. Scaling events within that period count against
+// the allowance; percentages are rounded to whole replicas.
+type ScalingPolicyType string
+
+const (
+	ScalingPolicyTypeScalingPolicyTypePods    ScalingPolicyType = "SCALING_POLICY_TYPE_PODS"
+	ScalingPolicyTypeScalingPolicyTypePercent ScalingPolicyType = "SCALING_POLICY_TYPE_PERCENT"
+)
+
+// Replica rate-limit policy applied over a trailing window.
+//
+// The properties PeriodSeconds, Type, Value are required.
+type ScalingPolicyParam struct {
+	// Trailing rate-limit window in seconds, from 1 to 1800.
+	PeriodSeconds int64 `json:"periodSeconds" api:"required"`
+	// Whether `value` is a replica count or a percentage of the replica count at the
+	// start of the trailing period. Scaling events within that period count against
+	// the allowance; percentages are rounded to whole replicas.
+	//
+	// Any of "SCALING_POLICY_TYPE_PODS", "SCALING_POLICY_TYPE_PERCENT".
+	Type ScalingPolicyType `json:"type,omitzero" api:"required"`
+	// Positive replica count or percentage used as the rate-limit amount.
+	Value int64 `json:"value" api:"required"`
+	paramObj
+}
+
+func (r ScalingPolicyParam) MarshalJSON() (data []byte, err error) {
+	type shadow ScalingPolicyParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ScalingPolicyParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Rate limits applied after stabilization and before replica bounds.
+type ScalingRules struct {
+	// Non-empty lists replace the existing policies. To clear policies, include
+	// `autoscaling.scaleDown.policies` or `autoscaling.scaleUp.policies` in the update
+	// mask and supply an empty scaling rules object or `policies: []`.
+	Policies []ScalingPolicy `json:"policies"`
+	// `SCALING_POLICY_SELECT_MIN` chooses the policy allowing the smallest replica
+	// change; `SCALING_POLICY_SELECT_MAX` chooses the largest. These are caps, not
+	// guaranteed changes. `SCALING_POLICY_SELECT_DISABLED` holds this direction steady
+	// while replica bounds still apply. Omitted preserves the existing selector on
+	// update. When no selector is configured, authored policies use MAX; with no
+	// policies configured, the platform defaults apply. To reset the selector, include
+	// `autoscaling.scaleDown.selectPolicy` or `autoscaling.scaleUp.selectPolicy` in
+	// the update mask and omit `selectPolicy`. Clear both policies and `selectPolicy`
+	// to restore inherited defaults.
+	//
+	// Any of "SCALING_POLICY_SELECT_MAX", "SCALING_POLICY_SELECT_MIN",
+	// "SCALING_POLICY_SELECT_DISABLED".
+	SelectPolicy ScalingRulesSelectPolicy `json:"selectPolicy"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Policies     respjson.Field
+		SelectPolicy respjson.Field
+		ExtraFields  map[string]respjson.Field
+		raw          string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ScalingRules) RawJSON() string { return r.JSON.raw }
+func (r *ScalingRules) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this ScalingRules to a ScalingRulesParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// ScalingRulesParam.Overrides()
+func (r ScalingRules) ToParam() ScalingRulesParam {
+	return param.Override[ScalingRulesParam](json.RawMessage(r.RawJSON()))
+}
+
+// `SCALING_POLICY_SELECT_MIN` chooses the policy allowing the smallest replica
+// change; `SCALING_POLICY_SELECT_MAX` chooses the largest. These are caps, not
+// guaranteed changes. `SCALING_POLICY_SELECT_DISABLED` holds this direction steady
+// while replica bounds still apply. Omitted preserves the existing selector on
+// update. When no selector is configured, authored policies use MAX; with no
+// policies configured, the platform defaults apply. To reset the selector, include
+// `autoscaling.scaleDown.selectPolicy` or `autoscaling.scaleUp.selectPolicy` in
+// the update mask and omit `selectPolicy`. Clear both policies and `selectPolicy`
+// to restore inherited defaults.
+type ScalingRulesSelectPolicy string
+
+const (
+	ScalingRulesSelectPolicyScalingPolicySelectMax      ScalingRulesSelectPolicy = "SCALING_POLICY_SELECT_MAX"
+	ScalingRulesSelectPolicyScalingPolicySelectMin      ScalingRulesSelectPolicy = "SCALING_POLICY_SELECT_MIN"
+	ScalingRulesSelectPolicyScalingPolicySelectDisabled ScalingRulesSelectPolicy = "SCALING_POLICY_SELECT_DISABLED"
+)
+
+// Rate limits applied after stabilization and before replica bounds.
+type ScalingRulesParam struct {
+	// Non-empty lists replace the existing policies. To clear policies, include
+	// `autoscaling.scaleDown.policies` or `autoscaling.scaleUp.policies` in the update
+	// mask and supply an empty scaling rules object or `policies: []`.
+	Policies []ScalingPolicyParam `json:"policies,omitzero"`
+	// `SCALING_POLICY_SELECT_MIN` chooses the policy allowing the smallest replica
+	// change; `SCALING_POLICY_SELECT_MAX` chooses the largest. These are caps, not
+	// guaranteed changes. `SCALING_POLICY_SELECT_DISABLED` holds this direction steady
+	// while replica bounds still apply. Omitted preserves the existing selector on
+	// update. When no selector is configured, authored policies use MAX; with no
+	// policies configured, the platform defaults apply. To reset the selector, include
+	// `autoscaling.scaleDown.selectPolicy` or `autoscaling.scaleUp.selectPolicy` in
+	// the update mask and omit `selectPolicy`. Clear both policies and `selectPolicy`
+	// to restore inherited defaults.
+	//
+	// Any of "SCALING_POLICY_SELECT_MAX", "SCALING_POLICY_SELECT_MIN",
+	// "SCALING_POLICY_SELECT_DISABLED".
+	SelectPolicy ScalingRulesSelectPolicy `json:"selectPolicy,omitzero"`
+	paramObj
+}
+
+func (r ScalingRulesParam) MarshalJSON() (data []byte, err error) {
+	type shadow ScalingRulesParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ScalingRulesParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Adaptive sticky-key sampling that throttles toward a target QPS.
 //
 // The properties Key, TargetQps are required.
@@ -1129,6 +1514,30 @@ func (r *ShadowAdaptiveKeyBasedSamplingParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Adaptive sticky-key sampling returned by the API.
+type ShadowAdaptiveKeyBasedSamplingResponse struct {
+	// Request-body field used as the sticky sampling key.
+	Key string `json:"key" api:"required"`
+	// Per-gateway-replica target QPS.
+	TargetQps float64 `json:"targetQps" api:"required"`
+	// Sliding window for QPS observation when explicitly configured.
+	Window string `json:"window"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Key         respjson.Field
+		TargetQps   respjson.Field
+		Window      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowAdaptiveKeyBasedSamplingResponse) RawJSON() string { return r.JSON.raw }
+func (r *ShadowAdaptiveKeyBasedSamplingResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Adaptive random sampling that throttles toward a target QPS.
 //
 // The property TargetQps is required.
@@ -1146,6 +1555,27 @@ func (r ShadowAdaptiveUniformSamplingParam) MarshalJSON() (data []byte, err erro
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ShadowAdaptiveUniformSamplingParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Adaptive random sampling returned by the API.
+type ShadowAdaptiveUniformSamplingResponse struct {
+	// Per-gateway-replica target QPS.
+	TargetQps float64 `json:"targetQps" api:"required"`
+	// Sliding window for QPS observation when explicitly configured.
+	Window string `json:"window"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		TargetQps   respjson.Field
+		Window      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowAdaptiveUniformSamplingResponse) RawJSON() string { return r.JSON.raw }
+func (r *ShadowAdaptiveUniformSamplingResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1258,6 +1688,148 @@ func (r *ShadowEndpointSourceSamplingAdaptiveKeyBasedParam) UnmarshalJSON(data [
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Endpoint-level source returned for a shadow experiment.
+type ShadowEndpointSourceResponse struct {
+	// Sampling strategy returned for endpoint-level shadow traffic.
+	Sampling ShadowEndpointSourceResponseSamplingUnion `json:"sampling" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Sampling    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowEndpointSourceResponse) RawJSON() string { return r.JSON.raw }
+func (r *ShadowEndpointSourceResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ShadowEndpointSourceResponseSamplingUnion contains all possible properties and
+// values from [ShadowEndpointSourceResponseSamplingUniform],
+// [ShadowEndpointSourceResponseSamplingKeyBased],
+// [ShadowEndpointSourceResponseSamplingAdaptiveUniform],
+// [ShadowEndpointSourceResponseSamplingAdaptiveKeyBased].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type ShadowEndpointSourceResponseSamplingUnion struct {
+	// This field is from variant [ShadowEndpointSourceResponseSamplingUniform].
+	Uniform ShadowUniformSamplingResponse `json:"uniform"`
+	// This field is from variant [ShadowEndpointSourceResponseSamplingKeyBased].
+	KeyBased ShadowKeyBasedSamplingResponse `json:"keyBased"`
+	// This field is from variant
+	// [ShadowEndpointSourceResponseSamplingAdaptiveUniform].
+	AdaptiveUniform ShadowAdaptiveUniformSamplingResponse `json:"adaptiveUniform"`
+	// This field is from variant
+	// [ShadowEndpointSourceResponseSamplingAdaptiveKeyBased].
+	AdaptiveKeyBased ShadowAdaptiveKeyBasedSamplingResponse `json:"adaptiveKeyBased"`
+	JSON             struct {
+		Uniform          respjson.Field
+		KeyBased         respjson.Field
+		AdaptiveUniform  respjson.Field
+		AdaptiveKeyBased respjson.Field
+		raw              string
+	} `json:"-"`
+}
+
+func (u ShadowEndpointSourceResponseSamplingUnion) AsUniform() (v ShadowEndpointSourceResponseSamplingUniform) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u ShadowEndpointSourceResponseSamplingUnion) AsKeyBased() (v ShadowEndpointSourceResponseSamplingKeyBased) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u ShadowEndpointSourceResponseSamplingUnion) AsAdaptiveUniform() (v ShadowEndpointSourceResponseSamplingAdaptiveUniform) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u ShadowEndpointSourceResponseSamplingUnion) AsAdaptiveKeyBased() (v ShadowEndpointSourceResponseSamplingAdaptiveKeyBased) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u ShadowEndpointSourceResponseSamplingUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *ShadowEndpointSourceResponseSamplingUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ShadowEndpointSourceResponseSamplingUniform struct {
+	// Fixed-rate random sampling returned by the API. A zero rate may be omitted by
+	// JSON serialization.
+	Uniform ShadowUniformSamplingResponse `json:"uniform" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Uniform     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowEndpointSourceResponseSamplingUniform) RawJSON() string { return r.JSON.raw }
+func (r *ShadowEndpointSourceResponseSamplingUniform) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ShadowEndpointSourceResponseSamplingKeyBased struct {
+	// Fixed-rate sticky-key sampling returned by the API. A zero rate may be omitted
+	// by JSON serialization.
+	KeyBased ShadowKeyBasedSamplingResponse `json:"keyBased" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		KeyBased    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowEndpointSourceResponseSamplingKeyBased) RawJSON() string { return r.JSON.raw }
+func (r *ShadowEndpointSourceResponseSamplingKeyBased) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ShadowEndpointSourceResponseSamplingAdaptiveUniform struct {
+	// Adaptive random sampling returned by the API.
+	AdaptiveUniform ShadowAdaptiveUniformSamplingResponse `json:"adaptiveUniform" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AdaptiveUniform respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowEndpointSourceResponseSamplingAdaptiveUniform) RawJSON() string { return r.JSON.raw }
+func (r *ShadowEndpointSourceResponseSamplingAdaptiveUniform) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ShadowEndpointSourceResponseSamplingAdaptiveKeyBased struct {
+	// Adaptive sticky-key sampling returned by the API.
+	AdaptiveKeyBased ShadowAdaptiveKeyBasedSamplingResponse `json:"adaptiveKeyBased" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AdaptiveKeyBased respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowEndpointSourceResponseSamplingAdaptiveKeyBased) RawJSON() string { return r.JSON.raw }
+func (r *ShadowEndpointSourceResponseSamplingAdaptiveKeyBased) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Fixed-rate sampling of distinct key values with sticky decisions.
 //
 // The properties Key, Rate are required.
@@ -1274,6 +1846,28 @@ func (r ShadowKeyBasedSamplingParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ShadowKeyBasedSamplingParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Fixed-rate sticky-key sampling returned by the API. A zero rate may be omitted
+// by JSON serialization.
+type ShadowKeyBasedSamplingResponse struct {
+	// Request-body field used as the sticky sampling key.
+	Key string `json:"key" api:"required"`
+	// Fraction of distinct key values sampled, from 0.0 to 1.0.
+	Rate float64 `json:"rate"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Key         respjson.Field
+		Rate        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowKeyBasedSamplingResponse) RawJSON() string { return r.JSON.raw }
+func (r *ShadowKeyBasedSamplingResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1295,6 +1889,24 @@ func (r *ShadowSourceParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Endpoint traffic source returned for a shadow experiment.
+type ShadowSourceResponse struct {
+	// Endpoint-level source returned for a shadow experiment.
+	Endpoint ShadowEndpointSourceResponse `json:"endpoint" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Endpoint    respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowSourceResponse) RawJSON() string { return r.JSON.raw }
+func (r *ShadowSourceResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // Fixed-rate random sampling of endpoint requests.
 //
 // The property Rate is required.
@@ -1309,6 +1921,100 @@ func (r ShadowUniformSamplingParam) MarshalJSON() (data []byte, err error) {
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ShadowUniformSamplingParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Fixed-rate random sampling returned by the API. A zero rate may be omitted by
+// JSON serialization.
+type ShadowUniformSamplingResponse struct {
+	// Fraction of requests sampled, from 0.0 to 1.0.
+	Rate float64 `json:"rate"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Rate        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ShadowUniformSamplingResponse) RawJSON() string { return r.JSON.raw }
+func (r *ShadowUniformSamplingResponse) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Token, request, and batching throughput over a time range.
+type ThroughputMetrics struct {
+	// Average number of batches queued or in flight in the serving engine.
+	AvgBatchDepth float64 `json:"avgBatchDepth"`
+	// Average number of requests processed in each runtime batch.
+	AvgBatchSize float64 `json:"avgBatchSize"`
+	// Average completed requests per second.
+	RequestsPerSecond float64 `json:"requestsPerSecond"`
+	// Average generated tokens per second.
+	TokensPerSecond float64 `json:"tokensPerSecond"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AvgBatchDepth     respjson.Field
+		AvgBatchSize      respjson.Field
+		RequestsPerSecond respjson.Field
+		TokensPerSecond   respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ThroughputMetrics) RawJSON() string { return r.JSON.raw }
+func (r *ThroughputMetrics) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Timestamped bucket containing one or more named metric values.
+type TimeSeriesDataPoint struct {
+	// Start time of the metric bucket.
+	Timestamp time.Time `json:"timestamp" format:"date-time"`
+	// Metric names mapped to their numeric values for this bucket.
+	Values map[string]float64 `json:"values"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Timestamp   respjson.Field
+		Values      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r TimeSeriesDataPoint) RawJSON() string { return r.JSON.raw }
+func (r *TimeSeriesDataPoint) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Aggregate and per-request token usage over a time range.
+type TokenMetrics struct {
+	// Average input tokens per request.
+	AvgInputTokens float64 `json:"avgInputTokens"`
+	// Average output tokens per request.
+	AvgOutputTokens float64 `json:"avgOutputTokens"`
+	// Total input tokens processed during the time range.
+	TotalInputTokens string `json:"totalInputTokens"`
+	// Total output tokens generated during the time range.
+	TotalOutputTokens string `json:"totalOutputTokens"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		AvgInputTokens    respjson.Field
+		AvgOutputTokens   respjson.Field
+		TotalInputTokens  respjson.Field
+		TotalOutputTokens respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r TokenMetrics) RawJSON() string { return r.JSON.raw }
+func (r *TokenMetrics) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1338,9 +2044,9 @@ type BetaEndpointAnalyticsResponse struct {
 	// endpoint.
 	Metrics BetaEndpointAnalyticsResponseMetrics `json:"metrics"`
 	// Closed-open time range covered by the analytics.
-	TimeRange BetaEndpointAnalyticsResponseTimeRange `json:"timeRange"`
+	TimeRange MetricsTimeRange `json:"timeRange"`
 	// Per-bucket metric samples, included only when `includeTimeSeries` is true.
-	TimeSeries []BetaEndpointAnalyticsResponseTimeSeries `json:"timeSeries"`
+	TimeSeries []TimeSeriesDataPoint `json:"timeSeries"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DeploymentAnalytics respjson.Field
@@ -1366,11 +2072,11 @@ type BetaEndpointAnalyticsResponseDeploymentAnalytics struct {
 	// ID of the deployment's parent endpoint.
 	EndpointID string `json:"endpointId"`
 	// Aggregate operational metrics for the deployment.
-	Metrics BetaEndpointAnalyticsResponseDeploymentAnalyticsMetrics `json:"metrics"`
+	Metrics DeploymentMetrics `json:"metrics"`
 	// Closed-open time range covered by the analytics.
-	TimeRange BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeRange `json:"timeRange"`
+	TimeRange MetricsTimeRange `json:"timeRange"`
 	// Per-bucket metric samples for the deployment.
-	TimeSeries []BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeSeries `json:"timeSeries"`
+	TimeSeries []TimeSeriesDataPoint `json:"timeSeries"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DeploymentID respjson.Field
@@ -1389,327 +2095,27 @@ func (r *BetaEndpointAnalyticsResponseDeploymentAnalytics) UnmarshalJSON(data []
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Aggregate operational metrics for the deployment.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetrics struct {
-	// ID of the deployment summarized by these metrics.
-	DeploymentID string `json:"deploymentId"`
-	// ID of the deployment's parent endpoint.
-	EndpointID string `json:"endpointId"`
-	// Error rate and counts by error type.
-	ErrorMetrics BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsErrorMetrics `json:"errorMetrics"`
-	// Time-to-first-token, end-to-end, and inter-token latency percentiles.
-	LatencyMetrics BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsLatencyMetrics `json:"latencyMetrics"`
-	// Request counts and rates.
-	RequestMetrics BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsRequestMetrics `json:"requestMetrics"`
-	// Average CPU, GPU, memory, and network utilization.
-	ResourceUtilization BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsResourceUtilization `json:"resourceUtilization"`
-	// Token, request, and batching throughput.
-	ThroughputMetrics BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsThroughputMetrics `json:"throughputMetrics"`
-	// Closed-open time range covered by the metrics.
-	TimeRange BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTimeRange `json:"timeRange"`
-	// Input and output token totals and averages.
-	TokenMetrics BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTokenMetrics `json:"tokenMetrics"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		DeploymentID        respjson.Field
-		EndpointID          respjson.Field
-		ErrorMetrics        respjson.Field
-		LatencyMetrics      respjson.Field
-		RequestMetrics      respjson.Field
-		ResourceUtilization respjson.Field
-		ThroughputMetrics   respjson.Field
-		TimeRange           respjson.Field
-		TokenMetrics        respjson.Field
-		ExtraFields         map[string]respjson.Field
-		raw                 string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetrics) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Error rate and counts by error type.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsErrorMetrics struct {
-	// Percentage in [0, 100].
-	ErrorRate float64 `json:"errorRate"`
-	// Counts of errors keyed by error type (e.g. HTTP status code or error kind).
-	ErrorsByType map[string]string `json:"errorsByType"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ErrorRate    respjson.Field
-		ErrorsByType respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsErrorMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsErrorMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Time-to-first-token, end-to-end, and inter-token latency percentiles.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsLatencyMetrics struct {
-	// 50th-percentile inter-token latency, in milliseconds.
-	ItlP50Ms float64 `json:"itlP50Ms"`
-	// 90th-percentile inter-token latency, in milliseconds.
-	ItlP90Ms float64 `json:"itlP90Ms"`
-	// 99th-percentile inter-token latency, in milliseconds.
-	ItlP99Ms float64 `json:"itlP99Ms"`
-	// 50th-percentile end-to-end request latency, in milliseconds.
-	LatencyP50Ms float64 `json:"latencyP50Ms"`
-	// 90th-percentile end-to-end request latency, in milliseconds.
-	LatencyP90Ms float64 `json:"latencyP90Ms"`
-	// 99th-percentile end-to-end request latency, in milliseconds.
-	LatencyP99Ms float64 `json:"latencyP99Ms"`
-	// 50th-percentile time to first token, in milliseconds.
-	TtftP50Ms float64 `json:"ttftP50Ms"`
-	// 90th-percentile time to first token, in milliseconds.
-	TtftP90Ms float64 `json:"ttftP90Ms"`
-	// 99th-percentile time to first token, in milliseconds.
-	TtftP99Ms float64 `json:"ttftP99Ms"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ItlP50Ms     respjson.Field
-		ItlP90Ms     respjson.Field
-		ItlP99Ms     respjson.Field
-		LatencyP50Ms respjson.Field
-		LatencyP90Ms respjson.Field
-		LatencyP99Ms respjson.Field
-		TtftP50Ms    respjson.Field
-		TtftP90Ms    respjson.Field
-		TtftP99Ms    respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsLatencyMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsLatencyMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Request counts and rates.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsRequestMetrics struct {
-	// Requests that failed during the time range.
-	FailedRequests string `json:"failedRequests"`
-	// Request counts keyed by HTTP status code.
-	RequestsByStatusCode map[string]string `json:"requestsByStatusCode"`
-	// Average requests per second over the time range.
-	RequestsPerSecond float64 `json:"requestsPerSecond"`
-	// Requests completed successfully during the time range.
-	SuccessfulRequests string `json:"successfulRequests"`
-	// Total requests received during the time range.
-	TotalRequests string `json:"totalRequests"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		FailedRequests       respjson.Field
-		RequestsByStatusCode respjson.Field
-		RequestsPerSecond    respjson.Field
-		SuccessfulRequests   respjson.Field
-		TotalRequests        respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsRequestMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsRequestMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Average CPU, GPU, memory, and network utilization.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsResourceUtilization struct {
-	// Average CPU utilization across replicas, as a percentage.
-	CPUUtilization float64 `json:"cpuUtilization"`
-	// Average GPU memory utilization across replicas, as a percentage.
-	GPUMemoryUtilization float64 `json:"gpuMemoryUtilization"`
-	// Average GPU compute utilization across replicas, as a percentage.
-	GPUUtilization float64 `json:"gpuUtilization"`
-	// Average system memory utilization across replicas, as a percentage.
-	MemoryUtilization float64 `json:"memoryUtilization"`
-	// Average network throughput across replicas, in megabits per second.
-	NetworkBandwidthMbps float64 `json:"networkBandwidthMbps"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CPUUtilization       respjson.Field
-		GPUMemoryUtilization respjson.Field
-		GPUUtilization       respjson.Field
-		MemoryUtilization    respjson.Field
-		NetworkBandwidthMbps respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsResourceUtilization) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsResourceUtilization) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Token, request, and batching throughput.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsThroughputMetrics struct {
-	// Average number of batches queued or in flight in the serving engine.
-	AvgBatchDepth float64 `json:"avgBatchDepth"`
-	// Average number of requests processed in each runtime batch.
-	AvgBatchSize float64 `json:"avgBatchSize"`
-	// Average completed requests per second.
-	RequestsPerSecond float64 `json:"requestsPerSecond"`
-	// Average generated tokens per second.
-	TokensPerSecond float64 `json:"tokensPerSecond"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AvgBatchDepth     respjson.Field
-		AvgBatchSize      respjson.Field
-		RequestsPerSecond respjson.Field
-		TokensPerSecond   respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsThroughputMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsThroughputMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Closed-open time range covered by the metrics.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTimeRange struct {
-	// Exclusive end of the time range.
-	EndTime time.Time `json:"endTime" format:"date-time"`
-	// Inclusive start of the time range.
-	StartTime time.Time `json:"startTime" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EndTime     respjson.Field
-		StartTime   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTimeRange) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTimeRange) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Input and output token totals and averages.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTokenMetrics struct {
-	// Average input tokens per request.
-	AvgInputTokens float64 `json:"avgInputTokens"`
-	// Average output tokens per request.
-	AvgOutputTokens float64 `json:"avgOutputTokens"`
-	// Total input tokens processed during the time range.
-	TotalInputTokens string `json:"totalInputTokens"`
-	// Total output tokens generated during the time range.
-	TotalOutputTokens string `json:"totalOutputTokens"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AvgInputTokens    respjson.Field
-		AvgOutputTokens   respjson.Field
-		TotalInputTokens  respjson.Field
-		TotalOutputTokens respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTokenMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsMetricsTokenMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Closed-open time range covered by the analytics.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeRange struct {
-	// Exclusive end of the time range.
-	EndTime time.Time `json:"endTime" format:"date-time"`
-	// Inclusive start of the time range.
-	StartTime time.Time `json:"startTime" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EndTime     respjson.Field
-		StartTime   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeRange) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeRange) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Timestamped bucket containing one or more named metric values.
-type BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeSeries struct {
-	// Start time of the metric bucket.
-	Timestamp time.Time `json:"timestamp" format:"date-time"`
-	// Metric names mapped to their numeric values for this bucket.
-	Values map[string]float64 `json:"values"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Timestamp   respjson.Field
-		Values      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeSeries) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseDeploymentAnalyticsTimeSeries) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // Operational metrics aggregated across all deployments receiving traffic for an
 // endpoint.
 type BetaEndpointAnalyticsResponseMetrics struct {
 	// Per-deployment breakdown, if the endpoint has multiple deployments.
-	DeploymentMetrics []BetaEndpointAnalyticsResponseMetricsDeploymentMetric `json:"deploymentMetrics"`
+	DeploymentMetrics []DeploymentMetrics `json:"deploymentMetrics"`
 	// The endpoint these metrics describe.
 	EndpointID string `json:"endpointId"`
 	// Error rate and counts by error type.
-	ErrorMetrics BetaEndpointAnalyticsResponseMetricsErrorMetrics `json:"errorMetrics"`
+	ErrorMetrics ErrorMetrics `json:"errorMetrics"`
 	// Time-to-first-token, end-to-end, and inter-token latency percentiles.
-	LatencyMetrics BetaEndpointAnalyticsResponseMetricsLatencyMetrics `json:"latencyMetrics"`
+	LatencyMetrics LatencyMetrics `json:"latencyMetrics"`
 	// Request counts and rates.
-	RequestMetrics BetaEndpointAnalyticsResponseMetricsRequestMetrics `json:"requestMetrics"`
+	RequestMetrics RequestMetrics `json:"requestMetrics"`
 	// Average CPU, GPU, memory, and network utilization.
-	ResourceUtilization BetaEndpointAnalyticsResponseMetricsResourceUtilization `json:"resourceUtilization"`
+	ResourceUtilization ResourceUtilization `json:"resourceUtilization"`
 	// Token, request, and batching throughput.
-	ThroughputMetrics BetaEndpointAnalyticsResponseMetricsThroughputMetrics `json:"throughputMetrics"`
+	ThroughputMetrics ThroughputMetrics `json:"throughputMetrics"`
 	// Closed-open time range used by metrics and analytics responses.
-	TimeRange BetaEndpointAnalyticsResponseMetricsTimeRange `json:"timeRange"`
+	TimeRange MetricsTimeRange `json:"timeRange"`
 	// Input and output token totals and averages.
-	TokenMetrics BetaEndpointAnalyticsResponseMetricsTokenMetrics `json:"tokenMetrics"`
+	TokenMetrics TokenMetrics `json:"tokenMetrics"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		DeploymentMetrics   respjson.Field
@@ -1729,500 +2135,6 @@ type BetaEndpointAnalyticsResponseMetrics struct {
 // Returns the unmodified JSON received from the API
 func (r BetaEndpointAnalyticsResponseMetrics) RawJSON() string { return r.JSON.raw }
 func (r *BetaEndpointAnalyticsResponseMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Operational metrics for one deployment under an endpoint.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetric struct {
-	// ID of the deployment summarized by these metrics.
-	DeploymentID string `json:"deploymentId"`
-	// ID of the deployment's parent endpoint.
-	EndpointID string `json:"endpointId"`
-	// Error rate and counts by error type.
-	ErrorMetrics BetaEndpointAnalyticsResponseMetricsDeploymentMetricErrorMetrics `json:"errorMetrics"`
-	// Time-to-first-token, end-to-end, and inter-token latency percentiles.
-	LatencyMetrics BetaEndpointAnalyticsResponseMetricsDeploymentMetricLatencyMetrics `json:"latencyMetrics"`
-	// Request counts and rates.
-	RequestMetrics BetaEndpointAnalyticsResponseMetricsDeploymentMetricRequestMetrics `json:"requestMetrics"`
-	// Average CPU, GPU, memory, and network utilization.
-	ResourceUtilization BetaEndpointAnalyticsResponseMetricsDeploymentMetricResourceUtilization `json:"resourceUtilization"`
-	// Token, request, and batching throughput.
-	ThroughputMetrics BetaEndpointAnalyticsResponseMetricsDeploymentMetricThroughputMetrics `json:"throughputMetrics"`
-	// Closed-open time range covered by the metrics.
-	TimeRange BetaEndpointAnalyticsResponseMetricsDeploymentMetricTimeRange `json:"timeRange"`
-	// Input and output token totals and averages.
-	TokenMetrics BetaEndpointAnalyticsResponseMetricsDeploymentMetricTokenMetrics `json:"tokenMetrics"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		DeploymentID        respjson.Field
-		EndpointID          respjson.Field
-		ErrorMetrics        respjson.Field
-		LatencyMetrics      respjson.Field
-		RequestMetrics      respjson.Field
-		ResourceUtilization respjson.Field
-		ThroughputMetrics   respjson.Field
-		TimeRange           respjson.Field
-		TokenMetrics        respjson.Field
-		ExtraFields         map[string]respjson.Field
-		raw                 string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetric) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetric) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Error rate and counts by error type.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetricErrorMetrics struct {
-	// Percentage in [0, 100].
-	ErrorRate float64 `json:"errorRate"`
-	// Counts of errors keyed by error type (e.g. HTTP status code or error kind).
-	ErrorsByType map[string]string `json:"errorsByType"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ErrorRate    respjson.Field
-		ErrorsByType respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetricErrorMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetricErrorMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Time-to-first-token, end-to-end, and inter-token latency percentiles.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetricLatencyMetrics struct {
-	// 50th-percentile inter-token latency, in milliseconds.
-	ItlP50Ms float64 `json:"itlP50Ms"`
-	// 90th-percentile inter-token latency, in milliseconds.
-	ItlP90Ms float64 `json:"itlP90Ms"`
-	// 99th-percentile inter-token latency, in milliseconds.
-	ItlP99Ms float64 `json:"itlP99Ms"`
-	// 50th-percentile end-to-end request latency, in milliseconds.
-	LatencyP50Ms float64 `json:"latencyP50Ms"`
-	// 90th-percentile end-to-end request latency, in milliseconds.
-	LatencyP90Ms float64 `json:"latencyP90Ms"`
-	// 99th-percentile end-to-end request latency, in milliseconds.
-	LatencyP99Ms float64 `json:"latencyP99Ms"`
-	// 50th-percentile time to first token, in milliseconds.
-	TtftP50Ms float64 `json:"ttftP50Ms"`
-	// 90th-percentile time to first token, in milliseconds.
-	TtftP90Ms float64 `json:"ttftP90Ms"`
-	// 99th-percentile time to first token, in milliseconds.
-	TtftP99Ms float64 `json:"ttftP99Ms"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ItlP50Ms     respjson.Field
-		ItlP90Ms     respjson.Field
-		ItlP99Ms     respjson.Field
-		LatencyP50Ms respjson.Field
-		LatencyP90Ms respjson.Field
-		LatencyP99Ms respjson.Field
-		TtftP50Ms    respjson.Field
-		TtftP90Ms    respjson.Field
-		TtftP99Ms    respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetricLatencyMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetricLatencyMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Request counts and rates.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetricRequestMetrics struct {
-	// Requests that failed during the time range.
-	FailedRequests string `json:"failedRequests"`
-	// Request counts keyed by HTTP status code.
-	RequestsByStatusCode map[string]string `json:"requestsByStatusCode"`
-	// Average requests per second over the time range.
-	RequestsPerSecond float64 `json:"requestsPerSecond"`
-	// Requests completed successfully during the time range.
-	SuccessfulRequests string `json:"successfulRequests"`
-	// Total requests received during the time range.
-	TotalRequests string `json:"totalRequests"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		FailedRequests       respjson.Field
-		RequestsByStatusCode respjson.Field
-		RequestsPerSecond    respjson.Field
-		SuccessfulRequests   respjson.Field
-		TotalRequests        respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetricRequestMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetricRequestMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Average CPU, GPU, memory, and network utilization.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetricResourceUtilization struct {
-	// Average CPU utilization across replicas, as a percentage.
-	CPUUtilization float64 `json:"cpuUtilization"`
-	// Average GPU memory utilization across replicas, as a percentage.
-	GPUMemoryUtilization float64 `json:"gpuMemoryUtilization"`
-	// Average GPU compute utilization across replicas, as a percentage.
-	GPUUtilization float64 `json:"gpuUtilization"`
-	// Average system memory utilization across replicas, as a percentage.
-	MemoryUtilization float64 `json:"memoryUtilization"`
-	// Average network throughput across replicas, in megabits per second.
-	NetworkBandwidthMbps float64 `json:"networkBandwidthMbps"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CPUUtilization       respjson.Field
-		GPUMemoryUtilization respjson.Field
-		GPUUtilization       respjson.Field
-		MemoryUtilization    respjson.Field
-		NetworkBandwidthMbps respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetricResourceUtilization) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetricResourceUtilization) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Token, request, and batching throughput.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetricThroughputMetrics struct {
-	// Average number of batches queued or in flight in the serving engine.
-	AvgBatchDepth float64 `json:"avgBatchDepth"`
-	// Average number of requests processed in each runtime batch.
-	AvgBatchSize float64 `json:"avgBatchSize"`
-	// Average completed requests per second.
-	RequestsPerSecond float64 `json:"requestsPerSecond"`
-	// Average generated tokens per second.
-	TokensPerSecond float64 `json:"tokensPerSecond"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AvgBatchDepth     respjson.Field
-		AvgBatchSize      respjson.Field
-		RequestsPerSecond respjson.Field
-		TokensPerSecond   respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetricThroughputMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetricThroughputMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Closed-open time range covered by the metrics.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetricTimeRange struct {
-	// Exclusive end of the time range.
-	EndTime time.Time `json:"endTime" format:"date-time"`
-	// Inclusive start of the time range.
-	StartTime time.Time `json:"startTime" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EndTime     respjson.Field
-		StartTime   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetricTimeRange) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetricTimeRange) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Input and output token totals and averages.
-type BetaEndpointAnalyticsResponseMetricsDeploymentMetricTokenMetrics struct {
-	// Average input tokens per request.
-	AvgInputTokens float64 `json:"avgInputTokens"`
-	// Average output tokens per request.
-	AvgOutputTokens float64 `json:"avgOutputTokens"`
-	// Total input tokens processed during the time range.
-	TotalInputTokens string `json:"totalInputTokens"`
-	// Total output tokens generated during the time range.
-	TotalOutputTokens string `json:"totalOutputTokens"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AvgInputTokens    respjson.Field
-		AvgOutputTokens   respjson.Field
-		TotalInputTokens  respjson.Field
-		TotalOutputTokens respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsDeploymentMetricTokenMetrics) RawJSON() string {
-	return r.JSON.raw
-}
-func (r *BetaEndpointAnalyticsResponseMetricsDeploymentMetricTokenMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Error rate and counts by error type.
-type BetaEndpointAnalyticsResponseMetricsErrorMetrics struct {
-	// Percentage in [0, 100].
-	ErrorRate float64 `json:"errorRate"`
-	// Counts of errors keyed by error type (e.g. HTTP status code or error kind).
-	ErrorsByType map[string]string `json:"errorsByType"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ErrorRate    respjson.Field
-		ErrorsByType respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsErrorMetrics) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsErrorMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Time-to-first-token, end-to-end, and inter-token latency percentiles.
-type BetaEndpointAnalyticsResponseMetricsLatencyMetrics struct {
-	// 50th-percentile inter-token latency, in milliseconds.
-	ItlP50Ms float64 `json:"itlP50Ms"`
-	// 90th-percentile inter-token latency, in milliseconds.
-	ItlP90Ms float64 `json:"itlP90Ms"`
-	// 99th-percentile inter-token latency, in milliseconds.
-	ItlP99Ms float64 `json:"itlP99Ms"`
-	// 50th-percentile end-to-end request latency, in milliseconds.
-	LatencyP50Ms float64 `json:"latencyP50Ms"`
-	// 90th-percentile end-to-end request latency, in milliseconds.
-	LatencyP90Ms float64 `json:"latencyP90Ms"`
-	// 99th-percentile end-to-end request latency, in milliseconds.
-	LatencyP99Ms float64 `json:"latencyP99Ms"`
-	// 50th-percentile time to first token, in milliseconds.
-	TtftP50Ms float64 `json:"ttftP50Ms"`
-	// 90th-percentile time to first token, in milliseconds.
-	TtftP90Ms float64 `json:"ttftP90Ms"`
-	// 99th-percentile time to first token, in milliseconds.
-	TtftP99Ms float64 `json:"ttftP99Ms"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ItlP50Ms     respjson.Field
-		ItlP90Ms     respjson.Field
-		ItlP99Ms     respjson.Field
-		LatencyP50Ms respjson.Field
-		LatencyP90Ms respjson.Field
-		LatencyP99Ms respjson.Field
-		TtftP50Ms    respjson.Field
-		TtftP90Ms    respjson.Field
-		TtftP99Ms    respjson.Field
-		ExtraFields  map[string]respjson.Field
-		raw          string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsLatencyMetrics) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsLatencyMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Request counts and rates.
-type BetaEndpointAnalyticsResponseMetricsRequestMetrics struct {
-	// Requests that failed during the time range.
-	FailedRequests string `json:"failedRequests"`
-	// Request counts keyed by HTTP status code.
-	RequestsByStatusCode map[string]string `json:"requestsByStatusCode"`
-	// Average requests per second over the time range.
-	RequestsPerSecond float64 `json:"requestsPerSecond"`
-	// Requests completed successfully during the time range.
-	SuccessfulRequests string `json:"successfulRequests"`
-	// Total requests received during the time range.
-	TotalRequests string `json:"totalRequests"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		FailedRequests       respjson.Field
-		RequestsByStatusCode respjson.Field
-		RequestsPerSecond    respjson.Field
-		SuccessfulRequests   respjson.Field
-		TotalRequests        respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsRequestMetrics) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsRequestMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Average CPU, GPU, memory, and network utilization.
-type BetaEndpointAnalyticsResponseMetricsResourceUtilization struct {
-	// Average CPU utilization across replicas, as a percentage.
-	CPUUtilization float64 `json:"cpuUtilization"`
-	// Average GPU memory utilization across replicas, as a percentage.
-	GPUMemoryUtilization float64 `json:"gpuMemoryUtilization"`
-	// Average GPU compute utilization across replicas, as a percentage.
-	GPUUtilization float64 `json:"gpuUtilization"`
-	// Average system memory utilization across replicas, as a percentage.
-	MemoryUtilization float64 `json:"memoryUtilization"`
-	// Average network throughput across replicas, in megabits per second.
-	NetworkBandwidthMbps float64 `json:"networkBandwidthMbps"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CPUUtilization       respjson.Field
-		GPUMemoryUtilization respjson.Field
-		GPUUtilization       respjson.Field
-		MemoryUtilization    respjson.Field
-		NetworkBandwidthMbps respjson.Field
-		ExtraFields          map[string]respjson.Field
-		raw                  string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsResourceUtilization) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsResourceUtilization) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Token, request, and batching throughput.
-type BetaEndpointAnalyticsResponseMetricsThroughputMetrics struct {
-	// Average number of batches queued or in flight in the serving engine.
-	AvgBatchDepth float64 `json:"avgBatchDepth"`
-	// Average number of requests processed in each runtime batch.
-	AvgBatchSize float64 `json:"avgBatchSize"`
-	// Average completed requests per second.
-	RequestsPerSecond float64 `json:"requestsPerSecond"`
-	// Average generated tokens per second.
-	TokensPerSecond float64 `json:"tokensPerSecond"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AvgBatchDepth     respjson.Field
-		AvgBatchSize      respjson.Field
-		RequestsPerSecond respjson.Field
-		TokensPerSecond   respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsThroughputMetrics) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsThroughputMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Closed-open time range used by metrics and analytics responses.
-type BetaEndpointAnalyticsResponseMetricsTimeRange struct {
-	// Exclusive end of the time range.
-	EndTime time.Time `json:"endTime" format:"date-time"`
-	// Inclusive start of the time range.
-	StartTime time.Time `json:"startTime" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EndTime     respjson.Field
-		StartTime   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsTimeRange) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsTimeRange) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Input and output token totals and averages.
-type BetaEndpointAnalyticsResponseMetricsTokenMetrics struct {
-	// Average input tokens per request.
-	AvgInputTokens float64 `json:"avgInputTokens"`
-	// Average output tokens per request.
-	AvgOutputTokens float64 `json:"avgOutputTokens"`
-	// Total input tokens processed during the time range.
-	TotalInputTokens string `json:"totalInputTokens"`
-	// Total output tokens generated during the time range.
-	TotalOutputTokens string `json:"totalOutputTokens"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		AvgInputTokens    respjson.Field
-		AvgOutputTokens   respjson.Field
-		TotalInputTokens  respjson.Field
-		TotalOutputTokens respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseMetricsTokenMetrics) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseMetricsTokenMetrics) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Closed-open time range covered by the analytics.
-type BetaEndpointAnalyticsResponseTimeRange struct {
-	// Exclusive end of the time range.
-	EndTime time.Time `json:"endTime" format:"date-time"`
-	// Inclusive start of the time range.
-	StartTime time.Time `json:"startTime" format:"date-time"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		EndTime     respjson.Field
-		StartTime   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseTimeRange) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseTimeRange) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Timestamped bucket containing one or more named metric values.
-type BetaEndpointAnalyticsResponseTimeSeries struct {
-	// Start time of the metric bucket.
-	Timestamp time.Time `json:"timestamp" format:"date-time"`
-	// Metric names mapped to their numeric values for this bucket.
-	Values map[string]float64 `json:"values"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Timestamp   respjson.Field
-		Values      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r BetaEndpointAnalyticsResponseTimeSeries) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointAnalyticsResponseTimeSeries) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
