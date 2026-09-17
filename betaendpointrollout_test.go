@@ -263,7 +263,7 @@ func TestBetaEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
 			FinalSourceReplicas: together.Int(0),
 			FinalTargetReplicas: together.Int(0),
 			Metrics: []together.MetricRuleParam{{
-				Name:       together.MetricRuleNameInflightRequests,
+				Name:       together.MetricRuleNameRouterLatency,
 				Percentile: together.Int(95),
 				RegressionCheck: together.RegressionCheckParam{
 					Direction:            together.RegressionCheckDirectionRegressionDirectionHigherIsWorse,
