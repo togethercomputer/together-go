@@ -72,6 +72,7 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 			Config:          together.String("config"),
 			ConfigID:        together.String("configId"),
 			EnableLora:      together.Bool(true),
+			InactiveTimeout: together.Int(0),
 			Model:           together.String("model"),
 			ModelID:         together.String("modelId"),
 			ModelRevisionID: together.String("modelRevisionId"),
@@ -182,8 +183,9 @@ func TestBetaEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
 					Percentile: together.String("percentile"),
 				}},
 			},
-			Etag: together.String("etag"),
-			Name: together.String("name"),
+			Etag:            together.String("etag"),
+			InactiveTimeout: together.Int(0),
+			Name:            together.String("name"),
 		},
 	)
 	if err != nil {

@@ -219,6 +219,9 @@ type BetaEndpointDeploymentNewParams struct {
 	ConfigID param.Opt[string] `json:"configId,omitzero"`
 	// Enables dynamic loading of LoRA adapters on the deployment.
 	EnableLora param.Opt[bool] `json:"enableLora,omitzero"`
+	// Inactive timeout in minutes. Use 0 or omit to disable automatic stopping;
+	// otherwise accepted values are 30 through 1440.
+	InactiveTimeout param.Opt[int64] `json:"inactiveTimeout,omitzero"`
 	// Model resource name in the form
 	// `projects/{projectId}/models/{modelId}[/revisions/{revisionId}]`. Omit the
 	// revision segment to pin the latest revision at creation time.
@@ -328,6 +331,9 @@ type BetaEndpointDeploymentUpdateParams struct {
 	// Current deployment version. The update is rejected if this value no longer
 	// matches.
 	Etag param.Opt[string] `json:"etag,omitzero"`
+	// Updated inactive timeout in minutes. Use 0 to disable automatic stopping;
+	// otherwise accepted values are 30 through 1440.
+	InactiveTimeout param.Opt[int64] `json:"inactiveTimeout,omitzero"`
 	// Updated endpoint string.
 	Name param.Opt[string] `json:"name,omitzero"`
 	// Autoscaling configuration for a deployment.

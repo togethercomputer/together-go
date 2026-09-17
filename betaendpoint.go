@@ -749,6 +749,9 @@ type EndpointDeployment struct {
 	// Estimated fraction in [0, 1] of endpoint traffic that reaches this deployment
 	// under the current routing configuration. Absent or unrouted deployments are 0.
 	EstimatedEffectiveTrafficShare float64 `json:"estimatedEffectiveTrafficShare"`
+	// Minutes without an inference request before the deployment stops automatically.
+	// Omitted or 0 means automatic stopping is disabled.
+	InactiveTimeout int64 `json:"inactiveTimeout"`
 	// Placement controls where a deployment is scheduled.
 	Placement EndpointDeploymentPlacementUnion `json:"placement"`
 	// Runtime information derived from the deployment's configuration.
@@ -783,6 +786,7 @@ type EndpointDeployment struct {
 		DesiredReplicas                respjson.Field
 		EnableLora                     respjson.Field
 		EstimatedEffectiveTrafficShare respjson.Field
+		InactiveTimeout                respjson.Field
 		Placement                      respjson.Field
 		RuntimeInfo                    respjson.Field
 		Speculator                     respjson.Field
