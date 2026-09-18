@@ -516,6 +516,8 @@ type SupportedModel struct {
 	InputFormat string `json:"inputFormat"`
 	// Preferred output format for the model.
 	OutputFormat string `json:"outputFormat"`
+	// Serverless pricing in USD per one million tokens, if available.
+	Pricing SupportedModelPricing `json:"pricing"`
 	// Serverless endpoint name for inference, if available.
 	ServerlessEndpoint string `json:"serverlessEndpoint"`
 	// Searchable catalog tags for the model.
@@ -544,6 +546,7 @@ type SupportedModel struct {
 		Features           respjson.Field
 		InputFormat        respjson.Field
 		OutputFormat       respjson.Field
+		Pricing            respjson.Field
 		ServerlessEndpoint respjson.Field
 		Tags               respjson.Field
 		ExtraFields        map[string]respjson.Field
@@ -566,6 +569,30 @@ const (
 	SupportedModelStatusSupportedModelStatusDeprecated  SupportedModelStatus = "SUPPORTED_MODEL_STATUS_DEPRECATED"
 	SupportedModelStatusSupportedModelStatusHidden      SupportedModelStatus = "SUPPORTED_MODEL_STATUS_HIDDEN"
 )
+
+// Serverless pricing in USD per one million tokens, if available.
+type SupportedModelPricing struct {
+	// Price in USD per one million cached input tokens.
+	CachedInput float64 `json:"cachedInput"`
+	// Price in USD per one million input tokens.
+	Input float64 `json:"input"`
+	// Price in USD per one million output tokens.
+	Output float64 `json:"output"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CachedInput respjson.Field
+		Input       respjson.Field
+		Output      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SupportedModelPricing) RawJSON() string { return r.JSON.raw }
+func (r *SupportedModelPricing) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 // Certified deployment profile for a supported model.
 type SupportedModelDeploymentProfile struct {
