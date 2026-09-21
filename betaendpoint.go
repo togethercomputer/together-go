@@ -744,8 +744,6 @@ type EndpointDeployment struct {
 	UpdatedAt time.Time `json:"updatedAt" api:"required" format:"date-time"`
 	// Number of replicas the autoscaler currently wants across all regions.
 	DesiredReplicas int64 `json:"desiredReplicas"`
-	// Whether the deployment can dynamically load LoRA adapters.
-	EnableLora bool `json:"enableLora"`
 	// Estimated fraction in [0, 1] of endpoint traffic that reaches this deployment
 	// under the current routing configuration. Absent or unrouted deployments are 0.
 	EstimatedEffectiveTrafficShare float64 `json:"estimatedEffectiveTrafficShare"`
@@ -784,7 +782,6 @@ type EndpointDeployment struct {
 		TrafficMode                    respjson.Field
 		UpdatedAt                      respjson.Field
 		DesiredReplicas                respjson.Field
-		EnableLora                     respjson.Field
 		EstimatedEffectiveTrafficShare respjson.Field
 		InactiveTimeout                respjson.Field
 		Placement                      respjson.Field

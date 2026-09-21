@@ -71,7 +71,6 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 			ValidateOnly:    together.Bool(true),
 			Config:          together.String("config"),
 			ConfigID:        together.String("configId"),
-			EnableLora:      together.Bool(true),
 			InactiveTimeout: together.Int(0),
 			Model:           together.String("model"),
 			ModelID:         together.String("modelId"),

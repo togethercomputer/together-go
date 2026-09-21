@@ -217,8 +217,6 @@ type BetaEndpointDeploymentNewParams struct {
 	// Deprecated. Use `config`. Config revision identifier to deploy, accepted when
 	// `config` is unset.
 	ConfigID param.Opt[string] `json:"configId,omitzero"`
-	// Enables dynamic loading of LoRA adapters on the deployment.
-	EnableLora param.Opt[bool] `json:"enableLora,omitzero"`
 	// Inactive timeout in minutes. Use 0 or omit to disable automatic stopping;
 	// otherwise accepted values are 30 through 1440.
 	InactiveTimeout param.Opt[int64] `json:"inactiveTimeout,omitzero"`
