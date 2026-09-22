@@ -462,6 +462,8 @@ func (r *FinetuneModelLimits) UnmarshalJSON(data []byte) error {
 
 // Limits for LoRA training.
 type FinetuneModelLimitsLoraTraining struct {
+	// Default LoRA rank applied when a fine-tune request omits training_type.
+	DefaultRank int64 `json:"default_rank" api:"required"`
 	// Maximum batch size for SFT LoRA training.
 	MaxBatchSize int64 `json:"max_batch_size" api:"required"`
 	// Maximum batch size for DPO LoRA training.
@@ -474,6 +476,7 @@ type FinetuneModelLimitsLoraTraining struct {
 	TargetModules []string `json:"target_modules" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		DefaultRank     respjson.Field
 		MaxBatchSize    respjson.Field
 		MaxBatchSizeDpo respjson.Field
 		MaxRank         respjson.Field
