@@ -127,6 +127,12 @@ type Deployment struct {
 	// Autoscaling contains autoscaling configuration parameters for this deployment.
 	// Omitted when autoscaling is disabled (nil)
 	Autoscaling DeploymentAutoscalingUnion `json:"autoscaling"`
+	// Controls how replicas above reserved capacity behave. `stable` replicas stay
+	// running after scale-up; `preemptible` replicas may be evicted during capacity
+	// contention.
+	//
+	// Any of "stable", "preemptible".
+	CapacityType DeploymentCapacityType `json:"capacity_type"`
 	// Command is the entrypoint command run in the container
 	Command []string `json:"command"`
 	// CPU is the amount of CPU resource allocated to each replica in cores (fractional
@@ -190,6 +196,7 @@ type Deployment struct {
 		ID                            respjson.Field
 		Args                          respjson.Field
 		Autoscaling                   respjson.Field
+		CapacityType                  respjson.Field
 		Command                       respjson.Field
 		CPU                           respjson.Field
 		CreatedAt                     respjson.Field
@@ -351,6 +358,16 @@ func (r DeploymentAutoscalingCustomMetricAutoscalingConfig) RawJSON() string { r
 func (r *DeploymentAutoscalingCustomMetricAutoscalingConfig) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// Controls how replicas above reserved capacity behave. `stable` replicas stay
+// running after scale-up; `preemptible` replicas may be evicted during capacity
+// contention.
+type DeploymentCapacityType string
+
+const (
+	DeploymentCapacityTypeStable      DeploymentCapacityType = "stable"
+	DeploymentCapacityTypePreemptible DeploymentCapacityType = "preemptible"
+)
 
 type DeploymentEnvironmentVariable struct {
 	// Name is the environment variable name (e.g., "DATABASE_URL"). Must start with a
@@ -551,6 +568,12 @@ type BetaJigUpdateParams struct {
 	Args []string `json:"args,omitzero"`
 	// Autoscaling configuration for the deployment. Set to {} to disable autoscaling
 	Autoscaling BetaJigUpdateParamsAutoscalingUnion `json:"autoscaling,omitzero"`
+	// Controls how replicas above reserved capacity behave. `stable` replicas stay
+	// running after scale-up; `preemptible` replicas may be evicted during capacity
+	// contention.
+	//
+	// Any of "stable", "preemptible".
+	CapacityType BetaJigUpdateParamsCapacityType `json:"capacity_type,omitzero"`
 	// Command overrides the container's ENTRYPOINT. Provide as an array (e.g.,
 	// ["/bin/sh", "-c"])
 	Command []string `json:"command,omitzero"`
@@ -735,6 +758,16 @@ func init() {
 	)
 }
 
+// Controls how replicas above reserved capacity behave. `stable` replicas stay
+// running after scale-up; `preemptible` replicas may be evicted during capacity
+// contention.
+type BetaJigUpdateParamsCapacityType string
+
+const (
+	BetaJigUpdateParamsCapacityTypeStable      BetaJigUpdateParamsCapacityType = "stable"
+	BetaJigUpdateParamsCapacityTypePreemptible BetaJigUpdateParamsCapacityType = "preemptible"
+)
+
 // The property Name is required.
 type BetaJigUpdateParamsEnvironmentVariable struct {
 	// Name is the environment variable name (e.g., "DATABASE_URL"). Must start with a
@@ -836,6 +869,12 @@ type BetaJigDeployParams struct {
 	// "target": 1.01} to scale based on queue backlog. Omit or set to null to disable
 	// autoscaling
 	Autoscaling BetaJigDeployParamsAutoscalingUnion `json:"autoscaling,omitzero"`
+	// Controls how replicas above reserved capacity behave. `stable` replicas stay
+	// running after scale-up; `preemptible` replicas may be evicted during capacity
+	// contention.
+	//
+	// Any of "stable", "preemptible".
+	CapacityType BetaJigDeployParamsCapacityType `json:"capacity_type,omitzero"`
 	// Command overrides the container's ENTRYPOINT. Provide as an array (e.g.,
 	// ["/bin/sh", "-c"])
 	Command []string `json:"command,omitzero"`
@@ -1025,6 +1064,16 @@ func init() {
 		"metric", "CustomMetric",
 	)
 }
+
+// Controls how replicas above reserved capacity behave. `stable` replicas stay
+// running after scale-up; `preemptible` replicas may be evicted during capacity
+// contention.
+type BetaJigDeployParamsCapacityType string
+
+const (
+	BetaJigDeployParamsCapacityTypeStable      BetaJigDeployParamsCapacityType = "stable"
+	BetaJigDeployParamsCapacityTypePreemptible BetaJigDeployParamsCapacityType = "preemptible"
+)
 
 // The property Name is required.
 type BetaJigDeployParamsEnvironmentVariable struct {
