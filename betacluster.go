@@ -1522,6 +1522,8 @@ type BetaClusterNewParamsSharedVolume struct {
 	SizeTib int64 `json:"size_tib" api:"required"`
 	// User provided name of the volume.
 	VolumeName string `json:"volume_name" api:"required"`
+	// Cluster ID to pin the volume to the same substrate as that GPU cluster.
+	InstanceClusterID param.Opt[string] `json:"instance_cluster_id,omitzero"`
 	// When true, the shared volume is not deleted when the cluster is decommissioned.
 	IsLifecycleIndependent param.Opt[bool] `json:"is_lifecycle_independent,omitzero"`
 	// Project ID that will own the volume. When omitted, the caller's default project

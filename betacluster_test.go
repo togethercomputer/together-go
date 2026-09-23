@@ -115,6 +115,7 @@ func TestBetaClusterNewWithOptionalParams(t *testing.T) {
 			Region:                 "region",
 			SizeTib:                0,
 			VolumeName:             "volume_name",
+			InstanceClusterID:      together.String("instance_cluster_id"),
 			IsLifecycleIndependent: together.Bool(true),
 			ProjectID:              together.String("project_id"),
 		},
