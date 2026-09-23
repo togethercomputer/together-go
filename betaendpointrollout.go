@@ -948,8 +948,9 @@ type RolloutDefaultsPreview struct {
 	// Target deployment replica count the defaults were computed from. Zero is a real
 	// value.
 	TargetReplicas int64 `json:"targetReplicas" api:"required"`
-	// Non-blocking findings to surface next to the form. An empty list means the shown
-	// values are safe to submit as-is.
+	// Findings to surface next to the form when a later gate will refuse the spec or a
+	// standing guarantee is lost. An empty list means the shown values are safe to
+	// submit as-is; render message for unrecognized codes.
 	Warnings []RolloutDefaultsPreviewWarning `json:"warnings" api:"required"`
 	// Steps the rollout is expected to walk when the caller leaves steps unset.
 	// Display only. Empty when the caller supplied steps or no ladder applies.
@@ -962,6 +963,12 @@ type RolloutDefaultsPreview struct {
 	// resumes from the current split rather than from zero. See warnings for standing
 	// split shapes that StartRollout will still reject.
 	FrozenPair bool `json:"frozenPair"`
+	// Expected autoscaling maximum replicas for the completed target; unset while the
+	// final target replicas cannot be resolved.
+	LandingMaxReplicas int64 `json:"landingMaxReplicas"`
+	// Expected autoscaling minimum replicas for the completed target; unset while the
+	// final target replicas cannot be resolved.
+	LandingMinReplicas int64 `json:"landingMinReplicas"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		SourceReplicas          respjson.Field
@@ -973,6 +980,8 @@ type RolloutDefaultsPreview struct {
 		EstimatedEffectiveSteps respjson.Field
 		EstimatedSeedPercent    respjson.Field
 		FrozenPair              respjson.Field
+		LandingMaxReplicas      respjson.Field
+		LandingMinReplicas      respjson.Field
 		ExtraFields             map[string]respjson.Field
 		raw                     string
 	} `json:"-"`
@@ -1042,11 +1051,12 @@ func (r *RolloutDefaultsPreviewSpec) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// A non-blocking finding attached to a rollout defaults preview.
+// A non-blocking finding attached to a rollout defaults preview; expected
+// end-state facts are structured fields on RolloutDefaultsPreview.
 type RolloutDefaultsPreviewWarning struct {
-	// Machine-readable warning code, such as START_WILL_REJECT,
-	// ROLLOUT_WILL_RAISE_TARGET_MAX, FINAL_BELOW_INHERITED_MIN, or
-	// FINAL_BELOW_SOURCE_MIN. Render message for unrecognized codes.
+	// Machine-readable warning code. Current vocabulary is START_WILL_REJECT,
+	// FINAL_BELOW_SOURCE_MIN, and FIRST_STEP_AT_SEED; render message for unrecognized
+	// codes.
 	Code string `json:"code" api:"required"`
 	// Plain-language description of the finding, safe to show users as-is.
 	Message string `json:"message" api:"required"`
