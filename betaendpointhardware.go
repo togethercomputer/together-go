@@ -102,11 +102,16 @@ func (r *InferenceInstanceType) UnmarshalJSON(data []byte) error {
 type InferenceInstanceTypeRegion struct {
 	// Region name where an instance type is offered.
 	Name string `json:"name" api:"required"`
+	// Compliance regimes certified in this region with best-effort headroom for each
+	// policy. Entries can overlap; read the entry matching the deployment policy
+	// instead of summing entries.
+	Compliance []InferenceInstanceTypeRegionCompliance `json:"compliance"`
 	// Best-effort estimate of how many additional replicas currently fit in a region.
 	Headroom InferenceInstanceTypeRegionHeadroom `json:"headroom"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Name        respjson.Field
+		Compliance  respjson.Field
 		Headroom    respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
@@ -116,6 +121,68 @@ type InferenceInstanceTypeRegion struct {
 // Returns the unmodified JSON received from the API
 func (r InferenceInstanceTypeRegion) RawJSON() string { return r.JSON.raw }
 func (r *InferenceInstanceTypeRegion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Compliance-specific regional availability for one instance type policy.
+type InferenceInstanceTypeRegionCompliance struct {
+	// Best-effort estimate of how many additional replicas currently fit in a region.
+	Headroom InferenceInstanceTypeRegionComplianceHeadroom `json:"headroom" api:"required"`
+	// Compliance regimes required by a deployment placement policy.
+	Policy InferenceInstanceTypeRegionCompliancePolicy `json:"policy" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Headroom    respjson.Field
+		Policy      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r InferenceInstanceTypeRegionCompliance) RawJSON() string { return r.JSON.raw }
+func (r *InferenceInstanceTypeRegionCompliance) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Best-effort estimate of how many additional replicas currently fit in a region.
+type InferenceInstanceTypeRegionComplianceHeadroom struct {
+	// Whether the value is exact or a lower bound.
+	//
+	// Any of "RELATION_EQ", "RELATION_GTE".
+	Relation string `json:"relation" api:"required"`
+	// Capped count of replicas that currently fit.
+	Value int64 `json:"value"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Relation    respjson.Field
+		Value       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r InferenceInstanceTypeRegionComplianceHeadroom) RawJSON() string { return r.JSON.raw }
+func (r *InferenceInstanceTypeRegionComplianceHeadroom) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Compliance regimes required by a deployment placement policy.
+type InferenceInstanceTypeRegionCompliancePolicy struct {
+	// Restrict placement to HIPAA-attested clusters.
+	Hipaa bool `json:"hipaa"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Hipaa       respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r InferenceInstanceTypeRegionCompliancePolicy) RawJSON() string { return r.JSON.raw }
+func (r *InferenceInstanceTypeRegionCompliancePolicy) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
