@@ -67,14 +67,15 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 					Percentile: together.String("percentile"),
 				}},
 			},
-			Name:            "name",
-			ValidateOnly:    together.Bool(true),
-			Config:          together.String("config"),
-			ConfigID:        together.String("configId"),
-			InactiveTimeout: together.Int(0),
-			Model:           together.String("model"),
-			ModelID:         together.String("modelId"),
-			ModelRevisionID: together.String("modelRevisionId"),
+			Name:                            "name",
+			ValidateOnly:                    together.Bool(true),
+			Config:                          together.String("config"),
+			ConfigID:                        together.String("configId"),
+			InactiveTimeout:                 together.Int(0),
+			MaxConcurrentRequestsPerReplica: together.String("maxConcurrentRequestsPerReplica"),
+			Model:                           together.String("model"),
+			ModelID:                         together.String("modelId"),
+			ModelRevisionID:                 together.String("modelRevisionId"),
 			Placement: together.BetaEndpointDeploymentNewParamsPlacementUnion{
 				OfInline: &together.BetaEndpointDeploymentNewParamsPlacementInline{
 					Inline: together.DeploymentPlacementConfigParam{
@@ -182,9 +183,10 @@ func TestBetaEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
 					Percentile: together.String("percentile"),
 				}},
 			},
-			Etag:            together.String("etag"),
-			InactiveTimeout: together.Int(0),
-			Name:            together.String("name"),
+			Etag:                            together.String("etag"),
+			InactiveTimeout:                 together.Int(0),
+			MaxConcurrentRequestsPerReplica: together.String("maxConcurrentRequestsPerReplica"),
+			Name:                            together.String("name"),
 		},
 	)
 	if err != nil {

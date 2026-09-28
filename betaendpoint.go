@@ -750,6 +750,12 @@ type EndpointDeployment struct {
 	// Minutes without an inference request before the deployment stops automatically.
 	// Omitted or 0 means automatic stopping is disabled.
 	InactiveTimeout int64 `json:"inactiveTimeout"`
+	// Maximum number of inference requests that may be in flight to a single replica.
+	// If omitted, the platform uses one less than the config's per-replica concurrency
+	// limit to reserve a health-check slot. Values above that maximum are reduced on
+	// create and update; 0 means unlimited when the config limit is 1 or less. Changes
+	// take effect without restarting replicas.
+	MaxConcurrentRequestsPerReplica string `json:"maxConcurrentRequestsPerReplica"`
 	// Placement controls where a deployment is scheduled.
 	Placement EndpointDeploymentPlacementUnion `json:"placement"`
 	// Runtime information derived from the deployment's configuration.
@@ -765,32 +771,33 @@ type EndpointDeployment struct {
 	SpeculatorRevisionID string `json:"speculatorRevisionId"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID                             respjson.Field
-		Autoscaling                    respjson.Field
-		Config                         respjson.Field
-		ConfigID                       respjson.Field
-		CreatedAt                      respjson.Field
-		EndpointID                     respjson.Field
-		Etag                           respjson.Field
-		Hardware                       respjson.Field
-		Model                          respjson.Field
-		ModelID                        respjson.Field
-		ModelRevisionID                respjson.Field
-		Name                           respjson.Field
-		ProjectID                      respjson.Field
-		Status                         respjson.Field
-		TrafficMode                    respjson.Field
-		UpdatedAt                      respjson.Field
-		DesiredReplicas                respjson.Field
-		EstimatedEffectiveTrafficShare respjson.Field
-		InactiveTimeout                respjson.Field
-		Placement                      respjson.Field
-		RuntimeInfo                    respjson.Field
-		Speculator                     respjson.Field
-		SpeculatorID                   respjson.Field
-		SpeculatorRevisionID           respjson.Field
-		ExtraFields                    map[string]respjson.Field
-		raw                            string
+		ID                              respjson.Field
+		Autoscaling                     respjson.Field
+		Config                          respjson.Field
+		ConfigID                        respjson.Field
+		CreatedAt                       respjson.Field
+		EndpointID                      respjson.Field
+		Etag                            respjson.Field
+		Hardware                        respjson.Field
+		Model                           respjson.Field
+		ModelID                         respjson.Field
+		ModelRevisionID                 respjson.Field
+		Name                            respjson.Field
+		ProjectID                       respjson.Field
+		Status                          respjson.Field
+		TrafficMode                     respjson.Field
+		UpdatedAt                       respjson.Field
+		DesiredReplicas                 respjson.Field
+		EstimatedEffectiveTrafficShare  respjson.Field
+		InactiveTimeout                 respjson.Field
+		MaxConcurrentRequestsPerReplica respjson.Field
+		Placement                       respjson.Field
+		RuntimeInfo                     respjson.Field
+		Speculator                      respjson.Field
+		SpeculatorID                    respjson.Field
+		SpeculatorRevisionID            respjson.Field
+		ExtraFields                     map[string]respjson.Field
+		raw                             string
 	} `json:"-"`
 }
 

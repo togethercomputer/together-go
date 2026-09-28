@@ -220,6 +220,11 @@ type BetaEndpointDeploymentNewParams struct {
 	// Inactive timeout in minutes. Use 0 or omit to disable automatic stopping;
 	// otherwise accepted values are 30 through 1440.
 	InactiveTimeout param.Opt[int64] `json:"inactiveTimeout,omitzero"`
+	// Maximum number of inference requests that may be in flight to a single replica.
+	// If omitted, the platform uses one less than the config's per-replica concurrency
+	// limit to reserve a health-check slot. Values above that maximum are reduced on
+	// create; 0 means unlimited when the config limit is 1 or less.
+	MaxConcurrentRequestsPerReplica param.Opt[string] `json:"maxConcurrentRequestsPerReplica,omitzero"`
 	// Model resource name in the form
 	// `projects/{projectId}/models/{modelId}[/revisions/{revisionId}]`. Omit the
 	// revision segment to pin the latest revision at creation time.
@@ -332,6 +337,11 @@ type BetaEndpointDeploymentUpdateParams struct {
 	// Updated inactive timeout in minutes. Use 0 to disable automatic stopping;
 	// otherwise accepted values are 30 through 1440.
 	InactiveTimeout param.Opt[int64] `json:"inactiveTimeout,omitzero"`
+	// Updated maximum number of inference requests that may be in flight to a single
+	// replica. Values above the deployment config's per-replica concurrency limit
+	// minus one are reduced on update; 0 means unlimited when the config limit is 1 or
+	// less. Changes take effect without restarting replicas.
+	MaxConcurrentRequestsPerReplica param.Opt[string] `json:"maxConcurrentRequestsPerReplica,omitzero"`
 	// Updated endpoint string.
 	Name param.Opt[string] `json:"name,omitzero"`
 	// Autoscaling configuration for a deployment.
