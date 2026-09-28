@@ -164,6 +164,8 @@ type Deployment struct {
 	Memory float64 `json:"memory"`
 	// MinReplicas is the minimum number of replicas to run for this deployment
 	MinReplicas int64 `json:"min_replicas"`
+	// Model weights mounted into this deployment, including the pinned revisions.
+	ModelMounts []DeploymentModelMount `json:"model_mounts"`
 	// Name is the name of the deployment
 	Name string `json:"name"`
 	// The object type, which is always `deployment`.
@@ -210,6 +212,7 @@ type Deployment struct {
 		MaxReplicas                   respjson.Field
 		Memory                        respjson.Field
 		MinReplicas                   respjson.Field
+		ModelMounts                   respjson.Field
 		Name                          respjson.Field
 		Object                        respjson.Field
 		Port                          respjson.Field
@@ -406,6 +409,30 @@ const (
 	DeploymentGPUTypeB200_192gb   DeploymentGPUType = "b200-192gb"
 )
 
+type DeploymentModelMount struct {
+	// Model registry identifier (`ml_...`) whose weights are mounted.
+	ModelID string `json:"model_id" api:"required"`
+	// Container path where model weights are mounted, such as `/models`.
+	MountPath string `json:"mount_path" api:"required"`
+	// Optional validated revision identifier (`rv_...`) to pin; defaults to the latest
+	// validated revision.
+	RevisionID string `json:"revision_id"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ModelID     respjson.Field
+		MountPath   respjson.Field
+		RevisionID  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentModelMount) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentModelMount) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // The object type, which is always `deployment`.
 type DeploymentObject string
 
@@ -584,6 +611,9 @@ type BetaJigUpdateParams struct {
 	//
 	// Any of "h100-80gb", "h100-40gb-mig", "h200-140gb", "b200-192gb".
 	GPUType BetaJigUpdateParamsGPUType `json:"gpu_type,omitzero"`
+	// Replacement model weights to mount into the deployment. At most one mount is
+	// supported, and it cannot be used with volumes.
+	ModelMounts []BetaJigUpdateParamsModelMount `json:"model_mounts,omitzero"`
 	// Volumes is a list of volume mounts to attach to the container. Replaces all
 	// existing volumes.
 	Volumes []BetaJigUpdateParamsVolume `json:"volumes,omitzero"`
@@ -801,6 +831,26 @@ const (
 	BetaJigUpdateParamsGPUTypeB200_192gb   BetaJigUpdateParamsGPUType = "b200-192gb"
 )
 
+// The properties ModelID, MountPath are required.
+type BetaJigUpdateParamsModelMount struct {
+	// Model registry identifier (`ml_...`) whose weights are mounted.
+	ModelID string `json:"model_id" api:"required"`
+	// Container path where model weights are mounted, such as `/models`.
+	MountPath string `json:"mount_path" api:"required"`
+	// Optional validated revision identifier (`rv_...`) to pin; defaults to the latest
+	// validated revision.
+	RevisionID param.Opt[string] `json:"revision_id,omitzero"`
+	paramObj
+}
+
+func (r BetaJigUpdateParamsModelMount) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigUpdateParamsModelMount
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigUpdateParamsModelMount) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 // The properties MountPath, Name are required.
 type BetaJigUpdateParamsVolume struct {
 	// MountPath is the path in the container where the volume mounts (e.g., "/data").
@@ -881,6 +931,9 @@ type BetaJigDeployParams struct {
 	// EnvironmentVariables is a list of environment variables to set in the container.
 	// Each must have a name and either a value or value_from_secret
 	EnvironmentVariables []BetaJigDeployParamsEnvironmentVariable `json:"environment_variables,omitzero"`
+	// Model weights to preload from Together's model registry into the container. At
+	// most one mount is supported, and it cannot be used with volumes.
+	ModelMounts []BetaJigDeployParamsModelMount `json:"model_mounts,omitzero"`
 	// Volumes is a list of volume mounts to attach to the container. Each mount must
 	// reference an existing volume by name
 	Volumes []BetaJigDeployParamsVolume `json:"volumes,omitzero"`
@@ -1095,6 +1148,26 @@ func (r BetaJigDeployParamsEnvironmentVariable) MarshalJSON() (data []byte, err 
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *BetaJigDeployParamsEnvironmentVariable) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties ModelID, MountPath are required.
+type BetaJigDeployParamsModelMount struct {
+	// Model registry identifier (`ml_...`) whose weights are mounted.
+	ModelID string `json:"model_id" api:"required"`
+	// Container path where model weights are mounted, such as `/models`.
+	MountPath string `json:"mount_path" api:"required"`
+	// Optional validated revision identifier (`rv_...`) to pin; defaults to the latest
+	// validated revision.
+	RevisionID param.Opt[string] `json:"revision_id,omitzero"`
+	paramObj
+}
+
+func (r BetaJigDeployParamsModelMount) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigDeployParamsModelMount
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigDeployParamsModelMount) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
