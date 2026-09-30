@@ -742,7 +742,9 @@ type EndpointDeployment struct {
 	TrafficMode EndpointDeploymentTrafficMode `json:"trafficMode" api:"required"`
 	// Timestamp when the deployment was last updated.
 	UpdatedAt time.Time `json:"updatedAt" api:"required" format:"date-time"`
-	// Number of replicas the autoscaler currently wants across all regions.
+	// Number of replicas the autoscaler currently wants across all regions. Not
+	// settable on any request; steer it through `autoscaling.minReplicas` and
+	// `autoscaling.maxReplicas`.
 	DesiredReplicas int64 `json:"desiredReplicas"`
 	// Estimated fraction in [0, 1] of endpoint traffic that reaches this deployment
 	// under the current routing configuration. Absent or unrouted deployments are 0.
