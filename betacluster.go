@@ -225,6 +225,9 @@ type BetaClusterNewParams struct {
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
 	NumGPUs int64 `json:"num_gpus" api:"required"`
+	// Canonical region-specific NVIDIA version ID. If cuda_version and
+	// nvidia_driver_version are also set, they must resolve to the same catalog entry.
+	NvidiaVersionID string `json:"nvidia_version_id" api:"required"`
 	// Region to create the GPU cluster in. Usable regions can be found from
 	// `client.clusters.list_regions()`
 	Region string `json:"region" api:"required"`
@@ -265,9 +268,6 @@ type BetaClusterNewParams struct {
 	// Legacy NVIDIA driver selector for this cluster. For example, 550. Must be paired
 	// with cuda_version. Prefer nvidia_version_id for new integrations.
 	NvidiaDriverVersion param.Opt[string] `json:"nvidia_driver_version,omitzero"`
-	// Canonical region-specific NVIDIA version ID. If cuda_version and
-	// nvidia_driver_version are also set, they must resolve to the same catalog entry.
-	NvidiaVersionID param.Opt[string] `json:"nvidia_version_id,omitzero"`
 	// Project ID for the cluster. If not set, the project from the request context is
 	// used.
 	ProjectID param.Opt[string] `json:"project_id,omitzero"`

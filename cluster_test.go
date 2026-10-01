@@ -27,11 +27,12 @@ func TestClusterNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Clusters.New(context.TODO(), together.ClusterNewParams{
-		BillingType: together.ClusterNewParamsBillingTypeReserved,
-		ClusterName: "cluster_name",
-		GPUType:     together.ClusterNewParamsGPUTypeH100Sxm,
-		NumGPUs:     0,
-		Region:      "region",
+		BillingType:     together.ClusterNewParamsBillingTypeReserved,
+		ClusterName:     "cluster_name",
+		GPUType:         together.ClusterNewParamsGPUTypeH100Sxm,
+		NumGPUs:         0,
+		NvidiaVersionID: "nvidia_version_id",
+		Region:          "region",
 		AcceptanceTestsParams: together.ClusterNewParamsAcceptanceTestsParams{
 			DcgmDiagLevel:         "DCGM_DIAG_LEVEL_SHORT",
 			DcgmDiagSkipped:       together.Bool(true),
@@ -98,7 +99,6 @@ func TestClusterNewWithOptionalParams(t *testing.T) {
 		NumPreemptibleGPUs:  together.Int(0),
 		NumReservedGPUs:     together.Int(0),
 		NvidiaDriverVersion: together.String("nvidia_driver_version"),
-		NvidiaVersionID:     together.String("nvidia_version_id"),
 		OidcConfig: together.ClusterNewParamsOidcConfig{
 			ClientID:       "client_id",
 			GroupClaim:     "group_claim",
