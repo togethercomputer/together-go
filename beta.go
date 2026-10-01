@@ -18,7 +18,6 @@ type BetaService struct {
 	Endpoints    BetaEndpointService
 	Models       BetaModelService
 	Jig          BetaJigService
-	Clusters     BetaClusterService
 }
 
 // NewBetaService generates a new service that applies the given options to each
@@ -31,6 +30,5 @@ func NewBetaService(opts ...option.RequestOption) (r BetaService) {
 	r.Endpoints = NewBetaEndpointService(opts...)
 	r.Models = NewBetaModelService(opts...)
 	r.Jig = NewBetaJigService(opts...)
-	r.Clusters = NewBetaClusterService(opts...)
 	return
 }
