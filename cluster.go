@@ -1102,6 +1102,36 @@ func (r *ClusterListRegionsResponseRegionDriverVersion) UnmarshalJSON(data []byt
 }
 
 type ClusterNewParams struct {
+
+	//
+	// Request body variants
+	//
+
+	// This field is a request body variant, only one variant field can be set. Create
+	// a cluster with a canonical NVIDIA version id. Do not also set cuda_version or
+	// nvidia_driver_version.
+	OfGPUClusterCreateRequestNvidiaVersion *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion `json:",inline"`
+	// This field is a request body variant, only one variant field can be set. Create
+	// a cluster with the legacy CUDA and NVIDIA driver selectors. nvidia_version_id
+	// may also be set when it resolves to the same catalog entry.
+	OfGPUClusterCreateRequestLegacyNvidia *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia `json:",inline"`
+
+	paramObj
+}
+
+func (u ClusterNewParams) MarshalJSON() ([]byte, error) {
+	return param.MarshalUnion(u, u.OfGPUClusterCreateRequestNvidiaVersion, u.OfGPUClusterCreateRequestLegacyNvidia)
+}
+func (r *ClusterNewParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Create a cluster with a canonical NVIDIA version id. Do not also set
+// cuda_version or nvidia_driver_version.
+//
+// The properties BillingType, ClusterName, GPUType, NumGPUs, NvidiaVersionID,
+// Region are required.
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion struct {
 	// RESERVED billing types allow you to specify the duration of the cluster
 	// reservation via the duration_days field. ON_DEMAND billing types will give you
 	// ownership of the cluster until you delete it. SCHEDULED_CAPACITY billing types
@@ -1109,14 +1139,14 @@ type ClusterNewParams struct {
 	// reservation_start_time and reservation_end_time with this request.
 	//
 	// Any of "RESERVED", "ON_DEMAND", "SCHEDULED_CAPACITY".
-	BillingType ClusterNewParamsBillingType `json:"billing_type,omitzero" api:"required"`
+	BillingType string `json:"billing_type,omitzero" api:"required"`
 	// Name of the GPU cluster.
 	ClusterName string `json:"cluster_name" api:"required"`
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
 	// "H100_SXM_INF", "B300_SXM".
-	GPUType ClusterNewParamsGPUType `json:"gpu_type,omitzero" api:"required"`
+	GPUType string `json:"gpu_type,omitzero" api:"required"`
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
 	NumGPUs int64 `json:"num_gpus" api:"required"`
@@ -1135,6 +1165,8 @@ type ClusterNewParams struct {
 	AutoScaleMaxGPUs param.Opt[int64] `json:"auto_scale_max_gpus,omitzero"`
 	// Whether GPU cluster should be auto-scaled based on the workload. By default, it
 	// is not auto-scaled.
+	//
+	// Deprecated: deprecated
 	AutoScaled param.Opt[bool] `json:"auto_scaled,omitzero"`
 	// ID of the capacity pool to use for the cluster. This field is optional and only
 	// applicable if the cluster is created from a capacity pool.
@@ -1182,57 +1214,43 @@ type ClusterNewParams struct {
 	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
 	// AcceptanceTestsParams groups all GPU acceptance test options when enabled is
 	// true.
-	AcceptanceTestsParams ClusterNewParamsAcceptanceTestsParams `json:"acceptance_tests_params,omitzero"`
+	AcceptanceTestsParams ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAcceptanceTestsParams `json:"acceptance_tests_params,omitzero"`
 	// Add-ons to enable on the cluster at creation time.
-	AddOns        []ClusterNewParamsAddOn       `json:"add_ons,omitzero"`
-	ClusterConfig ClusterNewParamsClusterConfig `json:"cluster_config,omitzero"`
+	AddOns        []ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOn       `json:"add_ons,omitzero"`
+	ClusterConfig ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfig `json:"cluster_config,omitzero"`
 	// Type of cluster to create.
 	//
 	// Any of "KUBERNETES", "SLURM".
-	ClusterType ClusterNewParamsClusterType `json:"cluster_type,omitzero"`
-	OidcConfig  ClusterNewParamsOidcConfig  `json:"oidc_config,omitzero"`
+	ClusterType string                                                             `json:"cluster_type,omitzero"`
+	OidcConfig  ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionOidcConfig `json:"oidc_config,omitzero"`
 	// Inline configuration to create a shared volume with the cluster creation.
-	SharedVolume ClusterNewParamsSharedVolume `json:"shared_volume,omitzero"`
+	SharedVolume ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionSharedVolume `json:"shared_volume,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParams
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParams) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// RESERVED billing types allow you to specify the duration of the cluster
-// reservation via the duration_days field. ON_DEMAND billing types will give you
-// ownership of the cluster until you delete it. SCHEDULED_CAPACITY billing types
-// allow you to reserve capacity for a scheduled time window. You must specify the
-// reservation_start_time and reservation_end_time with this request.
-type ClusterNewParamsBillingType string
-
-const (
-	ClusterNewParamsBillingTypeReserved          ClusterNewParamsBillingType = "RESERVED"
-	ClusterNewParamsBillingTypeOnDemand          ClusterNewParamsBillingType = "ON_DEMAND"
-	ClusterNewParamsBillingTypeScheduledCapacity ClusterNewParamsBillingType = "SCHEDULED_CAPACITY"
-)
-
-// Type of GPU to use in the cluster
-type ClusterNewParamsGPUType string
-
-const (
-	ClusterNewParamsGPUTypeH100Sxm    ClusterNewParamsGPUType = "H100_SXM"
-	ClusterNewParamsGPUTypeH200Sxm    ClusterNewParamsGPUType = "H200_SXM"
-	ClusterNewParamsGPUTypeRtx6000Pci ClusterNewParamsGPUType = "RTX_6000_PCI"
-	ClusterNewParamsGPUTypeL40Pcie    ClusterNewParamsGPUType = "L40_PCIE"
-	ClusterNewParamsGPUTypeB200Sxm    ClusterNewParamsGPUType = "B200_SXM"
-	ClusterNewParamsGPUTypeH100SxmInf ClusterNewParamsGPUType = "H100_SXM_INF"
-	ClusterNewParamsGPUTypeB300Sxm    ClusterNewParamsGPUType = "B300_SXM"
-)
+func init() {
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion](
+		"billing_type", "RESERVED", "ON_DEMAND", "SCHEDULED_CAPACITY",
+	)
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion](
+		"gpu_type", "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM", "H100_SXM_INF", "B300_SXM",
+	)
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion](
+		"cluster_type", "KUBERNETES", "SLURM",
+	)
+}
 
 // AcceptanceTestsParams groups all GPU acceptance test options when enabled is
 // true.
-type ClusterNewParamsAcceptanceTestsParams struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAcceptanceTestsParams struct {
 	// Skip DCGM diagnostics acceptance test.
 	DcgmDiagSkipped param.Opt[bool] `json:"dcgm_diag_skipped,omitzero"`
 	// Whether to run GPU acceptance tests during cluster bring-up.
@@ -1256,133 +1274,133 @@ type ClusterNewParamsAcceptanceTestsParams struct {
 	paramObj
 }
 
-func (r ClusterNewParamsAcceptanceTestsParams) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAcceptanceTestsParams
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAcceptanceTestsParams) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAcceptanceTestsParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAcceptanceTestsParams) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAcceptanceTestsParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 func init() {
-	apijson.RegisterFieldValidator[ClusterNewParamsAcceptanceTestsParams](
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAcceptanceTestsParams](
 		"dcgm_diag_level", "DCGM_DIAG_LEVEL_SHORT", "DCGM_DIAG_LEVEL_MEDIUM", "DCGM_DIAG_LEVEL_LONG", "DCGM_DIAG_LEVEL_EXTENDED",
 	)
 }
 
 // The properties AddOnType, Name are required.
-type ClusterNewParamsAddOn struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOn struct {
 	// Type of add-on. Valid values: 'dashboard', 'ingress', 'torchpass'.
 	AddOnType string `json:"add_on_type" api:"required"`
 	// Human-readable name for this add-on instance.
 	Name string `json:"name" api:"required"`
 	// Configuration for a cluster add-on.
-	Config ClusterNewParamsAddOnConfig `json:"config,omitzero"`
+	Config ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfig `json:"config,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsAddOn) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAddOn
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOn) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOn
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAddOn) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOn) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Configuration for a cluster add-on.
-type ClusterNewParamsAddOnConfig struct {
-	Dashboard ClusterNewParamsAddOnConfigDashboard `json:"dashboard,omitzero"`
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfig struct {
+	Dashboard ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigDashboard `json:"dashboard,omitzero"`
 	// Configuration for the Headlamp Kubernetes dashboard add-on.
-	Headlamp ClusterNewParamsAddOnConfigHeadlamp `json:"headlamp,omitzero"`
-	Ingress  ClusterNewParamsAddOnConfigIngress  `json:"ingress,omitzero"`
+	Headlamp ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigHeadlamp `json:"headlamp,omitzero"`
+	Ingress  ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigIngress  `json:"ingress,omitzero"`
 	// Configuration for the Slurm Web add-on.
-	SlurmWeb ClusterNewParamsAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
+	SlurmWeb ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
 	// Configuration for the Model Aware TorchPass add-on.
-	Torchpass ClusterNewParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
+	Torchpass ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsAddOnConfig) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAddOnConfig
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfig) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfig
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAddOnConfig) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfig) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ClusterNewParamsAddOnConfigDashboard struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigDashboard struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsAddOnConfigDashboard) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAddOnConfigDashboard
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigDashboard) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigDashboard
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAddOnConfigDashboard) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigDashboard) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Configuration for the Headlamp Kubernetes dashboard add-on.
-type ClusterNewParamsAddOnConfigHeadlamp struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigHeadlamp struct {
 	// Whether to enable the Headlamp Kubernetes dashboard add-on.
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsAddOnConfigHeadlamp) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAddOnConfigHeadlamp
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigHeadlamp) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigHeadlamp
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAddOnConfigHeadlamp) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigHeadlamp) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ClusterNewParamsAddOnConfigIngress struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigIngress struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsAddOnConfigIngress) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAddOnConfigIngress
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigIngress) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigIngress
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAddOnConfigIngress) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigIngress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Configuration for the Slurm Web add-on.
-type ClusterNewParamsAddOnConfigSlurmWeb struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb struct {
 	// Whether to enable the Slurm Web add-on.
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsAddOnConfigSlurmWeb) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAddOnConfigSlurmWeb
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Configuration for the Model Aware TorchPass add-on.
-type ClusterNewParamsAddOnConfigTorchpass struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass struct {
 	// Whether to enable the Model Aware TorchPass add-on.
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsAddOnConfigTorchpass
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // The property LoadBalancer is required.
-type ClusterNewParamsClusterConfig struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfig struct {
 	// Any of "NONE", "TRAEFIK", "NGINX", "ISTIO".
 	LoadBalancer string `json:"load_balancer,omitzero" api:"required"`
 	// NVIDIA GPU Operator chart/version for the tenant cluster (e.g. v24.6.2). When
@@ -1395,58 +1413,58 @@ type ClusterNewParamsClusterConfig struct {
 	NetworkOperatorVersion param.Opt[string] `json:"network_operator_version,omitzero"`
 	// Whether this cluster uses a per-cluster SSH certificate authority for
 	// OIDC-signed SSH access.
-	SSHCaEnabled  param.Opt[bool]                            `json:"ssh_ca_enabled,omitzero"`
-	Ingress       ClusterNewParamsClusterConfigIngress       `json:"ingress,omitzero"`
-	Observability ClusterNewParamsClusterConfigObservability `json:"observability,omitzero"`
+	SSHCaEnabled  param.Opt[bool]                                                                    `json:"ssh_ca_enabled,omitzero"`
+	Ingress       ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigIngress       `json:"ingress,omitzero"`
+	Observability ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigObservability `json:"observability,omitzero"`
 	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 	// init, extra conf).
-	SlurmStartupScripts ClusterNewParamsClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts,omitzero"`
+	SlurmStartupScripts ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsClusterConfig) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsClusterConfig
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfig) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfig
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsClusterConfig) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfig) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 func init() {
-	apijson.RegisterFieldValidator[ClusterNewParamsClusterConfig](
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfig](
 		"load_balancer", "NONE", "TRAEFIK", "NGINX", "ISTIO",
 	)
 }
 
-type ClusterNewParamsClusterConfigIngress struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigIngress struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsClusterConfigIngress) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsClusterConfigIngress
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigIngress) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigIngress
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsClusterConfigIngress) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigIngress) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ClusterNewParamsClusterConfigObservability struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigObservability struct {
 	Enabled param.Opt[bool] `json:"enabled,omitzero"`
 	paramObj
 }
 
-func (r ClusterNewParamsClusterConfigObservability) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsClusterConfigObservability
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigObservability) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigObservability
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsClusterConfigObservability) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigObservability) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
 // init, extra conf).
-type ClusterNewParamsClusterConfigSlurmStartupScripts struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigSlurmStartupScripts struct {
 	// Slurm controller epilog script.
 	ControllerEpilog param.Opt[string] `json:"controller_epilog,omitzero"`
 	// Slurm controller prolog script.
@@ -1464,25 +1482,17 @@ type ClusterNewParamsClusterConfigSlurmStartupScripts struct {
 	paramObj
 }
 
-func (r ClusterNewParamsClusterConfigSlurmStartupScripts) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsClusterConfigSlurmStartupScripts
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigSlurmStartupScripts) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigSlurmStartupScripts
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsClusterConfigSlurmStartupScripts) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfigSlurmStartupScripts) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Type of cluster to create.
-type ClusterNewParamsClusterType string
-
-const (
-	ClusterNewParamsClusterTypeKubernetes ClusterNewParamsClusterType = "KUBERNETES"
-	ClusterNewParamsClusterTypeSlurm      ClusterNewParamsClusterType = "SLURM"
-)
-
 // The properties ClientID, GroupClaim, GroupPrefix, IssuerURL, UsernameClaim,
 // UsernamePrefix are required.
-type ClusterNewParamsOidcConfig struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionOidcConfig struct {
 	// OIDC client ID for authentication.
 	ClientID string `json:"client_id" api:"required"`
 	// JWT claim to use for user groups. For example, 'groups'
@@ -1504,18 +1514,18 @@ type ClusterNewParamsOidcConfig struct {
 	paramObj
 }
 
-func (r ClusterNewParamsOidcConfig) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsOidcConfig
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionOidcConfig) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionOidcConfig
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsOidcConfig) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionOidcConfig) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Inline configuration to create a shared volume with the cluster creation.
 //
 // The properties Region, SizeTib, VolumeName are required.
-type ClusterNewParamsSharedVolume struct {
+type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionSharedVolume struct {
 	// Region name. Usable regions can be found from `clusters.list_regions()`
 	Region string `json:"region" api:"required"`
 	// Volume size in whole tebibytes (TiB).
@@ -1532,11 +1542,435 @@ type ClusterNewParamsSharedVolume struct {
 	paramObj
 }
 
-func (r ClusterNewParamsSharedVolume) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsSharedVolume
+func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionSharedVolume) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionSharedVolume
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ClusterNewParamsSharedVolume) UnmarshalJSON(data []byte) error {
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionSharedVolume) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Create a cluster with the legacy CUDA and NVIDIA driver selectors.
+// nvidia_version_id may also be set when it resolves to the same catalog entry.
+//
+// The properties BillingType, ClusterName, CudaVersion, GPUType, NumGPUs,
+// NvidiaDriverVersion, Region are required.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia struct {
+	// RESERVED billing types allow you to specify the duration of the cluster
+	// reservation via the duration_days field. ON_DEMAND billing types will give you
+	// ownership of the cluster until you delete it. SCHEDULED_CAPACITY billing types
+	// allow you to reserve capacity for a scheduled time window. You must specify the
+	// reservation_start_time and reservation_end_time with this request.
+	//
+	// Any of "RESERVED", "ON_DEMAND", "SCHEDULED_CAPACITY".
+	BillingType string `json:"billing_type,omitzero" api:"required"`
+	// Name of the GPU cluster.
+	ClusterName string `json:"cluster_name" api:"required"`
+	// Legacy CUDA selector for this cluster. Bare semantic values such as 12.5 select
+	// ubuntu-22.04; existing OS-suffixed values remain accepted for compatibility.
+	// Must be paired with nvidia_driver_version. Prefer nvidia_version_id for new
+	// integrations.
+	CudaVersion string `json:"cuda_version" api:"required"`
+	// Type of GPU to use in the cluster
+	//
+	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
+	// "H100_SXM_INF", "B300_SXM".
+	GPUType string `json:"gpu_type,omitzero" api:"required"`
+	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
+	// example, 8, 16 or 24
+	NumGPUs int64 `json:"num_gpus" api:"required"`
+	// Legacy NVIDIA driver selector for this cluster. For example, 550. Must be paired
+	// with cuda_version. Prefer nvidia_version_id for new integrations.
+	NvidiaDriverVersion string `json:"nvidia_driver_version" api:"required"`
+	// Region to create the GPU cluster in. Usable regions can be found from
+	// `client.clusters.list_regions()`
+	Region string `json:"region" api:"required"`
+	// Whether to enable auto-scaling for the cluster. If true, the cluster will
+	// automatically scale the number of GPU worker nodes between num_gpus and
+	// auto_scale_max_gpus based on the workload.
+	AutoScale param.Opt[bool] `json:"auto_scale,omitzero"`
+	// Maximum number of GPUs to which the cluster can be auto-scaled up. This field is
+	// required if auto_scaled is true.
+	AutoScaleMaxGPUs param.Opt[int64] `json:"auto_scale_max_gpus,omitzero"`
+	// Whether GPU cluster should be auto-scaled based on the workload. By default, it
+	// is not auto-scaled.
+	//
+	// Deprecated: deprecated
+	AutoScaled param.Opt[bool] `json:"auto_scaled,omitzero"`
+	// ID of the capacity pool to use for the cluster. This field is optional and only
+	// applicable if the cluster is created from a capacity pool.
+	CapacityPoolID param.Opt[string] `json:"capacity_pool_id,omitzero"`
+	// Duration in days to keep the cluster running.
+	DurationDays param.Opt[int64] `json:"duration_days,omitzero"`
+	// Whether to install Traefik ingress controller in the cluster. This field is only
+	// applicable for Kubernetes clusters and is false by default.
+	InstallTraefik param.Opt[bool] `json:"install_traefik,omitzero"`
+	// Number of GPUs to allocate from the capacity pool. Must be a multiple of 8 and
+	// not exceed num_gpus.
+	NumCapacityPoolGPUs param.Opt[int64] `json:"num_capacity_pool_gpus,omitzero"`
+	// Number of preemptible GPUs to request alongside on-demand capacity. Must be a
+	// multiple of 8. Preemptible nodes are cheaper but may be reclaimed when on-demand
+	// capacity is needed elsewhere; the system fulfills this asynchronously and
+	// surfaces the actual count in allocated_preemptible_gpus.
+	NumPreemptibleGPUs param.Opt[int64] `json:"num_preemptible_gpus,omitzero"`
+	// Number of prepaid (PLG) reserved GPUs for this cluster. When omitted for
+	// RESERVED billing on create, the server defaults this to num_gpus.
+	NumReservedGPUs param.Opt[int64] `json:"num_reserved_gpus,omitzero"`
+	// Canonical region-specific NVIDIA version ID. If cuda_version and
+	// nvidia_driver_version are also set, they must resolve to the same catalog entry.
+	NvidiaVersionID param.Opt[string] `json:"nvidia_version_id,omitzero"`
+	// Project ID for the cluster. If not set, the project from the request context is
+	// used.
+	ProjectID param.Opt[string] `json:"project_id,omitzero"`
+	// Reservation end time of the cluster. This field is required for SCHEDULED
+	// billing to specify the reservation end time for the cluster.
+	ReservationEndTime param.Opt[time.Time] `json:"reservation_end_time,omitzero" format:"date-time"`
+	// Reservation start time of the cluster. This field is required for SCHEDULED
+	// billing to specify the reservation start time for the cluster. If not provided,
+	// the cluster provisions immediately.
+	ReservationStartTime param.Opt[time.Time] `json:"reservation_start_time,omitzero" format:"date-time"`
+	// Custom Slurm image for Slurm clusters.
+	SlurmImage param.Opt[string] `json:"slurm_image,omitzero"`
+	// Shared memory size in GiB for Slurm cluster. This field is required if
+	// cluster_type is SLURM.
+	SlurmShmSizeGib param.Opt[int64] `json:"slurm_shm_size_gib,omitzero"`
+	// ID of an existing volume to use with the cluster creation.
+	VolumeID param.Opt[string] `json:"volume_id,omitzero"`
+	// AcceptanceTestsParams groups all GPU acceptance test options when enabled is
+	// true.
+	AcceptanceTestsParams ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAcceptanceTestsParams `json:"acceptance_tests_params,omitzero"`
+	// Add-ons to enable on the cluster at creation time.
+	AddOns        []ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOn       `json:"add_ons,omitzero"`
+	ClusterConfig ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfig `json:"cluster_config,omitzero"`
+	// Type of cluster to create.
+	//
+	// Any of "KUBERNETES", "SLURM".
+	ClusterType string                                                            `json:"cluster_type,omitzero"`
+	OidcConfig  ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaOidcConfig `json:"oidc_config,omitzero"`
+	// Inline configuration to create a shared volume with the cluster creation.
+	SharedVolume ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaSharedVolume `json:"shared_volume,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia](
+		"billing_type", "RESERVED", "ON_DEMAND", "SCHEDULED_CAPACITY",
+	)
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia](
+		"gpu_type", "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM", "H100_SXM_INF", "B300_SXM",
+	)
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia](
+		"cluster_type", "KUBERNETES", "SLURM",
+	)
+}
+
+// AcceptanceTestsParams groups all GPU acceptance test options when enabled is
+// true.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAcceptanceTestsParams struct {
+	// Skip DCGM diagnostics acceptance test.
+	DcgmDiagSkipped param.Opt[bool] `json:"dcgm_diag_skipped,omitzero"`
+	// Whether to run GPU acceptance tests during cluster bring-up.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	// GPU burn duration in seconds; 0 means use the default when enabled.
+	GPUBurnDuration param.Opt[int64] `json:"gpu_burn_duration,omitzero"`
+	// Skip GPU burn acceptance test.
+	GPUBurnSkipped param.Opt[bool] `json:"gpu_burn_skipped,omitzero"`
+	// Skip NCCL multi-node acceptance test.
+	NcclMultiNodeSkipped param.Opt[bool] `json:"nccl_multi_node_skipped,omitzero"`
+	// Skip NCCL single-node acceptance test.
+	NcclSingleNodeSkipped param.Opt[bool] `json:"nccl_single_node_skipped,omitzero"`
+	// Skip storage-performance acceptance test.
+	StorageSkipped param.Opt[bool] `json:"storage_skipped,omitzero"`
+	// DCGM diagnostic depth. SHORT = readiness; MEDIUM = default; LONG = system
+	// validation; EXTENDED = memtest. An omitted value selects MEDIUM when enabled.
+	//
+	// Any of "DCGM_DIAG_LEVEL_SHORT", "DCGM_DIAG_LEVEL_MEDIUM",
+	// "DCGM_DIAG_LEVEL_LONG", "DCGM_DIAG_LEVEL_EXTENDED".
+	DcgmDiagLevel string `json:"dcgm_diag_level,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAcceptanceTestsParams) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAcceptanceTestsParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAcceptanceTestsParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAcceptanceTestsParams](
+		"dcgm_diag_level", "DCGM_DIAG_LEVEL_SHORT", "DCGM_DIAG_LEVEL_MEDIUM", "DCGM_DIAG_LEVEL_LONG", "DCGM_DIAG_LEVEL_EXTENDED",
+	)
+}
+
+// The properties AddOnType, Name are required.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOn struct {
+	// Type of add-on. Valid values: 'dashboard', 'ingress', 'torchpass'.
+	AddOnType string `json:"add_on_type" api:"required"`
+	// Human-readable name for this add-on instance.
+	Name string `json:"name" api:"required"`
+	// Configuration for a cluster add-on.
+	Config ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfig `json:"config,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOn) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOn
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOn) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for a cluster add-on.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfig struct {
+	Dashboard ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigDashboard `json:"dashboard,omitzero"`
+	// Configuration for the Headlamp Kubernetes dashboard add-on.
+	Headlamp ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigHeadlamp `json:"headlamp,omitzero"`
+	Ingress  ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigIngress  `json:"ingress,omitzero"`
+	// Configuration for the Slurm Web add-on.
+	SlurmWeb ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
+	// Configuration for the Model Aware TorchPass add-on.
+	Torchpass ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass `json:"torchpass,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfig) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigDashboard struct {
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigDashboard) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigDashboard
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigDashboard) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Headlamp Kubernetes dashboard add-on.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigHeadlamp struct {
+	// Whether to enable the Headlamp Kubernetes dashboard add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigHeadlamp) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigHeadlamp
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigHeadlamp) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigIngress struct {
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigIngress) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigIngress
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigIngress) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Slurm Web add-on.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmWeb struct {
+	// Whether to enable the Slurm Web add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmWeb) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmWeb
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Configuration for the Model Aware TorchPass add-on.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass struct {
+	// Whether to enable the Model Aware TorchPass add-on.
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The property LoadBalancer is required.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfig struct {
+	// Any of "NONE", "TRAEFIK", "NGINX", "ISTIO".
+	LoadBalancer string `json:"load_balancer,omitzero" api:"required"`
+	// NVIDIA GPU Operator chart/version for the tenant cluster (e.g. v24.6.2). When
+	// omitted, a service default is applied.
+	GPUOperatorVersion         param.Opt[string] `json:"gpu_operator_version,omitzero"`
+	JumphostEnabled            param.Opt[bool]   `json:"jumphost_enabled,omitzero"`
+	KubernetesDashboardEnabled param.Opt[bool]   `json:"kubernetes_dashboard_enabled,omitzero"`
+	// NVIDIA Network Operator chart/version for the tenant cluster (e.g. v24.7.0).
+	// When omitted, a service default is applied.
+	NetworkOperatorVersion param.Opt[string] `json:"network_operator_version,omitzero"`
+	// Whether this cluster uses a per-cluster SSH certificate authority for
+	// OIDC-signed SSH access.
+	SSHCaEnabled  param.Opt[bool]                                                                   `json:"ssh_ca_enabled,omitzero"`
+	Ingress       ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigIngress       `json:"ingress,omitzero"`
+	Observability ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigObservability `json:"observability,omitzero"`
+	// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
+	// init, extra conf).
+	SlurmStartupScripts ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigSlurmStartupScripts `json:"slurm_startup_scripts,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfig) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+func init() {
+	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfig](
+		"load_balancer", "NONE", "TRAEFIK", "NGINX", "ISTIO",
+	)
+}
+
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigIngress struct {
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigIngress) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigIngress
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigIngress) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigObservability struct {
+	Enabled param.Opt[bool] `json:"enabled,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigObservability) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigObservability
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigObservability) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// SlurmStartupScripts carries optional Slurm lifecycle scripts (prolog/epilog,
+// init, extra conf).
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigSlurmStartupScripts struct {
+	// Slurm controller epilog script.
+	ControllerEpilog param.Opt[string] `json:"controller_epilog,omitzero"`
+	// Slurm controller prolog script.
+	ControllerProlog param.Opt[string] `json:"controller_prolog,omitzero"`
+	// Additional slurm.conf fragments.
+	ExtraSlurmConf param.Opt[string] `json:"extra_slurm_conf,omitzero"`
+	// Script run on Slurm login node init.
+	LoginInitScript param.Opt[string] `json:"login_init_script,omitzero"`
+	// Script run on Slurm nodeset init.
+	NodesetInitScript param.Opt[string] `json:"nodeset_init_script,omitzero"`
+	// Slurm worker node epilog script.
+	WorkerEpilog param.Opt[string] `json:"worker_epilog,omitzero"`
+	// Slurm worker node prolog script.
+	WorkerProlog param.Opt[string] `json:"worker_prolog,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigSlurmStartupScripts) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigSlurmStartupScripts
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaClusterConfigSlurmStartupScripts) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// The properties ClientID, GroupClaim, GroupPrefix, IssuerURL, UsernameClaim,
+// UsernamePrefix are required.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaOidcConfig struct {
+	// OIDC client ID for authentication.
+	ClientID string `json:"client_id" api:"required"`
+	// JWT claim to use for user groups. For example, 'groups'
+	GroupClaim string `json:"group_claim" api:"required"`
+	// Prefix to add to the group claim to form the final group name. For example,
+	// 'oidc:'
+	GroupPrefix string `json:"group_prefix" api:"required"`
+	// OIDC issuer URL for authentication. For example, https://accounts.google.com
+	IssuerURL string `json:"issuer_url" api:"required"`
+	// JWT claim to use as the username. For example, 'sub' or 'email'
+	UsernameClaim string `json:"username_claim" api:"required"`
+	// Prefix to add to the username claim to form the final username. For example,
+	// 'oidc:'
+	UsernamePrefix string `json:"username_prefix" api:"required"`
+	// CA certificate in PEM format to validate the OIDC issuer's TLS certificate. This
+	// field is optional but recommended if the issuer uses a private CA or self-signed
+	// certificate.
+	CaCert param.Opt[string] `json:"ca_cert,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaOidcConfig) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaOidcConfig
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaOidcConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Inline configuration to create a shared volume with the cluster creation.
+//
+// The properties Region, SizeTib, VolumeName are required.
+type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaSharedVolume struct {
+	// Region name. Usable regions can be found from `clusters.list_regions()`
+	Region string `json:"region" api:"required"`
+	// Volume size in whole tebibytes (TiB).
+	SizeTib int64 `json:"size_tib" api:"required"`
+	// User provided name of the volume.
+	VolumeName string `json:"volume_name" api:"required"`
+	// Cluster ID to pin the volume to the same substrate as that GPU cluster.
+	InstanceClusterID param.Opt[string] `json:"instance_cluster_id,omitzero"`
+	// When true, the shared volume is not deleted when the cluster is decommissioned.
+	IsLifecycleIndependent param.Opt[bool] `json:"is_lifecycle_independent,omitzero"`
+	// Project ID that will own the volume. When omitted, the caller's default project
+	// is used.
+	ProjectID param.Opt[string] `json:"project_id,omitzero"`
+	paramObj
+}
+
+func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaSharedVolume) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaSharedVolume
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaSharedVolume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
