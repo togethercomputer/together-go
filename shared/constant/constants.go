@@ -32,6 +32,8 @@ type JsonSchema string          // Always "json_schema"
 type List string                // Always "list"
 type Model string               // Always "model"
 type Rerank string              // Always "rerank"
+type Revision string            // Always "revision"
+type RevisionEvent string       // Always "revision_event"
 type Text string                // Always "text"
 type TextCompletion string      // Always "text.completion"
 type Usd string                 // Always "USD"
@@ -50,6 +52,8 @@ func (c JsonSchema) Default() JsonSchema                   { return "json_schema
 func (c List) Default() List                               { return "list" }
 func (c Model) Default() Model                             { return "model" }
 func (c Rerank) Default() Rerank                           { return "rerank" }
+func (c Revision) Default() Revision                       { return "revision" }
+func (c RevisionEvent) Default() RevisionEvent             { return "revision_event" }
 func (c Text) Default() Text                               { return "text" }
 func (c TextCompletion) Default() TextCompletion           { return "text.completion" }
 func (c Usd) Default() Usd                                 { return "USD" }
@@ -68,6 +72,8 @@ func (c JsonSchema) MarshalJSON() ([]byte, error)          { return marshalStrin
 func (c List) MarshalJSON() ([]byte, error)                { return marshalString(c) }
 func (c Model) MarshalJSON() ([]byte, error)               { return marshalString(c) }
 func (c Rerank) MarshalJSON() ([]byte, error)              { return marshalString(c) }
+func (c Revision) MarshalJSON() ([]byte, error)            { return marshalString(c) }
+func (c RevisionEvent) MarshalJSON() ([]byte, error)       { return marshalString(c) }
 func (c Text) MarshalJSON() ([]byte, error)                { return marshalString(c) }
 func (c TextCompletion) MarshalJSON() ([]byte, error)      { return marshalString(c) }
 func (c Usd) MarshalJSON() ([]byte, error)                 { return marshalString(c) }

@@ -205,6 +205,35 @@ func TestBetaJigDestroy(t *testing.T) {
 	}
 }
 
+func TestBetaJigListRevisionsWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Beta.Jig.ListRevisions(
+		context.TODO(),
+		"id",
+		together.BetaJigListRevisionsParams{
+			Before: together.Int(0),
+			Limit:  together.Int(0),
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
 func TestBetaJigGetLogsWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
@@ -224,6 +253,62 @@ func TestBetaJigGetLogsWithOptionalParams(t *testing.T) {
 			ReplicaID: together.String("replica_id"),
 			Revision:  together.String("revision"),
 			Version:   together.String("version"),
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestBetaJigGetRevision(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Beta.Jig.GetRevision(
+		context.TODO(),
+		"revisionIdentifier",
+		together.BetaJigGetRevisionParams{
+			ID: "id",
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestBetaJigRollback(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Beta.Jig.Rollback(
+		context.TODO(),
+		"id",
+		together.BetaJigRollbackParams{
+			RevisionIdentifier: "revision_identifier",
 		},
 	)
 	if err != nil {

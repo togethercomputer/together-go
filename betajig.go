@@ -18,6 +18,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
+	"github.com/togethercomputer/together-go/shared/constant"
 )
 
 // BetaJigService contains methods and other services that help with interacting
@@ -97,6 +98,20 @@ func (r *BetaJigService) Destroy(ctx context.Context, id string, opts ...option.
 	return res, err
 }
 
+// Returns the revision history of the deployment, in descending order. Defaults to
+// the most recent events. Only the 200 most recent events are retained per
+// deployment; paginating past that returns an empty list.
+func (r *BetaJigService) ListRevisions(ctx context.Context, id string, query BetaJigListRevisionsParams, opts ...option.RequestOption) (res *DeploymentRevisionEventList, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("deployments/%s/revisions", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return res, err
+}
+
 // Retrieve logs from a deployment, optionally filtered by replica ID.
 func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGetLogsParams, opts ...option.RequestOption) (res *DeploymentLogs, err error) {
 	opts = slices.Concat(r.Options, opts)
@@ -106,6 +121,40 @@ func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGe
 	}
 	path := fmt.Sprintf("deployments/%s/logs", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
+	return res, err
+}
+
+// Returns the deployment configuration defined by the specified revision. Only the
+// 50 most recent revisions per deployment retain their configuration; older
+// revisions return 404 even while they still appear in the revision history. The
+// deployment's currently active revision is always available, regardless of age.
+func (r *BetaJigService) GetRevision(ctx context.Context, revisionIdentifier string, query BetaJigGetRevisionParams, opts ...option.RequestOption) (res *DeploymentRevision, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if query.ID == "" {
+		err = errors.New("missing required id parameter")
+		return nil, err
+	}
+	if revisionIdentifier == "" {
+		err = errors.New("missing required revisionIdentifier parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("deployments/%s/revisions/%s", query.ID, revisionIdentifier)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
+// Re-applies the spec of a previous revision. Pods running the target revision
+// will be retained. Other pods will be drained and restarted with the target
+// revision. Only the 50 most recent revisions per deployment can be rolled back
+// to; older targets return 404.
+func (r *BetaJigService) Rollback(ctx context.Context, id string, body BetaJigRollbackParams, opts ...option.RequestOption) (res *Deployment, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if id == "" {
+		err = errors.New("missing required id parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("deployments/%s/rollback", id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
 
@@ -524,6 +573,347 @@ type DeploymentLogs struct {
 // Returns the unmodified JSON received from the API
 func (r DeploymentLogs) RawJSON() string { return r.JSON.raw }
 func (r *DeploymentLogs) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Deployment configuration captured for one retained revision.
+type DeploymentRevision struct {
+	// Arguments passed to the container command.
+	Args []string `json:"args" api:"required"`
+	// Capacity behavior for replicas above reserved capacity.
+	//
+	// Any of "stable", "preemptible".
+	CapacityType DeploymentRevisionCapacityType `json:"capacity_type" api:"required"`
+	// Entrypoint command run by the container.
+	Command []string `json:"command" api:"required"`
+	// CPU cores allocated to each replica.
+	CPU float64 `json:"cpu" api:"required"`
+	// Time when this revision was created.
+	CreatedAt time.Time `json:"created_at" api:"required" format:"date-time"`
+	// Environment variables configured on this revision.
+	EnvironmentVariables []DeploymentRevisionEnvironmentVariable `json:"environment_variables" api:"required"`
+	// Number of GPUs allocated to each replica.
+	GPUCount int64 `json:"gpu_count" api:"required"`
+	// GPU hardware type configured for this revision.
+	GPUType string `json:"gpu_type" api:"required"`
+	// HTTP path used for health checks.
+	HealthCheckPath string `json:"health_check_path" api:"required"`
+	// Container image used by this revision.
+	Image string `json:"image" api:"required"`
+	// Maximum number of replicas configured for this revision.
+	MaxReplicas int64 `json:"max_replicas" api:"required"`
+	// Memory allocated to each replica in GiB.
+	Memory float64 `json:"memory" api:"required"`
+	// Minimum number of replicas configured for this revision.
+	MinReplicas int64 `json:"min_replicas" api:"required"`
+	// The object type, which is always `revision`.
+	Object constant.Revision `json:"object" default:"revision"`
+	// Container port exposed by this revision.
+	Port int64 `json:"port" api:"required"`
+	// Network protocol served by the deployment revision.
+	Protocol string `json:"protocol" api:"required"`
+	// Unique revision identifier.
+	RevisionID string `json:"revision_id" api:"required"`
+	// Ephemeral storage allocated to each replica.
+	Storage int64 `json:"storage" api:"required"`
+	// Volume mounts attached to this revision.
+	Volumes []DeploymentRevisionVolume `json:"volumes" api:"required"`
+	// Autoscaling configuration captured for this revision.
+	Autoscaling DeploymentRevisionAutoscalingUnion `json:"autoscaling"`
+	// Seconds to wait for graceful shutdown before forcefully terminating a replica.
+	TerminationGracePeriodSeconds int64 `json:"termination_grace_period_seconds"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Args                          respjson.Field
+		CapacityType                  respjson.Field
+		Command                       respjson.Field
+		CPU                           respjson.Field
+		CreatedAt                     respjson.Field
+		EnvironmentVariables          respjson.Field
+		GPUCount                      respjson.Field
+		GPUType                       respjson.Field
+		HealthCheckPath               respjson.Field
+		Image                         respjson.Field
+		MaxReplicas                   respjson.Field
+		Memory                        respjson.Field
+		MinReplicas                   respjson.Field
+		Object                        respjson.Field
+		Port                          respjson.Field
+		Protocol                      respjson.Field
+		RevisionID                    respjson.Field
+		Storage                       respjson.Field
+		Volumes                       respjson.Field
+		Autoscaling                   respjson.Field
+		TerminationGracePeriodSeconds respjson.Field
+		ExtraFields                   map[string]respjson.Field
+		raw                           string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevision) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentRevision) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Capacity behavior for replicas above reserved capacity.
+type DeploymentRevisionCapacityType string
+
+const (
+	DeploymentRevisionCapacityTypeStable      DeploymentRevisionCapacityType = "stable"
+	DeploymentRevisionCapacityTypePreemptible DeploymentRevisionCapacityType = "preemptible"
+)
+
+type DeploymentRevisionEnvironmentVariable struct {
+	// Name is the environment variable name (e.g., "DATABASE_URL"). Must start with a
+	// letter or underscore, followed by letters, numbers, or underscores
+	Name string `json:"name" api:"required"`
+	// Value is the plain text value for the environment variable. Use this for
+	// non-sensitive values. Either Value or ValueFromSecret must be set, but not both
+	Value string `json:"value"`
+	// ValueFromSecret references a secret by name or ID to use as the value. Use this
+	// for sensitive values like API keys or passwords. Either Value or ValueFromSecret
+	// must be set, but not both
+	ValueFromSecret string `json:"value_from_secret"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Name            respjson.Field
+		Value           respjson.Field
+		ValueFromSecret respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevisionEnvironmentVariable) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentRevisionEnvironmentVariable) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+type DeploymentRevisionVolume struct {
+	// MountPath is the path in the container where the volume mounts (e.g., "/data").
+	MountPath string `json:"mount_path" api:"required"`
+	// Name is the name of the volume to mount. Must reference an existing volume by
+	// name or ID
+	Name string `json:"name" api:"required"`
+	// Version is the volume version to mount. On create, defaults to the latest
+	// version. On update, defaults to the currently mounted version.
+	Version int64 `json:"version"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		MountPath   respjson.Field
+		Name        respjson.Field
+		Version     respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevisionVolume) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentRevisionVolume) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// DeploymentRevisionAutoscalingUnion contains all possible properties and values
+// from [DeploymentRevisionAutoscalingHTTPAutoscalingConfig],
+// [DeploymentRevisionAutoscalingQueueAutoscalingConfig],
+// [DeploymentRevisionAutoscalingCustomMetricAutoscalingConfig].
+//
+// Use the methods beginning with 'As' to cast the union to one of its variants.
+type DeploymentRevisionAutoscalingUnion struct {
+	Metric string  `json:"metric"`
+	Target float64 `json:"target"`
+	// This field is from variant [DeploymentRevisionAutoscalingHTTPAutoscalingConfig].
+	TimeIntervalMinutes int64 `json:"time_interval_minutes"`
+	// This field is from variant
+	// [DeploymentRevisionAutoscalingQueueAutoscalingConfig].
+	Model string `json:"model"`
+	// This field is from variant
+	// [DeploymentRevisionAutoscalingCustomMetricAutoscalingConfig].
+	CustomMetricName string `json:"custom_metric_name"`
+	JSON             struct {
+		Metric              respjson.Field
+		Target              respjson.Field
+		TimeIntervalMinutes respjson.Field
+		Model               respjson.Field
+		CustomMetricName    respjson.Field
+		raw                 string
+	} `json:"-"`
+}
+
+func (u DeploymentRevisionAutoscalingUnion) AsDeploymentRevisionAutoscalingHTTPAutoscalingConfig() (v DeploymentRevisionAutoscalingHTTPAutoscalingConfig) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u DeploymentRevisionAutoscalingUnion) AsDeploymentRevisionAutoscalingQueueAutoscalingConfig() (v DeploymentRevisionAutoscalingQueueAutoscalingConfig) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+func (u DeploymentRevisionAutoscalingUnion) AsDeploymentRevisionAutoscalingCustomMetricAutoscalingConfig() (v DeploymentRevisionAutoscalingCustomMetricAutoscalingConfig) {
+	apijson.UnmarshalRoot(json.RawMessage(u.JSON.raw), &v)
+	return
+}
+
+// Returns the unmodified JSON received from the API
+func (u DeploymentRevisionAutoscalingUnion) RawJSON() string { return u.JSON.raw }
+
+func (r *DeploymentRevisionAutoscalingUnion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Autoscaling config for HTTPTotalRequests and HTTPAvgRequestDuration metrics
+type DeploymentRevisionAutoscalingHTTPAutoscalingConfig struct {
+	// Metric must be HTTPTotalRequests or HTTPAvgRequestDuration
+	//
+	// Any of "HTTPTotalRequests", "HTTPAvgRequestDuration".
+	Metric string `json:"metric"`
+	// Target is the threshold value. Default: 100 for HTTPTotalRequests, 500 (ms) for
+	// HTTPAvgRequestDuration
+	Target float64 `json:"target"`
+	// TimeIntervalMinutes is the rate window in minutes. Default: 10
+	TimeIntervalMinutes int64 `json:"time_interval_minutes"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metric              respjson.Field
+		Target              respjson.Field
+		TimeIntervalMinutes respjson.Field
+		ExtraFields         map[string]respjson.Field
+		raw                 string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevisionAutoscalingHTTPAutoscalingConfig) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentRevisionAutoscalingHTTPAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Autoscaling config for QueueBacklogPerWorker metric
+type DeploymentRevisionAutoscalingQueueAutoscalingConfig struct {
+	// Metric must be QueueBacklogPerWorker
+	//
+	// Any of "QueueBacklogPerWorker".
+	Metric string `json:"metric"`
+	// Model overrides the model name for queue status lookup. Defaults to the
+	// deployment app name
+	Model string `json:"model"`
+	// Target is the threshold value. Default: 1.01
+	Target float64 `json:"target"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Metric      respjson.Field
+		Model       respjson.Field
+		Target      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevisionAutoscalingQueueAutoscalingConfig) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentRevisionAutoscalingQueueAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Autoscaling config for CustomMetric metric
+type DeploymentRevisionAutoscalingCustomMetricAutoscalingConfig struct {
+	// CustomMetricName is the Prometheus metric name. Must match
+	// [a-zA-Z\_:][a-zA-Z0-9_:]\*
+	CustomMetricName string `json:"custom_metric_name"`
+	// Metric must be CustomMetric
+	//
+	// Any of "CustomMetric".
+	Metric string `json:"metric"`
+	// Target is the threshold value. Default: 500
+	Target float64 `json:"target"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		CustomMetricName respjson.Field
+		Metric           respjson.Field
+		Target           respjson.Field
+		ExtraFields      map[string]respjson.Field
+		raw              string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevisionAutoscalingCustomMetricAutoscalingConfig) RawJSON() string {
+	return r.JSON.raw
+}
+func (r *DeploymentRevisionAutoscalingCustomMetricAutoscalingConfig) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// One entry in a deployment's revision history.
+type DeploymentRevisionEvent struct {
+	// How this revision became active.
+	//
+	// Any of "create", "update", "system", "rollback".
+	Action DeploymentRevisionEventAction `json:"action" api:"required"`
+	// Time when this revision became active.
+	ActivatedAt time.Time `json:"activated_at" api:"required" format:"date-time"`
+	// Monotonic event number in the deployment's revision history.
+	EventNumber int64 `json:"event_number" api:"required"`
+	// Container image of the revision activated by this event.
+	Image string `json:"image" api:"required"`
+	// The object type, which is always `revision_event`.
+	Object constant.RevisionEvent `json:"object" default:"revision_event"`
+	// Revision ID activated by this event.
+	RevisionID string `json:"revision_id" api:"required"`
+	// Human-readable per-deployment revision counter.
+	RevisionNumber int64 `json:"revision_number" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Action         respjson.Field
+		ActivatedAt    respjson.Field
+		EventNumber    respjson.Field
+		Image          respjson.Field
+		Object         respjson.Field
+		RevisionID     respjson.Field
+		RevisionNumber respjson.Field
+		ExtraFields    map[string]respjson.Field
+		raw            string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevisionEvent) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentRevisionEvent) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// How this revision became active.
+type DeploymentRevisionEventAction string
+
+const (
+	DeploymentRevisionEventActionCreate   DeploymentRevisionEventAction = "create"
+	DeploymentRevisionEventActionUpdate   DeploymentRevisionEventAction = "update"
+	DeploymentRevisionEventActionSystem   DeploymentRevisionEventAction = "system"
+	DeploymentRevisionEventActionRollback DeploymentRevisionEventAction = "rollback"
+)
+
+// Revision history events for a deployment, newest first.
+type DeploymentRevisionEventList struct {
+	// Revision events, newest first.
+	Data []DeploymentRevisionEvent `json:"data" api:"required"`
+	// The object type, which is always `list`.
+	Object constant.List `json:"object" default:"list"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Data        respjson.Field
+		Object      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentRevisionEventList) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentRevisionEventList) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1192,6 +1582,24 @@ func (r *BetaJigDeployParamsVolume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+type BetaJigListRevisionsParams struct {
+	// Return only events with event_number strictly less than this value for
+	// pagination.
+	Before param.Opt[int64] `query:"before,omitzero" json:"-"`
+	// Maximum number of events to return (default 10, max 100).
+	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	paramObj
+}
+
+// URLQuery serializes [BetaJigListRevisionsParams]'s query parameters as
+// `url.Values`.
+func (r BetaJigListRevisionsParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
+}
+
 type BetaJigGetLogsParams struct {
 	// Replica ID to filter logs
 	ReplicaID param.Opt[string] `query:"replica_id,omitzero" json:"-"`
@@ -1209,4 +1617,24 @@ func (r BetaJigGetLogsParams) URLQuery() (v url.Values, err error) {
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
+}
+
+type BetaJigGetRevisionParams struct {
+	// Deployment ID or name.
+	ID string `path:"id" api:"required" json:"-"`
+	paramObj
+}
+
+type BetaJigRollbackParams struct {
+	// Revision number or revision ID to roll back to.
+	RevisionIdentifier string `json:"revision_identifier" api:"required"`
+	paramObj
+}
+
+func (r BetaJigRollbackParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaJigRollbackParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *BetaJigRollbackParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
 }
