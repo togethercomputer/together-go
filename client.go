@@ -19,6 +19,7 @@ import (
 type Client struct {
 	Options         []option.RequestOption
 	Beta            BetaService
+	Clusters        ClusterService
 	Chat            ChatService
 	Completions     CompletionService
 	Embeddings      EmbeddingService
@@ -70,6 +71,7 @@ func NewClient(opts ...option.RequestOption) (r Client) {
 	r = Client{Options: opts}
 
 	r.Beta = NewBetaService(opts...)
+	r.Clusters = NewClusterService(opts...)
 	r.Chat = NewChatService(opts...)
 	r.Completions = NewCompletionService(opts...)
 	r.Embeddings = NewEmbeddingService(opts...)

@@ -18,21 +18,21 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// BetaClusterStorageService contains methods and other services that help with
+// ClusterStorageService contains methods and other services that help with
 // interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewBetaClusterStorageService] method instead.
-type BetaClusterStorageService struct {
+// the [NewClusterStorageService] method instead.
+type ClusterStorageService struct {
 	Options []option.RequestOption
 }
 
-// NewBetaClusterStorageService generates a new service that applies the given
-// options to each request. These options are applied after the parent client's
-// options (if there is one), and before any request-specific options.
-func NewBetaClusterStorageService(opts ...option.RequestOption) (r BetaClusterStorageService) {
-	r = BetaClusterStorageService{}
+// NewClusterStorageService generates a new service that applies the given options
+// to each request. These options are applied after the parent client's options (if
+// there is one), and before any request-specific options.
+func NewClusterStorageService(opts ...option.RequestOption) (r ClusterStorageService) {
+	r = ClusterStorageService{}
 	r.Options = opts
 	return
 }
@@ -42,7 +42,7 @@ func NewBetaClusterStorageService(opts ...option.RequestOption) (r BetaClusterSt
 // at cluster creation time, and resize as your data grows. All shared storage is
 // backed by multi-NIC bare metal paths, ensuring high-throughput and low-latency
 // performance for shared storage.
-func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterStorageNewParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
+func (r *ClusterStorageService) New(ctx context.Context, body ClusterStorageNewParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
@@ -50,7 +50,7 @@ func (r *BetaClusterStorageService) New(ctx context.Context, body BetaClusterSto
 }
 
 // Retrieve information about a specific shared volume.
-func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, opts ...option.RequestOption) (res *ClusterStorage, err error) {
+func (r *ClusterStorageService) Get(ctx context.Context, volumeID string, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
 		err = errors.New("missing required volume_id parameter")
@@ -62,7 +62,7 @@ func (r *BetaClusterStorageService) Get(ctx context.Context, volumeID string, op
 }
 
 // Update the configuration of an existing shared volume.
-func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaClusterStorageUpdateParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
+func (r *ClusterStorageService) Update(ctx context.Context, body ClusterStorageUpdateParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
@@ -70,7 +70,7 @@ func (r *BetaClusterStorageService) Update(ctx context.Context, body BetaCluster
 }
 
 // List all shared volumes.
-func (r *BetaClusterStorageService) List(ctx context.Context, query BetaClusterStorageListParams, opts ...option.RequestOption) (res *BetaClusterStorageListResponse, err error) {
+func (r *ClusterStorageService) List(ctx context.Context, query ClusterStorageListParams, opts ...option.RequestOption) (res *ClusterStorageListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
@@ -79,7 +79,7 @@ func (r *BetaClusterStorageService) List(ctx context.Context, query BetaClusterS
 
 // Delete a shared volume. Note that if this volume is attached to a cluster,
 // deleting will fail.
-func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string, opts ...option.RequestOption) (res *BetaClusterStorageDeleteResponse, err error) {
+func (r *ClusterStorageService) Delete(ctx context.Context, volumeID string, opts ...option.RequestOption) (res *ClusterStorageDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if volumeID == "" {
 		err = errors.New("missing required volume_id parameter")
@@ -90,7 +90,50 @@ func (r *BetaClusterStorageService) Delete(ctx context.Context, volumeID string,
 	return res, err
 }
 
-type BetaClusterStorageListResponse struct {
+type ClusterStorage struct {
+	// Size of the volume in TiB.
+	SizeTib int64 `json:"size_tib" api:"required"`
+	// Current status of the shared volume.
+	//
+	// Any of "scheduled", "available", "bound", "provisioning", "deleting", "failed",
+	// "access_revoked", "unknown".
+	Status ClusterStorageStatus `json:"status" api:"required"`
+	// ID of the volume.
+	VolumeID string `json:"volume_id" api:"required"`
+	// User provided name of the volume.
+	VolumeName string `json:"volume_name" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		SizeTib     respjson.Field
+		Status      respjson.Field
+		VolumeID    respjson.Field
+		VolumeName  respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r ClusterStorage) RawJSON() string { return r.JSON.raw }
+func (r *ClusterStorage) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Current status of the shared volume.
+type ClusterStorageStatus string
+
+const (
+	ClusterStorageStatusScheduled     ClusterStorageStatus = "scheduled"
+	ClusterStorageStatusAvailable     ClusterStorageStatus = "available"
+	ClusterStorageStatusBound         ClusterStorageStatus = "bound"
+	ClusterStorageStatusProvisioning  ClusterStorageStatus = "provisioning"
+	ClusterStorageStatusDeleting      ClusterStorageStatus = "deleting"
+	ClusterStorageStatusFailed        ClusterStorageStatus = "failed"
+	ClusterStorageStatusAccessRevoked ClusterStorageStatus = "access_revoked"
+	ClusterStorageStatusUnknown       ClusterStorageStatus = "unknown"
+)
+
+type ClusterStorageListResponse struct {
 	Volumes []ClusterStorage `json:"volumes" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -101,12 +144,12 @@ type BetaClusterStorageListResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaClusterStorageListResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterStorageListResponse) UnmarshalJSON(data []byte) error {
+func (r ClusterStorageListResponse) RawJSON() string { return r.JSON.raw }
+func (r *ClusterStorageListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaClusterStorageDeleteResponse struct {
+type ClusterStorageDeleteResponse struct {
 	Success bool `json:"success" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -117,12 +160,12 @@ type BetaClusterStorageDeleteResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaClusterStorageDeleteResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaClusterStorageDeleteResponse) UnmarshalJSON(data []byte) error {
+func (r ClusterStorageDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *ClusterStorageDeleteResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaClusterStorageNewParams struct {
+type ClusterStorageNewParams struct {
 	// Region name. Usable regions can be found from `clusters.list_regions()`
 	Region string `json:"region" api:"required"`
 	// Volume size in whole tebibytes (TiB).
@@ -139,15 +182,15 @@ type BetaClusterStorageNewParams struct {
 	paramObj
 }
 
-func (r BetaClusterStorageNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow BetaClusterStorageNewParams
+func (r ClusterStorageNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterStorageNewParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaClusterStorageNewParams) UnmarshalJSON(data []byte) error {
+func (r *ClusterStorageNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaClusterStorageUpdateParams struct {
+type ClusterStorageUpdateParams struct {
 	// ID of the volume.
 	VolumeID string `json:"volume_id" api:"required"`
 	// Size of the volume in TiB.
@@ -155,15 +198,15 @@ type BetaClusterStorageUpdateParams struct {
 	paramObj
 }
 
-func (r BetaClusterStorageUpdateParams) MarshalJSON() (data []byte, err error) {
-	type shadow BetaClusterStorageUpdateParams
+func (r ClusterStorageUpdateParams) MarshalJSON() (data []byte, err error) {
+	type shadow ClusterStorageUpdateParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaClusterStorageUpdateParams) UnmarshalJSON(data []byte) error {
+func (r *ClusterStorageUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaClusterStorageListParams struct {
+type ClusterStorageListParams struct {
 	// Optional UMS project ID to filter volumes by. When set, only volumes belonging
 	// to this project are returned. The caller must be a member of the project;
 	// otherwise the result set will be empty.
@@ -173,9 +216,9 @@ type BetaClusterStorageListParams struct {
 	paramObj
 }
 
-// URLQuery serializes [BetaClusterStorageListParams]'s query parameters as
+// URLQuery serializes [ClusterStorageListParams]'s query parameters as
 // `url.Values`.
-func (r BetaClusterStorageListParams) URLQuery() (v url.Values, err error) {
+func (r ClusterStorageListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
