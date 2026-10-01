@@ -273,7 +273,8 @@ func (r *FileDeleteResponse) UnmarshalJSON(data []byte) error {
 type FileUploadParams struct {
 	// The content of the file being uploaded
 	File io.Reader `json:"file,omitzero" api:"required" format:"binary"`
-	// The name of the file being uploaded
+	// The name of the file being uploaded. Must be valid UTF-8, must not contain null
+	// characters, and must not exceed 128 bytes.
 	FileName string `json:"file_name" api:"required"`
 	// The purpose of the file
 	//
