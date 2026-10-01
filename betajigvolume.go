@@ -4,6 +4,7 @@ package together
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -89,9 +90,59 @@ func (r *BetaJigVolumeService) Delete(ctx context.Context, id string, opts ...op
 	return res, err
 }
 
+// S3 source configuration for volume sync.
+type S3Origin struct {
+	// IAM role ARN Together assumes to read the S3 bucket or prefix.
+	RoleArn string `json:"role_arn" api:"required"`
+	// S3 bucket or prefix to copy into the volume.
+	Uri string `json:"uri" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		RoleArn     respjson.Field
+		Uri         respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r S3Origin) RawJSON() string { return r.JSON.raw }
+func (r *S3Origin) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this S3Origin to a S3OriginParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// S3OriginParam.Overrides()
+func (r S3Origin) ToParam() S3OriginParam {
+	return param.Override[S3OriginParam](json.RawMessage(r.RawJSON()))
+}
+
+// S3 source configuration for volume sync.
+//
+// The properties RoleArn, Uri are required.
+type S3OriginParam struct {
+	// IAM role ARN Together assumes to read the S3 bucket or prefix.
+	RoleArn string `json:"role_arn" api:"required"`
+	// S3 bucket or prefix to copy into the volume.
+	Uri string `json:"uri" api:"required"`
+	paramObj
+}
+
+func (r S3OriginParam) MarshalJSON() (data []byte, err error) {
+	type shadow S3OriginParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *S3OriginParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
 type Volume struct {
 	// ID is the unique identifier for this volume
-	ID      string        `json:"id"`
+	ID string `json:"id"`
+	// Content currently available on a volume version.
 	Content VolumeContent `json:"content"`
 	// CreatedAt is the ISO8601 timestamp when this volume was created
 	CreatedAt string `json:"created_at"`
@@ -104,6 +155,12 @@ type Volume struct {
 	Name string `json:"name"`
 	// Object is the type identifier for this response (always "volume")
 	Object string `json:"object"`
+	// Status of the current volume version.
+	//
+	// Any of "ready", "pending", "syncing", "failed".
+	Status VolumeStatus `json:"status"`
+	// Message explaining why the current volume version failed, when applicable.
+	StatusMessage string `json:"status_message"`
 	// Any of "readOnly".
 	Type VolumeType `json:"type"`
 	// UpdatedAt is the ISO8601 timestamp when this volume was last updated
@@ -120,6 +177,8 @@ type Volume struct {
 		MountedBy      respjson.Field
 		Name           respjson.Field
 		Object         respjson.Field
+		Status         respjson.Field
+		StatusMessage  respjson.Field
 		Type           respjson.Field
 		UpdatedAt      respjson.Field
 		VersionHistory respjson.Field
@@ -134,10 +193,13 @@ func (r *Volume) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Content currently available on a volume version.
 type VolumeContent struct {
 	// Files is the list of files to preload into the volume, if the volume content
 	// type is "files".
 	Files []VolumeContentFile `json:"files"`
+	// External source Together copied into this volume version.
+	Origin VolumeOrigin `json:"origin"`
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
 	// volume
 	SourcePrefix string `json:"source_prefix"`
@@ -149,6 +211,7 @@ type VolumeContent struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Files        respjson.Field
+		Origin       respjson.Field
 		SourcePrefix respjson.Field
 		Type         respjson.Field
 		ExtraFields  map[string]respjson.Field
@@ -191,18 +254,29 @@ const (
 	VolumeTypeReadOnly VolumeType = "readOnly"
 )
 
+// Metadata for a previous volume version.
 type VolumeVersionHistory struct {
-	// Content specifies the new content to preload to this volume.
-	Content   VolumeVersionHistoryContent `json:"content"`
-	MountedBy []string                    `json:"mounted_by"`
-	Version   int64                       `json:"version"`
+	// Content configuration used to create this version.
+	Content VolumeVersionHistoryContent `json:"content"`
+	// Deployment IDs currently mounting this version.
+	MountedBy []string `json:"mounted_by"`
+	// Status of this volume version.
+	//
+	// Any of "ready", "pending", "syncing", "failed".
+	Status VolumeStatus `json:"status"`
+	// Message explaining why this volume version failed, when applicable.
+	StatusMessage string `json:"status_message"`
+	// Numeric version identifier for this volume content.
+	Version int64 `json:"version"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Content     respjson.Field
-		MountedBy   respjson.Field
-		Version     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		Content       respjson.Field
+		MountedBy     respjson.Field
+		Status        respjson.Field
+		StatusMessage respjson.Field
+		Version       respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
 	} `json:"-"`
 }
 
@@ -212,10 +286,13 @@ func (r *VolumeVersionHistory) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Content specifies the new content to preload to this volume.
+// Content configuration used to create this version.
 type VolumeVersionHistoryContent struct {
+	// External source Together copies into a new volume version; mutually exclusive
+	// with source_prefix.
+	Origin VolumeOrigin `json:"origin"`
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
-	// volume
+	// volume. Mutually exclusive with Origin
 	SourcePrefix string `json:"source_prefix"`
 	// Type is the content type (currently only "files" is supported which allows
 	// preloading files uploaded via Files API into the volume)
@@ -224,6 +301,7 @@ type VolumeVersionHistoryContent struct {
 	Type string `json:"type"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		Origin       respjson.Field
 		SourcePrefix respjson.Field
 		Type         respjson.Field
 		ExtraFields  map[string]respjson.Field
@@ -236,6 +314,60 @@ func (r VolumeVersionHistoryContent) RawJSON() string { return r.JSON.raw }
 func (r *VolumeVersionHistoryContent) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// External source Together copies into a new volume version.
+type VolumeOrigin struct {
+	// S3 bucket or prefix source for the volume sync.
+	S3 S3Origin `json:"s3" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		S3          respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r VolumeOrigin) RawJSON() string { return r.JSON.raw }
+func (r *VolumeOrigin) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// ToParam converts this VolumeOrigin to a VolumeOriginParam.
+//
+// Warning: the fields of the param type will not be present. ToParam should only
+// be used at the last possible moment before sending a request. Test for this with
+// VolumeOriginParam.Overrides()
+func (r VolumeOrigin) ToParam() VolumeOriginParam {
+	return param.Override[VolumeOriginParam](json.RawMessage(r.RawJSON()))
+}
+
+// External source Together copies into a new volume version.
+//
+// The property S3 is required.
+type VolumeOriginParam struct {
+	// S3 bucket or prefix source for the volume sync.
+	S3 S3OriginParam `json:"s3,omitzero" api:"required"`
+	paramObj
+}
+
+func (r VolumeOriginParam) MarshalJSON() (data []byte, err error) {
+	type shadow VolumeOriginParam
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *VolumeOriginParam) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Status of a volume version. Only ready versions can be mounted.
+type VolumeStatus string
+
+const (
+	VolumeStatusReady   VolumeStatus = "ready"
+	VolumeStatusPending VolumeStatus = "pending"
+	VolumeStatusSyncing VolumeStatus = "syncing"
+	VolumeStatusFailed  VolumeStatus = "failed"
+)
 
 type BetaJigVolumeListResponse struct {
 	// Data is the array of volume items
@@ -291,8 +423,11 @@ func (r *BetaJigVolumeNewParams) UnmarshalJSON(data []byte) error {
 // Content specifies the new content to preload to this volume.
 type BetaJigVolumeNewParamsContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
-	// volume
+	// volume. Mutually exclusive with Origin
 	SourcePrefix param.Opt[string] `json:"source_prefix,omitzero"`
+	// External source Together copies into a new volume version; mutually exclusive
+	// with source_prefix.
+	Origin VolumeOriginParam `json:"origin,omitzero"`
 	// Type is the content type (currently only "files" is supported which allows
 	// preloading files uploaded via Files API into the volume)
 	//
@@ -359,8 +494,11 @@ func (r *BetaJigVolumeUpdateParams) UnmarshalJSON(data []byte) error {
 // Content specifies the new content to preload to this volume.
 type BetaJigVolumeUpdateParamsContent struct {
 	// SourcePrefix is the file path prefix for the content to be preloaded into the
-	// volume
+	// volume. Mutually exclusive with Origin
 	SourcePrefix param.Opt[string] `json:"source_prefix,omitzero"`
+	// External source Together copies into a new volume version; mutually exclusive
+	// with source_prefix.
+	Origin VolumeOriginParam `json:"origin,omitzero"`
 	// Type is the content type (currently only "files" is supported which allows
 	// preloading files uploaded via Files API into the volume)
 	//

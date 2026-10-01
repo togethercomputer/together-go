@@ -27,6 +27,12 @@ func TestBetaJigVolumeNewWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Beta.Jig.Volumes.New(context.TODO(), together.BetaJigVolumeNewParams{
 		Content: together.BetaJigVolumeNewParamsContent{
+			Origin: together.VolumeOriginParam{
+				S3: together.S3OriginParam{
+					RoleArn: "arn:aws:iam::123456789012:role/together-volumes",
+					Uri:     "s3://my-bucket/models/custom-weights",
+				},
+			},
 			SourcePrefix: together.String("models/"),
 			Type:         "files",
 		},
@@ -87,6 +93,12 @@ func TestBetaJigVolumeUpdateWithOptionalParams(t *testing.T) {
 		"id",
 		together.BetaJigVolumeUpdateParams{
 			Content: together.BetaJigVolumeUpdateParamsContent{
+				Origin: together.VolumeOriginParam{
+					S3: together.S3OriginParam{
+						RoleArn: "arn:aws:iam::123456789012:role/together-volumes",
+						Uri:     "s3://my-bucket/models/custom-weights",
+					},
+				},
 				SourcePrefix: together.String("models/"),
 				Type:         "files",
 			},

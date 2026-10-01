@@ -316,9 +316,17 @@ Methods:
 
 ### Volumes
 
+Params Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#S3OriginParam">S3OriginParam</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#VolumeOriginParam">VolumeOriginParam</a>
+
 Response Types:
 
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#S3Origin">S3Origin</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#Volume">Volume</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#VolumeOrigin">VolumeOrigin</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#VolumeStatus">VolumeStatus</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigVolumeListResponse">BetaJigVolumeListResponse</a>
 - <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigVolumeDeleteResponse">BetaJigVolumeDeleteResponse</a>
 
