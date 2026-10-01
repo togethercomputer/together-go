@@ -580,6 +580,8 @@ type DeploymentStatus struct {
 	// "DEPLOYMENT_STATE_FAILED", "DEPLOYMENT_STATE_STOPPED",
 	// "DEPLOYMENT_STATE_STOPPING".
 	State DeploymentStatusState `json:"state" api:"required"`
+	// Deployment status broken down by each supported dimension.
+	Details DeploymentStatusDetails `json:"details"`
 	// Total replicas actively serving traffic across all clusters.
 	ReadyReplicas int64 `json:"readyReplicas"`
 	// Replicas the scheduler has placed on clusters.
@@ -588,6 +590,7 @@ type DeploymentStatus struct {
 	JSON struct {
 		Message           respjson.Field
 		State             respjson.Field
+		Details           respjson.Field
 		ReadyReplicas     respjson.Field
 		ScheduledReplicas respjson.Field
 		ExtraFields       map[string]respjson.Field
@@ -613,6 +616,49 @@ const (
 	DeploymentStatusStateDeploymentStateStopped      DeploymentStatusState = "DEPLOYMENT_STATE_STOPPED"
 	DeploymentStatusStateDeploymentStateStopping     DeploymentStatusState = "DEPLOYMENT_STATE_STOPPING"
 )
+
+// Deployment status broken down by each supported dimension.
+type DeploymentStatusDetails struct {
+	// Regions where the deployment is actually scheduled or serving replicas, sorted
+	// by region.
+	Region []DeploymentStatusDetailsRegion `json:"region" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Region      respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentStatusDetails) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentStatusDetails) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Realized scheduled and ready replica counts for one deployment region.
+type DeploymentStatusDetailsRegion struct {
+	// Replicas serving traffic in this region.
+	ReadyReplicas int64 `json:"readyReplicas" api:"required"`
+	// Region name using the same vocabulary accepted by inline placement regions.
+	Region string `json:"region" api:"required"`
+	// Replicas the scheduler has placed in this region.
+	ScheduledReplicas int64 `json:"scheduledReplicas" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		ReadyReplicas     respjson.Field
+		Region            respjson.Field
+		ScheduledReplicas respjson.Field
+		ExtraFields       map[string]respjson.Field
+		raw               string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r DeploymentStatusDetailsRegion) RawJSON() string { return r.JSON.raw }
+func (r *DeploymentStatusDetailsRegion) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
 
 // Stable inference entry point that groups deployments and routes requests among
 // them.
