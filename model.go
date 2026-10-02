@@ -60,7 +60,8 @@ type ModelObject struct {
 	Created int64  `json:"created" api:"required"`
 	// The object type, which is always `model`.
 	Object constant.Model `json:"object" default:"model"`
-	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank".
+	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank",
+	// "audio", "transcribe", "video".
 	Type          ModelObjectType    `json:"type" api:"required"`
 	ContextLength int64              `json:"context_length"`
 	DisplayName   string             `json:"display_name"`
@@ -101,6 +102,9 @@ const (
 	ModelObjectTypeEmbedding  ModelObjectType = "embedding"
 	ModelObjectTypeModeration ModelObjectType = "moderation"
 	ModelObjectTypeRerank     ModelObjectType = "rerank"
+	ModelObjectTypeAudio      ModelObjectType = "audio"
+	ModelObjectTypeTranscribe ModelObjectType = "transcribe"
+	ModelObjectTypeVideo      ModelObjectType = "video"
 )
 
 type ModelObjectPricing struct {
