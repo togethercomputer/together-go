@@ -220,6 +220,11 @@ type DeploymentAdapterStatus struct {
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
+	// Optional inference-probe verdict for this adapter on this cluster; absent until
+	// validation concludes.
+	AdapterValid bool `json:"adapterValid"`
+	// Human-readable probe rejection detail when adapterValid is false.
+	AdapterValidReason string `json:"adapterValidReason"`
 	// Time when the adapter first reached READY in this cluster.
 	LoadedAt time.Time `json:"loadedAt" format:"date-time"`
 	// Human-readable details about the current adapter state.
@@ -244,6 +249,8 @@ type DeploymentAdapterStatus struct {
 		State              respjson.Field
 		TotalPodCount      respjson.Field
 		AdapterModel       respjson.Field
+		AdapterValid       respjson.Field
+		AdapterValidReason respjson.Field
 		LoadedAt           respjson.Field
 		Message            respjson.Field
 		RealizedEtag       respjson.Field
