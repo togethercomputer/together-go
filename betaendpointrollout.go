@@ -722,8 +722,8 @@ func (r *RegressionCheckParam) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Rolling strategy configuration for capacity-preserving batches that ramp target
-// replicas up while draining source replicas.
+// Rolling strategy configuration for small batches that ramp target replicas up
+// while shrinking source replicas to what their remaining traffic share needs.
 type RollingConfig struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -747,8 +747,8 @@ func (r RollingConfig) ToParam() RollingConfigParam {
 	return param.Override[RollingConfigParam](json.RawMessage(r.RawJSON()))
 }
 
-// Rolling strategy configuration for capacity-preserving batches that ramp target
-// replicas up while draining source replicas.
+// Rolling strategy configuration for small batches that ramp target replicas up
+// while shrinking source replicas to what their remaining traffic share needs.
 type RollingConfigParam struct {
 	paramObj
 }
@@ -1027,8 +1027,8 @@ type RolloutDefaultsPreviewSpec struct {
 	// Optional metric gates evaluated after each step's soak. Canary only; rejected on
 	// rolling and blue-green rollouts.
 	Metrics []MetricRule `json:"metrics"`
-	// Rolling strategy configuration for capacity-preserving batches that ramp target
-	// replicas up while draining source replicas.
+	// Rolling strategy configuration for small batches that ramp target replicas up
+	// while shrinking source replicas to what their remaining traffic share needs.
 	Rolling RollingConfig `json:"rolling"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -1349,8 +1349,8 @@ type BetaEndpointRolloutNewParams struct {
 	// Optional metric gates evaluated after each step's soak. Canary only; rejected on
 	// rolling and blue-green rollouts.
 	Metrics []MetricRuleParam `json:"metrics,omitzero"`
-	// Rolling strategy configuration for capacity-preserving batches that ramp target
-	// replicas up while draining source replicas.
+	// Rolling strategy configuration for small batches that ramp target replicas up
+	// while shrinking source replicas to what their remaining traffic share needs.
 	Rolling RollingConfigParam `json:"rolling,omitzero"`
 	paramObj
 }
@@ -1523,8 +1523,8 @@ type BetaEndpointRolloutPreviewDefaultsParams struct {
 	// Optional metric gates evaluated after each step's soak. Canary only; rejected on
 	// rolling and blue-green rollouts.
 	Metrics []MetricRuleParam `json:"metrics,omitzero"`
-	// Rolling strategy configuration for capacity-preserving batches that ramp target
-	// replicas up while draining source replicas.
+	// Rolling strategy configuration for small batches that ramp target replicas up
+	// while shrinking source replicas to what their remaining traffic share needs.
 	Rolling RollingConfigParam `json:"rolling,omitzero"`
 	paramObj
 }
