@@ -256,11 +256,12 @@ func TestBetaModelListSupportedWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Beta.Models.ListSupported(context.TODO(), together.BetaModelListSupportedParams{
-		After:    together.String("after"),
-		Limit:    together.Int(0),
-		Modality: together.BetaModelListSupportedParamsModalityModalityText,
-		Product:  together.BetaModelListSupportedParamsProductProductServerless,
-		Search:   together.String("search"),
+		AdapterMode: together.BetaModelListSupportedParamsAdapterModeAdapterModeFixed,
+		After:       together.String("after"),
+		Limit:       together.Int(0),
+		Modality:    together.BetaModelListSupportedParamsModalityModalityText,
+		Product:     together.BetaModelListSupportedParamsProductProductServerless,
+		Search:      together.String("search"),
 	})
 	if err != nil {
 		var apierr *together.Error

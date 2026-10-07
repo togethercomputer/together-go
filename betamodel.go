@@ -624,6 +624,11 @@ type SupportedModelDeploymentProfile struct {
 	ProfileID string `json:"profileId" api:"required"`
 	// Quantization method for the profile, if available.
 	Quantization string `json:"quantization" api:"required"`
+	// Adapter serving mode for deployments created from this profile; omitted when no
+	// certified config is pinned.
+	//
+	// Any of "ADAPTER_MODE_FIXED", "ADAPTER_MODE_DYNAMIC", "ADAPTER_MODE_DISABLED".
+	AdapterMode SupportedModelDeploymentProfileAdapterMode `json:"adapterMode"`
 	// Deprecated. Use `parallelism`. Legacy tensor-parallel shard count for the
 	// profile.
 	//
@@ -642,6 +647,7 @@ type SupportedModelDeploymentProfile struct {
 		PerformanceBenchmarks     respjson.Field
 		ProfileID                 respjson.Field
 		Quantization              respjson.Field
+		AdapterMode               respjson.Field
 		TensorParallelSize        respjson.Field
 		ExtraFields               map[string]respjson.Field
 		raw                       string
@@ -653,6 +659,16 @@ func (r SupportedModelDeploymentProfile) RawJSON() string { return r.JSON.raw }
 func (r *SupportedModelDeploymentProfile) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// Adapter serving mode for deployments created from this profile; omitted when no
+// certified config is pinned.
+type SupportedModelDeploymentProfileAdapterMode string
+
+const (
+	SupportedModelDeploymentProfileAdapterModeAdapterModeFixed    SupportedModelDeploymentProfileAdapterMode = "ADAPTER_MODE_FIXED"
+	SupportedModelDeploymentProfileAdapterModeAdapterModeDynamic  SupportedModelDeploymentProfileAdapterMode = "ADAPTER_MODE_DYNAMIC"
+	SupportedModelDeploymentProfileAdapterModeAdapterModeDisabled SupportedModelDeploymentProfileAdapterMode = "ADAPTER_MODE_DISABLED"
+)
 
 // Performance benchmark metrics for a supported model profile.
 type SupportedModelPerformanceBenchmarks struct {
@@ -1015,6 +1031,11 @@ type BetaModelListSupportedParams struct {
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
 	// Case-insensitive search across model IDs, names, and descriptions.
 	Search param.Opt[string] `query:"search,omitzero" json:"-"`
+	// Filter models to those with a deployment profile in the selected adapter serving
+	// mode.
+	//
+	// Any of "ADAPTER_MODE_FIXED", "ADAPTER_MODE_DYNAMIC", "ADAPTER_MODE_DISABLED".
+	AdapterMode BetaModelListSupportedParamsAdapterMode `query:"adapterMode,omitzero" json:"-"`
 	// Filter models by input modality.
 	//
 	// Any of "MODALITY_TEXT", "MODALITY_IMAGE", "MODALITY_AUDIO", "MODALITY_VIDEO".
@@ -1034,6 +1055,16 @@ func (r BetaModelListSupportedParams) URLQuery() (v url.Values, err error) {
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
+
+// Filter models to those with a deployment profile in the selected adapter serving
+// mode.
+type BetaModelListSupportedParamsAdapterMode string
+
+const (
+	BetaModelListSupportedParamsAdapterModeAdapterModeFixed    BetaModelListSupportedParamsAdapterMode = "ADAPTER_MODE_FIXED"
+	BetaModelListSupportedParamsAdapterModeAdapterModeDynamic  BetaModelListSupportedParamsAdapterMode = "ADAPTER_MODE_DYNAMIC"
+	BetaModelListSupportedParamsAdapterModeAdapterModeDisabled BetaModelListSupportedParamsAdapterMode = "ADAPTER_MODE_DISABLED"
+)
 
 // Filter models by input modality.
 type BetaModelListSupportedParamsModality string
