@@ -668,6 +668,16 @@ Methods:
 - <code title="post /endpoints/{endpointId}/adapters">client.Endpoints.Adapters.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointAdapterService.Add">Add</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, endpointID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointAdapterAddParams">EndpointAdapterAddParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointAdapterAddResponse">EndpointAdapterAddResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /endpoints/{endpointId}/adapters">client.Endpoints.Adapters.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointAdapterService.Remove">Remove</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, endpointID <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointAdapterRemoveParams">EndpointAdapterRemoveParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#EndpointAdapterRemoveResponse">EndpointAdapterRemoveResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
+# Projects
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#Project">Project</a>
+
+Methods:
+
+- <code title="get /projects">client.Projects.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ProjectService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ProjectListParams">ProjectListParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go/packages/pagination">pagination</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go/packages/pagination#CursorPagination">CursorPagination</a>[<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#Project">Project</a>], <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
 # Rerank
 
 Response Types:
