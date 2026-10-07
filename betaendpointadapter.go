@@ -282,6 +282,9 @@ const (
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterNewResponse struct {
+	// Row identifier for this adapter attachment; changes if the adapter is removed
+	// and re-added.
+	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
 	// Adapter revision pinned on the deployment.
@@ -298,6 +301,7 @@ type BetaEndpointAdapterNewResponse struct {
 	DesiredRevision string `json:"desiredRevision"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		ID                respjson.Field
 		AdapterModelID    respjson.Field
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
@@ -317,6 +321,9 @@ func (r *BetaEndpointAdapterNewResponse) UnmarshalJSON(data []byte) error {
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterGetResponse struct {
+	// Row identifier for this adapter attachment; changes if the adapter is removed
+	// and re-added.
+	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
 	// Adapter revision pinned on the deployment.
@@ -333,6 +340,7 @@ type BetaEndpointAdapterGetResponse struct {
 	DesiredRevision string `json:"desiredRevision"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		ID                respjson.Field
 		AdapterModelID    respjson.Field
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
@@ -352,6 +360,9 @@ func (r *BetaEndpointAdapterGetResponse) UnmarshalJSON(data []byte) error {
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterUpdateResponse struct {
+	// Row identifier for this adapter attachment; changes if the adapter is removed
+	// and re-added.
+	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
 	// Adapter revision pinned on the deployment.
@@ -368,6 +379,7 @@ type BetaEndpointAdapterUpdateResponse struct {
 	DesiredRevision string `json:"desiredRevision"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		ID                respjson.Field
 		AdapterModelID    respjson.Field
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
@@ -387,6 +399,9 @@ func (r *BetaEndpointAdapterUpdateResponse) UnmarshalJSON(data []byte) error {
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterListResponse struct {
+	// Row identifier for this adapter attachment; changes if the adapter is removed
+	// and re-added.
+	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
 	// Adapter revision pinned on the deployment.
@@ -403,6 +418,7 @@ type BetaEndpointAdapterListResponse struct {
 	DesiredRevision string `json:"desiredRevision"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
+		ID                respjson.Field
 		AdapterModelID    respjson.Field
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
