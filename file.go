@@ -112,9 +112,10 @@ func (r *FileList) UnmarshalJSON(data []byte) error {
 type FilePurpose string
 
 const (
-	FilePurposeFineTune FilePurpose = "fine-tune"
-	FilePurposeEval     FilePurpose = "eval"
-	FilePurposeBatchAPI FilePurpose = "batch-api"
+	FilePurposeFineTune    FilePurpose = "fine-tune"
+	FilePurposeCalibration FilePurpose = "calibration"
+	FilePurposeEval        FilePurpose = "eval"
+	FilePurposeBatchAPI    FilePurpose = "batch-api"
 )
 
 // Structured information describing a file uploaded to Together.
@@ -139,16 +140,15 @@ type FileResponse struct {
 	Processed bool `json:"Processed" api:"required"`
 	// The purpose of the file as it was uploaded.
 	//
-	// Any of "fine-tune", "eval", "batch-api".
+	// Any of "fine-tune", "calibration", "eval", "batch-api".
 	Purpose FilePurpose `json:"purpose" api:"required"`
-	// Lifecycle state of the file validation pipeline. Files for non-`fine-tune`
-	// purposes skip validation.
+	// Lifecycle state of the file validation pipeline. Files for purposes that do not
+	// require validation skip validation.
 	//
 	// Any of "PENDING", "QUEUED", "RUNNING", "COMPLETED", "FAILED", "INVALID_FORMAT".
 	ProcessingStatus FileResponseProcessingStatus `json:"processing_status"`
 	// Report produced by the file validation pipeline. Present once validation has
-	// run; absent on files that bypassed validation (non-`fine-tune` purposes) or have
-	// not yet been validated.
+	// run; absent on files that bypassed validation or have not yet been validated.
 	ValidationReport FileResponseValidationReport `json:"validation_report"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
@@ -173,8 +173,8 @@ func (r *FileResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Lifecycle state of the file validation pipeline. Files for non-`fine-tune`
-// purposes skip validation.
+// Lifecycle state of the file validation pipeline. Files for purposes that do not
+// require validation skip validation.
 type FileResponseProcessingStatus string
 
 const (
@@ -187,8 +187,7 @@ const (
 )
 
 // Report produced by the file validation pipeline. Present once validation has
-// run; absent on files that bypassed validation (non-`fine-tune` purposes) or have
-// not yet been validated.
+// run; absent on files that bypassed validation or have not yet been validated.
 type FileResponseValidationReport struct {
 	// Whether the file passed validation.
 	Valid bool `json:"valid" api:"required"`
@@ -278,7 +277,7 @@ type FileUploadParams struct {
 	FileName string `json:"file_name" api:"required"`
 	// The purpose of the file
 	//
-	// Any of "fine-tune", "eval", "batch-api".
+	// Any of "fine-tune", "calibration", "eval", "batch-api".
 	Purpose FilePurpose `json:"purpose,omitzero" api:"required"`
 	// The type of the file
 	//
