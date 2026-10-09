@@ -42,7 +42,7 @@ func TestBetaEndpointAdapterNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointAdapterGet(t *testing.T) {
+func TestBetaEndpointAdapterGetWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -58,9 +58,10 @@ func TestBetaEndpointAdapterGet(t *testing.T) {
 		context.TODO(),
 		"id",
 		together.BetaEndpointAdapterGetParams{
-			ProjectID:    together.String("projectId"),
-			EndpointID:   "endpointId",
-			DeploymentID: "deploymentId",
+			ProjectID:      together.String("projectId"),
+			EndpointID:     "endpointId",
+			DeploymentID:   "deploymentId",
+			AdapterModelID: together.String("adapterModelId"),
 		},
 	)
 	if err != nil {
@@ -72,7 +73,7 @@ func TestBetaEndpointAdapterGet(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointAdapterUpdate(t *testing.T) {
+func TestBetaEndpointAdapterUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -93,6 +94,7 @@ func TestBetaEndpointAdapterUpdate(t *testing.T) {
 			DeploymentID:      "deploymentId",
 			AdapterRevisionID: "adapterRevisionId",
 			Etag:              "etag",
+			AdapterModelID:    together.String("adapterModelId"),
 		},
 	)
 	if err != nil {
@@ -135,7 +137,7 @@ func TestBetaEndpointAdapterListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointAdapterDelete(t *testing.T) {
+func TestBetaEndpointAdapterDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -151,10 +153,11 @@ func TestBetaEndpointAdapterDelete(t *testing.T) {
 		context.TODO(),
 		"id",
 		together.BetaEndpointAdapterDeleteParams{
-			ProjectID:    together.String("projectId"),
-			EndpointID:   "endpointId",
-			DeploymentID: "deploymentId",
-			Etag:         "etag",
+			ProjectID:      together.String("projectId"),
+			EndpointID:     "endpointId",
+			DeploymentID:   "deploymentId",
+			Etag:           "etag",
+			AdapterModelID: together.String("adapterModelId"),
 		},
 	)
 	if err != nil {

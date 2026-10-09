@@ -66,24 +66,25 @@ func (r *BetaEndpointAdapterService) New(ctx context.Context, params BetaEndpoin
 	return res, err
 }
 
-// Gets an attached adapter and its per-cluster load state.
-func (r *BetaEndpointAdapterService) Get(ctx context.Context, id string, query BetaEndpointAdapterGetParams, opts ...option.RequestOption) (res *BetaEndpointAdapterGetResponse, err error) {
+// Gets an adapter attachment by its `dad_` id and returns its per-cluster load
+// state.
+func (r *BetaEndpointAdapterService) Get(ctx context.Context, id string, params BetaEndpointAdapterGetParams, opts ...option.RequestOption) (res *BetaEndpointAdapterGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
 	}
-	requestconfig.UseDefaultParam(&query.ProjectID, precfg.ProjectID)
-	if query.ProjectID.Value == "" {
+	requestconfig.UseDefaultParam(&params.ProjectID, precfg.ProjectID)
+	if params.ProjectID.Value == "" {
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	if query.EndpointID == "" {
+	if params.EndpointID == "" {
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	if query.DeploymentID == "" {
+	if params.DeploymentID == "" {
 		err = errors.New("missing required deploymentId parameter")
 		return nil, err
 	}
@@ -91,13 +92,13 @@ func (r *BetaEndpointAdapterService) Get(ctx context.Context, id string, query B
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/deployments/%s/adapters/%s", query.ProjectID.Value, query.EndpointID, query.DeploymentID, id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	path := fmt.Sprintf("projects/%s/endpoints/%s/deployments/%s/adapters/%s", params.ProjectID.Value, params.EndpointID, params.DeploymentID, id)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
 	return res, err
 }
 
-// Updates the pinned revision of an attached adapter using its row-level etag for
-// optimistic concurrency.
+// Updates the pinned revision of an adapter attachment by its `dad_` id using its
+// row-level etag for optimistic concurrency.
 func (r *BetaEndpointAdapterService) Update(ctx context.Context, id string, params BetaEndpointAdapterUpdateParams, opts ...option.RequestOption) (res *BetaEndpointAdapterUpdateResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
@@ -168,8 +169,8 @@ func (r *BetaEndpointAdapterService) ListAutoPaging(ctx context.Context, endpoin
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, endpointID, deploymentID, params, opts...))
 }
 
-// Detaches an adapter from a deployment using its row-level etag for optimistic
-// concurrency.
+// Detaches an adapter attachment by its `dad_` id using its row-level etag for
+// optimistic concurrency.
 func (r *BetaEndpointAdapterService) Delete(ctx context.Context, id string, params BetaEndpointAdapterDeleteParams, opts ...option.RequestOption) (res *BetaEndpointAdapterDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
@@ -282,8 +283,8 @@ const (
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterNewResponse struct {
-	// Row identifier for this adapter attachment; changes if the adapter is removed
-	// and re-added.
+	// Adapter attachment `dad_` id used by get, update, and remove; stale ids never
+	// address a replacement after remove and re-add.
 	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
@@ -321,8 +322,8 @@ func (r *BetaEndpointAdapterNewResponse) UnmarshalJSON(data []byte) error {
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterGetResponse struct {
-	// Row identifier for this adapter attachment; changes if the adapter is removed
-	// and re-added.
+	// Adapter attachment `dad_` id used by get, update, and remove; stale ids never
+	// address a replacement after remove and re-add.
 	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
@@ -360,8 +361,8 @@ func (r *BetaEndpointAdapterGetResponse) UnmarshalJSON(data []byte) error {
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterUpdateResponse struct {
-	// Row identifier for this adapter attachment; changes if the adapter is removed
-	// and re-added.
+	// Adapter attachment `dad_` id used by get, update, and remove; stale ids never
+	// address a replacement after remove and re-add.
 	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
@@ -399,8 +400,8 @@ func (r *BetaEndpointAdapterUpdateResponse) UnmarshalJSON(data []byte) error {
 
 // Adapter attached to a deployment with desired revision and observed load state.
 type BetaEndpointAdapterListResponse struct {
-	// Row identifier for this adapter attachment; changes if the adapter is removed
-	// and re-added.
+	// Adapter attachment `dad_` id used by get, update, and remove; stale ids never
+	// address a replacement after remove and re-add.
 	ID string `json:"id" api:"required"`
 	// Adapter model identifier attached to the deployment.
 	AdapterModelID string `json:"adapterModelId" api:"required"`
@@ -487,7 +488,19 @@ type BetaEndpointAdapterGetParams struct {
 	EndpointID string `path:"endpointId" api:"required" json:"-"`
 	// Deployment identifier.
 	DeploymentID string `path:"deploymentId" api:"required" json:"-"`
+	// Deprecated optional cross-check. When set, this must equal the `ml_` id of the
+	// adapter model pinned by the live attachment; model names are not accepted.
+	AdapterModelID param.Opt[string] `query:"adapterModelId,omitzero" json:"-"`
 	paramObj
+}
+
+// URLQuery serializes [BetaEndpointAdapterGetParams]'s query parameters as
+// `url.Values`.
+func (r BetaEndpointAdapterGetParams) URLQuery() (v url.Values, err error) {
+	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
+		ArrayFormat:  apiquery.ArrayQueryFormatComma,
+		NestedFormat: apiquery.NestedQueryFormatBrackets,
+	})
 }
 
 type BetaEndpointAdapterUpdateParams struct {
@@ -504,6 +517,9 @@ type BetaEndpointAdapterUpdateParams struct {
 	// Row-level etag from a prior AddAdapter, UpdateAdapter, GetAdapter, or
 	// ListAdapters response.
 	Etag string `json:"etag" api:"required"`
+	// Deprecated optional cross-check. When set, this must equal the `ml_` id of the
+	// adapter model pinned by the live attachment; model names are not accepted.
+	AdapterModelID param.Opt[string] `json:"adapterModelId,omitzero"`
 	paramObj
 }
 
@@ -548,6 +564,9 @@ type BetaEndpointAdapterDeleteParams struct {
 	// Adapter etag from a previous add, update, get, or list response. The removal is
 	// rejected if the adapter changed after that response.
 	Etag string `query:"etag" api:"required" json:"-"`
+	// Deprecated optional cross-check. When set, this must equal the `ml_` id of the
+	// adapter model pinned by the live attachment; model names are not accepted.
+	AdapterModelID param.Opt[string] `query:"adapterModelId,omitzero" json:"-"`
 	paramObj
 }
 
