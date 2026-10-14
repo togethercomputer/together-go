@@ -168,7 +168,7 @@ type Cluster struct {
 	// Timestamp when the cluster first reached the Ready phase.
 	FirstReadyAt   time.Time `json:"first_ready_at" format:"date-time"`
 	InstallTraefik bool      `json:"install_traefik"`
-	// Whether the cluster is managed inside a substrate environment.
+	// Whether the cluster runs on the Together-managed GPU cluster platform.
 	IsInSubstrate bool `json:"is_in_substrate"`
 	// ID of the machine cluster backing this GPU cluster.
 	MachineClusterID string `json:"machine_cluster_id"`
@@ -1532,7 +1532,7 @@ type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionSharedVolume struct
 	SizeTib int64 `json:"size_tib" api:"required"`
 	// User provided name of the volume.
 	VolumeName string `json:"volume_name" api:"required"`
-	// Cluster ID to pin the volume to the same substrate as that GPU cluster.
+	// Cluster ID to place the volume on the same infrastructure as that GPU cluster.
 	InstanceClusterID param.Opt[string] `json:"instance_cluster_id,omitzero"`
 	// When true, the shared volume is not deleted when the cluster is decommissioned.
 	IsLifecycleIndependent param.Opt[bool] `json:"is_lifecycle_independent,omitzero"`
@@ -1956,7 +1956,7 @@ type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaSharedVolume struct 
 	SizeTib int64 `json:"size_tib" api:"required"`
 	// User provided name of the volume.
 	VolumeName string `json:"volume_name" api:"required"`
-	// Cluster ID to pin the volume to the same substrate as that GPU cluster.
+	// Cluster ID to place the volume on the same infrastructure as that GPU cluster.
 	InstanceClusterID param.Opt[string] `json:"instance_cluster_id,omitzero"`
 	// When true, the shared volume is not deleted when the cluster is decommissioned.
 	IsLifecycleIndependent param.Opt[bool] `json:"is_lifecycle_independent,omitzero"`
