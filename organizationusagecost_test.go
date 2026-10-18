@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaOrganizationUsageCostListWithOptionalParams(t *testing.T) {
+func TestOrganizationUsageCostListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,9 +25,9 @@ func TestBetaOrganizationUsageCostListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Organization.Usage.Costs.List(context.TODO(), together.BetaOrganizationUsageCostListParams{
+	_, err := client.Organization.Usage.Costs.List(context.TODO(), together.OrganizationUsageCostListParams{
 		After:          together.String("after"),
-		Granularity:    together.BetaOrganizationUsageCostListParamsGranularityDay,
+		Granularity:    together.OrganizationUsageCostListParamsGranularityDay,
 		Limit:          together.Int(1),
 		Month:          together.String("7321-06"),
 		OrganizationID: together.String("x"),

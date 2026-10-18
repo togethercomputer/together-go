@@ -10,22 +10,6 @@ Methods:
 
 # Beta
 
-## Organization
-
-### Usage
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageLineItem">BillingUsageLineItem</a>
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageReport">BillingUsageReport</a>
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageWindow">BillingUsageWindow</a>
-
-#### Costs
-
-Methods:
-
-- <code title="get /v1/billing/usage">client.Beta.Organization.Usage.Costs.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaOrganizationUsageCostService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaOrganizationUsageCostListParams">BetaOrganizationUsageCostListParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go/packages/pagination">pagination</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go/packages/pagination#CursorPagination">CursorPagination</a>[<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageWindow">BillingUsageWindow</a>], <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 ## Endpoints
 
 Params Types:
@@ -314,6 +298,22 @@ Methods:
 - <code title="patch /v1/deployments/secrets/{id}">client.Beta.Jig.Secrets.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigSecretService.Update">Update</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigSecretUpdateParams">BetaJigSecretUpdateParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#Secret">Secret</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /v1/deployments/secrets">client.Beta.Jig.Secrets.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigSecretService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigSecretListResponse">BetaJigSecretListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="delete /v1/deployments/secrets/{id}">client.Beta.Jig.Secrets.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigSecretService.Delete">Delete</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BetaJigSecretDeleteResponse">BetaJigSecretDeleteResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
+
+# Organization
+
+## Usage
+
+Response Types:
+
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageLineItem">BillingUsageLineItem</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageReport">BillingUsageReport</a>
+- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageWindow">BillingUsageWindow</a>
+
+### Costs
+
+Methods:
+
+- <code title="get /v1/billing/usage">client.Organization.Usage.Costs.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#OrganizationUsageCostService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, query <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#OrganizationUsageCostListParams">OrganizationUsageCostListParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go/packages/pagination">pagination</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go/packages/pagination#CursorPagination">CursorPagination</a>[<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#BillingUsageWindow">BillingUsageWindow</a>], <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
 # Clusters
 

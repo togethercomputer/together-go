@@ -24,12 +24,14 @@ func TestManualPagination(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	page, err := client.Beta.Organization.Usage.Costs.List(context.TODO(), together.BetaOrganizationUsageCostListParams{})
+	page, err := client.Beta.Endpoints.List(context.TODO(), together.BetaEndpointListParams{
+		ProjectID: together.String("projectId"),
+	})
 	if err != nil {
 		t.Fatalf("err should be nil: %s", err.Error())
 	}
-	for _, cost := range page.Data {
-		t.Logf("%+v\n", cost.Date)
+	for _, endpoint := range page.Data {
+		t.Logf("%+v\n", endpoint.ID)
 	}
 	// The mock server isn't going to give us real pagination
 	page, err = page.GetNextPage()
@@ -37,8 +39,8 @@ func TestManualPagination(t *testing.T) {
 		t.Fatalf("err should be nil: %s", err.Error())
 	}
 	if page != nil {
-		for _, cost := range page.Data {
-			t.Logf("%+v\n", cost.Date)
+		for _, endpoint := range page.Data {
+			t.Logf("%+v\n", endpoint.ID)
 		}
 	}
 }
