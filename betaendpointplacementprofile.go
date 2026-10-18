@@ -41,7 +41,6 @@ func NewBetaEndpointPlacementProfileService(opts ...option.RequestOption) (r Bet
 // Retrieves a reusable placement profile and its ordered region preferences.
 func (r *BetaEndpointPlacementProfileService) Get(ctx context.Context, id string, query BetaEndpointPlacementProfileGetParams, opts ...option.RequestOption) (res *PlacementProfile, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func (r *BetaEndpointPlacementProfileService) Get(ctx context.Context, id string
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/placement-profiles/%s", query.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/placement-profiles/%s", query.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -66,7 +65,6 @@ func (r *BetaEndpointPlacementProfileService) List(ctx context.Context, params B
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -76,7 +74,7 @@ func (r *BetaEndpointPlacementProfileService) List(ctx context.Context, params B
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/placement-profiles", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/placement-profiles", params.ProjectID.Value)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err

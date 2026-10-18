@@ -43,7 +43,7 @@ func NewEvalService(opts ...option.RequestOption) (r EvalService) {
 // Create an evaluation job
 func (r *EvalService) New(ctx context.Context, body EvalNewParams, opts ...option.RequestOption) (res *EvalNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "evaluation"
+	path := "v1/evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -55,7 +55,7 @@ func (r *EvalService) Get(ctx context.Context, id string, opts ...option.Request
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("evaluation/%s", id)
+	path := fmt.Sprintf("v1/evaluation/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -63,7 +63,7 @@ func (r *EvalService) Get(ctx context.Context, id string, opts ...option.Request
 // Get all evaluation jobs
 func (r *EvalService) List(ctx context.Context, query EvalListParams, opts ...option.RequestOption) (res *[]EvaluationJob, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "evaluation"
+	path := "v1/evaluation"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -75,7 +75,7 @@ func (r *EvalService) Status(ctx context.Context, id string, opts ...option.Requ
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("evaluation/%s/status", id)
+	path := fmt.Sprintf("v1/evaluation/%s/status", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

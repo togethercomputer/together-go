@@ -59,7 +59,6 @@ func NewBetaEndpointService(opts ...option.RequestOption) (r BetaEndpointService
 // endpoint name.
 func (r *BetaEndpointService) New(ctx context.Context, params BetaEndpointNewParams, opts ...option.RequestOption) (res *Endpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -69,7 +68,7 @@ func (r *BetaEndpointService) New(ctx context.Context, params BetaEndpointNewPar
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/endpoints", params.ProjectID.Value)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -78,7 +77,6 @@ func (r *BetaEndpointService) New(ctx context.Context, params BetaEndpointNewPar
 // it.
 func (r *BetaEndpointService) Get(ctx context.Context, id string, query BetaEndpointGetParams, opts ...option.RequestOption) (res *Endpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -92,7 +90,7 @@ func (r *BetaEndpointService) Get(ctx context.Context, id string, query BetaEndp
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s", query.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s", query.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -102,7 +100,6 @@ func (r *BetaEndpointService) Get(ctx context.Context, id string, query BetaEndp
 // `etag` in the request body for optimistic concurrency.
 func (r *BetaEndpointService) Update(ctx context.Context, id string, params BetaEndpointUpdateParams, opts ...option.RequestOption) (res *Endpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -116,7 +113,7 @@ func (r *BetaEndpointService) Update(ctx context.Context, id string, params Beta
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s", params.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s", params.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, params, &res, opts...)
 	return res, err
 }
@@ -126,7 +123,6 @@ func (r *BetaEndpointService) List(ctx context.Context, params BetaEndpointListP
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -136,7 +132,7 @@ func (r *BetaEndpointService) List(ctx context.Context, params BetaEndpointListP
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/endpoints", params.ProjectID.Value)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -158,7 +154,6 @@ func (r *BetaEndpointService) ListAutoPaging(ctx context.Context, params BetaEnd
 // reject the request if the endpoint changed after it was read.
 func (r *BetaEndpointService) Delete(ctx context.Context, id string, params BetaEndpointDeleteParams, opts ...option.RequestOption) (res *BetaEndpointDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -172,7 +167,7 @@ func (r *BetaEndpointService) Delete(ctx context.Context, id string, params Beta
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s", params.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s", params.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, params, &res, opts...)
 	return res, err
 }
@@ -182,7 +177,6 @@ func (r *BetaEndpointService) Delete(ctx context.Context, id string, params Beta
 // includes time-series buckets and a per-deployment breakdown.
 func (r *BetaEndpointService) Analytics(ctx context.Context, id string, params BetaEndpointAnalyticsParams, opts ...option.RequestOption) (res *BetaEndpointAnalyticsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -196,7 +190,7 @@ func (r *BetaEndpointService) Analytics(ctx context.Context, id string, params B
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/analytics", params.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/analytics", params.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
 	return res, err
 }
@@ -208,7 +202,6 @@ func (r *BetaEndpointService) ListEvents(ctx context.Context, id string, params 
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -222,7 +215,7 @@ func (r *BetaEndpointService) ListEvents(ctx context.Context, id string, params 
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/events", params.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/events", params.ProjectID.Value, id)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -248,12 +241,11 @@ func (r *BetaEndpointService) ListOrgScoped(ctx context.Context, organizationID 
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	if organizationID == "" {
 		err = errors.New("missing required organizationId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("organizations/%s/endpoints", organizationID)
+	path := fmt.Sprintf("v2/organizations/%s/endpoints", organizationID)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
 	if err != nil {
 		return nil, err

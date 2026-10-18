@@ -169,7 +169,7 @@ func (r *Client) Delete(ctx context.Context, path string, params any, res any, o
 // SLS JWT credentials are not accepted.
 func (r *Client) Whoami(ctx context.Context, opts ...option.RequestOption) (res *WhoamiResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "whoami"
+	path := "v1/whoami"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

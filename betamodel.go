@@ -48,7 +48,6 @@ func NewBetaModelService(opts ...option.RequestOption) (r BetaModelService) {
 // model's metadata; upload or import model files separately before deploying it.
 func (r *BetaModelService) New(ctx context.Context, params BetaModelNewParams, opts ...option.RequestOption) (res *Model, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -58,7 +57,7 @@ func (r *BetaModelService) New(ctx context.Context, params BetaModelNewParams, o
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/models", params.ProjectID.Value)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -67,7 +66,6 @@ func (r *BetaModelService) New(ctx context.Context, params BetaModelNewParams, o
 // base-model relationship.
 func (r *BetaModelService) Get(ctx context.Context, id string, query BetaModelGetParams, opts ...option.RequestOption) (res *Model, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -81,7 +79,7 @@ func (r *BetaModelService) Get(ctx context.Context, id string, query BetaModelGe
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/%s", query.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/models/%s", query.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -90,7 +88,6 @@ func (r *BetaModelService) Get(ctx context.Context, id string, query BetaModelGe
 // model, or visibility.
 func (r *BetaModelService) Update(ctx context.Context, id string, params BetaModelUpdateParams, opts ...option.RequestOption) (res *Model, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -104,7 +101,7 @@ func (r *BetaModelService) Update(ctx context.Context, id string, params BetaMod
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/%s", params.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/models/%s", params.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, params, &res, opts...)
 	return res, err
 }
@@ -116,7 +113,6 @@ func (r *BetaModelService) List(ctx context.Context, params BetaModelListParams,
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -126,7 +122,7 @@ func (r *BetaModelService) List(ctx context.Context, params BetaModelListParams,
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/models", params.ProjectID.Value)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -150,7 +146,6 @@ func (r *BetaModelService) ListAutoPaging(ctx context.Context, params BetaModelL
 // active deployment.
 func (r *BetaModelService) Delete(ctx context.Context, id string, body BetaModelDeleteParams, opts ...option.RequestOption) (res *BetaModelDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -164,7 +159,7 @@ func (r *BetaModelService) Delete(ctx context.Context, id string, body BetaModel
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/%s", body.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/models/%s", body.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }
@@ -173,7 +168,6 @@ func (r *BetaModelService) Delete(ctx context.Context, id string, body BetaModel
 // sizes, and content hashes.
 func (r *BetaModelService) ListFiles(ctx context.Context, id string, params BetaModelListFilesParams, opts ...option.RequestOption) (res *BetaModelListFilesResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -187,7 +181,7 @@ func (r *BetaModelService) ListFiles(ctx context.Context, id string, params Beta
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/%s/files", params.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/models/%s/files", params.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
 	return res, err
 }
@@ -198,12 +192,11 @@ func (r *BetaModelService) ListOrgScoped(ctx context.Context, organizationID str
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	if organizationID == "" {
 		err = errors.New("missing required organizationId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("organizations/%s/models", organizationID)
+	path := fmt.Sprintf("v2/organizations/%s/models", organizationID)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -225,7 +218,6 @@ func (r *BetaModelService) ListOrgScopedAutoPaging(ctx context.Context, organiza
 // Lists the immutable file revisions available for a custom model, newest first.
 func (r *BetaModelService) ListRevisions(ctx context.Context, id string, query BetaModelListRevisionsParams, opts ...option.RequestOption) (res *BetaModelListRevisionsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -239,7 +231,7 @@ func (r *BetaModelService) ListRevisions(ctx context.Context, id string, query B
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/%s/revisions", query.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/models/%s/revisions", query.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -250,8 +242,7 @@ func (r *BetaModelService) ListSupported(ctx context.Context, query BetaModelLis
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
-	path := "supported-models"
+	path := "v2/supported-models"
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -274,12 +265,11 @@ func (r *BetaModelService) ListSupportedAutoPaging(ctx context.Context, query Be
 // hardware, and performance profiles available for deployment.
 func (r *BetaModelService) GetSupported(ctx context.Context, id string, opts ...option.RequestOption) (res *SupportedModel, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("supported-models/%s", id)
+	path := fmt.Sprintf("v2/supported-models/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

@@ -53,7 +53,7 @@ func (r *BetaJigService) Get(ctx context.Context, id string, opts ...option.Requ
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/%s", id)
+	path := fmt.Sprintf("v1/deployments/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -65,7 +65,7 @@ func (r *BetaJigService) Update(ctx context.Context, id string, body BetaJigUpda
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/%s", id)
+	path := fmt.Sprintf("v1/deployments/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
 	return res, err
 }
@@ -73,7 +73,7 @@ func (r *BetaJigService) Update(ctx context.Context, id string, body BetaJigUpda
 // Get a list of all deployments in your project
 func (r *BetaJigService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaJigListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "deployments"
+	path := "v1/deployments"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -81,7 +81,7 @@ func (r *BetaJigService) List(ctx context.Context, opts ...option.RequestOption)
 // Create a new deployment with specified configuration
 func (r *BetaJigService) Deploy(ctx context.Context, body BetaJigDeployParams, opts ...option.RequestOption) (res *Deployment, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "deployments"
+	path := "v1/deployments"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -93,7 +93,7 @@ func (r *BetaJigService) Destroy(ctx context.Context, id string, opts ...option.
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/%s", id)
+	path := fmt.Sprintf("v1/deployments/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }
@@ -107,7 +107,7 @@ func (r *BetaJigService) ListRevisions(ctx context.Context, id string, query Bet
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/%s/revisions", id)
+	path := fmt.Sprintf("v1/deployments/%s/revisions", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -119,7 +119,7 @@ func (r *BetaJigService) GetLogs(ctx context.Context, id string, query BetaJigGe
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/%s/logs", id)
+	path := fmt.Sprintf("v1/deployments/%s/logs", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -138,7 +138,7 @@ func (r *BetaJigService) GetRevision(ctx context.Context, revisionIdentifier str
 		err = errors.New("missing required revisionIdentifier parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/%s/revisions/%s", query.ID, revisionIdentifier)
+	path := fmt.Sprintf("v1/deployments/%s/revisions/%s", query.ID, revisionIdentifier)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -153,7 +153,7 @@ func (r *BetaJigService) Rollback(ctx context.Context, id string, body BetaJigRo
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/%s/rollback", id)
+	path := fmt.Sprintf("v1/deployments/%s/rollback", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

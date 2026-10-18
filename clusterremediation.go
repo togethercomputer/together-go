@@ -58,7 +58,7 @@ func (r *ClusterRemediationService) New(ctx context.Context, instanceID string, 
 		err = errors.New("missing required instance_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s/instances/%s/remediations", params.ClusterID, instanceID)
+	path := fmt.Sprintf("v1/compute/clusters/%s/instances/%s/remediations", params.ClusterID, instanceID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -79,7 +79,7 @@ func (r *ClusterRemediationService) Get(ctx context.Context, remediationID strin
 		err = errors.New("missing required remediation_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s/instances/%s/remediations/%s", query.ClusterID, query.InstanceID, remediationID)
+	path := fmt.Sprintf("v1/compute/clusters/%s/instances/%s/remediations/%s", query.ClusterID, query.InstanceID, remediationID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -95,7 +95,7 @@ func (r *ClusterRemediationService) List(ctx context.Context, instanceID string,
 		err = errors.New("missing required instance_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s/instances/%s/remediations", params.ClusterID, instanceID)
+	path := fmt.Sprintf("v1/compute/clusters/%s/instances/%s/remediations", params.ClusterID, instanceID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
 	return res, err
 }
@@ -121,7 +121,7 @@ func (r *ClusterRemediationService) Approve(ctx context.Context, remediationID s
 		err = errors.New("missing required remediation_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s/instances/%s/remediations/%s/approve", params.ClusterID, params.InstanceID, remediationID)
+	path := fmt.Sprintf("v1/compute/clusters/%s/instances/%s/remediations/%s/approve", params.ClusterID, params.InstanceID, remediationID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -143,7 +143,7 @@ func (r *ClusterRemediationService) Cancel(ctx context.Context, remediationID st
 		err = errors.New("missing required remediation_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s/instances/%s/remediations/%s/cancel", body.ClusterID, body.InstanceID, remediationID)
+	path := fmt.Sprintf("v1/compute/clusters/%s/instances/%s/remediations/%s/cancel", body.ClusterID, body.InstanceID, remediationID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
 	return res, err
 }
@@ -168,7 +168,7 @@ func (r *ClusterRemediationService) Reject(ctx context.Context, remediationID st
 		err = errors.New("missing required remediation_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s/instances/%s/remediations/%s/reject", params.ClusterID, params.InstanceID, remediationID)
+	path := fmt.Sprintf("v1/compute/clusters/%s/instances/%s/remediations/%s/reject", params.ClusterID, params.InstanceID, remediationID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }

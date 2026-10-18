@@ -38,7 +38,7 @@ func NewRerankService(opts ...option.RequestOption) (r RerankService) {
 // and ordering index for each document.
 func (r *RerankService) New(ctx context.Context, body RerankNewParams, opts ...option.RequestOption) (res *RerankNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "rerank"
+	path := "v1/rerank"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

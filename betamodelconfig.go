@@ -43,7 +43,6 @@ func NewBetaModelConfigService(opts ...option.RequestOption) (r BetaModelConfigS
 // and certifications.
 func (r *BetaModelConfigService) Get(ctx context.Context, id string, query BetaModelConfigGetParams, opts ...option.RequestOption) (res *Config, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -57,7 +56,7 @@ func (r *BetaModelConfigService) Get(ctx context.Context, id string, query BetaM
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/configs/%s", query.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/configs/%s", query.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -71,7 +70,6 @@ func (r *BetaModelConfigService) List(ctx context.Context, params BetaModelConfi
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -81,7 +79,7 @@ func (r *BetaModelConfigService) List(ctx context.Context, params BetaModelConfi
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/configs", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/configs", params.ProjectID.Value)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err

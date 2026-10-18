@@ -38,7 +38,7 @@ func NewImageService(opts ...option.RequestOption) (r ImageService) {
 // Use an image model to generate an image for a given prompt.
 func (r *ImageService) Generate(ctx context.Context, body ImageGenerateParams, opts ...option.RequestOption) (res *ImageFile, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "images/generations"
+	path := "v1/images/generations"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

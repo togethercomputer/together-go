@@ -41,7 +41,7 @@ func NewBetaJigVolumeService(opts ...option.RequestOption) (r BetaJigVolumeServi
 // Create a new volume to preload files in deployments
 func (r *BetaJigVolumeService) New(ctx context.Context, body BetaJigVolumeNewParams, opts ...option.RequestOption) (res *Volume, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "deployments/storage/volumes"
+	path := "v1/deployments/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -53,7 +53,7 @@ func (r *BetaJigVolumeService) Get(ctx context.Context, id string, query BetaJig
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
+	path := fmt.Sprintf("v1/deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -65,7 +65,7 @@ func (r *BetaJigVolumeService) Update(ctx context.Context, id string, body BetaJ
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
+	path := fmt.Sprintf("v1/deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
 	return res, err
 }
@@ -73,7 +73,7 @@ func (r *BetaJigVolumeService) Update(ctx context.Context, id string, body BetaJ
 // Retrieve all volumes in your project
 func (r *BetaJigVolumeService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaJigVolumeListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "deployments/storage/volumes"
+	path := "v1/deployments/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -85,7 +85,7 @@ func (r *BetaJigVolumeService) Delete(ctx context.Context, id string, opts ...op
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("deployments/storage/volumes/%s", id)
+	path := fmt.Sprintf("v1/deployments/storage/volumes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }

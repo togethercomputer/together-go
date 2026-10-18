@@ -43,7 +43,7 @@ func NewFineTuningService(opts ...option.RequestOption) (r FineTuningService) {
 // Create a fine-tuning job with the provided model and training data.
 func (r *FineTuningService) New(ctx context.Context, body FineTuningNewParams, opts ...option.RequestOption) (res *FineTuningNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "fine-tunes"
+	path := "v1/fine-tunes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -55,7 +55,7 @@ func (r *FineTuningService) Get(ctx context.Context, id string, opts ...option.R
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("fine-tunes/%s", id)
+	path := fmt.Sprintf("v1/fine-tunes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -64,7 +64,7 @@ func (r *FineTuningService) Get(ctx context.Context, id string, opts ...option.R
 // FinetuneResponseTruncated objects.
 func (r *FineTuningService) List(ctx context.Context, opts ...option.RequestOption) (res *FineTuningListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "fine-tunes"
+	path := "v1/fine-tunes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -76,7 +76,7 @@ func (r *FineTuningService) Delete(ctx context.Context, id string, body FineTuni
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("fine-tunes/%s", id)
+	path := fmt.Sprintf("v1/fine-tunes/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
 	return res, err
 }
@@ -89,7 +89,7 @@ func (r *FineTuningService) Cancel(ctx context.Context, id string, opts ...optio
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("fine-tunes/%s/cancel", id)
+	path := fmt.Sprintf("v1/fine-tunes/%s/cancel", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
 	return res, err
 }
@@ -98,7 +98,7 @@ func (r *FineTuningService) Cancel(ctx context.Context, id string, opts ...optio
 func (r *FineTuningService) Content(ctx context.Context, query FineTuningContentParams, opts ...option.RequestOption) (res *http.Response, err error) {
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithHeader("Accept", "application/octet-stream")}, opts...)
-	path := "finetune/download"
+	path := "v1/finetune/download"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -106,7 +106,7 @@ func (r *FineTuningService) Content(ctx context.Context, query FineTuningContent
 // Estimate the price of a fine-tuning job.
 func (r *FineTuningService) EstimatePrice(ctx context.Context, body FineTuningEstimatePriceParams, opts ...option.RequestOption) (res *FineTuningEstimatePriceResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "fine-tunes/estimate-price"
+	path := "v1/fine-tunes/estimate-price"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -118,7 +118,7 @@ func (r *FineTuningService) ListCheckpoints(ctx context.Context, id string, opts
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("fine-tunes/%s/checkpoints", id)
+	path := fmt.Sprintf("v1/fine-tunes/%s/checkpoints", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -130,7 +130,7 @@ func (r *FineTuningService) ListEvents(ctx context.Context, id string, opts ...o
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("fine-tunes/%s/events", id)
+	path := fmt.Sprintf("v1/fine-tunes/%s/events", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -143,7 +143,7 @@ func (r *FineTuningService) ListMetrics(ctx context.Context, id string, query Fi
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("fine-tunes/%s/metrics", id)
+	path := fmt.Sprintf("v1/fine-tunes/%s/metrics", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -151,7 +151,7 @@ func (r *FineTuningService) ListMetrics(ctx context.Context, id string, query Fi
 // Get model limits for a specific fine-tuning model.
 func (r *FineTuningService) ModelLimits(ctx context.Context, query FineTuningModelLimitsParams, opts ...option.RequestOption) (res *FinetuneModelLimits, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "fine-tunes/models/limits"
+	path := "v1/fine-tunes/models/limits"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -160,7 +160,7 @@ func (r *FineTuningService) ModelLimits(ctx context.Context, query FineTuningMod
 // before packing.
 func (r *FineTuningService) Preview(ctx context.Context, body FineTuningPreviewParams, opts ...option.RequestOption) (res *FineTunePreviewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "fine-tunes/preview"
+	path := "v1/fine-tunes/preview"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -173,7 +173,7 @@ func (r *FineTuningService) GetTokenizedDataset(ctx context.Context, id string, 
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("fine-tunes/%s/download-tokenized-dataset", id)
+	path := fmt.Sprintf("v1/fine-tunes/%s/download-tokenized-dataset", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

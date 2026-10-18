@@ -41,7 +41,7 @@ func NewAudioTranslationService(opts ...option.RequestOption) (r AudioTranslatio
 // Translates audio into English
 func (r *AudioTranslationService) New(ctx context.Context, body AudioTranslationNewParams, opts ...option.RequestOption) (res *AudioTranslationNewResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "audio/translations"
+	path := "v1/audio/translations"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

@@ -47,7 +47,7 @@ func NewEndpointService(opts ...option.RequestOption) (r EndpointService) {
 // configurations that meet the model's requirements.
 func (r *EndpointService) New(ctx context.Context, body EndpointNewParams, opts ...option.RequestOption) (res *DedicatedEndpoint, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "endpoints"
+	path := "v1/endpoints"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -60,7 +60,7 @@ func (r *EndpointService) Get(ctx context.Context, endpointID string, opts ...op
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("endpoints/%s", endpointID)
+	path := fmt.Sprintf("v1/endpoints/%s", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -73,7 +73,7 @@ func (r *EndpointService) Update(ctx context.Context, endpointID string, body En
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("endpoints/%s", endpointID)
+	path := fmt.Sprintf("v1/endpoints/%s", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, body, &res, opts...)
 	return res, err
 }
@@ -82,7 +82,7 @@ func (r *EndpointService) Update(ctx context.Context, endpointID string, body En
 // results by type (dedicated or serverless).
 func (r *EndpointService) List(ctx context.Context, query EndpointListParams, opts ...option.RequestOption) (res *EndpointListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "endpoints"
+	path := "v1/endpoints"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -95,7 +95,7 @@ func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ..
 		err = errors.New("missing required endpointId parameter")
 		return err
 	}
-	path := fmt.Sprintf("endpoints/%s", endpointID)
+	path := fmt.Sprintf("v1/endpoints/%s", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, nil, opts...)
 	return err
 }
@@ -103,7 +103,7 @@ func (r *EndpointService) Delete(ctx context.Context, endpointID string, opts ..
 // List all available availability zones.
 func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.RequestOption) (res *EndpointListAvzonesResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "clusters/availability-zones"
+	path := "v1/clusters/availability-zones"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -113,7 +113,7 @@ func (r *EndpointService) ListAvzones(ctx context.Context, opts ...option.Reques
 // with that model, including their current availability status.
 func (r *EndpointService) ListHardware(ctx context.Context, query EndpointListHardwareParams, opts ...option.RequestOption) (res *EndpointListHardwareResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "hardware"
+	path := "v1/hardware"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }

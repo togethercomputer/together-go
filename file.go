@@ -46,7 +46,7 @@ func (r *FileService) Get(ctx context.Context, id string, opts ...option.Request
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("files/%s", id)
+	path := fmt.Sprintf("v1/files/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -54,7 +54,7 @@ func (r *FileService) Get(ctx context.Context, id string, opts ...option.Request
 // List the metadata for all uploaded data files.
 func (r *FileService) List(ctx context.Context, opts ...option.RequestOption) (res *FileList, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "files"
+	path := "v1/files"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -66,7 +66,7 @@ func (r *FileService) Delete(ctx context.Context, id string, opts ...option.Requ
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("files/%s", id)
+	path := fmt.Sprintf("v1/files/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }
@@ -79,7 +79,7 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("files/%s/content", id)
+	path := fmt.Sprintf("v1/files/%s/content", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -87,7 +87,7 @@ func (r *FileService) Content(ctx context.Context, id string, opts ...option.Req
 // Upload a file with specified purpose, file name, and file type.
 func (r *FileService) Upload(ctx context.Context, body FileUploadParams, opts ...option.RequestOption) (res *FileResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "files/upload"
+	path := "v1/files/upload"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

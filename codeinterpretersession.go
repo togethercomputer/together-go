@@ -37,7 +37,7 @@ func NewCodeInterpreterSessionService(opts ...option.RequestOption) (r CodeInter
 // Lists all your currently active sessions.
 func (r *CodeInterpreterSessionService) List(ctx context.Context, opts ...option.RequestOption) (res *SessionListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "tci/sessions"
+	path := "v1/tci/sessions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

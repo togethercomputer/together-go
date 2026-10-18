@@ -295,13 +295,11 @@ This library provides some conveniences for working with paginated list endpoint
 You can use `.ListAutoPaging()` methods to iterate through items across all pages:
 
 ```go
-iter := client.Beta.Endpoints.ListAutoPaging(context.TODO(), together.BetaEndpointListParams{
-	ProjectID: together.String("projectId"),
-})
+iter := client.Beta.Organization.Usage.Costs.ListAutoPaging(context.TODO(), together.BetaOrganizationUsageCostListParams{})
 // Automatically fetches more pages as needed.
 for iter.Next() {
-	endpoint := iter.Current()
-	fmt.Printf("%+v\n", endpoint)
+	billingUsageWindow := iter.Current()
+	fmt.Printf("%+v\n", billingUsageWindow)
 }
 if err := iter.Err(); err != nil {
 	panic(err.Error())
@@ -312,12 +310,10 @@ Or you can use simple `.List()` methods to fetch a single page and receive a sta
 with additional helper methods like `.GetNextPage()`, e.g.:
 
 ```go
-page, err := client.Beta.Endpoints.List(context.TODO(), together.BetaEndpointListParams{
-	ProjectID: together.String("projectId"),
-})
+page, err := client.Beta.Organization.Usage.Costs.List(context.TODO(), together.BetaOrganizationUsageCostListParams{})
 for page != nil {
-	for _, endpoint := range page.Data {
-		fmt.Printf("%+v\n", endpoint)
+	for _, cost := range page.Data {
+		fmt.Printf("%+v\n", cost)
 	}
 	page, err = page.GetNextPage()
 }
@@ -353,7 +349,7 @@ if err != nil {
 		println(string(apierr.DumpRequest(true)))  // Prints the serialized HTTP request
 		println(string(apierr.DumpResponse(true))) // Prints the serialized HTTP response
 	}
-	panic(err.Error()) // GET "/chat/completions": 400 Bad Request { ... }
+	panic(err.Error()) // GET "/v1/chat/completions": 400 Bad Request { ... }
 }
 ```
 

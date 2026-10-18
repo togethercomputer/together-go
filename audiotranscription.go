@@ -41,7 +41,7 @@ func NewAudioTranscriptionService(opts ...option.RequestOption) (r AudioTranscri
 // Transcribes audio into text
 func (r *AudioTranscriptionService) New(ctx context.Context, body AudioTranscriptionNewParams, opts ...option.RequestOption) (res *AudioTranscriptionNewResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "audio/transcriptions"
+	path := "v1/audio/transcriptions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

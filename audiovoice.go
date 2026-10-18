@@ -35,7 +35,7 @@ func NewAudioVoiceService(opts ...option.RequestOption) (r AudioVoiceService) {
 // Fetch available voices for each model
 func (r *AudioVoiceService) List(ctx context.Context, opts ...option.RequestOption) (res *AudioVoiceListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "voices"
+	path := "v1/voices"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

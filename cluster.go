@@ -49,7 +49,7 @@ func NewClusterService(opts ...option.RequestOption) (r ClusterService) {
 // management.
 func (r *ClusterService) New(ctx context.Context, body ClusterNewParams, opts ...option.RequestOption) (res *Cluster, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "compute/clusters"
+	path := "v1/compute/clusters"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -61,7 +61,7 @@ func (r *ClusterService) Get(ctx context.Context, clusterID string, opts ...opti
 		err = errors.New("missing required cluster_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s", clusterID)
+	path := fmt.Sprintf("v1/compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -73,7 +73,7 @@ func (r *ClusterService) Update(ctx context.Context, clusterID string, body Clus
 		err = errors.New("missing required cluster_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s", clusterID)
+	path := fmt.Sprintf("v1/compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
 	return res, err
 }
@@ -81,7 +81,7 @@ func (r *ClusterService) Update(ctx context.Context, clusterID string, body Clus
 // List all GPU clusters.
 func (r *ClusterService) List(ctx context.Context, query ClusterListParams, opts ...option.RequestOption) (res *ClusterListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "compute/clusters"
+	path := "v1/compute/clusters"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -93,7 +93,7 @@ func (r *ClusterService) Delete(ctx context.Context, clusterID string, opts ...o
 		err = errors.New("missing required cluster_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/%s", clusterID)
+	path := fmt.Sprintf("v1/compute/clusters/%s", clusterID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }
@@ -101,7 +101,7 @@ func (r *ClusterService) Delete(ctx context.Context, clusterID string, opts ...o
 // List regions and corresponding supported driver versions
 func (r *ClusterService) ListRegions(ctx context.Context, opts ...option.RequestOption) (res *ClusterListRegionsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "compute/regions"
+	path := "v1/compute/regions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

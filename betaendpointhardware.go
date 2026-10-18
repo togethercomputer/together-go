@@ -39,12 +39,11 @@ func NewBetaEndpointHardwareService(opts ...option.RequestOption) (r BetaEndpoin
 // capacity headroom for one inference instance type.
 func (r *BetaEndpointHardwareService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *InferenceInstanceType, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("public/inference-instance-types/%s", id)
+	path := fmt.Sprintf("v2/public/inference-instance-types/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -53,8 +52,7 @@ func (r *BetaEndpointHardwareService) Get(ctx context.Context, id string, opts .
 // including GPU resources, pricing, regions, and best-effort capacity headroom.
 func (r *BetaEndpointHardwareService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaEndpointHardwareListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
-	path := "public/inference-instance-types"
+	path := "v2/public/inference-instance-types"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

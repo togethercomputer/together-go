@@ -43,7 +43,6 @@ func NewBetaEndpointShadowExperimentTargetService(opts ...option.RequestOption) 
 // Adds a deployment under the same endpoint as a target for mirrored requests.
 func (r *BetaEndpointShadowExperimentTargetService) New(ctx context.Context, params BetaEndpointShadowExperimentTargetNewParams, opts ...option.RequestOption) (res *ShadowExperimentTarget, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -61,7 +60,7 @@ func (r *BetaEndpointShadowExperimentTargetService) New(ctx context.Context, par
 		err = errors.New("missing required experimentId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/shadowExperiments/%s/targets", params.ProjectID.Value, params.EndpointID, params.ExperimentID)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/shadowExperiments/%s/targets", params.ProjectID.Value, params.EndpointID, params.ExperimentID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -70,7 +69,6 @@ func (r *BetaEndpointShadowExperimentTargetService) New(ctx context.Context, par
 // experiment.
 func (r *BetaEndpointShadowExperimentTargetService) Get(ctx context.Context, id string, query BetaEndpointShadowExperimentTargetGetParams, opts ...option.RequestOption) (res *ShadowExperimentTarget, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -92,7 +90,7 @@ func (r *BetaEndpointShadowExperimentTargetService) Get(ctx context.Context, id 
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/shadowExperiments/%s/targets/%s", query.ProjectID.Value, query.EndpointID, query.ExperimentID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/shadowExperiments/%s/targets/%s", query.ProjectID.Value, query.EndpointID, query.ExperimentID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -101,7 +99,6 @@ func (r *BetaEndpointShadowExperimentTargetService) Get(ctx context.Context, id 
 // required and must select at least one mutable field.
 func (r *BetaEndpointShadowExperimentTargetService) Update(ctx context.Context, id string, params BetaEndpointShadowExperimentTargetUpdateParams, opts ...option.RequestOption) (res *ShadowExperimentTarget, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -123,7 +120,7 @@ func (r *BetaEndpointShadowExperimentTargetService) Update(ctx context.Context, 
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/shadowExperiments/%s/targets/%s", params.ProjectID.Value, params.EndpointID, params.ExperimentID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/shadowExperiments/%s/targets/%s", params.ProjectID.Value, params.EndpointID, params.ExperimentID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, params, &res, opts...)
 	return res, err
 }
@@ -133,7 +130,6 @@ func (r *BetaEndpointShadowExperimentTargetService) List(ctx context.Context, en
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -151,7 +147,7 @@ func (r *BetaEndpointShadowExperimentTargetService) List(ctx context.Context, en
 		err = errors.New("missing required experimentId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/shadowExperiments/%s/targets", params.ProjectID.Value, endpointID, experimentID)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/shadowExperiments/%s/targets", params.ProjectID.Value, endpointID, experimentID)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -173,7 +169,6 @@ func (r *BetaEndpointShadowExperimentTargetService) ListAutoPaging(ctx context.C
 // deployment.
 func (r *BetaEndpointShadowExperimentTargetService) Delete(ctx context.Context, id string, params BetaEndpointShadowExperimentTargetDeleteParams, opts ...option.RequestOption) (res *BetaEndpointShadowExperimentTargetDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -195,7 +190,7 @@ func (r *BetaEndpointShadowExperimentTargetService) Delete(ctx context.Context, 
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/shadowExperiments/%s/targets/%s", params.ProjectID.Value, params.EndpointID, params.ExperimentID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/shadowExperiments/%s/targets/%s", params.ProjectID.Value, params.EndpointID, params.ExperimentID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, params, &res, opts...)
 	return res, err
 }

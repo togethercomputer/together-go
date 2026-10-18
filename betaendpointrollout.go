@@ -44,7 +44,6 @@ func NewBetaEndpointRolloutService(opts ...option.RequestOption) (r BetaEndpoint
 // rollout in a separate request after reviewing its strategy and metric gates.
 func (r *BetaEndpointRolloutService) New(ctx context.Context, endpointID string, params BetaEndpointRolloutNewParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -58,7 +57,7 @@ func (r *BetaEndpointRolloutService) New(ctx context.Context, endpointID string,
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts", params.ProjectID.Value, endpointID)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts", params.ProjectID.Value, endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -67,7 +66,6 @@ func (r *BetaEndpointRolloutService) New(ctx context.Context, endpointID string,
 // step history, and metric-gate results.
 func (r *BetaEndpointRolloutService) Get(ctx context.Context, id string, query BetaEndpointRolloutGetParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -85,7 +83,7 @@ func (r *BetaEndpointRolloutService) Get(ctx context.Context, id string, query B
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/%s", query.ProjectID.Value, query.EndpointID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/%s", query.ProjectID.Value, query.EndpointID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -96,7 +94,6 @@ func (r *BetaEndpointRolloutService) List(ctx context.Context, endpointID string
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -110,7 +107,7 @@ func (r *BetaEndpointRolloutService) List(ctx context.Context, endpointID string
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts", params.ProjectID.Value, endpointID)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts", params.ProjectID.Value, endpointID)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -133,7 +130,6 @@ func (r *BetaEndpointRolloutService) ListAutoPaging(ctx context.Context, endpoin
 // it can be deleted.
 func (r *BetaEndpointRolloutService) Delete(ctx context.Context, id string, params BetaEndpointRolloutDeleteParams, opts ...option.RequestOption) (res *BetaEndpointRolloutDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -151,7 +147,7 @@ func (r *BetaEndpointRolloutService) Delete(ctx context.Context, id string, para
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/%s", params.ProjectID.Value, params.EndpointID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/%s", params.ProjectID.Value, params.EndpointID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, params, &res, opts...)
 	return res, err
 }
@@ -163,7 +159,6 @@ func (r *BetaEndpointRolloutService) Delete(ctx context.Context, id string, para
 // GetRollout until it reaches CANCELED.
 func (r *BetaEndpointRolloutService) Cancel(ctx context.Context, id string, params BetaEndpointRolloutCancelParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -181,7 +176,7 @@ func (r *BetaEndpointRolloutService) Cancel(ctx context.Context, id string, para
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/%s/cancel", params.ProjectID.Value, params.EndpointID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/%s/cancel", params.ProjectID.Value, params.EndpointID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -191,7 +186,6 @@ func (r *BetaEndpointRolloutService) Cancel(ctx context.Context, id string, para
 // is PAUSED to confirm the executor has parked.
 func (r *BetaEndpointRolloutService) Pause(ctx context.Context, id string, params BetaEndpointRolloutPauseParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -209,7 +203,7 @@ func (r *BetaEndpointRolloutService) Pause(ctx context.Context, id string, param
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/%s/pause", params.ProjectID.Value, params.EndpointID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/%s/pause", params.ProjectID.Value, params.EndpointID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -220,7 +214,6 @@ func (r *BetaEndpointRolloutService) Pause(ctx context.Context, id string, param
 // start; do not copy response values back into a create request.
 func (r *BetaEndpointRolloutService) PreviewDefaults(ctx context.Context, endpointID string, params BetaEndpointRolloutPreviewDefaultsParams, opts ...option.RequestOption) (res *RolloutDefaultsPreview, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -234,7 +227,7 @@ func (r *BetaEndpointRolloutService) PreviewDefaults(ctx context.Context, endpoi
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/preview-defaults", params.ProjectID.Value, endpointID)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/preview-defaults", params.ProjectID.Value, endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -243,7 +236,6 @@ func (r *BetaEndpointRolloutService) PreviewDefaults(ctx context.Context, endpoi
 // the target deployment.
 func (r *BetaEndpointRolloutService) Promote(ctx context.Context, id string, params BetaEndpointRolloutPromoteParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -261,7 +253,7 @@ func (r *BetaEndpointRolloutService) Promote(ctx context.Context, id string, par
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/%s/promote", params.ProjectID.Value, params.EndpointID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/%s/promote", params.ProjectID.Value, params.EndpointID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -270,7 +262,6 @@ func (r *BetaEndpointRolloutService) Promote(ctx context.Context, id string, par
 // traffic split.
 func (r *BetaEndpointRolloutService) Resume(ctx context.Context, id string, params BetaEndpointRolloutResumeParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -288,7 +279,7 @@ func (r *BetaEndpointRolloutService) Resume(ctx context.Context, id string, para
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/%s/resume", params.ProjectID.Value, params.EndpointID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/%s/resume", params.ProjectID.Value, params.EndpointID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -296,7 +287,6 @@ func (r *BetaEndpointRolloutService) Resume(ctx context.Context, id string, para
 // Starts a pending rollout and begins its configured traffic-shifting workflow.
 func (r *BetaEndpointRolloutService) Start(ctx context.Context, id string, body BetaEndpointRolloutStartParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -314,7 +304,7 @@ func (r *BetaEndpointRolloutService) Start(ctx context.Context, id string, body 
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/endpoints/%s/rollouts/%s/start", body.ProjectID.Value, body.EndpointID, id)
+	path := fmt.Sprintf("v2/projects/%s/endpoints/%s/rollouts/%s/start", body.ProjectID.Value, body.EndpointID, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
 	return res, err
 }

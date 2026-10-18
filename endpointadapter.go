@@ -42,7 +42,7 @@ func (r *EndpointAdapterService) List(ctx context.Context, endpointID string, op
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("endpoints/%s/adapters", endpointID)
+	path := fmt.Sprintf("v1/endpoints/%s/adapters", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -58,7 +58,7 @@ func (r *EndpointAdapterService) Add(ctx context.Context, endpointID string, bod
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("endpoints/%s/adapters", endpointID)
+	path := fmt.Sprintf("v1/endpoints/%s/adapters", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -71,7 +71,7 @@ func (r *EndpointAdapterService) Remove(ctx context.Context, endpointID string, 
 		err = errors.New("missing required endpointId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("endpoints/%s/adapters", endpointID)
+	path := fmt.Sprintf("v1/endpoints/%s/adapters", endpointID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
 	return res, err
 }

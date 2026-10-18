@@ -40,7 +40,7 @@ func NewBetaJigQueueService(opts ...option.RequestOption) (r BetaJigQueueService
 // and model as query parameters.
 func (r *BetaJigQueueService) Get(ctx context.Context, query BetaJigQueueGetParams, opts ...option.RequestOption) (res *BetaJigQueueGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "queue/status"
+	path := "v1/queue/status"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -50,7 +50,7 @@ func (r *BetaJigQueueService) Get(ctx context.Context, query BetaJigQueueGetPara
 // pending, returns 409 with the current status unchanged.
 func (r *BetaJigQueueService) Cancel(ctx context.Context, body BetaJigQueueCancelParams, opts ...option.RequestOption) (res *BetaJigQueueCancelResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "queue/cancel"
+	path := "v1/queue/cancel"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -59,7 +59,7 @@ func (r *BetaJigQueueService) Cancel(ctx context.Context, body BetaJigQueueCance
 // Returns the number of jobs that were canceled.
 func (r *BetaJigQueueService) Clear(ctx context.Context, body BetaJigQueueClearParams, opts ...option.RequestOption) (res *BetaJigQueueClearResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "queue/clear"
+	path := "v1/queue/clear"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -68,7 +68,7 @@ func (r *BetaJigQueueService) Clear(ctx context.Context, body BetaJigQueueClearP
 // counts.
 func (r *BetaJigQueueService) Metrics(ctx context.Context, query BetaJigQueueMetricsParams, opts ...option.RequestOption) (res *BetaJigQueueMetricsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "queue/metrics"
+	path := "v1/queue/metrics"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -78,7 +78,7 @@ func (r *BetaJigQueueService) Metrics(ctx context.Context, query BetaJigQueueMet
 // Returns a request ID that can be used to poll status or cancel the job.
 func (r *BetaJigQueueService) Submit(ctx context.Context, body BetaJigQueueSubmitParams, opts ...option.RequestOption) (res *BetaJigQueueSubmitResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "queue/submit"
+	path := "v1/queue/submit"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

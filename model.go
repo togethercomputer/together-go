@@ -42,7 +42,7 @@ func NewModelService(opts ...option.RequestOption) (r ModelService) {
 // template, and context.
 func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...option.RequestOption) (res *[]ModelObject, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "models"
+	path := "v1/models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -50,7 +50,7 @@ func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...
 // Upload a custom model or adapter from Hugging Face or S3
 func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts ...option.RequestOption) (res *ModelUploadResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "models"
+	path := "v1/models"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

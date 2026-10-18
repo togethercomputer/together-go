@@ -44,7 +44,7 @@ func NewClusterStorageService(opts ...option.RequestOption) (r ClusterStorageSer
 // performance for shared storage.
 func (r *ClusterStorageService) New(ctx context.Context, body ClusterStorageNewParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "compute/clusters/storage/volumes"
+	path := "v1/compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -56,7 +56,7 @@ func (r *ClusterStorageService) Get(ctx context.Context, volumeID string, opts .
 		err = errors.New("missing required volume_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
+	path := fmt.Sprintf("v1/compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -64,7 +64,7 @@ func (r *ClusterStorageService) Get(ctx context.Context, volumeID string, opts .
 // Update the configuration of an existing shared volume.
 func (r *ClusterStorageService) Update(ctx context.Context, body ClusterStorageUpdateParams, opts ...option.RequestOption) (res *ClusterStorage, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "compute/clusters/storage/volumes"
+	path := "v1/compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPut, path, body, &res, opts...)
 	return res, err
 }
@@ -72,7 +72,7 @@ func (r *ClusterStorageService) Update(ctx context.Context, body ClusterStorageU
 // List all shared volumes.
 func (r *ClusterStorageService) List(ctx context.Context, query ClusterStorageListParams, opts ...option.RequestOption) (res *ClusterStorageListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "compute/clusters/storage/volumes"
+	path := "v1/compute/clusters/storage/volumes"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
@@ -85,7 +85,7 @@ func (r *ClusterStorageService) Delete(ctx context.Context, volumeID string, opt
 		err = errors.New("missing required volume_id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("compute/clusters/storage/volumes/%s", volumeID)
+	path := fmt.Sprintf("v1/compute/clusters/storage/volumes/%s", volumeID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }

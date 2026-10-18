@@ -45,7 +45,6 @@ func NewBetaModelRemoteUploadService(opts ...option.RequestOption) (r BetaModelR
 // import completes.
 func (r *BetaModelRemoteUploadService) New(ctx context.Context, params BetaModelRemoteUploadNewParams, opts ...option.RequestOption) (res *BetaModelRemoteUploadNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func (r *BetaModelRemoteUploadService) New(ctx context.Context, params BetaModel
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/uploads", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/models/uploads", params.ProjectID.Value)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
 	return res, err
 }
@@ -64,7 +63,6 @@ func (r *BetaModelRemoteUploadService) New(ctx context.Context, params BetaModel
 // remote model import job.
 func (r *BetaModelRemoteUploadService) Get(ctx context.Context, id string, query BetaModelRemoteUploadGetParams, opts ...option.RequestOption) (res *BetaModelRemoteUploadGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -78,7 +76,7 @@ func (r *BetaModelRemoteUploadService) Get(ctx context.Context, id string, query
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/uploads/%s", query.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/models/uploads/%s", query.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -89,7 +87,6 @@ func (r *BetaModelRemoteUploadService) List(ctx context.Context, params BetaMode
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -99,7 +96,7 @@ func (r *BetaModelRemoteUploadService) List(ctx context.Context, params BetaMode
 		err = errors.New("missing required projectId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/uploads", params.ProjectID.Value)
+	path := fmt.Sprintf("v2/projects/%s/models/uploads", params.ProjectID.Value)
 	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
 	if err != nil {
 		return nil, err
@@ -121,7 +118,6 @@ func (r *BetaModelRemoteUploadService) ListAutoPaging(ctx context.Context, param
 // Lists progress and diagnostic events for a remote model import job.
 func (r *BetaModelRemoteUploadService) Events(ctx context.Context, id string, params BetaModelRemoteUploadEventsParams, opts ...option.RequestOption) (res *BetaModelRemoteUploadEventsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithBaseURL("https://api.together.ai/v2/")}, opts...)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
 		return nil, err
@@ -135,7 +131,7 @@ func (r *BetaModelRemoteUploadService) Events(ctx context.Context, id string, pa
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("projects/%s/models/uploads/%s/events", params.ProjectID.Value, id)
+	path := fmt.Sprintf("v2/projects/%s/models/uploads/%s/events", params.ProjectID.Value, id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
 	return res, err
 }

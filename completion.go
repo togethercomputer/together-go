@@ -40,7 +40,7 @@ func NewCompletionService(opts ...option.RequestOption) (r CompletionService) {
 // model.
 func (r *CompletionService) New(ctx context.Context, body CompletionNewParams, opts ...option.RequestOption) (res *Completion, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "completions"
+	path := "v1/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -54,7 +54,7 @@ func (r *CompletionService) NewStreaming(ctx context.Context, body CompletionNew
 	)
 	opts = slices.Concat(r.Options, opts)
 	opts = append(opts, option.WithJSONSet("stream", true))
-	path := "completions"
+	path := "v1/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
 	return ssestream.NewStream[CompletionChunk](ssestream.NewDecoder(raw), err)
 }

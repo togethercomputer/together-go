@@ -44,7 +44,7 @@ func NewCodeInterpreterService(opts ...option.RequestOption) (r CodeInterpreterS
 // calls to the same session.
 func (r *CodeInterpreterService) Execute(ctx context.Context, body CodeInterpreterExecuteParams, opts ...option.RequestOption) (res *ExecuteResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "tci/execute"
+	path := "v1/tci/execute"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

@@ -42,7 +42,7 @@ func (r *ModelUploadService) Status(ctx context.Context, jobID string, opts ...o
 		err = errors.New("missing required jobId parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("jobs/%s", jobID)
+	path := fmt.Sprintf("v1/jobs/%s", jobID)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }

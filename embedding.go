@@ -38,7 +38,7 @@ func NewEmbeddingService(opts ...option.RequestOption) (r EmbeddingService) {
 // representing semantic meaning, useful for search, classification, and retrieval.
 func (r *EmbeddingService) New(ctx context.Context, body EmbeddingNewParams, opts ...option.RequestOption) (res *Embedding, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "embeddings"
+	path := "v1/embeddings"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }

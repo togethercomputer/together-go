@@ -39,7 +39,7 @@ func NewBatchService(opts ...option.RequestOption) (r BatchService) {
 // Create a new batch job with the given input file and endpoint
 func (r *BatchService) New(ctx context.Context, body BatchNewParams, opts ...option.RequestOption) (res *BatchNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "batches"
+	path := "v1/batches"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
@@ -51,7 +51,7 @@ func (r *BatchService) Get(ctx context.Context, id string, opts ...option.Reques
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("batches/%s", id)
+	path := fmt.Sprintf("v1/batches/%s", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -59,7 +59,7 @@ func (r *BatchService) Get(ctx context.Context, id string, opts ...option.Reques
 // List all batch jobs for the authenticated user
 func (r *BatchService) List(ctx context.Context, opts ...option.RequestOption) (res *[]BatchJob, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "batches"
+	path := "v1/batches"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
@@ -71,7 +71,7 @@ func (r *BatchService) Cancel(ctx context.Context, id string, opts ...option.Req
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
-	path := fmt.Sprintf("batches/%s/cancel", id)
+	path := fmt.Sprintf("v1/batches/%s/cancel", id)
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, nil, &res, opts...)
 	return res, err
 }
