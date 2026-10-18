@@ -29,7 +29,6 @@ type Hardware string            // Always "hardware"
 type JsonObject string          // Always "json_object"
 type JsonSchema string          // Always "json_schema"
 type List string                // Always "list"
-type Model string               // Always "model"
 type Rerank string              // Always "rerank"
 type Revision string            // Always "revision"
 type RevisionEvent string       // Always "revision_event"
@@ -48,7 +47,6 @@ func (c Hardware) Default() Hardware                       { return "hardware" }
 func (c JsonObject) Default() JsonObject                   { return "json_object" }
 func (c JsonSchema) Default() JsonSchema                   { return "json_schema" }
 func (c List) Default() List                               { return "list" }
-func (c Model) Default() Model                             { return "model" }
 func (c Rerank) Default() Rerank                           { return "rerank" }
 func (c Revision) Default() Revision                       { return "revision" }
 func (c RevisionEvent) Default() RevisionEvent             { return "revision_event" }
@@ -67,7 +65,6 @@ func (c Hardware) MarshalJSON() ([]byte, error)            { return marshalStrin
 func (c JsonObject) MarshalJSON() ([]byte, error)          { return marshalString(c) }
 func (c JsonSchema) MarshalJSON() ([]byte, error)          { return marshalString(c) }
 func (c List) MarshalJSON() ([]byte, error)                { return marshalString(c) }
-func (c Model) MarshalJSON() ([]byte, error)               { return marshalString(c) }
 func (c Rerank) MarshalJSON() ([]byte, error)              { return marshalString(c) }
 func (c Revision) MarshalJSON() ([]byte, error)            { return marshalString(c) }
 func (c RevisionEvent) MarshalJSON() ([]byte, error)       { return marshalString(c) }

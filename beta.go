@@ -16,7 +16,6 @@ type BetaService struct {
 	Options      []option.RequestOption
 	Organization BetaOrganizationService
 	Endpoints    BetaEndpointService
-	Models       BetaModelService
 	Jig          BetaJigService
 }
 
@@ -28,7 +27,6 @@ func NewBetaService(opts ...option.RequestOption) (r BetaService) {
 	r.Options = opts
 	r.Organization = NewBetaOrganizationService(opts...)
 	r.Endpoints = NewBetaEndpointService(opts...)
-	r.Models = NewBetaModelService(opts...)
 	r.Jig = NewBetaJigService(opts...)
 	return
 }

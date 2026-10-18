@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaModelRemoteUploadNewWithOptionalParams(t *testing.T) {
+func TestModelRemoteUploadNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,7 +25,7 @@ func TestBetaModelRemoteUploadNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Models.RemoteUploads.New(context.TODO(), together.BetaModelRemoteUploadNewParams{
+	_, err := client.Models.RemoteUploads.New(context.TODO(), together.ModelRemoteUploadNewParams{
 		ProjectID: together.String("projectId"),
 		ModelID:   "modelId",
 		RemoteURL: "remoteUrl",
@@ -40,7 +40,7 @@ func TestBetaModelRemoteUploadNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaModelRemoteUploadGet(t *testing.T) {
+func TestModelRemoteUploadGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -52,10 +52,10 @@ func TestBetaModelRemoteUploadGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Models.RemoteUploads.Get(
+	_, err := client.Models.RemoteUploads.Get(
 		context.TODO(),
 		"id",
-		together.BetaModelRemoteUploadGetParams{
+		together.ModelRemoteUploadGetParams{
 			ProjectID: together.String("projectId"),
 		},
 	)
@@ -68,7 +68,7 @@ func TestBetaModelRemoteUploadGet(t *testing.T) {
 	}
 }
 
-func TestBetaModelRemoteUploadListWithOptionalParams(t *testing.T) {
+func TestModelRemoteUploadListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -80,7 +80,7 @@ func TestBetaModelRemoteUploadListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Models.RemoteUploads.List(context.TODO(), together.BetaModelRemoteUploadListParams{
+	_, err := client.Models.RemoteUploads.List(context.TODO(), together.ModelRemoteUploadListParams{
 		ProjectID: together.String("projectId"),
 		After:     together.String("after"),
 		Limit:     together.Int(0),
@@ -94,7 +94,7 @@ func TestBetaModelRemoteUploadListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaModelRemoteUploadEventsWithOptionalParams(t *testing.T) {
+func TestModelRemoteUploadEventsWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -106,10 +106,10 @@ func TestBetaModelRemoteUploadEventsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Models.RemoteUploads.Events(
+	_, err := client.Models.RemoteUploads.Events(
 		context.TODO(),
 		"id",
-		together.BetaModelRemoteUploadEventsParams{
+		together.ModelRemoteUploadEventsParams{
 			ProjectID: together.String("projectId"),
 			After:     together.String("after"),
 			Limit:     together.Int(0),
