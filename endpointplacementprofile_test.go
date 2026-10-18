@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaEndpointHardwareGet(t *testing.T) {
+func TestEndpointPlacementProfileGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,7 +25,13 @@ func TestBetaEndpointHardwareGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.Hardware.Get(context.TODO(), "id")
+	_, err := client.Endpoints.PlacementProfiles.Get(
+		context.TODO(),
+		"id",
+		together.EndpointPlacementProfileGetParams{
+			ProjectID: together.String("projectId"),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -35,7 +41,7 @@ func TestBetaEndpointHardwareGet(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointHardwareList(t *testing.T) {
+func TestEndpointPlacementProfileListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -47,7 +53,11 @@ func TestBetaEndpointHardwareList(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.Hardware.List(context.TODO())
+	_, err := client.Endpoints.PlacementProfiles.List(context.TODO(), together.EndpointPlacementProfileListParams{
+		ProjectID: together.String("projectId"),
+		After:     together.String("after"),
+		Limit:     together.Int(0),
+	})
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

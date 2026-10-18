@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaEndpointAbExperimentNewWithOptionalParams(t *testing.T) {
+func TestEndpointAbExperimentNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,10 +25,10 @@ func TestBetaEndpointAbExperimentNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.AbExperiments.New(
+	_, err := client.Endpoints.AbExperiments.New(
 		context.TODO(),
 		"endpointId",
-		together.BetaEndpointAbExperimentNewParams{
+		together.EndpointAbExperimentNewParams{
 			ProjectID: together.String("projectId"),
 			Members: []together.AbMemberParam{{
 				DeploymentID: "deploymentId",
@@ -48,7 +48,7 @@ func TestBetaEndpointAbExperimentNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointAbExperimentGet(t *testing.T) {
+func TestEndpointAbExperimentGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -60,10 +60,10 @@ func TestBetaEndpointAbExperimentGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.AbExperiments.Get(
+	_, err := client.Endpoints.AbExperiments.Get(
 		context.TODO(),
 		"id",
-		together.BetaEndpointAbExperimentGetParams{
+		together.EndpointAbExperimentGetParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 		},
@@ -77,7 +77,7 @@ func TestBetaEndpointAbExperimentGet(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointAbExperimentUpdateWithOptionalParams(t *testing.T) {
+func TestEndpointAbExperimentUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -89,10 +89,10 @@ func TestBetaEndpointAbExperimentUpdateWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.AbExperiments.Update(
+	_, err := client.Endpoints.AbExperiments.Update(
 		context.TODO(),
 		"id",
-		together.BetaEndpointAbExperimentUpdateParams{
+		together.EndpointAbExperimentUpdateParams{
 			ProjectID:   together.String("projectId"),
 			EndpointID:  "endpointId",
 			UpdateMask:  together.String("updateMask"),
@@ -114,7 +114,7 @@ func TestBetaEndpointAbExperimentUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointAbExperimentListWithOptionalParams(t *testing.T) {
+func TestEndpointAbExperimentListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -126,10 +126,10 @@ func TestBetaEndpointAbExperimentListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.AbExperiments.List(
+	_, err := client.Endpoints.AbExperiments.List(
 		context.TODO(),
 		"endpointId",
-		together.BetaEndpointAbExperimentListParams{
+		together.EndpointAbExperimentListParams{
 			ProjectID: together.String("projectId"),
 			After:     together.String("after"),
 			Limit:     together.Int(0),
@@ -144,7 +144,7 @@ func TestBetaEndpointAbExperimentListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointAbExperimentDeleteWithOptionalParams(t *testing.T) {
+func TestEndpointAbExperimentDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -156,10 +156,10 @@ func TestBetaEndpointAbExperimentDeleteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.AbExperiments.Delete(
+	_, err := client.Endpoints.AbExperiments.Delete(
 		context.TODO(),
 		"id",
-		together.BetaEndpointAbExperimentDeleteParams{
+		together.EndpointAbExperimentDeleteParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			Etag:       together.String("etag"),

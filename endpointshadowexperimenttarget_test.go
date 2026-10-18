@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
+func TestEndpointShadowExperimentTargetNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,28 +25,108 @@ func TestBetaEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.New(
+	_, err := client.Endpoints.ShadowExperiments.Targets.New(context.TODO(), together.EndpointShadowExperimentTargetNewParams{
+		ProjectID:          together.String("projectId"),
+		EndpointID:         "endpointId",
+		ExperimentID:       "experimentId",
+		Name:               "name",
+		TargetDeploymentID: "targetDeploymentId",
+		Description:        together.String("description"),
+	})
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestEndpointShadowExperimentTargetGet(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Endpoints.ShadowExperiments.Targets.Get(
+		context.TODO(),
+		"id",
+		together.EndpointShadowExperimentTargetGetParams{
+			ProjectID:    together.String("projectId"),
+			EndpointID:   "endpointId",
+			ExperimentID: "experimentId",
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestEndpointShadowExperimentTargetUpdateWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Endpoints.ShadowExperiments.Targets.Update(
+		context.TODO(),
+		"id",
+		together.EndpointShadowExperimentTargetUpdateParams{
+			ProjectID:          together.String("projectId"),
+			EndpointID:         "endpointId",
+			ExperimentID:       "experimentId",
+			UpdateMask:         "updateMask",
+			Description:        together.String("description"),
+			Etag:               together.String("etag"),
+			Name:               together.String("name"),
+			TargetDeploymentID: together.String("targetDeploymentId"),
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestEndpointShadowExperimentTargetListWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Endpoints.ShadowExperiments.Targets.List(
 		context.TODO(),
 		"endpointId",
-		together.BetaEndpointShadowExperimentNewParams{
+		"experimentId",
+		together.EndpointShadowExperimentTargetListParams{
 			ProjectID: together.String("projectId"),
-			Name:      "name",
-			Source: together.ShadowSourceParam{
-				Endpoint: together.ShadowEndpointSourceParam{
-					Sampling: together.ShadowEndpointSourceSamplingUnionParam{
-						OfUniform: &together.ShadowEndpointSourceSamplingUniformParam{
-							Uniform: together.ShadowUniformSamplingParam{
-								Rate: 0,
-							},
-						},
-					},
-				},
-			},
-			Targets: []together.BetaEndpointShadowExperimentNewParamsTarget{{
-				Name:               "name",
-				TargetDeploymentID: "targetDeploymentId",
-				Description:        together.String("description"),
-			}},
+			After:     together.String("after"),
+			Limit:     together.Int(0),
 		},
 	)
 	if err != nil {
@@ -58,7 +138,7 @@ func TestBetaEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointShadowExperimentGet(t *testing.T) {
+func TestEndpointShadowExperimentTargetDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -70,116 +150,14 @@ func TestBetaEndpointShadowExperimentGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.Get(
+	_, err := client.Endpoints.ShadowExperiments.Targets.Delete(
 		context.TODO(),
 		"id",
-		together.BetaEndpointShadowExperimentGetParams{
-			ProjectID:  together.String("projectId"),
-			EndpointID: "endpointId",
-		},
-	)
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestBetaEndpointShadowExperimentUpdateWithOptionalParams(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.Update(
-		context.TODO(),
-		"id",
-		together.BetaEndpointShadowExperimentUpdateParams{
-			ProjectID:   together.String("projectId"),
-			EndpointID:  "endpointId",
-			UpdateMask:  "updateMask",
-			Description: together.String("description"),
-			Etag:        together.String("etag"),
-			Source: together.ShadowSourceParam{
-				Endpoint: together.ShadowEndpointSourceParam{
-					Sampling: together.ShadowEndpointSourceSamplingUnionParam{
-						OfUniform: &together.ShadowEndpointSourceSamplingUniformParam{
-							Uniform: together.ShadowUniformSamplingParam{
-								Rate: 0,
-							},
-						},
-					},
-				},
-			},
-		},
-	)
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestBetaEndpointShadowExperimentListWithOptionalParams(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.List(
-		context.TODO(),
-		"endpointId",
-		together.BetaEndpointShadowExperimentListParams{
-			ProjectID:      together.String("projectId"),
-			After:          together.String("after"),
-			IncludeTargets: together.Bool(true),
-			Limit:          together.Int(0),
-		},
-	)
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestBetaEndpointShadowExperimentDeleteWithOptionalParams(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.Delete(
-		context.TODO(),
-		"id",
-		together.BetaEndpointShadowExperimentDeleteParams{
-			ProjectID:  together.String("projectId"),
-			EndpointID: "endpointId",
-			Etag:       together.String("etag"),
+		together.EndpointShadowExperimentTargetDeleteParams{
+			ProjectID:    together.String("projectId"),
+			EndpointID:   "endpointId",
+			ExperimentID: "experimentId",
+			Etag:         together.String("etag"),
 		},
 	)
 	if err != nil {

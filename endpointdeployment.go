@@ -19,28 +19,28 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// BetaEndpointDeploymentService contains methods and other services that help with
+// EndpointDeploymentService contains methods and other services that help with
 // interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewBetaEndpointDeploymentService] method instead.
-type BetaEndpointDeploymentService struct {
+// the [NewEndpointDeploymentService] method instead.
+type EndpointDeploymentService struct {
 	Options []option.RequestOption
 }
 
-// NewBetaEndpointDeploymentService generates a new service that applies the given
+// NewEndpointDeploymentService generates a new service that applies the given
 // options to each request. These options are applied after the parent client's
 // options (if there is one), and before any request-specific options.
-func NewBetaEndpointDeploymentService(opts ...option.RequestOption) (r BetaEndpointDeploymentService) {
-	r = BetaEndpointDeploymentService{}
+func NewEndpointDeploymentService(opts ...option.RequestOption) (r EndpointDeploymentService) {
+	r = EndpointDeploymentService{}
 	r.Options = opts
 	return
 }
 
 // Creates a model deployment under an endpoint. The deployment provisions
 // asynchronously; monitor its status before routing live traffic to it.
-func (r *BetaEndpointDeploymentService) New(ctx context.Context, endpointID string, params BetaEndpointDeploymentNewParams, opts ...option.RequestOption) (res *EndpointDeployment, err error) {
+func (r *EndpointDeploymentService) New(ctx context.Context, endpointID string, params EndpointDeploymentNewParams, opts ...option.RequestOption) (res *EndpointDeployment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -62,7 +62,7 @@ func (r *BetaEndpointDeploymentService) New(ctx context.Context, endpointID stri
 
 // Retrieves a deployment's desired configuration, placement, runtime information,
 // and current provisioning status.
-func (r *BetaEndpointDeploymentService) Get(ctx context.Context, id string, query BetaEndpointDeploymentGetParams, opts ...option.RequestOption) (res *EndpointDeployment, err error) {
+func (r *EndpointDeploymentService) Get(ctx context.Context, id string, query EndpointDeploymentGetParams, opts ...option.RequestOption) (res *EndpointDeployment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -89,7 +89,7 @@ func (r *BetaEndpointDeploymentService) Get(ctx context.Context, id string, quer
 // Updates mutable deployment fields such as its model, configuration, autoscaling
 // bounds, or LoRA support. Changes that affect serving may trigger asynchronous
 // reprovisioning.
-func (r *BetaEndpointDeploymentService) Update(ctx context.Context, id string, params BetaEndpointDeploymentUpdateParams, opts ...option.RequestOption) (res *EndpointDeployment, err error) {
+func (r *EndpointDeploymentService) Update(ctx context.Context, id string, params EndpointDeploymentUpdateParams, opts ...option.RequestOption) (res *EndpointDeployment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -115,7 +115,7 @@ func (r *BetaEndpointDeploymentService) Update(ctx context.Context, id string, p
 
 // Lists the deployments attached to an endpoint, including their model,
 // configuration, scaling settings, placement, and current status.
-func (r *BetaEndpointDeploymentService) List(ctx context.Context, endpointID string, params BetaEndpointDeploymentListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[EndpointDeployment], err error) {
+func (r *EndpointDeploymentService) List(ctx context.Context, endpointID string, params EndpointDeploymentListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[EndpointDeployment], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -147,14 +147,14 @@ func (r *BetaEndpointDeploymentService) List(ctx context.Context, endpointID str
 
 // Lists the deployments attached to an endpoint, including their model,
 // configuration, scaling settings, placement, and current status.
-func (r *BetaEndpointDeploymentService) ListAutoPaging(ctx context.Context, endpointID string, params BetaEndpointDeploymentListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[EndpointDeployment] {
+func (r *EndpointDeploymentService) ListAutoPaging(ctx context.Context, endpointID string, params EndpointDeploymentListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[EndpointDeployment] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, endpointID, params, opts...))
 }
 
 // Permanently deletes a deployment from its endpoint. Remove the deployment from
 // live traffic first; use `etag` to reject the request if it changed after it was
 // read.
-func (r *BetaEndpointDeploymentService) Delete(ctx context.Context, id string, params BetaEndpointDeploymentDeleteParams, opts ...option.RequestOption) (res *BetaEndpointDeploymentDeleteResponse, err error) {
+func (r *EndpointDeploymentService) Delete(ctx context.Context, id string, params EndpointDeploymentDeleteParams, opts ...option.RequestOption) (res *EndpointDeploymentDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -179,7 +179,7 @@ func (r *BetaEndpointDeploymentService) Delete(ctx context.Context, id string, p
 }
 
 // Empty response returned after a successful delete operation.
-type BetaEndpointDeploymentDeleteResponse struct {
+type EndpointDeploymentDeleteResponse struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ExtraFields map[string]respjson.Field
@@ -188,12 +188,12 @@ type BetaEndpointDeploymentDeleteResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaEndpointDeploymentDeleteResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointDeploymentDeleteResponse) UnmarshalJSON(data []byte) error {
+func (r EndpointDeploymentDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointDeploymentDeleteResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaEndpointDeploymentNewParams struct {
+type EndpointDeploymentNewParams struct {
 	// ID of the project that owns the endpoint.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -231,21 +231,21 @@ type BetaEndpointDeploymentNewParams struct {
 	// latest revision is resolved at creation.
 	ModelRevisionID param.Opt[string] `json:"modelRevisionId,omitzero"`
 	// Placement controls where a deployment is scheduled.
-	Placement BetaEndpointDeploymentNewParamsPlacementUnion `json:"placement,omitzero"`
+	Placement EndpointDeploymentNewParamsPlacementUnion `json:"placement,omitzero"`
 	paramObj
 }
 
-func (r BetaEndpointDeploymentNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointDeploymentNewParams
+func (r EndpointDeploymentNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointDeploymentNewParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaEndpointDeploymentNewParams) UnmarshalJSON(data []byte) error {
+func (r *EndpointDeploymentNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// URLQuery serializes [BetaEndpointDeploymentNewParams]'s query parameters as
+// URLQuery serializes [EndpointDeploymentNewParams]'s query parameters as
 // `url.Values`.
-func (r BetaEndpointDeploymentNewParams) URLQuery() (v url.Values, err error) {
+func (r EndpointDeploymentNewParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -255,20 +255,20 @@ func (r BetaEndpointDeploymentNewParams) URLQuery() (v url.Values, err error) {
 // Only one field can be non-zero.
 //
 // Use [param.IsOmitted] to confirm if a field is set.
-type BetaEndpointDeploymentNewParamsPlacementUnion struct {
-	OfInline  *BetaEndpointDeploymentNewParamsPlacementInline  `json:",omitzero,inline"`
-	OfProfile *BetaEndpointDeploymentNewParamsPlacementProfile `json:",omitzero,inline"`
+type EndpointDeploymentNewParamsPlacementUnion struct {
+	OfInline  *EndpointDeploymentNewParamsPlacementInline  `json:",omitzero,inline"`
+	OfProfile *EndpointDeploymentNewParamsPlacementProfile `json:",omitzero,inline"`
 	paramUnion
 }
 
-func (u BetaEndpointDeploymentNewParamsPlacementUnion) MarshalJSON() ([]byte, error) {
+func (u EndpointDeploymentNewParamsPlacementUnion) MarshalJSON() ([]byte, error) {
 	return param.MarshalUnion(u, u.OfInline, u.OfProfile)
 }
-func (u *BetaEndpointDeploymentNewParamsPlacementUnion) UnmarshalJSON(data []byte) error {
+func (u *EndpointDeploymentNewParamsPlacementUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, u)
 }
 
-func (u *BetaEndpointDeploymentNewParamsPlacementUnion) asAny() any {
+func (u *EndpointDeploymentNewParamsPlacementUnion) asAny() any {
 	if !param.IsOmitted(u.OfInline) {
 		return u.OfInline
 	} else if !param.IsOmitted(u.OfProfile) {
@@ -278,36 +278,36 @@ func (u *BetaEndpointDeploymentNewParamsPlacementUnion) asAny() any {
 }
 
 // The property Inline is required.
-type BetaEndpointDeploymentNewParamsPlacementInline struct {
+type EndpointDeploymentNewParamsPlacementInline struct {
 	// Inline placement parameters expanded into scheduling rules by the server.
 	Inline DeploymentPlacementConfigParam `json:"inline,omitzero" api:"required"`
 	paramObj
 }
 
-func (r BetaEndpointDeploymentNewParamsPlacementInline) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointDeploymentNewParamsPlacementInline
+func (r EndpointDeploymentNewParamsPlacementInline) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointDeploymentNewParamsPlacementInline
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaEndpointDeploymentNewParamsPlacementInline) UnmarshalJSON(data []byte) error {
+func (r *EndpointDeploymentNewParamsPlacementInline) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // The property Profile is required.
-type BetaEndpointDeploymentNewParamsPlacementProfile struct {
+type EndpointDeploymentNewParamsPlacementProfile struct {
 	// UID of a saved placement profile.
 	Profile string `json:"profile" api:"required"`
 	paramObj
 }
 
-func (r BetaEndpointDeploymentNewParamsPlacementProfile) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointDeploymentNewParamsPlacementProfile
+func (r EndpointDeploymentNewParamsPlacementProfile) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointDeploymentNewParamsPlacementProfile
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaEndpointDeploymentNewParamsPlacementProfile) UnmarshalJSON(data []byte) error {
+func (r *EndpointDeploymentNewParamsPlacementProfile) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaEndpointDeploymentGetParams struct {
+type EndpointDeploymentGetParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -317,7 +317,7 @@ type BetaEndpointDeploymentGetParams struct {
 	paramObj
 }
 
-type BetaEndpointDeploymentUpdateParams struct {
+type EndpointDeploymentUpdateParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -344,24 +344,24 @@ type BetaEndpointDeploymentUpdateParams struct {
 	paramObj
 }
 
-func (r BetaEndpointDeploymentUpdateParams) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointDeploymentUpdateParams
+func (r EndpointDeploymentUpdateParams) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointDeploymentUpdateParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaEndpointDeploymentUpdateParams) UnmarshalJSON(data []byte) error {
+func (r *EndpointDeploymentUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// URLQuery serializes [BetaEndpointDeploymentUpdateParams]'s query parameters as
+// URLQuery serializes [EndpointDeploymentUpdateParams]'s query parameters as
 // `url.Values`.
-func (r BetaEndpointDeploymentUpdateParams) URLQuery() (v url.Values, err error) {
+func (r EndpointDeploymentUpdateParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type BetaEndpointDeploymentListParams struct {
+type EndpointDeploymentListParams struct {
 	// ID of the project that owns the endpoint.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -382,16 +382,16 @@ type BetaEndpointDeploymentListParams struct {
 	paramObj
 }
 
-// URLQuery serializes [BetaEndpointDeploymentListParams]'s query parameters as
+// URLQuery serializes [EndpointDeploymentListParams]'s query parameters as
 // `url.Values`.
-func (r BetaEndpointDeploymentListParams) URLQuery() (v url.Values, err error) {
+func (r EndpointDeploymentListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type BetaEndpointDeploymentDeleteParams struct {
+type EndpointDeploymentDeleteParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -404,9 +404,9 @@ type BetaEndpointDeploymentDeleteParams struct {
 	paramObj
 }
 
-// URLQuery serializes [BetaEndpointDeploymentDeleteParams]'s query parameters as
+// URLQuery serializes [EndpointDeploymentDeleteParams]'s query parameters as
 // `url.Values`.
-func (r BetaEndpointDeploymentDeleteParams) URLQuery() (v url.Values, err error) {
+func (r EndpointDeploymentDeleteParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

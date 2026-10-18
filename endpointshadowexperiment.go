@@ -20,31 +20,31 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// BetaEndpointShadowExperimentService contains methods and other services that
-// help with interacting with the together API.
+// EndpointShadowExperimentService contains methods and other services that help
+// with interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewBetaEndpointShadowExperimentService] method instead.
-type BetaEndpointShadowExperimentService struct {
+// the [NewEndpointShadowExperimentService] method instead.
+type EndpointShadowExperimentService struct {
 	Options []option.RequestOption
-	Targets BetaEndpointShadowExperimentTargetService
+	Targets EndpointShadowExperimentTargetService
 }
 
-// NewBetaEndpointShadowExperimentService generates a new service that applies the
+// NewEndpointShadowExperimentService generates a new service that applies the
 // given options to each request. These options are applied after the parent
 // client's options (if there is one), and before any request-specific options.
-func NewBetaEndpointShadowExperimentService(opts ...option.RequestOption) (r BetaEndpointShadowExperimentService) {
-	r = BetaEndpointShadowExperimentService{}
+func NewEndpointShadowExperimentService(opts ...option.RequestOption) (r EndpointShadowExperimentService) {
+	r = EndpointShadowExperimentService{}
 	r.Options = opts
-	r.Targets = NewBetaEndpointShadowExperimentTargetService(opts...)
+	r.Targets = NewEndpointShadowExperimentTargetService(opts...)
 	return
 }
 
 // Creates an experiment that mirrors a sampled portion of endpoint traffic to one
 // or more target deployments without returning their responses to clients. Add a
 // description with the update operation after creation.
-func (r *BetaEndpointShadowExperimentService) New(ctx context.Context, endpointID string, params BetaEndpointShadowExperimentNewParams, opts ...option.RequestOption) (res *ShadowExperiment, err error) {
+func (r *EndpointShadowExperimentService) New(ctx context.Context, endpointID string, params EndpointShadowExperimentNewParams, opts ...option.RequestOption) (res *ShadowExperiment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -66,7 +66,7 @@ func (r *BetaEndpointShadowExperimentService) New(ctx context.Context, endpointI
 
 // Retrieves a shadow experiment, including its sampling strategy and target
 // deployments.
-func (r *BetaEndpointShadowExperimentService) Get(ctx context.Context, id string, query BetaEndpointShadowExperimentGetParams, opts ...option.RequestOption) (res *ShadowExperiment, err error) {
+func (r *EndpointShadowExperimentService) Get(ctx context.Context, id string, query EndpointShadowExperimentGetParams, opts ...option.RequestOption) (res *ShadowExperiment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -93,7 +93,7 @@ func (r *BetaEndpointShadowExperimentService) Get(ctx context.Context, id string
 // Updates a shadow experiment's description or source sampling strategy.
 // `updateMask` is required; source changes also require the current `etag` in the
 // request body.
-func (r *BetaEndpointShadowExperimentService) Update(ctx context.Context, id string, params BetaEndpointShadowExperimentUpdateParams, opts ...option.RequestOption) (res *ShadowExperiment, err error) {
+func (r *EndpointShadowExperimentService) Update(ctx context.Context, id string, params EndpointShadowExperimentUpdateParams, opts ...option.RequestOption) (res *ShadowExperiment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -120,7 +120,7 @@ func (r *BetaEndpointShadowExperimentService) Update(ctx context.Context, id str
 // Lists experiments that mirror sampled endpoint traffic to target deployments
 // without affecting client responses. Set `includeTargets=true` to include target
 // details inline.
-func (r *BetaEndpointShadowExperimentService) List(ctx context.Context, endpointID string, params BetaEndpointShadowExperimentListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[ShadowExperiment], err error) {
+func (r *EndpointShadowExperimentService) List(ctx context.Context, endpointID string, params EndpointShadowExperimentListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[ShadowExperiment], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -153,13 +153,13 @@ func (r *BetaEndpointShadowExperimentService) List(ctx context.Context, endpoint
 // Lists experiments that mirror sampled endpoint traffic to target deployments
 // without affecting client responses. Set `includeTargets=true` to include target
 // details inline.
-func (r *BetaEndpointShadowExperimentService) ListAutoPaging(ctx context.Context, endpointID string, params BetaEndpointShadowExperimentListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[ShadowExperiment] {
+func (r *EndpointShadowExperimentService) ListAutoPaging(ctx context.Context, endpointID string, params EndpointShadowExperimentListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[ShadowExperiment] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, endpointID, params, opts...))
 }
 
 // Deletes a shadow experiment and its target records. The underlying deployments
 // are not deleted.
-func (r *BetaEndpointShadowExperimentService) Delete(ctx context.Context, id string, params BetaEndpointShadowExperimentDeleteParams, opts ...option.RequestOption) (res *BetaEndpointShadowExperimentDeleteResponse, err error) {
+func (r *EndpointShadowExperimentService) Delete(ctx context.Context, id string, params EndpointShadowExperimentDeleteParams, opts ...option.RequestOption) (res *EndpointShadowExperimentDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -248,7 +248,7 @@ const (
 )
 
 // Empty response returned after a successful delete operation.
-type BetaEndpointShadowExperimentDeleteResponse struct {
+type EndpointShadowExperimentDeleteResponse struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ExtraFields map[string]respjson.Field
@@ -257,12 +257,12 @@ type BetaEndpointShadowExperimentDeleteResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r BetaEndpointShadowExperimentDeleteResponse) RawJSON() string { return r.JSON.raw }
-func (r *BetaEndpointShadowExperimentDeleteResponse) UnmarshalJSON(data []byte) error {
+func (r EndpointShadowExperimentDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *EndpointShadowExperimentDeleteResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaEndpointShadowExperimentNewParams struct {
+type EndpointShadowExperimentNewParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -275,15 +275,15 @@ type BetaEndpointShadowExperimentNewParams struct {
 	Source ShadowSourceParam `json:"source,omitzero" api:"required"`
 	// Optional initial target deployments. At most 100 targets; manage later changes
 	// through the target APIs.
-	Targets []BetaEndpointShadowExperimentNewParamsTarget `json:"targets,omitzero"`
+	Targets []EndpointShadowExperimentNewParamsTarget `json:"targets,omitzero"`
 	paramObj
 }
 
-func (r BetaEndpointShadowExperimentNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointShadowExperimentNewParams
+func (r EndpointShadowExperimentNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointShadowExperimentNewParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaEndpointShadowExperimentNewParams) UnmarshalJSON(data []byte) error {
+func (r *EndpointShadowExperimentNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -291,7 +291,7 @@ func (r *BetaEndpointShadowExperimentNewParams) UnmarshalJSON(data []byte) error
 // a shadow experiment.
 //
 // The properties Name, TargetDeploymentID are required.
-type BetaEndpointShadowExperimentNewParamsTarget struct {
+type EndpointShadowExperimentNewParamsTarget struct {
 	// Human-readable target name, unique within the shadow experiment. At most 256
 	// characters.
 	Name string `json:"name" api:"required"`
@@ -304,15 +304,15 @@ type BetaEndpointShadowExperimentNewParamsTarget struct {
 	paramObj
 }
 
-func (r BetaEndpointShadowExperimentNewParamsTarget) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointShadowExperimentNewParamsTarget
+func (r EndpointShadowExperimentNewParamsTarget) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointShadowExperimentNewParamsTarget
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaEndpointShadowExperimentNewParamsTarget) UnmarshalJSON(data []byte) error {
+func (r *EndpointShadowExperimentNewParamsTarget) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type BetaEndpointShadowExperimentGetParams struct {
+type EndpointShadowExperimentGetParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -322,7 +322,7 @@ type BetaEndpointShadowExperimentGetParams struct {
 	paramObj
 }
 
-type BetaEndpointShadowExperimentUpdateParams struct {
+type EndpointShadowExperimentUpdateParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -341,24 +341,24 @@ type BetaEndpointShadowExperimentUpdateParams struct {
 	paramObj
 }
 
-func (r BetaEndpointShadowExperimentUpdateParams) MarshalJSON() (data []byte, err error) {
-	type shadow BetaEndpointShadowExperimentUpdateParams
+func (r EndpointShadowExperimentUpdateParams) MarshalJSON() (data []byte, err error) {
+	type shadow EndpointShadowExperimentUpdateParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *BetaEndpointShadowExperimentUpdateParams) UnmarshalJSON(data []byte) error {
+func (r *EndpointShadowExperimentUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// URLQuery serializes [BetaEndpointShadowExperimentUpdateParams]'s query
-// parameters as `url.Values`.
-func (r BetaEndpointShadowExperimentUpdateParams) URLQuery() (v url.Values, err error) {
+// URLQuery serializes [EndpointShadowExperimentUpdateParams]'s query parameters as
+// `url.Values`.
+func (r EndpointShadowExperimentUpdateParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type BetaEndpointShadowExperimentListParams struct {
+type EndpointShadowExperimentListParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -372,16 +372,16 @@ type BetaEndpointShadowExperimentListParams struct {
 	paramObj
 }
 
-// URLQuery serializes [BetaEndpointShadowExperimentListParams]'s query parameters
-// as `url.Values`.
-func (r BetaEndpointShadowExperimentListParams) URLQuery() (v url.Values, err error) {
+// URLQuery serializes [EndpointShadowExperimentListParams]'s query parameters as
+// `url.Values`.
+func (r EndpointShadowExperimentListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type BetaEndpointShadowExperimentDeleteParams struct {
+type EndpointShadowExperimentDeleteParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -393,9 +393,9 @@ type BetaEndpointShadowExperimentDeleteParams struct {
 	paramObj
 }
 
-// URLQuery serializes [BetaEndpointShadowExperimentDeleteParams]'s query
-// parameters as `url.Values`.
-func (r BetaEndpointShadowExperimentDeleteParams) URLQuery() (v url.Values, err error) {
+// URLQuery serializes [EndpointShadowExperimentDeleteParams]'s query parameters as
+// `url.Values`.
+func (r EndpointShadowExperimentDeleteParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
