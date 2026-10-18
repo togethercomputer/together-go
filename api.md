@@ -535,26 +535,6 @@ Methods:
 - <code title="post /v1/fine-tunes/preview">client.FineTuning.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuningService.Preview">Preview</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuningPreviewParams">FineTuningPreviewParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTunePreviewResponse">FineTunePreviewResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 - <code title="get /v1/fine-tunes/{id}/download-tokenized-dataset">client.FineTuning.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuningService.GetTokenizedDataset">GetTokenizedDataset</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, id <a href="https://pkg.go.dev/builtin#string">string</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#FineTuneTokenizedDatasetRetrieveResponse">FineTuneTokenizedDatasetRetrieveResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
 
-# CodeInterpreter
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ExecuteResponseUnion">ExecuteResponseUnion</a>
-
-Methods:
-
-- <code title="post /v1/tci/execute">client.CodeInterpreter.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#CodeInterpreterService.Execute">Execute</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>, body <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#CodeInterpreterExecuteParams">CodeInterpreterExecuteParams</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#ExecuteResponseUnion">ExecuteResponseUnion</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
-## Sessions
-
-Response Types:
-
-- <a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#SessionListResponse">SessionListResponse</a>
-
-Methods:
-
-- <code title="get /v1/tci/sessions">client.CodeInterpreter.Sessions.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#CodeInterpreterSessionService.List">List</a>(ctx <a href="https://pkg.go.dev/context">context</a>.<a href="https://pkg.go.dev/context#Context">Context</a>) (\*<a href="https://pkg.go.dev/github.com/togethercomputer/together-go">together</a>.<a href="https://pkg.go.dev/github.com/togethercomputer/together-go#SessionListResponse">SessionListResponse</a>, <a href="https://pkg.go.dev/builtin#error">error</a>)</code>
-
 # Images
 
 Response Types:

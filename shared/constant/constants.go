@@ -23,7 +23,6 @@ type ChatCompletion string      // Always "chat.completion"
 type ChatCompletionChunk string // Always "chat.completion.chunk"
 type Embedding string           // Always "embedding"
 type Endpoint string            // Always "endpoint"
-type Error string               // Always "error"
 type File string                // Always "file"
 type FineTuneEvent string       // Always "fine-tune-event"
 type Hardware string            // Always "hardware"
@@ -43,7 +42,6 @@ func (c ChatCompletion) Default() ChatCompletion           { return "chat.comple
 func (c ChatCompletionChunk) Default() ChatCompletionChunk { return "chat.completion.chunk" }
 func (c Embedding) Default() Embedding                     { return "embedding" }
 func (c Endpoint) Default() Endpoint                       { return "endpoint" }
-func (c Error) Default() Error                             { return "error" }
 func (c File) Default() File                               { return "file" }
 func (c FineTuneEvent) Default() FineTuneEvent             { return "fine-tune-event" }
 func (c Hardware) Default() Hardware                       { return "hardware" }
@@ -63,7 +61,6 @@ func (c ChatCompletion) MarshalJSON() ([]byte, error)      { return marshalStrin
 func (c ChatCompletionChunk) MarshalJSON() ([]byte, error) { return marshalString(c) }
 func (c Embedding) MarshalJSON() ([]byte, error)           { return marshalString(c) }
 func (c Endpoint) MarshalJSON() ([]byte, error)            { return marshalString(c) }
-func (c Error) MarshalJSON() ([]byte, error)               { return marshalString(c) }
 func (c File) MarshalJSON() ([]byte, error)                { return marshalString(c) }
 func (c FineTuneEvent) MarshalJSON() ([]byte, error)       { return marshalString(c) }
 func (c Hardware) MarshalJSON() ([]byte, error)            { return marshalString(c) }
