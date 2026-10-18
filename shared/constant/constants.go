@@ -27,12 +27,17 @@ type FineTuneEvent string       // Always "fine-tune-event"
 type JsonObject string          // Always "json_object"
 type JsonSchema string          // Always "json_schema"
 type List string                // Always "list"
+type OrgAPIKey string           // Always "org_api_key"
+type ProjectAPIKey string       // Always "project_api_key"
 type Rerank string              // Always "rerank"
 type Revision string            // Always "revision"
 type RevisionEvent string       // Always "revision_event"
 type Text string                // Always "text"
 type TextCompletion string      // Always "text.completion"
 type Usd string                 // Always "USD"
+type UserJwt string             // Always "user_jwt"
+type UserOrgJwt string          // Always "user_org_jwt"
+type UserOrgProjectJwt string   // Always "user_org_project_jwt"
 
 func (c AudioTtsChunk) Default() AudioTtsChunk             { return "audio.tts.chunk" }
 func (c ChatCompletion) Default() ChatCompletion           { return "chat.completion" }
@@ -43,12 +48,17 @@ func (c FineTuneEvent) Default() FineTuneEvent             { return "fine-tune-e
 func (c JsonObject) Default() JsonObject                   { return "json_object" }
 func (c JsonSchema) Default() JsonSchema                   { return "json_schema" }
 func (c List) Default() List                               { return "list" }
+func (c OrgAPIKey) Default() OrgAPIKey                     { return "org_api_key" }
+func (c ProjectAPIKey) Default() ProjectAPIKey             { return "project_api_key" }
 func (c Rerank) Default() Rerank                           { return "rerank" }
 func (c Revision) Default() Revision                       { return "revision" }
 func (c RevisionEvent) Default() RevisionEvent             { return "revision_event" }
 func (c Text) Default() Text                               { return "text" }
 func (c TextCompletion) Default() TextCompletion           { return "text.completion" }
 func (c Usd) Default() Usd                                 { return "USD" }
+func (c UserJwt) Default() UserJwt                         { return "user_jwt" }
+func (c UserOrgJwt) Default() UserOrgJwt                   { return "user_org_jwt" }
+func (c UserOrgProjectJwt) Default() UserOrgProjectJwt     { return "user_org_project_jwt" }
 
 func (c AudioTtsChunk) MarshalJSON() ([]byte, error)       { return marshalString(c) }
 func (c ChatCompletion) MarshalJSON() ([]byte, error)      { return marshalString(c) }
@@ -59,12 +69,17 @@ func (c FineTuneEvent) MarshalJSON() ([]byte, error)       { return marshalStrin
 func (c JsonObject) MarshalJSON() ([]byte, error)          { return marshalString(c) }
 func (c JsonSchema) MarshalJSON() ([]byte, error)          { return marshalString(c) }
 func (c List) MarshalJSON() ([]byte, error)                { return marshalString(c) }
+func (c OrgAPIKey) MarshalJSON() ([]byte, error)           { return marshalString(c) }
+func (c ProjectAPIKey) MarshalJSON() ([]byte, error)       { return marshalString(c) }
 func (c Rerank) MarshalJSON() ([]byte, error)              { return marshalString(c) }
 func (c Revision) MarshalJSON() ([]byte, error)            { return marshalString(c) }
 func (c RevisionEvent) MarshalJSON() ([]byte, error)       { return marshalString(c) }
 func (c Text) MarshalJSON() ([]byte, error)                { return marshalString(c) }
 func (c TextCompletion) MarshalJSON() ([]byte, error)      { return marshalString(c) }
 func (c Usd) MarshalJSON() ([]byte, error)                 { return marshalString(c) }
+func (c UserJwt) MarshalJSON() ([]byte, error)             { return marshalString(c) }
+func (c UserOrgJwt) MarshalJSON() ([]byte, error)          { return marshalString(c) }
+func (c UserOrgProjectJwt) MarshalJSON() ([]byte, error)   { return marshalString(c) }
 
 type constant[T any] interface {
 	Constant[T]

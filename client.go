@@ -161,15 +161,14 @@ func (r *Client) Delete(ctx context.Context, path string, params any, res any, o
 	return r.Execute(ctx, http.MethodDelete, path, params, res, opts...)
 }
 
-// Returns identity information about the authenticated API key. Useful for
-// confirming which project and organization a key is scoped to, and for obtaining
-// the project slug used to compose the `model` value
-// (`<project_slug>/<endpoint_slug>`) in dedicated endpoint inference calls.
-// Requires a Bearer API key in the `Authorization` header. Cookie, session, and
-// SLS JWT credentials are not accepted.
-func (r *Client) Whoami(ctx context.Context, opts ...option.RequestOption) (res *WhoamiResponse, err error) {
+// Returns identity information for the authenticated caller. Accepts project API
+// keys and user session JWTs. The response `type` indicates which fields are
+// present. For project-scoped credentials, `project.slug` can be used with an
+// endpoint slug as `<project_slug>/<endpoint_slug>` to form the `model` value in
+// dedicated endpoint inference calls.
+func (r *Client) Whoami(ctx context.Context, opts ...option.RequestOption) (res *WhoamiResponseUnion, err error) {
 	opts = slices.Concat(r.Options, opts)
-	path := "v1/whoami"
+	path := "v3/whoami"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
 	return res, err
 }
