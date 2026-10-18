@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestModelConfigGet(t *testing.T) {
+func TestBetaEndpointPlacementProfileGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,10 +25,10 @@ func TestModelConfigGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.Configs.Get(
+	_, err := client.Beta.Endpoints.PlacementProfiles.Get(
 		context.TODO(),
 		"id",
-		together.ModelConfigGetParams{
+		together.BetaEndpointPlacementProfileGetParams{
 			ProjectID: together.String("projectId"),
 		},
 	)
@@ -41,7 +41,7 @@ func TestModelConfigGet(t *testing.T) {
 	}
 }
 
-func TestModelConfigListWithOptionalParams(t *testing.T) {
+func TestBetaEndpointPlacementProfileListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -53,12 +53,10 @@ func TestModelConfigListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.Configs.List(context.TODO(), together.ModelConfigListParams{
-		ProjectID:        together.String("projectId"),
-		After:            together.String("after"),
-		Limit:            together.Int(0),
-		ReferenceModel:   together.String("referenceModel"),
-		ReferenceModelID: together.String("referenceModelId"),
+	_, err := client.Beta.Endpoints.PlacementProfiles.List(context.TODO(), together.BetaEndpointPlacementProfileListParams{
+		ProjectID: together.String("projectId"),
+		After:     together.String("after"),
+		Limit:     together.Int(0),
 	})
 	if err != nil {
 		var apierr *together.Error

@@ -16,28 +16,28 @@ import (
 	"github.com/togethercomputer/together-go/shared/constant"
 )
 
-// EndpointHardwareService contains methods and other services that help with
+// BetaEndpointHardwareService contains methods and other services that help with
 // interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewEndpointHardwareService] method instead.
-type EndpointHardwareService struct {
+// the [NewBetaEndpointHardwareService] method instead.
+type BetaEndpointHardwareService struct {
 	Options []option.RequestOption
 }
 
-// NewEndpointHardwareService generates a new service that applies the given
+// NewBetaEndpointHardwareService generates a new service that applies the given
 // options to each request. These options are applied after the parent client's
 // options (if there is one), and before any request-specific options.
-func NewEndpointHardwareService(opts ...option.RequestOption) (r EndpointHardwareService) {
-	r = EndpointHardwareService{}
+func NewBetaEndpointHardwareService(opts ...option.RequestOption) (r BetaEndpointHardwareService) {
+	r = BetaEndpointHardwareService{}
 	r.Options = opts
 	return
 }
 
 // Retrieves the GPU resources, pricing, regional availability, and best-effort
 // capacity headroom for one inference instance type.
-func (r *EndpointHardwareService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *InferenceInstanceType, err error) {
+func (r *BetaEndpointHardwareService) Get(ctx context.Context, id string, opts ...option.RequestOption) (res *InferenceInstanceType, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
@@ -50,7 +50,7 @@ func (r *EndpointHardwareService) Get(ctx context.Context, id string, opts ...op
 
 // Lists hardware instance types currently available to inference deployments,
 // including GPU resources, pricing, regions, and best-effort capacity headroom.
-func (r *EndpointHardwareService) List(ctx context.Context, opts ...option.RequestOption) (res *EndpointHardwareListResponse, err error) {
+func (r *BetaEndpointHardwareService) List(ctx context.Context, opts ...option.RequestOption) (res *BetaEndpointHardwareListResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	path := "v2/public/inference-instance-types"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
@@ -208,7 +208,7 @@ func (r *InferenceInstanceTypeRegionHeadroom) UnmarshalJSON(data []byte) error {
 }
 
 // Hardware instance types available for inference deployments.
-type EndpointHardwareListResponse struct {
+type BetaEndpointHardwareListResponse struct {
 	// Instance types available for inference.
 	Data []InferenceInstanceType `json:"data" api:"required"`
 	// Object type. Always `list`.
@@ -227,7 +227,7 @@ type EndpointHardwareListResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EndpointHardwareListResponse) RawJSON() string { return r.JSON.raw }
-func (r *EndpointHardwareListResponse) UnmarshalJSON(data []byte) error {
+func (r BetaEndpointHardwareListResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaEndpointHardwareListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }

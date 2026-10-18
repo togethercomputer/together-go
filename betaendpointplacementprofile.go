@@ -19,27 +19,27 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// EndpointPlacementProfileService contains methods and other services that help
-// with interacting with the together API.
+// BetaEndpointPlacementProfileService contains methods and other services that
+// help with interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewEndpointPlacementProfileService] method instead.
-type EndpointPlacementProfileService struct {
+// the [NewBetaEndpointPlacementProfileService] method instead.
+type BetaEndpointPlacementProfileService struct {
 	Options []option.RequestOption
 }
 
-// NewEndpointPlacementProfileService generates a new service that applies the
+// NewBetaEndpointPlacementProfileService generates a new service that applies the
 // given options to each request. These options are applied after the parent
 // client's options (if there is one), and before any request-specific options.
-func NewEndpointPlacementProfileService(opts ...option.RequestOption) (r EndpointPlacementProfileService) {
-	r = EndpointPlacementProfileService{}
+func NewBetaEndpointPlacementProfileService(opts ...option.RequestOption) (r BetaEndpointPlacementProfileService) {
+	r = BetaEndpointPlacementProfileService{}
 	r.Options = opts
 	return
 }
 
 // Retrieves a reusable placement profile and its ordered region preferences.
-func (r *EndpointPlacementProfileService) Get(ctx context.Context, id string, query EndpointPlacementProfileGetParams, opts ...option.RequestOption) (res *PlacementProfile, err error) {
+func (r *BetaEndpointPlacementProfileService) Get(ctx context.Context, id string, query BetaEndpointPlacementProfileGetParams, opts ...option.RequestOption) (res *PlacementProfile, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *EndpointPlacementProfileService) Get(ctx context.Context, id string, qu
 
 // Lists reusable, project-visible placement policies that control the regions
 // where deployments may be scheduled.
-func (r *EndpointPlacementProfileService) List(ctx context.Context, params EndpointPlacementProfileListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[PlacementProfile], err error) {
+func (r *BetaEndpointPlacementProfileService) List(ctx context.Context, params BetaEndpointPlacementProfileListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[PlacementProfile], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -89,7 +89,7 @@ func (r *EndpointPlacementProfileService) List(ctx context.Context, params Endpo
 
 // Lists reusable, project-visible placement policies that control the regions
 // where deployments may be scheduled.
-func (r *EndpointPlacementProfileService) ListAutoPaging(ctx context.Context, params EndpointPlacementProfileListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[PlacementProfile] {
+func (r *BetaEndpointPlacementProfileService) ListAutoPaging(ctx context.Context, params BetaEndpointPlacementProfileListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[PlacementProfile] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, params, opts...))
 }
 
@@ -123,7 +123,7 @@ func (r *PlacementProfile) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointPlacementProfileGetParams struct {
+type BetaEndpointPlacementProfileGetParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -131,7 +131,7 @@ type EndpointPlacementProfileGetParams struct {
 	paramObj
 }
 
-type EndpointPlacementProfileListParams struct {
+type BetaEndpointPlacementProfileListParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -143,9 +143,9 @@ type EndpointPlacementProfileListParams struct {
 	paramObj
 }
 
-// URLQuery serializes [EndpointPlacementProfileListParams]'s query parameters as
-// `url.Values`.
-func (r EndpointPlacementProfileListParams) URLQuery() (v url.Values, err error) {
+// URLQuery serializes [BetaEndpointPlacementProfileListParams]'s query parameters
+// as `url.Values`.
+func (r BetaEndpointPlacementProfileListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

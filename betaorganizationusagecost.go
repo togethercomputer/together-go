@@ -15,21 +15,21 @@ import (
 	"github.com/togethercomputer/together-go/packages/param"
 )
 
-// OrganizationUsageCostService contains methods and other services that help with
-// interacting with the together API.
+// BetaOrganizationUsageCostService contains methods and other services that help
+// with interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewOrganizationUsageCostService] method instead.
-type OrganizationUsageCostService struct {
+// the [NewBetaOrganizationUsageCostService] method instead.
+type BetaOrganizationUsageCostService struct {
 	Options []option.RequestOption
 }
 
-// NewOrganizationUsageCostService generates a new service that applies the given
-// options to each request. These options are applied after the parent client's
-// options (if there is one), and before any request-specific options.
-func NewOrganizationUsageCostService(opts ...option.RequestOption) (r OrganizationUsageCostService) {
-	r = OrganizationUsageCostService{}
+// NewBetaOrganizationUsageCostService generates a new service that applies the
+// given options to each request. These options are applied after the parent
+// client's options (if there is one), and before any request-specific options.
+func NewBetaOrganizationUsageCostService(opts ...option.RequestOption) (r BetaOrganizationUsageCostService) {
+	r = BetaOrganizationUsageCostService{}
 	r.Options = opts
 	return
 }
@@ -38,7 +38,7 @@ func NewOrganizationUsageCostService(opts ...option.RequestOption) (r Organizati
 // grouped into time windows. Finalized windows are returned through the end of
 // yesterday at daily granularity, or the last completed hour at hourly granularity
 // (UTC).
-func (r *OrganizationUsageCostService) List(ctx context.Context, query OrganizationUsageCostListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[BillingUsageWindow], err error) {
+func (r *BetaOrganizationUsageCostService) List(ctx context.Context, query BetaOrganizationUsageCostListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[BillingUsageWindow], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -59,11 +59,11 @@ func (r *OrganizationUsageCostService) List(ctx context.Context, query Organizat
 // grouped into time windows. Finalized windows are returned through the end of
 // yesterday at daily granularity, or the last completed hour at hourly granularity
 // (UTC).
-func (r *OrganizationUsageCostService) ListAutoPaging(ctx context.Context, query OrganizationUsageCostListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[BillingUsageWindow] {
+func (r *BetaOrganizationUsageCostService) ListAutoPaging(ctx context.Context, query BetaOrganizationUsageCostListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[BillingUsageWindow] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, query, opts...))
 }
 
-type OrganizationUsageCostListParams struct {
+type BetaOrganizationUsageCostListParams struct {
 	// Opaque cursor from a previous response's `next_cursor`. Only valid for the month
 	// and granularity it was issued for. Current-month data is a moving snapshot: each
 	// page reflects data as of its request, so newly completed windows may appear at
@@ -81,13 +81,13 @@ type OrganizationUsageCostListParams struct {
 	// Time window size for rows. 'hour' returns ~24x more rows than 'day'.
 	//
 	// Any of "day", "hour".
-	Granularity OrganizationUsageCostListParamsGranularity `query:"granularity,omitzero" json:"-"`
+	Granularity BetaOrganizationUsageCostListParamsGranularity `query:"granularity,omitzero" json:"-"`
 	paramObj
 }
 
-// URLQuery serializes [OrganizationUsageCostListParams]'s query parameters as
+// URLQuery serializes [BetaOrganizationUsageCostListParams]'s query parameters as
 // `url.Values`.
-func (r OrganizationUsageCostListParams) URLQuery() (v url.Values, err error) {
+func (r BetaOrganizationUsageCostListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -95,9 +95,9 @@ func (r OrganizationUsageCostListParams) URLQuery() (v url.Values, err error) {
 }
 
 // Time window size for rows. 'hour' returns ~24x more rows than 'day'.
-type OrganizationUsageCostListParamsGranularity string
+type BetaOrganizationUsageCostListParamsGranularity string
 
 const (
-	OrganizationUsageCostListParamsGranularityDay  OrganizationUsageCostListParamsGranularity = "day"
-	OrganizationUsageCostListParamsGranularityHour OrganizationUsageCostListParamsGranularity = "hour"
+	BetaOrganizationUsageCostListParamsGranularityDay  BetaOrganizationUsageCostListParamsGranularity = "day"
+	BetaOrganizationUsageCostListParamsGranularityHour BetaOrganizationUsageCostListParamsGranularity = "hour"
 )

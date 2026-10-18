@@ -295,7 +295,7 @@ This library provides some conveniences for working with paginated list endpoint
 You can use `.ListAutoPaging()` methods to iterate through items across all pages:
 
 ```go
-iter := client.Organization.Usage.Costs.ListAutoPaging(context.TODO(), together.OrganizationUsageCostListParams{})
+iter := client.Beta.Organization.Usage.Costs.ListAutoPaging(context.TODO(), together.BetaOrganizationUsageCostListParams{})
 // Automatically fetches more pages as needed.
 for iter.Next() {
 	billingUsageWindow := iter.Current()
@@ -310,7 +310,7 @@ Or you can use simple `.List()` methods to fetch a single page and receive a sta
 with additional helper methods like `.GetNextPage()`, e.g.:
 
 ```go
-page, err := client.Organization.Usage.Costs.List(context.TODO(), together.OrganizationUsageCostListParams{})
+page, err := client.Beta.Organization.Usage.Costs.List(context.TODO(), together.BetaOrganizationUsageCostListParams{})
 for page != nil {
 	for _, cost := range page.Data {
 		fmt.Printf("%+v\n", cost)

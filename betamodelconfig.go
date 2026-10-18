@@ -20,28 +20,28 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// ModelConfigService contains methods and other services that help with
+// BetaModelConfigService contains methods and other services that help with
 // interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewModelConfigService] method instead.
-type ModelConfigService struct {
+// the [NewBetaModelConfigService] method instead.
+type BetaModelConfigService struct {
 	Options []option.RequestOption
 }
 
-// NewModelConfigService generates a new service that applies the given options to
-// each request. These options are applied after the parent client's options (if
+// NewBetaModelConfigService generates a new service that applies the given options
+// to each request. These options are applied after the parent client's options (if
 // there is one), and before any request-specific options.
-func NewModelConfigService(opts ...option.RequestOption) (r ModelConfigService) {
-	r = ModelConfigService{}
+func NewBetaModelConfigService(opts ...option.RequestOption) (r BetaModelConfigService) {
+	r = BetaModelConfigService{}
 	r.Options = opts
 	return
 }
 
 // Retrieves a model configuration revision by ID, including its runtime selectors
 // and certifications.
-func (r *ModelConfigService) Get(ctx context.Context, id string, query ModelConfigGetParams, opts ...option.RequestOption) (res *Config, err error) {
+func (r *BetaModelConfigService) Get(ctx context.Context, id string, query BetaModelConfigGetParams, opts ...option.RequestOption) (res *Config, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -66,7 +66,7 @@ func (r *ModelConfigService) Get(ctx context.Context, id string, query ModelConf
 // `referenceModelId`; if both are supplied, they must identify the same model.
 // Results include public configurations and configurations owned by the specified
 // project.
-func (r *ModelConfigService) List(ctx context.Context, params ModelConfigListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[Config], err error) {
+func (r *BetaModelConfigService) List(ctx context.Context, params BetaModelConfigListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[Config], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -97,7 +97,7 @@ func (r *ModelConfigService) List(ctx context.Context, params ModelConfigListPar
 // `referenceModelId`; if both are supplied, they must identify the same model.
 // Results include public configurations and configurations owned by the specified
 // project.
-func (r *ModelConfigService) ListAutoPaging(ctx context.Context, params ModelConfigListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[Config] {
+func (r *BetaModelConfigService) ListAutoPaging(ctx context.Context, params BetaModelConfigListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[Config] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, params, opts...))
 }
 
@@ -225,7 +225,7 @@ func (r *Selector) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ModelConfigGetParams struct {
+type BetaModelConfigGetParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -233,7 +233,7 @@ type ModelConfigGetParams struct {
 	paramObj
 }
 
-type ModelConfigListParams struct {
+type BetaModelConfigListParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -251,8 +251,9 @@ type ModelConfigListParams struct {
 	paramObj
 }
 
-// URLQuery serializes [ModelConfigListParams]'s query parameters as `url.Values`.
-func (r ModelConfigListParams) URLQuery() (v url.Values, err error) {
+// URLQuery serializes [BetaModelConfigListParams]'s query parameters as
+// `url.Values`.
+func (r BetaModelConfigListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

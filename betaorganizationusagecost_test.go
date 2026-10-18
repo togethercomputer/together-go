@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestEndpointHardwareGet(t *testing.T) {
+func TestBetaOrganizationUsageCostListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,29 +25,13 @@ func TestEndpointHardwareGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Hardware.Get(context.TODO(), "id")
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestEndpointHardwareList(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Endpoints.Hardware.List(context.TODO())
+	_, err := client.Beta.Organization.Usage.Costs.List(context.TODO(), together.BetaOrganizationUsageCostListParams{
+		After:          together.String("after"),
+		Granularity:    together.BetaOrganizationUsageCostListParamsGranularityDay,
+		Limit:          together.Int(1),
+		Month:          together.String("7321-06"),
+		OrganizationID: together.String("x"),
+	})
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

@@ -20,21 +20,21 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// EndpointAbExperimentService contains methods and other services that help with
-// interacting with the together API.
+// BetaEndpointAbExperimentService contains methods and other services that help
+// with interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewEndpointAbExperimentService] method instead.
-type EndpointAbExperimentService struct {
+// the [NewBetaEndpointAbExperimentService] method instead.
+type BetaEndpointAbExperimentService struct {
 	Options []option.RequestOption
 }
 
-// NewEndpointAbExperimentService generates a new service that applies the given
-// options to each request. These options are applied after the parent client's
-// options (if there is one), and before any request-specific options.
-func NewEndpointAbExperimentService(opts ...option.RequestOption) (r EndpointAbExperimentService) {
-	r = EndpointAbExperimentService{}
+// NewBetaEndpointAbExperimentService generates a new service that applies the
+// given options to each request. These options are applied after the parent
+// client's options (if there is one), and before any request-specific options.
+func NewBetaEndpointAbExperimentService(opts ...option.RequestOption) (r BetaEndpointAbExperimentService) {
+	r = BetaEndpointAbExperimentService{}
 	r.Options = opts
 	return
 }
@@ -43,7 +43,7 @@ func NewEndpointAbExperimentService(opts ...option.RequestOption) (r EndpointAbE
 // same endpoint. Exactly one member is the control, member percentages must add up
 // to 100, and the split applies only to traffic that the endpoint would otherwise
 // send to the control.
-func (r *EndpointAbExperimentService) New(ctx context.Context, endpointID string, params EndpointAbExperimentNewParams, opts ...option.RequestOption) (res *AbExperiment, err error) {
+func (r *BetaEndpointAbExperimentService) New(ctx context.Context, endpointID string, params BetaEndpointAbExperimentNewParams, opts ...option.RequestOption) (res *AbExperiment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -65,7 +65,7 @@ func (r *EndpointAbExperimentService) New(ctx context.Context, endpointID string
 
 // Retrieves an A/B experiment and its participating deployments, roles, and
 // traffic percentages.
-func (r *EndpointAbExperimentService) Get(ctx context.Context, id string, query EndpointAbExperimentGetParams, opts ...option.RequestOption) (res *AbExperiment, err error) {
+func (r *BetaEndpointAbExperimentService) Get(ctx context.Context, id string, query BetaEndpointAbExperimentGetParams, opts ...option.RequestOption) (res *AbExperiment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -91,7 +91,7 @@ func (r *EndpointAbExperimentService) Get(ctx context.Context, id string, query 
 
 // Updates an experiment's description or member traffic percentages. Use the
 // experiment etag for optimistic concurrency.
-func (r *EndpointAbExperimentService) Update(ctx context.Context, id string, params EndpointAbExperimentUpdateParams, opts ...option.RequestOption) (res *AbExperiment, err error) {
+func (r *BetaEndpointAbExperimentService) Update(ctx context.Context, id string, params BetaEndpointAbExperimentUpdateParams, opts ...option.RequestOption) (res *AbExperiment, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -116,7 +116,7 @@ func (r *EndpointAbExperimentService) Update(ctx context.Context, id string, par
 }
 
 // Lists the managed live-traffic experiments configured for an endpoint.
-func (r *EndpointAbExperimentService) List(ctx context.Context, endpointID string, params EndpointAbExperimentListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[AbExperiment], err error) {
+func (r *BetaEndpointAbExperimentService) List(ctx context.Context, endpointID string, params BetaEndpointAbExperimentListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[AbExperiment], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -147,13 +147,13 @@ func (r *EndpointAbExperimentService) List(ctx context.Context, endpointID strin
 }
 
 // Lists the managed live-traffic experiments configured for an endpoint.
-func (r *EndpointAbExperimentService) ListAutoPaging(ctx context.Context, endpointID string, params EndpointAbExperimentListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[AbExperiment] {
+func (r *BetaEndpointAbExperimentService) ListAutoPaging(ctx context.Context, endpointID string, params BetaEndpointAbExperimentListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[AbExperiment] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, endpointID, params, opts...))
 }
 
 // Deletes an A/B experiment and removes its managed traffic split. The deployments
 // themselves are not deleted.
-func (r *EndpointAbExperimentService) Delete(ctx context.Context, id string, params EndpointAbExperimentDeleteParams, opts ...option.RequestOption) (res *EndpointAbExperimentDeleteResponse, err error) {
+func (r *BetaEndpointAbExperimentService) Delete(ctx context.Context, id string, params BetaEndpointAbExperimentDeleteParams, opts ...option.RequestOption) (res *BetaEndpointAbExperimentDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -225,7 +225,7 @@ func (r *AbExperiment) UnmarshalJSON(data []byte) error {
 }
 
 // Empty response returned after a successful delete operation.
-type EndpointAbExperimentDeleteResponse struct {
+type BetaEndpointAbExperimentDeleteResponse struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ExtraFields map[string]respjson.Field
@@ -234,12 +234,12 @@ type EndpointAbExperimentDeleteResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EndpointAbExperimentDeleteResponse) RawJSON() string { return r.JSON.raw }
-func (r *EndpointAbExperimentDeleteResponse) UnmarshalJSON(data []byte) error {
+func (r BetaEndpointAbExperimentDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaEndpointAbExperimentDeleteResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointAbExperimentNewParams struct {
+type BetaEndpointAbExperimentNewParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -254,15 +254,15 @@ type EndpointAbExperimentNewParams struct {
 	paramObj
 }
 
-func (r EndpointAbExperimentNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointAbExperimentNewParams
+func (r BetaEndpointAbExperimentNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointAbExperimentNewParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointAbExperimentNewParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointAbExperimentNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointAbExperimentGetParams struct {
+type BetaEndpointAbExperimentGetParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -272,7 +272,7 @@ type EndpointAbExperimentGetParams struct {
 	paramObj
 }
 
-type EndpointAbExperimentUpdateParams struct {
+type BetaEndpointAbExperimentUpdateParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -291,24 +291,24 @@ type EndpointAbExperimentUpdateParams struct {
 	paramObj
 }
 
-func (r EndpointAbExperimentUpdateParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointAbExperimentUpdateParams
+func (r BetaEndpointAbExperimentUpdateParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointAbExperimentUpdateParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointAbExperimentUpdateParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointAbExperimentUpdateParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// URLQuery serializes [EndpointAbExperimentUpdateParams]'s query parameters as
+// URLQuery serializes [BetaEndpointAbExperimentUpdateParams]'s query parameters as
 // `url.Values`.
-func (r EndpointAbExperimentUpdateParams) URLQuery() (v url.Values, err error) {
+func (r BetaEndpointAbExperimentUpdateParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type EndpointAbExperimentListParams struct {
+type BetaEndpointAbExperimentListParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -320,16 +320,16 @@ type EndpointAbExperimentListParams struct {
 	paramObj
 }
 
-// URLQuery serializes [EndpointAbExperimentListParams]'s query parameters as
+// URLQuery serializes [BetaEndpointAbExperimentListParams]'s query parameters as
 // `url.Values`.
-func (r EndpointAbExperimentListParams) URLQuery() (v url.Values, err error) {
+func (r BetaEndpointAbExperimentListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type EndpointAbExperimentDeleteParams struct {
+type BetaEndpointAbExperimentDeleteParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -342,9 +342,9 @@ type EndpointAbExperimentDeleteParams struct {
 	paramObj
 }
 
-// URLQuery serializes [EndpointAbExperimentDeleteParams]'s query parameters as
+// URLQuery serializes [BetaEndpointAbExperimentDeleteParams]'s query parameters as
 // `url.Values`.
-func (r EndpointAbExperimentDeleteParams) URLQuery() (v url.Values, err error) {
+func (r BetaEndpointAbExperimentDeleteParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

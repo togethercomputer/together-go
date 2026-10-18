@@ -21,21 +21,21 @@ import (
 	"github.com/togethercomputer/together-go/shared/constant"
 )
 
-// ModelRemoteUploadService contains methods and other services that help with
+// BetaModelRemoteUploadService contains methods and other services that help with
 // interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewModelRemoteUploadService] method instead.
-type ModelRemoteUploadService struct {
+// the [NewBetaModelRemoteUploadService] method instead.
+type BetaModelRemoteUploadService struct {
 	Options []option.RequestOption
 }
 
-// NewModelRemoteUploadService generates a new service that applies the given
+// NewBetaModelRemoteUploadService generates a new service that applies the given
 // options to each request. These options are applied after the parent client's
 // options (if there is one), and before any request-specific options.
-func NewModelRemoteUploadService(opts ...option.RequestOption) (r ModelRemoteUploadService) {
-	r = ModelRemoteUploadService{}
+func NewBetaModelRemoteUploadService(opts ...option.RequestOption) (r BetaModelRemoteUploadService) {
+	r = BetaModelRemoteUploadService{}
 	r.Options = opts
 	return
 }
@@ -43,7 +43,7 @@ func NewModelRemoteUploadService(opts ...option.RequestOption) (r ModelRemoteUpl
 // Starts an asynchronous job that imports model files from Hugging Face or a
 // presigned URL into a registered model and creates a model revision when the
 // import completes.
-func (r *ModelRemoteUploadService) New(ctx context.Context, params ModelRemoteUploadNewParams, opts ...option.RequestOption) (res *ModelRemoteUploadNewResponse, err error) {
+func (r *BetaModelRemoteUploadService) New(ctx context.Context, params BetaModelRemoteUploadNewParams, opts ...option.RequestOption) (res *BetaModelRemoteUploadNewResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *ModelRemoteUploadService) New(ctx context.Context, params ModelRemoteUp
 
 // Retrieves the status, progress details, retry counts, and timestamps for a
 // remote model import job.
-func (r *ModelRemoteUploadService) Get(ctx context.Context, id string, query ModelRemoteUploadGetParams, opts ...option.RequestOption) (res *ModelRemoteUploadGetResponse, err error) {
+func (r *BetaModelRemoteUploadService) Get(ctx context.Context, id string, query BetaModelRemoteUploadGetParams, opts ...option.RequestOption) (res *BetaModelRemoteUploadGetResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -83,7 +83,7 @@ func (r *ModelRemoteUploadService) Get(ctx context.Context, id string, query Mod
 
 // Lists asynchronous jobs that import model files from Hugging Face or a presigned
 // remote URL.
-func (r *ModelRemoteUploadService) List(ctx context.Context, params ModelRemoteUploadListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[ModelRemoteUploadListResponse], err error) {
+func (r *BetaModelRemoteUploadService) List(ctx context.Context, params BetaModelRemoteUploadListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[BetaModelRemoteUploadListResponse], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -111,12 +111,12 @@ func (r *ModelRemoteUploadService) List(ctx context.Context, params ModelRemoteU
 
 // Lists asynchronous jobs that import model files from Hugging Face or a presigned
 // remote URL.
-func (r *ModelRemoteUploadService) ListAutoPaging(ctx context.Context, params ModelRemoteUploadListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[ModelRemoteUploadListResponse] {
+func (r *BetaModelRemoteUploadService) ListAutoPaging(ctx context.Context, params BetaModelRemoteUploadListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[BetaModelRemoteUploadListResponse] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, params, opts...))
 }
 
 // Lists progress and diagnostic events for a remote model import job.
-func (r *ModelRemoteUploadService) Events(ctx context.Context, id string, params ModelRemoteUploadEventsParams, opts ...option.RequestOption) (res *ModelRemoteUploadEventsResponse, err error) {
+func (r *BetaModelRemoteUploadService) Events(ctx context.Context, id string, params BetaModelRemoteUploadEventsParams, opts ...option.RequestOption) (res *BetaModelRemoteUploadEventsResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -138,7 +138,7 @@ func (r *ModelRemoteUploadService) Events(ctx context.Context, id string, params
 
 // Asynchronous job that imports remote files into a registered model and creates a
 // model revision.
-type ModelRemoteUploadNewResponse struct {
+type BetaModelRemoteUploadNewResponse struct {
 	// Unique ID of the remote model import job.
 	ID string `json:"id" api:"required"`
 	// Time when the import job was created.
@@ -154,7 +154,7 @@ type ModelRemoteUploadNewResponse struct {
 	// Any of "REMOTE_UPLOAD_STATUS_PENDING", "REMOTE_UPLOAD_STATUS_RUNNING",
 	// "REMOTE_UPLOAD_STATUS_ERROR", "REMOTE_UPLOAD_STATUS_SUCCEEDED",
 	// "REMOTE_UPLOAD_STATUS_FAILED".
-	Status ModelRemoteUploadNewResponseStatus `json:"status" api:"required"`
+	Status BetaModelRemoteUploadNewResponseStatus `json:"status" api:"required"`
 	// Maximum worker restarts allowed before the job fails permanently.
 	MaxRestarts int64 `json:"maxRestarts"`
 	// Number of times the import worker has restarted this job.
@@ -181,25 +181,25 @@ type ModelRemoteUploadNewResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelRemoteUploadNewResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelRemoteUploadNewResponse) UnmarshalJSON(data []byte) error {
+func (r BetaModelRemoteUploadNewResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaModelRemoteUploadNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Current lifecycle state of the asynchronous import job.
-type ModelRemoteUploadNewResponseStatus string
+type BetaModelRemoteUploadNewResponseStatus string
 
 const (
-	ModelRemoteUploadNewResponseStatusRemoteUploadStatusPending   ModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_PENDING"
-	ModelRemoteUploadNewResponseStatusRemoteUploadStatusRunning   ModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_RUNNING"
-	ModelRemoteUploadNewResponseStatusRemoteUploadStatusError     ModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_ERROR"
-	ModelRemoteUploadNewResponseStatusRemoteUploadStatusSucceeded ModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_SUCCEEDED"
-	ModelRemoteUploadNewResponseStatusRemoteUploadStatusFailed    ModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_FAILED"
+	BetaModelRemoteUploadNewResponseStatusRemoteUploadStatusPending   BetaModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_PENDING"
+	BetaModelRemoteUploadNewResponseStatusRemoteUploadStatusRunning   BetaModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_RUNNING"
+	BetaModelRemoteUploadNewResponseStatusRemoteUploadStatusError     BetaModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_ERROR"
+	BetaModelRemoteUploadNewResponseStatusRemoteUploadStatusSucceeded BetaModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_SUCCEEDED"
+	BetaModelRemoteUploadNewResponseStatusRemoteUploadStatusFailed    BetaModelRemoteUploadNewResponseStatus = "REMOTE_UPLOAD_STATUS_FAILED"
 )
 
 // Asynchronous job that imports remote files into a registered model and creates a
 // model revision.
-type ModelRemoteUploadGetResponse struct {
+type BetaModelRemoteUploadGetResponse struct {
 	// Unique ID of the remote model import job.
 	ID string `json:"id" api:"required"`
 	// Time when the import job was created.
@@ -215,7 +215,7 @@ type ModelRemoteUploadGetResponse struct {
 	// Any of "REMOTE_UPLOAD_STATUS_PENDING", "REMOTE_UPLOAD_STATUS_RUNNING",
 	// "REMOTE_UPLOAD_STATUS_ERROR", "REMOTE_UPLOAD_STATUS_SUCCEEDED",
 	// "REMOTE_UPLOAD_STATUS_FAILED".
-	Status ModelRemoteUploadGetResponseStatus `json:"status" api:"required"`
+	Status BetaModelRemoteUploadGetResponseStatus `json:"status" api:"required"`
 	// Maximum worker restarts allowed before the job fails permanently.
 	MaxRestarts int64 `json:"maxRestarts"`
 	// Number of times the import worker has restarted this job.
@@ -242,25 +242,25 @@ type ModelRemoteUploadGetResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelRemoteUploadGetResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelRemoteUploadGetResponse) UnmarshalJSON(data []byte) error {
+func (r BetaModelRemoteUploadGetResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaModelRemoteUploadGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Current lifecycle state of the asynchronous import job.
-type ModelRemoteUploadGetResponseStatus string
+type BetaModelRemoteUploadGetResponseStatus string
 
 const (
-	ModelRemoteUploadGetResponseStatusRemoteUploadStatusPending   ModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_PENDING"
-	ModelRemoteUploadGetResponseStatusRemoteUploadStatusRunning   ModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_RUNNING"
-	ModelRemoteUploadGetResponseStatusRemoteUploadStatusError     ModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_ERROR"
-	ModelRemoteUploadGetResponseStatusRemoteUploadStatusSucceeded ModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_SUCCEEDED"
-	ModelRemoteUploadGetResponseStatusRemoteUploadStatusFailed    ModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_FAILED"
+	BetaModelRemoteUploadGetResponseStatusRemoteUploadStatusPending   BetaModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_PENDING"
+	BetaModelRemoteUploadGetResponseStatusRemoteUploadStatusRunning   BetaModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_RUNNING"
+	BetaModelRemoteUploadGetResponseStatusRemoteUploadStatusError     BetaModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_ERROR"
+	BetaModelRemoteUploadGetResponseStatusRemoteUploadStatusSucceeded BetaModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_SUCCEEDED"
+	BetaModelRemoteUploadGetResponseStatusRemoteUploadStatusFailed    BetaModelRemoteUploadGetResponseStatus = "REMOTE_UPLOAD_STATUS_FAILED"
 )
 
 // Asynchronous job that imports remote files into a registered model and creates a
 // model revision.
-type ModelRemoteUploadListResponse struct {
+type BetaModelRemoteUploadListResponse struct {
 	// Unique ID of the remote model import job.
 	ID string `json:"id" api:"required"`
 	// Time when the import job was created.
@@ -276,7 +276,7 @@ type ModelRemoteUploadListResponse struct {
 	// Any of "REMOTE_UPLOAD_STATUS_PENDING", "REMOTE_UPLOAD_STATUS_RUNNING",
 	// "REMOTE_UPLOAD_STATUS_ERROR", "REMOTE_UPLOAD_STATUS_SUCCEEDED",
 	// "REMOTE_UPLOAD_STATUS_FAILED".
-	Status ModelRemoteUploadListResponseStatus `json:"status" api:"required"`
+	Status BetaModelRemoteUploadListResponseStatus `json:"status" api:"required"`
 	// Maximum worker restarts allowed before the job fails permanently.
 	MaxRestarts int64 `json:"maxRestarts"`
 	// Number of times the import worker has restarted this job.
@@ -303,26 +303,26 @@ type ModelRemoteUploadListResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelRemoteUploadListResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelRemoteUploadListResponse) UnmarshalJSON(data []byte) error {
+func (r BetaModelRemoteUploadListResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaModelRemoteUploadListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Current lifecycle state of the asynchronous import job.
-type ModelRemoteUploadListResponseStatus string
+type BetaModelRemoteUploadListResponseStatus string
 
 const (
-	ModelRemoteUploadListResponseStatusRemoteUploadStatusPending   ModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_PENDING"
-	ModelRemoteUploadListResponseStatusRemoteUploadStatusRunning   ModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_RUNNING"
-	ModelRemoteUploadListResponseStatusRemoteUploadStatusError     ModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_ERROR"
-	ModelRemoteUploadListResponseStatusRemoteUploadStatusSucceeded ModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_SUCCEEDED"
-	ModelRemoteUploadListResponseStatusRemoteUploadStatusFailed    ModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_FAILED"
+	BetaModelRemoteUploadListResponseStatusRemoteUploadStatusPending   BetaModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_PENDING"
+	BetaModelRemoteUploadListResponseStatusRemoteUploadStatusRunning   BetaModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_RUNNING"
+	BetaModelRemoteUploadListResponseStatusRemoteUploadStatusError     BetaModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_ERROR"
+	BetaModelRemoteUploadListResponseStatusRemoteUploadStatusSucceeded BetaModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_SUCCEEDED"
+	BetaModelRemoteUploadListResponseStatusRemoteUploadStatusFailed    BetaModelRemoteUploadListResponseStatus = "REMOTE_UPLOAD_STATUS_FAILED"
 )
 
 // Status and diagnostic events for a remote model import job.
-type ModelRemoteUploadEventsResponse struct {
+type BetaModelRemoteUploadEventsResponse struct {
 	// Events for the remote upload.
-	Data []ModelRemoteUploadEventsResponseData `json:"data" api:"required"`
+	Data []BetaModelRemoteUploadEventsResponseData `json:"data" api:"required"`
 	// Object type. Always `list`.
 	Object constant.List `json:"object" default:"list"`
 	// Cursor for the next page. Null if there are no more results.
@@ -338,13 +338,13 @@ type ModelRemoteUploadEventsResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelRemoteUploadEventsResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelRemoteUploadEventsResponse) UnmarshalJSON(data []byte) error {
+func (r BetaModelRemoteUploadEventsResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaModelRemoteUploadEventsResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Progress or diagnostic event emitted while importing remote model files.
-type ModelRemoteUploadEventsResponseData struct {
+type BetaModelRemoteUploadEventsResponseData struct {
 	// Unique event identifier.
 	ID string `json:"id" api:"required"`
 	// Time when the event was recorded.
@@ -370,12 +370,12 @@ type ModelRemoteUploadEventsResponseData struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelRemoteUploadEventsResponseData) RawJSON() string { return r.JSON.raw }
-func (r *ModelRemoteUploadEventsResponseData) UnmarshalJSON(data []byte) error {
+func (r BetaModelRemoteUploadEventsResponseData) RawJSON() string { return r.JSON.raw }
+func (r *BetaModelRemoteUploadEventsResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ModelRemoteUploadNewParams struct {
+type BetaModelRemoteUploadNewParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -390,15 +390,15 @@ type ModelRemoteUploadNewParams struct {
 	paramObj
 }
 
-func (r ModelRemoteUploadNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow ModelRemoteUploadNewParams
+func (r BetaModelRemoteUploadNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaModelRemoteUploadNewParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *ModelRemoteUploadNewParams) UnmarshalJSON(data []byte) error {
+func (r *BetaModelRemoteUploadNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type ModelRemoteUploadGetParams struct {
+type BetaModelRemoteUploadGetParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -406,7 +406,7 @@ type ModelRemoteUploadGetParams struct {
 	paramObj
 }
 
-type ModelRemoteUploadListParams struct {
+type BetaModelRemoteUploadListParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -418,16 +418,16 @@ type ModelRemoteUploadListParams struct {
 	paramObj
 }
 
-// URLQuery serializes [ModelRemoteUploadListParams]'s query parameters as
+// URLQuery serializes [BetaModelRemoteUploadListParams]'s query parameters as
 // `url.Values`.
-func (r ModelRemoteUploadListParams) URLQuery() (v url.Values, err error) {
+func (r BetaModelRemoteUploadListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type ModelRemoteUploadEventsParams struct {
+type BetaModelRemoteUploadEventsParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -439,9 +439,9 @@ type ModelRemoteUploadEventsParams struct {
 	paramObj
 }
 
-// URLQuery serializes [ModelRemoteUploadEventsParams]'s query parameters as
+// URLQuery serializes [BetaModelRemoteUploadEventsParams]'s query parameters as
 // `url.Values`.
-func (r ModelRemoteUploadEventsParams) URLQuery() (v url.Values, err error) {
+func (r BetaModelRemoteUploadEventsParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,

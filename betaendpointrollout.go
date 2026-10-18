@@ -21,28 +21,28 @@ import (
 	"github.com/togethercomputer/together-go/packages/respjson"
 )
 
-// EndpointRolloutService contains methods and other services that help with
+// BetaEndpointRolloutService contains methods and other services that help with
 // interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewEndpointRolloutService] method instead.
-type EndpointRolloutService struct {
+// the [NewBetaEndpointRolloutService] method instead.
+type BetaEndpointRolloutService struct {
 	Options []option.RequestOption
 }
 
-// NewEndpointRolloutService generates a new service that applies the given options
-// to each request. These options are applied after the parent client's options (if
-// there is one), and before any request-specific options.
-func NewEndpointRolloutService(opts ...option.RequestOption) (r EndpointRolloutService) {
-	r = EndpointRolloutService{}
+// NewBetaEndpointRolloutService generates a new service that applies the given
+// options to each request. These options are applied after the parent client's
+// options (if there is one), and before any request-specific options.
+func NewBetaEndpointRolloutService(opts ...option.RequestOption) (r BetaEndpointRolloutService) {
+	r = BetaEndpointRolloutService{}
 	r.Options = opts
 	return
 }
 
 // Creates a rollout in the pending state without shifting traffic. Start the
 // rollout in a separate request after reviewing its strategy and metric gates.
-func (r *EndpointRolloutService) New(ctx context.Context, endpointID string, params EndpointRolloutNewParams, opts ...option.RequestOption) (res *Rollout, err error) {
+func (r *BetaEndpointRolloutService) New(ctx context.Context, endpointID string, params BetaEndpointRolloutNewParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *EndpointRolloutService) New(ctx context.Context, endpointID string, par
 
 // Retrieves a rollout's strategy, lifecycle state, current traffic percentage,
 // step history, and metric-gate results.
-func (r *EndpointRolloutService) Get(ctx context.Context, id string, query EndpointRolloutGetParams, opts ...option.RequestOption) (res *Rollout, err error) {
+func (r *BetaEndpointRolloutService) Get(ctx context.Context, id string, query BetaEndpointRolloutGetParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -90,7 +90,7 @@ func (r *EndpointRolloutService) Get(ctx context.Context, id string, query Endpo
 
 // Lists rollout histories for an endpoint. Use `filter=ROLLOUT_FILTER_ACTIVE` to
 // return only the active rollout, if one exists.
-func (r *EndpointRolloutService) List(ctx context.Context, endpointID string, params EndpointRolloutListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[Rollout], err error) {
+func (r *BetaEndpointRolloutService) List(ctx context.Context, endpointID string, params BetaEndpointRolloutListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[Rollout], err error) {
 	var raw *http.Response
 	opts = slices.Concat(r.Options, opts)
 	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
@@ -122,13 +122,13 @@ func (r *EndpointRolloutService) List(ctx context.Context, endpointID string, pa
 
 // Lists rollout histories for an endpoint. Use `filter=ROLLOUT_FILTER_ACTIVE` to
 // return only the active rollout, if one exists.
-func (r *EndpointRolloutService) ListAutoPaging(ctx context.Context, endpointID string, params EndpointRolloutListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[Rollout] {
+func (r *BetaEndpointRolloutService) ListAutoPaging(ctx context.Context, endpointID string, params BetaEndpointRolloutListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[Rollout] {
 	return pagination.NewCursorPaginationAutoPager(r.List(ctx, endpointID, params, opts...))
 }
 
 // Deletes a rollout record. An active rollout must be aborted or completed before
 // it can be deleted.
-func (r *EndpointRolloutService) Delete(ctx context.Context, id string, params EndpointRolloutDeleteParams, opts ...option.RequestOption) (res *EndpointRolloutDeleteResponse, err error) {
+func (r *BetaEndpointRolloutService) Delete(ctx context.Context, id string, params BetaEndpointRolloutDeleteParams, opts ...option.RequestOption) (res *BetaEndpointRolloutDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -157,7 +157,7 @@ func (r *EndpointRolloutService) Delete(ctx context.Context, id string, params E
 // rejected; after canceling, start another canary rollout in either direction or
 // rebalance the traffic split. The response is the accepted rollout snapshot; poll
 // GetRollout until it reaches CANCELED.
-func (r *EndpointRolloutService) Cancel(ctx context.Context, id string, params EndpointRolloutCancelParams, opts ...option.RequestOption) (res *Rollout, err error) {
+func (r *BetaEndpointRolloutService) Cancel(ctx context.Context, id string, params BetaEndpointRolloutCancelParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -184,7 +184,7 @@ func (r *EndpointRolloutService) Cancel(ctx context.Context, id string, params E
 // Requests a running or stabilizing rollout to pause and records an optional
 // reason. The response returns the PAUSING snapshot; poll GetRollout until state
 // is PAUSED to confirm the executor has parked.
-func (r *EndpointRolloutService) Pause(ctx context.Context, id string, params EndpointRolloutPauseParams, opts ...option.RequestOption) (res *Rollout, err error) {
+func (r *BetaEndpointRolloutService) Pause(ctx context.Context, id string, params BetaEndpointRolloutPauseParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -212,7 +212,7 @@ func (r *EndpointRolloutService) Pause(ctx context.Context, id string, params En
 // the capacity context needed to display them, without creating a rollout.
 // Responses are display state only and re-validated authoritatively at create and
 // start; do not copy response values back into a create request.
-func (r *EndpointRolloutService) PreviewDefaults(ctx context.Context, endpointID string, params EndpointRolloutPreviewDefaultsParams, opts ...option.RequestOption) (res *RolloutDefaultsPreview, err error) {
+func (r *BetaEndpointRolloutService) PreviewDefaults(ctx context.Context, endpointID string, params BetaEndpointRolloutPreviewDefaultsParams, opts ...option.RequestOption) (res *RolloutDefaultsPreview, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -234,7 +234,7 @@ func (r *EndpointRolloutService) PreviewDefaults(ctx context.Context, endpointID
 
 // Completes a running or paused rollout immediately by sending all live traffic to
 // the target deployment.
-func (r *EndpointRolloutService) Promote(ctx context.Context, id string, params EndpointRolloutPromoteParams, opts ...option.RequestOption) (res *Rollout, err error) {
+func (r *BetaEndpointRolloutService) Promote(ctx context.Context, id string, params BetaEndpointRolloutPromoteParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -260,7 +260,7 @@ func (r *EndpointRolloutService) Promote(ctx context.Context, id string, params 
 
 // Resumes a pausing, paused, or system-paused rollout from its current step and
 // traffic split.
-func (r *EndpointRolloutService) Resume(ctx context.Context, id string, params EndpointRolloutResumeParams, opts ...option.RequestOption) (res *Rollout, err error) {
+func (r *BetaEndpointRolloutService) Resume(ctx context.Context, id string, params BetaEndpointRolloutResumeParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -285,7 +285,7 @@ func (r *EndpointRolloutService) Resume(ctx context.Context, id string, params E
 }
 
 // Starts a pending rollout and begins its configured traffic-shifting workflow.
-func (r *EndpointRolloutService) Start(ctx context.Context, id string, body EndpointRolloutStartParams, opts ...option.RequestOption) (res *Rollout, err error) {
+func (r *BetaEndpointRolloutService) Start(ctx context.Context, id string, body BetaEndpointRolloutStartParams, opts ...option.RequestOption) (res *Rollout, err error) {
 	opts = slices.Concat(r.Options, opts)
 	precfg, err := requestconfig.PreRequestOptions(opts...)
 	if err != nil {
@@ -1289,7 +1289,7 @@ func (r *ThresholdCheckParam) UnmarshalJSON(data []byte) error {
 }
 
 // Empty response returned after a successful delete operation.
-type EndpointRolloutDeleteResponse struct {
+type BetaEndpointRolloutDeleteResponse struct {
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ExtraFields map[string]respjson.Field
@@ -1298,12 +1298,12 @@ type EndpointRolloutDeleteResponse struct {
 }
 
 // Returns the unmodified JSON received from the API
-func (r EndpointRolloutDeleteResponse) RawJSON() string { return r.JSON.raw }
-func (r *EndpointRolloutDeleteResponse) UnmarshalJSON(data []byte) error {
+func (r BetaEndpointRolloutDeleteResponse) RawJSON() string { return r.JSON.raw }
+func (r *BetaEndpointRolloutDeleteResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointRolloutNewParams struct {
+type BetaEndpointRolloutNewParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1345,15 +1345,15 @@ type EndpointRolloutNewParams struct {
 	paramObj
 }
 
-func (r EndpointRolloutNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointRolloutNewParams
+func (r BetaEndpointRolloutNewParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointRolloutNewParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointRolloutNewParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointRolloutNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointRolloutGetParams struct {
+type BetaEndpointRolloutGetParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1363,7 +1363,7 @@ type EndpointRolloutGetParams struct {
 	paramObj
 }
 
-type EndpointRolloutListParams struct {
+type BetaEndpointRolloutListParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1375,13 +1375,13 @@ type EndpointRolloutListParams struct {
 	// Narrow results to active or terminal rollouts. Omit to list all rollouts.
 	//
 	// Any of "ROLLOUT_FILTER_ACTIVE", "ROLLOUT_FILTER_TERMINAL".
-	Filter EndpointRolloutListParamsFilter `query:"filter,omitzero" json:"-"`
+	Filter BetaEndpointRolloutListParamsFilter `query:"filter,omitzero" json:"-"`
 	paramObj
 }
 
-// URLQuery serializes [EndpointRolloutListParams]'s query parameters as
+// URLQuery serializes [BetaEndpointRolloutListParams]'s query parameters as
 // `url.Values`.
-func (r EndpointRolloutListParams) URLQuery() (v url.Values, err error) {
+func (r BetaEndpointRolloutListParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
@@ -1389,14 +1389,14 @@ func (r EndpointRolloutListParams) URLQuery() (v url.Values, err error) {
 }
 
 // Narrow results to active or terminal rollouts. Omit to list all rollouts.
-type EndpointRolloutListParamsFilter string
+type BetaEndpointRolloutListParamsFilter string
 
 const (
-	EndpointRolloutListParamsFilterRolloutFilterActive   EndpointRolloutListParamsFilter = "ROLLOUT_FILTER_ACTIVE"
-	EndpointRolloutListParamsFilterRolloutFilterTerminal EndpointRolloutListParamsFilter = "ROLLOUT_FILTER_TERMINAL"
+	BetaEndpointRolloutListParamsFilterRolloutFilterActive   BetaEndpointRolloutListParamsFilter = "ROLLOUT_FILTER_ACTIVE"
+	BetaEndpointRolloutListParamsFilterRolloutFilterTerminal BetaEndpointRolloutListParamsFilter = "ROLLOUT_FILTER_TERMINAL"
 )
 
-type EndpointRolloutDeleteParams struct {
+type BetaEndpointRolloutDeleteParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1408,16 +1408,16 @@ type EndpointRolloutDeleteParams struct {
 	paramObj
 }
 
-// URLQuery serializes [EndpointRolloutDeleteParams]'s query parameters as
+// URLQuery serializes [BetaEndpointRolloutDeleteParams]'s query parameters as
 // `url.Values`.
-func (r EndpointRolloutDeleteParams) URLQuery() (v url.Values, err error) {
+func (r BetaEndpointRolloutDeleteParams) URLQuery() (v url.Values, err error) {
 	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
 		ArrayFormat:  apiquery.ArrayQueryFormatComma,
 		NestedFormat: apiquery.NestedQueryFormatBrackets,
 	})
 }
 
-type EndpointRolloutCancelParams struct {
+type BetaEndpointRolloutCancelParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1433,29 +1433,29 @@ type EndpointRolloutCancelParams struct {
 	// with freeze, then run a reverse rollout back to the source.
 	//
 	// Any of "CANCEL_DISPOSITION_FREEZE", "CANCEL_DISPOSITION_REVERT".
-	Disposition EndpointRolloutCancelParamsDisposition `json:"disposition,omitzero"`
+	Disposition BetaEndpointRolloutCancelParamsDisposition `json:"disposition,omitzero"`
 	paramObj
 }
 
-func (r EndpointRolloutCancelParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointRolloutCancelParams
+func (r BetaEndpointRolloutCancelParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointRolloutCancelParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointRolloutCancelParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointRolloutCancelParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
 // Optional cancel behavior. Absent defaults to freeze, which preserves the current
 // traffic split. Revert is removed and rejected with FAILED_PRECONDITION; cancel
 // with freeze, then run a reverse rollout back to the source.
-type EndpointRolloutCancelParamsDisposition string
+type BetaEndpointRolloutCancelParamsDisposition string
 
 const (
-	EndpointRolloutCancelParamsDispositionCancelDispositionFreeze EndpointRolloutCancelParamsDisposition = "CANCEL_DISPOSITION_FREEZE"
-	EndpointRolloutCancelParamsDispositionCancelDispositionRevert EndpointRolloutCancelParamsDisposition = "CANCEL_DISPOSITION_REVERT"
+	BetaEndpointRolloutCancelParamsDispositionCancelDispositionFreeze BetaEndpointRolloutCancelParamsDisposition = "CANCEL_DISPOSITION_FREEZE"
+	BetaEndpointRolloutCancelParamsDispositionCancelDispositionRevert BetaEndpointRolloutCancelParamsDisposition = "CANCEL_DISPOSITION_REVERT"
 )
 
-type EndpointRolloutPauseParams struct {
+type BetaEndpointRolloutPauseParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1469,15 +1469,15 @@ type EndpointRolloutPauseParams struct {
 	paramObj
 }
 
-func (r EndpointRolloutPauseParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointRolloutPauseParams
+func (r BetaEndpointRolloutPauseParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointRolloutPauseParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointRolloutPauseParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointRolloutPauseParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointRolloutPreviewDefaultsParams struct {
+type BetaEndpointRolloutPreviewDefaultsParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1519,15 +1519,15 @@ type EndpointRolloutPreviewDefaultsParams struct {
 	paramObj
 }
 
-func (r EndpointRolloutPreviewDefaultsParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointRolloutPreviewDefaultsParams
+func (r BetaEndpointRolloutPreviewDefaultsParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointRolloutPreviewDefaultsParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointRolloutPreviewDefaultsParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointRolloutPreviewDefaultsParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointRolloutPromoteParams struct {
+type BetaEndpointRolloutPromoteParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1539,15 +1539,15 @@ type EndpointRolloutPromoteParams struct {
 	paramObj
 }
 
-func (r EndpointRolloutPromoteParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointRolloutPromoteParams
+func (r BetaEndpointRolloutPromoteParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointRolloutPromoteParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointRolloutPromoteParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointRolloutPromoteParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointRolloutResumeParams struct {
+type BetaEndpointRolloutResumeParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.
@@ -1559,15 +1559,15 @@ type EndpointRolloutResumeParams struct {
 	paramObj
 }
 
-func (r EndpointRolloutResumeParams) MarshalJSON() (data []byte, err error) {
-	type shadow EndpointRolloutResumeParams
+func (r BetaEndpointRolloutResumeParams) MarshalJSON() (data []byte, err error) {
+	type shadow BetaEndpointRolloutResumeParams
 	return param.MarshalObject(r, (*shadow)(&r))
 }
-func (r *EndpointRolloutResumeParams) UnmarshalJSON(data []byte) error {
+func (r *BetaEndpointRolloutResumeParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-type EndpointRolloutStartParams struct {
+type BetaEndpointRolloutStartParams struct {
 	// Project identifier.
 	//
 	// Use [option.WithProjectID] on the client to set a global default for this field.

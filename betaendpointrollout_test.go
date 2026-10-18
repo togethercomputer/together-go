@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestEndpointRolloutNewWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,10 +25,10 @@ func TestEndpointRolloutNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.New(
+	_, err := client.Beta.Endpoints.Rollouts.New(
 		context.TODO(),
 		"endpointId",
-		together.EndpointRolloutNewParams{
+		together.BetaEndpointRolloutNewParams{
 			ProjectID:          together.String("projectId"),
 			SourceDeploymentID: "dep_source123",
 			TargetDeploymentID: "dep_target456",
@@ -74,7 +74,7 @@ func TestEndpointRolloutNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutGet(t *testing.T) {
+func TestBetaEndpointRolloutGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -86,10 +86,10 @@ func TestEndpointRolloutGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.Get(
+	_, err := client.Beta.Endpoints.Rollouts.Get(
 		context.TODO(),
 		"id",
-		together.EndpointRolloutGetParams{
+		together.BetaEndpointRolloutGetParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 		},
@@ -103,7 +103,7 @@ func TestEndpointRolloutGet(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutListWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -115,13 +115,13 @@ func TestEndpointRolloutListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.List(
+	_, err := client.Beta.Endpoints.Rollouts.List(
 		context.TODO(),
 		"endpointId",
-		together.EndpointRolloutListParams{
+		together.BetaEndpointRolloutListParams{
 			ProjectID: together.String("projectId"),
 			After:     together.String("after"),
-			Filter:    together.EndpointRolloutListParamsFilterRolloutFilterActive,
+			Filter:    together.BetaEndpointRolloutListParamsFilterRolloutFilterActive,
 			Limit:     together.Int(0),
 		},
 	)
@@ -134,7 +134,7 @@ func TestEndpointRolloutListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutDeleteWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -146,10 +146,10 @@ func TestEndpointRolloutDeleteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.Delete(
+	_, err := client.Beta.Endpoints.Rollouts.Delete(
 		context.TODO(),
 		"id",
-		together.EndpointRolloutDeleteParams{
+		together.BetaEndpointRolloutDeleteParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			Etag:       together.String("etag"),
@@ -164,7 +164,7 @@ func TestEndpointRolloutDeleteWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutCancelWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutCancelWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -176,14 +176,14 @@ func TestEndpointRolloutCancelWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.Cancel(
+	_, err := client.Beta.Endpoints.Rollouts.Cancel(
 		context.TODO(),
 		"id",
-		together.EndpointRolloutCancelParams{
+		together.BetaEndpointRolloutCancelParams{
 			ProjectID:   together.String("projectId"),
 			EndpointID:  "endpointId",
 			Reason:      "reason",
-			Disposition: together.EndpointRolloutCancelParamsDispositionCancelDispositionFreeze,
+			Disposition: together.BetaEndpointRolloutCancelParamsDispositionCancelDispositionFreeze,
 			Etag:        together.String("etag"),
 		},
 	)
@@ -196,7 +196,7 @@ func TestEndpointRolloutCancelWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutPauseWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutPauseWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -208,10 +208,10 @@ func TestEndpointRolloutPauseWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.Pause(
+	_, err := client.Beta.Endpoints.Rollouts.Pause(
 		context.TODO(),
 		"id",
-		together.EndpointRolloutPauseParams{
+		together.BetaEndpointRolloutPauseParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			Etag:       together.String("etag"),
@@ -227,7 +227,7 @@ func TestEndpointRolloutPauseWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -239,10 +239,10 @@ func TestEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.PreviewDefaults(
+	_, err := client.Beta.Endpoints.Rollouts.PreviewDefaults(
 		context.TODO(),
 		"endpointId",
-		together.EndpointRolloutPreviewDefaultsParams{
+		together.BetaEndpointRolloutPreviewDefaultsParams{
 			ProjectID:          together.String("projectId"),
 			SourceDeploymentID: "dep_source123",
 			TargetDeploymentID: "dep_target456",
@@ -288,7 +288,7 @@ func TestEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutPromoteWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutPromoteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -300,10 +300,10 @@ func TestEndpointRolloutPromoteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.Promote(
+	_, err := client.Beta.Endpoints.Rollouts.Promote(
 		context.TODO(),
 		"id",
-		together.EndpointRolloutPromoteParams{
+		together.BetaEndpointRolloutPromoteParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			Etag:       together.String("etag"),
@@ -318,7 +318,7 @@ func TestEndpointRolloutPromoteWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutResumeWithOptionalParams(t *testing.T) {
+func TestBetaEndpointRolloutResumeWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -330,10 +330,10 @@ func TestEndpointRolloutResumeWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.Resume(
+	_, err := client.Beta.Endpoints.Rollouts.Resume(
 		context.TODO(),
 		"id",
-		together.EndpointRolloutResumeParams{
+		together.BetaEndpointRolloutResumeParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			Etag:       together.String("etag"),
@@ -348,7 +348,7 @@ func TestEndpointRolloutResumeWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointRolloutStart(t *testing.T) {
+func TestBetaEndpointRolloutStart(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -360,10 +360,10 @@ func TestEndpointRolloutStart(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Rollouts.Start(
+	_, err := client.Beta.Endpoints.Rollouts.Start(
 		context.TODO(),
 		"id",
-		together.EndpointRolloutStartParams{
+		together.BetaEndpointRolloutStartParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 		},

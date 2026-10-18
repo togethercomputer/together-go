@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestModelRemoteUploadNewWithOptionalParams(t *testing.T) {
+func TestBetaEndpointAdapterNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,11 +25,13 @@ func TestModelRemoteUploadNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.RemoteUploads.New(context.TODO(), together.ModelRemoteUploadNewParams{
-		ProjectID: together.String("projectId"),
-		ModelID:   "modelId",
-		RemoteURL: "remoteUrl",
-		Token:     together.String("token"),
+	_, err := client.Beta.Endpoints.Adapters.New(context.TODO(), together.BetaEndpointAdapterNewParams{
+		ProjectID:         together.String("projectId"),
+		EndpointID:        "endpointId",
+		DeploymentID:      "deploymentId",
+		AdapterModelID:    "adapterModelId",
+		AdapterRevisionID: together.String("adapterRevisionId"),
+		Force:             together.Bool(true),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -40,7 +42,7 @@ func TestModelRemoteUploadNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestModelRemoteUploadGet(t *testing.T) {
+func TestBetaEndpointAdapterGetWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -52,11 +54,14 @@ func TestModelRemoteUploadGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.RemoteUploads.Get(
+	_, err := client.Beta.Endpoints.Adapters.Get(
 		context.TODO(),
 		"id",
-		together.ModelRemoteUploadGetParams{
-			ProjectID: together.String("projectId"),
+		together.BetaEndpointAdapterGetParams{
+			ProjectID:      together.String("projectId"),
+			EndpointID:     "endpointId",
+			DeploymentID:   "deploymentId",
+			AdapterModelID: together.String("adapterModelId"),
 		},
 	)
 	if err != nil {
@@ -68,7 +73,7 @@ func TestModelRemoteUploadGet(t *testing.T) {
 	}
 }
 
-func TestModelRemoteUploadListWithOptionalParams(t *testing.T) {
+func TestBetaEndpointAdapterUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -80,11 +85,18 @@ func TestModelRemoteUploadListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.RemoteUploads.List(context.TODO(), together.ModelRemoteUploadListParams{
-		ProjectID: together.String("projectId"),
-		After:     together.String("after"),
-		Limit:     together.Int(0),
-	})
+	_, err := client.Beta.Endpoints.Adapters.Update(
+		context.TODO(),
+		"id",
+		together.BetaEndpointAdapterUpdateParams{
+			ProjectID:         together.String("projectId"),
+			EndpointID:        "endpointId",
+			DeploymentID:      "deploymentId",
+			AdapterRevisionID: "adapterRevisionId",
+			Etag:              "etag",
+			AdapterModelID:    together.String("adapterModelId"),
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -94,7 +106,7 @@ func TestModelRemoteUploadListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestModelRemoteUploadEventsWithOptionalParams(t *testing.T) {
+func TestBetaEndpointAdapterListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -106,13 +118,46 @@ func TestModelRemoteUploadEventsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Models.RemoteUploads.Events(
+	_, err := client.Beta.Endpoints.Adapters.List(
 		context.TODO(),
-		"id",
-		together.ModelRemoteUploadEventsParams{
+		"endpointId",
+		"deploymentId",
+		together.BetaEndpointAdapterListParams{
 			ProjectID: together.String("projectId"),
 			After:     together.String("after"),
 			Limit:     together.Int(0),
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestBetaEndpointAdapterDeleteWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Beta.Endpoints.Adapters.Delete(
+		context.TODO(),
+		"id",
+		together.BetaEndpointAdapterDeleteParams{
+			ProjectID:      together.String("projectId"),
+			EndpointID:     "endpointId",
+			DeploymentID:   "deploymentId",
+			Etag:           "etag",
+			AdapterModelID: together.String("adapterModelId"),
 		},
 	)
 	if err != nil {

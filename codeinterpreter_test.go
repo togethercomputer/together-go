@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestOrganizationUsageCostListWithOptionalParams(t *testing.T) {
+func TestCodeInterpreterExecuteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,12 +25,15 @@ func TestOrganizationUsageCostListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Organization.Usage.Costs.List(context.TODO(), together.OrganizationUsageCostListParams{
-		After:          together.String("after"),
-		Granularity:    together.OrganizationUsageCostListParamsGranularityDay,
-		Limit:          together.Int(1),
-		Month:          together.String("7321-06"),
-		OrganizationID: together.String("x"),
+	_, err := client.CodeInterpreter.Execute(context.TODO(), together.CodeInterpreterExecuteParams{
+		Code:     "print('Hello, world!')",
+		Language: together.CodeInterpreterExecuteParamsLanguagePython,
+		Files: []together.CodeInterpreterExecuteParamsFile{{
+			Content:  "content",
+			Encoding: "string",
+			Name:     "name",
+		}},
+		SessionID: together.String("ses_abcDEF123"),
 	})
 	if err != nil {
 		var apierr *together.Error

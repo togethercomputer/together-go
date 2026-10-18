@@ -7,7 +7,6 @@ import (
 	"errors"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/togethercomputer/together-go"
 	"github.com/togethercomputer/together-go/internal/testutil"
@@ -27,9 +26,18 @@ func TestEndpointNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Endpoints.New(context.TODO(), together.EndpointNewParams{
-		ProjectID:  together.String("projectId"),
-		Name:       "name",
-		Visibility: together.EndpointNewParamsVisibilityVisibilityPrivate,
+		Autoscaling: together.AutoscalingParam{
+			MaxReplicas: 5,
+			MinReplicas: 2,
+		},
+		Hardware:                   "1x_nvidia_a100_80gb_sxm",
+		Model:                      "deepseek-ai/DeepSeek-R1",
+		AvailabilityZone:           together.String("availability_zone"),
+		DisablePromptCache:         together.Bool(true),
+		DisableSpeculativeDecoding: together.Bool(true),
+		DisplayName:                together.String("My Llama3 70b endpoint"),
+		InactiveTimeout:            together.Int(60),
+		State:                      together.EndpointNewParamsStateStarted,
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -52,13 +60,7 @@ func TestEndpointGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Get(
-		context.TODO(),
-		"id",
-		together.EndpointGetParams{
-			ProjectID: together.String("projectId"),
-		},
-	)
+	_, err := client.Endpoints.Get(context.TODO(), "endpoint-d23901de-ef8f-44bf-b3e7-de9c1ca8f2d7")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -82,17 +84,15 @@ func TestEndpointUpdateWithOptionalParams(t *testing.T) {
 	)
 	_, err := client.Endpoints.Update(
 		context.TODO(),
-		"id",
+		"endpoint-d23901de-ef8f-44bf-b3e7-de9c1ca8f2d7",
 		together.EndpointUpdateParams{
-			ProjectID:  together.String("projectId"),
-			UpdateMask: together.String("updateMask"),
-			Etag:       together.String("etag"),
-			Name:       together.String("name"),
-			TrafficSplit: []together.EndpointTrafficSplitEntryParam{{
-				DeploymentID: "deploymentId",
-				Weight:       0,
-			}},
-			Visibility: together.EndpointUpdateParamsVisibilityVisibilityPrivate,
+			Autoscaling: together.AutoscalingParam{
+				MaxReplicas: 5,
+				MinReplicas: 2,
+			},
+			DisplayName:     together.String("My Llama3 70b endpoint"),
+			InactiveTimeout: together.Int(60),
+			State:           together.EndpointUpdateParamsStateStarted,
 		},
 	)
 	if err != nil {
@@ -117,11 +117,9 @@ func TestEndpointListWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Endpoints.List(context.TODO(), together.EndpointListParams{
-		ProjectID: together.String("projectId"),
-		After:     together.String("after"),
-		Filter:    together.String("filter"),
-		Limit:     together.Int(0),
-		OrderBy:   together.String("orderBy"),
+		Mine:      together.Bool(true),
+		Type:      together.EndpointListParamsTypeDedicated,
+		UsageType: together.EndpointListParamsUsageTypeOnDemand,
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -132,7 +130,7 @@ func TestEndpointListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointDeleteWithOptionalParams(t *testing.T) {
+func TestEndpointDelete(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -144,14 +142,7 @@ func TestEndpointDeleteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Delete(
-		context.TODO(),
-		"id",
-		together.EndpointDeleteParams{
-			ProjectID: together.String("projectId"),
-			Etag:      together.String("etag"),
-		},
-	)
+	err := client.Endpoints.Delete(context.TODO(), "endpoint-d23901de-ef8f-44bf-b3e7-de9c1ca8f2d7")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -161,7 +152,7 @@ func TestEndpointDeleteWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointAnalyticsWithOptionalParams(t *testing.T) {
+func TestEndpointListAvzones(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -173,18 +164,7 @@ func TestEndpointAnalyticsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Analytics(
-		context.TODO(),
-		"id",
-		together.EndpointAnalyticsParams{
-			ProjectID:         together.String("projectId"),
-			DeploymentID:      together.String("deploymentId"),
-			EndTime:           together.Time(time.Now()),
-			Granularity:       together.String("granularity"),
-			IncludeTimeSeries: together.Bool(true),
-			StartTime:         together.Time(time.Now()),
-		},
-	)
+	_, err := client.Endpoints.ListAvzones(context.TODO())
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -194,7 +174,7 @@ func TestEndpointAnalyticsWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointListEventsWithOptionalParams(t *testing.T) {
+func TestEndpointListHardwareWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -206,53 +186,9 @@ func TestEndpointListEventsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.ListEvents(
-		context.TODO(),
-		"id",
-		together.EndpointListEventsParams{
-			ProjectID:     together.String("projectId"),
-			After:         together.String("after"),
-			DeploymentIDs: []string{"string"},
-			Limit:         together.Int(0),
-			MinLevel:      together.EndpointListEventsParamsMinLevelLevelDebug,
-			Since:         together.Time(time.Now()),
-			SourceKinds:   []string{"SOURCE_KIND_ENDPOINT"},
-			SubjectID:     together.String("subjectId"),
-			Types:         []string{"string"},
-			Until:         together.Time(time.Now()),
-		},
-	)
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestEndpointListOrgScopedWithOptionalParams(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Endpoints.ListOrgScoped(
-		context.TODO(),
-		"organizationId",
-		together.EndpointListOrgScopedParams{
-			After:   together.String("after"),
-			Filter:  together.String("filter"),
-			Limit:   together.Int(0),
-			OrderBy: together.String("orderBy"),
-		},
-	)
+	_, err := client.Endpoints.ListHardware(context.TODO(), together.EndpointListHardwareParams{
+		Model: together.String("deepseek-ai/DeepSeek-R1"),
+	})
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

@@ -4,18 +4,14 @@ package together
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"slices"
-	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/apiquery"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
 	"github.com/togethercomputer/together-go/option"
-	"github.com/togethercomputer/together-go/packages/pagination"
 	"github.com/togethercomputer/together-go/packages/param"
 	"github.com/togethercomputer/together-go/packages/respjson"
 	"github.com/togethercomputer/together-go/shared/constant"
@@ -28,9 +24,8 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewModelService] method instead.
 type ModelService struct {
-	Options       []option.RequestOption
-	RemoteUploads ModelRemoteUploadService
-	Configs       ModelConfigService
+	Options []option.RequestOption
+	Uploads ModelUploadService
 }
 
 // NewModelService generates a new service that applies the given options to each
@@ -39,909 +34,148 @@ type ModelService struct {
 func NewModelService(opts ...option.RequestOption) (r ModelService) {
 	r = ModelService{}
 	r.Options = opts
-	r.RemoteUploads = NewModelRemoteUploadService(opts...)
-	r.Configs = NewModelConfigService(opts...)
+	r.Uploads = NewModelUploadService(opts...)
 	return
 }
 
-// Registers a custom model resource in the project. Registration creates the
-// model's metadata; upload or import model files separately before deploying it.
-func (r *ModelService) New(ctx context.Context, params ModelNewParams, opts ...option.RequestOption) (res *Model, err error) {
+// Lists all of Together's open-source models and metadata including pricing, chat
+// template, and context.
+func (r *ModelService) List(ctx context.Context, query ModelListParams, opts ...option.RequestOption) (res *[]ModelObject, err error) {
 	opts = slices.Concat(r.Options, opts)
-	precfg, err := requestconfig.PreRequestOptions(opts...)
-	if err != nil {
-		return nil, err
-	}
-	requestconfig.UseDefaultParam(&params.ProjectID, precfg.ProjectID)
-	if params.ProjectID.Value == "" {
-		err = errors.New("missing required projectId parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/projects/%s/models", params.ProjectID.Value)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, params, &res, opts...)
+	path := "v1/models"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, query, &res, opts...)
 	return res, err
 }
 
-// Retrieves a custom model's metadata, visibility, weight information, and
-// base-model relationship.
-func (r *ModelService) Get(ctx context.Context, id string, query ModelGetParams, opts ...option.RequestOption) (res *Model, err error) {
+// Upload a custom model or adapter from Hugging Face or S3
+func (r *ModelService) Upload(ctx context.Context, body ModelUploadParams, opts ...option.RequestOption) (res *ModelUploadResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
-	precfg, err := requestconfig.PreRequestOptions(opts...)
-	if err != nil {
-		return nil, err
-	}
-	requestconfig.UseDefaultParam(&query.ProjectID, precfg.ProjectID)
-	if query.ProjectID.Value == "" {
-		err = errors.New("missing required projectId parameter")
-		return nil, err
-	}
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/projects/%s/models/%s", query.ProjectID.Value, id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	path := "v1/models"
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
 }
 
-// Updates mutable model metadata such as its inference name, description, base
-// model, or visibility.
-func (r *ModelService) Update(ctx context.Context, id string, params ModelUpdateParams, opts ...option.RequestOption) (res *Model, err error) {
-	opts = slices.Concat(r.Options, opts)
-	precfg, err := requestconfig.PreRequestOptions(opts...)
-	if err != nil {
-		return nil, err
-	}
-	requestconfig.UseDefaultParam(&params.ProjectID, precfg.ProjectID)
-	if params.ProjectID.Value == "" {
-		err = errors.New("missing required projectId parameter")
-		return nil, err
-	}
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/projects/%s/models/%s", params.ProjectID.Value, id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPatch, path, params, &res, opts...)
-	return res, err
-}
-
-// Lists custom model resources owned by the specified project. Use the
-// organization endpoint to list models shared across projects or the
-// supported-model catalog to discover Together-hosted base models.
-func (r *ModelService) List(ctx context.Context, params ModelListParams, opts ...option.RequestOption) (res *pagination.CursorPagination[Model], err error) {
-	var raw *http.Response
-	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	precfg, err := requestconfig.PreRequestOptions(opts...)
-	if err != nil {
-		return nil, err
-	}
-	requestconfig.UseDefaultParam(&params.ProjectID, precfg.ProjectID)
-	if params.ProjectID.Value == "" {
-		err = errors.New("missing required projectId parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/projects/%s/models", params.ProjectID.Value)
-	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, params, &res, opts...)
-	if err != nil {
-		return nil, err
-	}
-	err = cfg.Execute()
-	if err != nil {
-		return nil, err
-	}
-	res.SetPageConfig(cfg, raw)
-	return res, nil
-}
-
-// Lists custom model resources owned by the specified project. Use the
-// organization endpoint to list models shared across projects or the
-// supported-model catalog to discover Together-hosted base models.
-func (r *ModelService) ListAutoPaging(ctx context.Context, params ModelListParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[Model] {
-	return pagination.NewCursorPaginationAutoPager(r.List(ctx, params, opts...))
-}
-
-// Permanently deletes a custom model resource. The model must not be in use by an
-// active deployment.
-func (r *ModelService) Delete(ctx context.Context, id string, body ModelDeleteParams, opts ...option.RequestOption) (res *ModelDeleteResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	precfg, err := requestconfig.PreRequestOptions(opts...)
-	if err != nil {
-		return nil, err
-	}
-	requestconfig.UseDefaultParam(&body.ProjectID, precfg.ProjectID)
-	if body.ProjectID.Value == "" {
-		err = errors.New("missing required projectId parameter")
-		return nil, err
-	}
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/projects/%s/models/%s", body.ProjectID.Value, id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
-	return res, err
-}
-
-// Lists files in the latest or specified revision of a model, including paths,
-// sizes, and content hashes.
-func (r *ModelService) ListFiles(ctx context.Context, id string, params ModelListFilesParams, opts ...option.RequestOption) (res *ModelListFilesResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	precfg, err := requestconfig.PreRequestOptions(opts...)
-	if err != nil {
-		return nil, err
-	}
-	requestconfig.UseDefaultParam(&params.ProjectID, precfg.ProjectID)
-	if params.ProjectID.Value == "" {
-		err = errors.New("missing required projectId parameter")
-		return nil, err
-	}
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/projects/%s/models/%s/files", params.ProjectID.Value, id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, params, &res, opts...)
-	return res, err
-}
-
-// Lists custom models shared with every project in the specified organization.
-// Project-private and public models are not included.
-func (r *ModelService) ListOrgScoped(ctx context.Context, organizationID string, query ModelListOrgScopedParams, opts ...option.RequestOption) (res *pagination.CursorPagination[Model], err error) {
-	var raw *http.Response
-	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	if organizationID == "" {
-		err = errors.New("missing required organizationId parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/organizations/%s/models", organizationID)
-	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
-	if err != nil {
-		return nil, err
-	}
-	err = cfg.Execute()
-	if err != nil {
-		return nil, err
-	}
-	res.SetPageConfig(cfg, raw)
-	return res, nil
-}
-
-// Lists custom models shared with every project in the specified organization.
-// Project-private and public models are not included.
-func (r *ModelService) ListOrgScopedAutoPaging(ctx context.Context, organizationID string, query ModelListOrgScopedParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[Model] {
-	return pagination.NewCursorPaginationAutoPager(r.ListOrgScoped(ctx, organizationID, query, opts...))
-}
-
-// Lists the immutable file revisions available for a custom model, newest first.
-func (r *ModelService) ListRevisions(ctx context.Context, id string, query ModelListRevisionsParams, opts ...option.RequestOption) (res *ModelListRevisionsResponse, err error) {
-	opts = slices.Concat(r.Options, opts)
-	precfg, err := requestconfig.PreRequestOptions(opts...)
-	if err != nil {
-		return nil, err
-	}
-	requestconfig.UseDefaultParam(&query.ProjectID, precfg.ProjectID)
-	if query.ProjectID.Value == "" {
-		err = errors.New("missing required projectId parameter")
-		return nil, err
-	}
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/projects/%s/models/%s/revisions", query.ProjectID.Value, id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return res, err
-}
-
-// Lists Together-hosted base models that can be deployed for dedicated inference,
-// together with their capabilities and certified deployment profiles.
-func (r *ModelService) ListSupported(ctx context.Context, query ModelListSupportedParams, opts ...option.RequestOption) (res *pagination.CursorPagination[SupportedModel], err error) {
-	var raw *http.Response
-	opts = slices.Concat(r.Options, opts)
-	opts = append([]option.RequestOption{option.WithResponseInto(&raw)}, opts...)
-	path := "v2/supported-models"
-	cfg, err := requestconfig.NewRequestConfig(ctx, http.MethodGet, path, query, &res, opts...)
-	if err != nil {
-		return nil, err
-	}
-	err = cfg.Execute()
-	if err != nil {
-		return nil, err
-	}
-	res.SetPageConfig(cfg, raw)
-	return res, nil
-}
-
-// Lists Together-hosted base models that can be deployed for dedicated inference,
-// together with their capabilities and certified deployment profiles.
-func (r *ModelService) ListSupportedAutoPaging(ctx context.Context, query ModelListSupportedParams, opts ...option.RequestOption) *pagination.CursorPaginationAutoPager[SupportedModel] {
-	return pagination.NewCursorPaginationAutoPager(r.ListSupported(ctx, query, opts...))
-}
-
-// Retrieves a Together-hosted base model and the certified model, configuration,
-// hardware, and performance profiles available for deployment.
-func (r *ModelService) GetSupported(ctx context.Context, id string, opts ...option.RequestOption) (res *SupportedModel, err error) {
-	opts = slices.Concat(r.Options, opts)
-	if id == "" {
-		err = errors.New("missing required id parameter")
-		return nil, err
-	}
-	path := fmt.Sprintf("v2/supported-models/%s", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
-	return res, err
-}
-
-// Custom or derived model registered in a project and backed by versioned weight
-// files.
-type Model struct {
-	// Unique model identifier.
-	ID string `json:"id" api:"required"`
-	// Project-qualified model name in the form `<project_slug>/<model_name>`. Create
-	// and update requests may use the bare or qualified form.
-	Name string `json:"name" api:"required"`
-	// ID of the organization that owns the model's project.
-	OrganizationID string `json:"organizationId" api:"required"`
-	// ID of the project that owns the model.
-	ProjectID string `json:"projectId" api:"required"`
-	// Who can discover the model. `VISIBILITY_PRIVATE` restricts it to the project;
-	// `VISIBILITY_INTERNAL` shares it with the organization.
-	//
-	// Any of "VISIBILITY_PRIVATE", "VISIBILITY_INTERNAL".
-	Visibility ModelVisibility `json:"visibility" api:"required"`
-	// Architecture, size, precision, and speculative-decoding metadata derived from
-	// the model files.
-	Weights ModelWeights `json:"weights" api:"required"`
-	// Resource name of the base model, using
-	// `projects/{baseProject}/models/{baseModelId}`; empty when the model has no base.
-	BaseModel string `json:"baseModel"`
-	// ID of the supported or custom base model from which this model was derived.
-	BaseModelID string `json:"baseModelId"`
-	// Human-readable description of the model and its intended use.
-	Description string `json:"description"`
+type ModelObject struct {
+	ID      string `json:"id" api:"required"`
+	Created int64  `json:"created" api:"required"`
+	// The object type, which is always `model`.
+	Object constant.Model `json:"object" default:"model"`
+	// Any of "chat", "language", "code", "image", "embedding", "moderation", "rerank",
+	// "audio", "transcribe", "video".
+	Type          ModelObjectType    `json:"type" api:"required"`
+	ContextLength int64              `json:"context_length"`
+	DisplayName   string             `json:"display_name"`
+	License       string             `json:"license"`
+	Link          string             `json:"link"`
+	Organization  string             `json:"organization"`
+	Pricing       ModelObjectPricing `json:"pricing"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID             respjson.Field
-		Name           respjson.Field
-		OrganizationID respjson.Field
-		ProjectID      respjson.Field
-		Visibility     respjson.Field
-		Weights        respjson.Field
-		BaseModel      respjson.Field
-		BaseModelID    respjson.Field
-		Description    respjson.Field
-		ExtraFields    map[string]respjson.Field
-		raw            string
+		ID            respjson.Field
+		Created       respjson.Field
+		Object        respjson.Field
+		Type          respjson.Field
+		ContextLength respjson.Field
+		DisplayName   respjson.Field
+		License       respjson.Field
+		Link          respjson.Field
+		Organization  respjson.Field
+		Pricing       respjson.Field
+		ExtraFields   map[string]respjson.Field
+		raw           string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
-func (r Model) RawJSON() string { return r.JSON.raw }
-func (r *Model) UnmarshalJSON(data []byte) error {
+func (r ModelObject) RawJSON() string { return r.JSON.raw }
+func (r *ModelObject) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Who can discover the model. `VISIBILITY_PRIVATE` restricts it to the project;
-// `VISIBILITY_INTERNAL` shares it with the organization.
-type ModelVisibility string
+type ModelObjectType string
 
 const (
-	ModelVisibilityVisibilityPrivate  ModelVisibility = "VISIBILITY_PRIVATE"
-	ModelVisibilityVisibilityInternal ModelVisibility = "VISIBILITY_INTERNAL"
+	ModelObjectTypeChat       ModelObjectType = "chat"
+	ModelObjectTypeLanguage   ModelObjectType = "language"
+	ModelObjectTypeCode       ModelObjectType = "code"
+	ModelObjectTypeImage      ModelObjectType = "image"
+	ModelObjectTypeEmbedding  ModelObjectType = "embedding"
+	ModelObjectTypeModeration ModelObjectType = "moderation"
+	ModelObjectTypeRerank     ModelObjectType = "rerank"
+	ModelObjectTypeAudio      ModelObjectType = "audio"
+	ModelObjectTypeTranscribe ModelObjectType = "transcribe"
+	ModelObjectTypeVideo      ModelObjectType = "video"
 )
 
-// Number of model parameters stored in one numerical data type.
-type ModelDtypeCount struct {
-	// Number of model parameters stored with this data type.
-	Count string `json:"count" api:"required"`
-	// Numerical data type, such as `float16`, `bfloat16`, or `int8`.
-	Dtype string `json:"dtype" api:"required"`
+type ModelObjectPricing struct {
+	Base        float64 `json:"base" api:"required"`
+	Finetune    float64 `json:"finetune" api:"required"`
+	Hourly      float64 `json:"hourly" api:"required"`
+	Input       float64 `json:"input" api:"required"`
+	Output      float64 `json:"output" api:"required"`
+	CachedInput float64 `json:"cached_input"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Count       respjson.Field
-		Dtype       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelDtypeCount) RawJSON() string { return r.JSON.raw }
-func (r *ModelDtypeCount) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Model parameter count and precision breakdown.
-type ModelParametersResp struct {
-	// Parameter counts grouped by numerical data type.
-	ByDtype []ModelDtypeCount `json:"byDtype" api:"required"`
-	// Total number of parameters in the model weights.
-	Total string `json:"total" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ByDtype     respjson.Field
-		Total       respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelParametersResp) RawJSON() string { return r.JSON.raw }
-func (r *ModelParametersResp) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Architecture, size, precision, and speculative-decoding metadata for model
-// weights.
-type ModelWeights struct {
-	// Model architecture detected from the weight metadata.
-	Architecture string `json:"architecture"`
-	// Maximum context length reported by the model metadata.
-	ContextLength string `json:"contextLength"`
-	// Draft-model speculator family for draft speculative decoding.
-	//
-	// Any of "DRAFT_SPECULATOR_TYPE_EAGLE", "DRAFT_SPECULATOR_TYPE_PHOENIX".
-	DraftSpeculatorType ModelWeightsDraftSpeculatorType `json:"draftSpeculatorType"`
-	// Total parameter count and breakdown by numerical data type.
-	Parameters ModelParametersResp `json:"parameters"`
-	// Speculative decoding mechanism for speculator weights.
-	//
-	// Any of "SPECULATOR_MECHANISM_DRAFT", "SPECULATOR_MECHANISM_LOOKAHEAD",
-	// "SPECULATOR_MECHANISM_MTP".
-	SpeculatorMechanism ModelWeightsSpeculatorMechanism `json:"speculatorMechanism"`
-	// Role of the weights: full model, speculative draft model, or LoRA adapter.
-	//
-	// Any of "WEIGHTS_TYPE_DEFAULT", "WEIGHTS_TYPE_SPECULATOR",
-	// "WEIGHTS_TYPE_ADAPTER".
-	Type ModelWeightsType `json:"type"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Architecture        respjson.Field
-		ContextLength       respjson.Field
-		DraftSpeculatorType respjson.Field
-		Parameters          respjson.Field
-		SpeculatorMechanism respjson.Field
-		Type                respjson.Field
-		ExtraFields         map[string]respjson.Field
-		raw                 string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelWeights) RawJSON() string { return r.JSON.raw }
-func (r *ModelWeights) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Draft-model speculator family for draft speculative decoding.
-type ModelWeightsDraftSpeculatorType string
-
-const (
-	ModelWeightsDraftSpeculatorTypeDraftSpeculatorTypeEagle   ModelWeightsDraftSpeculatorType = "DRAFT_SPECULATOR_TYPE_EAGLE"
-	ModelWeightsDraftSpeculatorTypeDraftSpeculatorTypePhoenix ModelWeightsDraftSpeculatorType = "DRAFT_SPECULATOR_TYPE_PHOENIX"
-)
-
-// Speculative decoding mechanism for speculator weights.
-type ModelWeightsSpeculatorMechanism string
-
-const (
-	ModelWeightsSpeculatorMechanismSpeculatorMechanismDraft     ModelWeightsSpeculatorMechanism = "SPECULATOR_MECHANISM_DRAFT"
-	ModelWeightsSpeculatorMechanismSpeculatorMechanismLookahead ModelWeightsSpeculatorMechanism = "SPECULATOR_MECHANISM_LOOKAHEAD"
-	ModelWeightsSpeculatorMechanismSpeculatorMechanismMtp       ModelWeightsSpeculatorMechanism = "SPECULATOR_MECHANISM_MTP"
-)
-
-// Role of the weights: full model, speculative draft model, or LoRA adapter.
-type ModelWeightsType string
-
-const (
-	ModelWeightsTypeWeightsTypeDefault    ModelWeightsType = "WEIGHTS_TYPE_DEFAULT"
-	ModelWeightsTypeWeightsTypeSpeculator ModelWeightsType = "WEIGHTS_TYPE_SPECULATOR"
-	ModelWeightsTypeWeightsTypeAdapter    ModelWeightsType = "WEIGHTS_TYPE_ADAPTER"
-)
-
-// Curated catalog entry for a platform-supported model.
-type SupportedModel struct {
-	// Unique ID of the deployable Together-hosted base model.
-	ID string `json:"id" api:"required"`
-	// Resource name for the base model as `projects/{projectId}/models/{modelId}`;
-	// empty when unresolved.
-	BaseModel string `json:"baseModel" api:"required"`
-	// Bare model ID for the architecture's base model; empty when no base model is
-	// linked.
-	BaseModelID string `json:"baseModelId" api:"required"`
-	// High-level tasks the model supports.
-	//
-	// Any of "CAPABILITY_CHAT", "CAPABILITY_EMBEDDING", "CAPABILITY_RERANKING",
-	// "CAPABILITY_IMAGE_GENERATION", "CAPABILITY_VIDEO_GENERATION".
-	Capabilities []string `json:"capabilities" api:"required"`
-	// Timestamp when the catalog entry was created.
-	CreatedAt time.Time `json:"createdAt" api:"required" format:"date-time"`
-	// Certified deployment profiles available for the model.
-	DeploymentProfiles []SupportedModelDeploymentProfile `json:"deploymentProfiles" api:"required"`
-	// Catalog-controlled human-readable model name.
-	DisplayName string `json:"displayName" api:"required"`
-	// UI-facing model type badge, such as chat, language, code, image, embedding,
-	// rerank, moderation, audio, video, or transcribe.
-	DisplayType string `json:"displayType" api:"required"`
-	// Input modalities supported by the model.
-	//
-	// Any of "MODALITY_TEXT", "MODALITY_IMAGE", "MODALITY_AUDIO", "MODALITY_VIDEO".
-	InputModalities []string `json:"inputModalities" api:"required"`
-	// Catalog-controlled HF model ID used for inference.
-	Name string `json:"name" api:"required"`
-	// Output modalities produced by the model.
-	//
-	// Any of "MODALITY_TEXT", "MODALITY_IMAGE", "MODALITY_AUDIO", "MODALITY_VIDEO".
-	OutputModalities []string `json:"outputModalities" api:"required"`
-	// Product surfaces where the model is offered.
-	//
-	// Any of "PRODUCT_SERVERLESS", "PRODUCT_DEDICATED", "PRODUCT_FINE_TUNING",
-	// "PRODUCT_RESERVED".
-	Products []string `json:"products" api:"required"`
-	// Organization or publisher associated with the model.
-	Publisher string `json:"publisher" api:"required"`
-	// Catalog recommendation status for the model.
-	//
-	// Any of "SUPPORTED_MODEL_STATUS_RECOMMENDED", "SUPPORTED_MODEL_STATUS_SUPPORTED",
-	// "SUPPORTED_MODEL_STATUS_DEPRECATED", "SUPPORTED_MODEL_STATUS_HIDDEN".
-	Status SupportedModelStatus `json:"status" api:"required"`
-	// Timestamp when the catalog entry was last updated.
-	UpdatedAt time.Time `json:"updatedAt" api:"required" format:"date-time"`
-	// Model architecture from the underlying weights metadata.
-	Architecture string `json:"architecture"`
-	// Maximum context length from the underlying weights metadata.
-	ContextLength string `json:"contextLength"`
-	// Human-readable model description.
-	Description string `json:"description"`
-	// Model family identifier for related catalog entries.
-	FamilyID string `json:"familyId"`
-	// Advanced features exposed by the model.
-	//
-	// Any of "FEATURE_TOOL_CALLING", "FEATURE_STRUCTURED_OUTPUT", "FEATURE_REASONING".
-	Features []string `json:"features"`
-	// Preferred input format for the model.
-	InputFormat string `json:"inputFormat"`
-	// Preferred output format for the model.
-	OutputFormat string `json:"outputFormat"`
-	// Serverless pricing in USD per one million tokens, if available.
-	Pricing SupportedModelPricing `json:"pricing"`
-	// Serverless endpoint name for inference, if available.
-	ServerlessEndpoint string `json:"serverlessEndpoint"`
-	// Searchable catalog tags for the model.
-	Tags []string `json:"tags"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ID                 respjson.Field
-		BaseModel          respjson.Field
-		BaseModelID        respjson.Field
-		Capabilities       respjson.Field
-		CreatedAt          respjson.Field
-		DeploymentProfiles respjson.Field
-		DisplayName        respjson.Field
-		DisplayType        respjson.Field
-		InputModalities    respjson.Field
-		Name               respjson.Field
-		OutputModalities   respjson.Field
-		Products           respjson.Field
-		Publisher          respjson.Field
-		Status             respjson.Field
-		UpdatedAt          respjson.Field
-		Architecture       respjson.Field
-		ContextLength      respjson.Field
-		Description        respjson.Field
-		FamilyID           respjson.Field
-		Features           respjson.Field
-		InputFormat        respjson.Field
-		OutputFormat       respjson.Field
-		Pricing            respjson.Field
-		ServerlessEndpoint respjson.Field
-		Tags               respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SupportedModel) RawJSON() string { return r.JSON.raw }
-func (r *SupportedModel) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Catalog recommendation status for the model.
-type SupportedModelStatus string
-
-const (
-	SupportedModelStatusSupportedModelStatusRecommended SupportedModelStatus = "SUPPORTED_MODEL_STATUS_RECOMMENDED"
-	SupportedModelStatusSupportedModelStatusSupported   SupportedModelStatus = "SUPPORTED_MODEL_STATUS_SUPPORTED"
-	SupportedModelStatusSupportedModelStatusDeprecated  SupportedModelStatus = "SUPPORTED_MODEL_STATUS_DEPRECATED"
-	SupportedModelStatusSupportedModelStatusHidden      SupportedModelStatus = "SUPPORTED_MODEL_STATUS_HIDDEN"
-)
-
-// Serverless pricing in USD per one million tokens, if available.
-type SupportedModelPricing struct {
-	// Price in USD per one million cached input tokens.
-	CachedInput float64 `json:"cachedInput"`
-	// Price in USD per one million input tokens.
-	Input float64 `json:"input"`
-	// Price in USD per one million output tokens.
-	Output float64 `json:"output"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CachedInput respjson.Field
+		Base        respjson.Field
+		Finetune    respjson.Field
+		Hourly      respjson.Field
 		Input       respjson.Field
 		Output      respjson.Field
+		CachedInput respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
-func (r SupportedModelPricing) RawJSON() string { return r.JSON.raw }
-func (r *SupportedModelPricing) UnmarshalJSON(data []byte) error {
+func (r ModelObjectPricing) RawJSON() string { return r.JSON.raw }
+func (r *ModelObjectPricing) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Certified deployment profile for a supported model.
-type SupportedModelDeploymentProfile struct {
-	// Certified configuration revision identifier.
-	CertifiedConfigRevisionID string `json:"certifiedConfigRevisionId" api:"required"`
-	// Certified model weight revision identifier, if available.
-	CertifiedModelRevisionID string `json:"certifiedModelRevisionId" api:"required"`
-	// Certified config revision in the form
-	// `projects/{projectId}/configs/{configRevisionId}`. Omitted when the profile does
-	// not pin a config.
-	Config string `json:"config" api:"required"`
-	// Number of GPUs required by the profile.
-	GPUCount int64 `json:"gpuCount" api:"required"`
-	// GPU instance type for the profile.
-	GPUType string `json:"gpuType" api:"required"`
-	// Deployable model resource in the form
-	// `projects/{projectId}/models/{modelId}[/revisions/{revisionId}]`. Omitted when
-	// the profile does not pin model weights.
-	Model string `json:"model" api:"required"`
-	// Fully-qualified deploy model name in the form `{projectSlug}/{modelName}`, such
-	// as `Qwen/Qwen3.5-9B-FP8`; empty when no public model is linked.
-	ModelName string `json:"modelName" api:"required"`
-	// Free-form parallelism spec for the profile, such as TP8, TP4, EP, or PD;
-	// supersedes tensor_parallel_size.
-	Parallelism string `json:"parallelism" api:"required"`
-	// Performance benchmarks for the profile, if available.
-	PerformanceBenchmarks SupportedModelPerformanceBenchmarks `json:"performanceBenchmarks" api:"required"`
-	// Stable profile identifier, usually the certified config id.
-	ProfileID string `json:"profileId" api:"required"`
-	// Quantization method for the profile, if available.
-	Quantization string `json:"quantization" api:"required"`
-	// Adapter serving mode for deployments created from this profile; omitted when no
-	// certified config is pinned.
-	//
-	// Any of "ADAPTER_MODE_FIXED", "ADAPTER_MODE_DYNAMIC", "ADAPTER_MODE_DISABLED".
-	AdapterMode SupportedModelDeploymentProfileAdapterMode `json:"adapterMode"`
-	// Deprecated. Use `parallelism`. Legacy tensor-parallel shard count for the
-	// profile.
-	//
-	// Deprecated: deprecated
-	TensorParallelSize int64 `json:"tensorParallelSize"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CertifiedConfigRevisionID respjson.Field
-		CertifiedModelRevisionID  respjson.Field
-		Config                    respjson.Field
-		GPUCount                  respjson.Field
-		GPUType                   respjson.Field
-		Model                     respjson.Field
-		ModelName                 respjson.Field
-		Parallelism               respjson.Field
-		PerformanceBenchmarks     respjson.Field
-		ProfileID                 respjson.Field
-		Quantization              respjson.Field
-		AdapterMode               respjson.Field
-		TensorParallelSize        respjson.Field
-		ExtraFields               map[string]respjson.Field
-		raw                       string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SupportedModelDeploymentProfile) RawJSON() string { return r.JSON.raw }
-func (r *SupportedModelDeploymentProfile) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Adapter serving mode for deployments created from this profile; omitted when no
-// certified config is pinned.
-type SupportedModelDeploymentProfileAdapterMode string
-
-const (
-	SupportedModelDeploymentProfileAdapterModeAdapterModeFixed    SupportedModelDeploymentProfileAdapterMode = "ADAPTER_MODE_FIXED"
-	SupportedModelDeploymentProfileAdapterModeAdapterModeDynamic  SupportedModelDeploymentProfileAdapterMode = "ADAPTER_MODE_DYNAMIC"
-	SupportedModelDeploymentProfileAdapterModeAdapterModeDisabled SupportedModelDeploymentProfileAdapterMode = "ADAPTER_MODE_DISABLED"
-)
-
-// Performance benchmark metrics for a supported model profile.
-type SupportedModelPerformanceBenchmarks struct {
-	// Decoding throughput in tokens per second.
-	DecodingSpeedTps float64 `json:"decodingSpeedTps"`
-	// Maximum context length supported by the profile.
-	MaxContextLength string `json:"maxContextLength"`
-	// Time to first token in milliseconds.
-	TimeToFirstTokenMs int64 `json:"timeToFirstTokenMs"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		DecodingSpeedTps   respjson.Field
-		MaxContextLength   respjson.Field
-		TimeToFirstTokenMs respjson.Field
-		ExtraFields        map[string]respjson.Field
-		raw                string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r SupportedModelPerformanceBenchmarks) RawJSON() string { return r.JSON.raw }
-func (r *SupportedModelPerformanceBenchmarks) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Empty response returned after a successful delete operation.
-type ModelDeleteResponse struct {
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelDeleteResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelDeleteResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Files and aggregate size information for one model revision.
-type ModelListFilesResponse struct {
-	// Files in the selected model revision.
-	Data   []ModelListFilesResponseData `json:"data" api:"required"`
-	Object constant.List                `json:"object" default:"list"`
-	// Cursor for the next page. Null if there are no more results.
-	NextCursor string `json:"next_cursor"`
-	// Time when the listed model revision was created.
-	RevisionCreatedAt time.Time `json:"revisionCreatedAt" format:"date-time"`
-	// ID of the model revision whose files are listed.
-	RevisionID string `json:"revisionId"`
-	// Total size of all files in the revision, in bytes.
-	TotalSizeBytes string `json:"totalSizeBytes"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Data              respjson.Field
-		Object            respjson.Field
-		NextCursor        respjson.Field
-		RevisionCreatedAt respjson.Field
-		RevisionID        respjson.Field
-		TotalSizeBytes    respjson.Field
-		ExtraFields       map[string]respjson.Field
-		raw               string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelListFilesResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelListFilesResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Metadata for one file in a model revision.
-type ModelListFilesResponseData struct {
-	// Content hash for integrity verification and upload deduplication.
-	Hash string `json:"hash"`
-	// File path within the model revision.
-	Path string `json:"path"`
-	// File size in bytes.
-	SizeBytes string `json:"sizeBytes"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Hash        respjson.Field
-		Path        respjson.Field
-		SizeBytes   respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelListFilesResponseData) RawJSON() string { return r.JSON.raw }
-func (r *ModelListFilesResponseData) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Immutable model revisions and pagination metadata.
-type ModelListRevisionsResponse struct {
-	// Immutable revisions available for the model.
-	Data []ModelListRevisionsResponseData `json:"data"`
-	// Cursor for the next page. Null if there are no more results.
-	NextCursor string `json:"next_cursor"`
-	// Object type. Always `list`.
-	//
-	// Any of "list".
-	Object ModelListRevisionsResponseObject `json:"object"`
+type ModelUploadResponse struct {
+	Data    ModelUploadResponseData `json:"data" api:"required"`
+	Message string                  `json:"message" api:"required"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Data        respjson.Field
-		NextCursor  respjson.Field
-		Object      respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelListRevisionsResponse) RawJSON() string { return r.JSON.raw }
-func (r *ModelListRevisionsResponse) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Revision metadata for a volume object.
-type ModelListRevisionsResponseData struct {
-	// Timestamp when the revision was created.
-	CreatedAt time.Time `json:"createdAt" api:"required" format:"date-time"`
-	// Revision identifier.
-	RevisionID string `json:"revisionId" api:"required"`
-	// Timestamp when validation most recently ran for the revision.
-	LastValidatedAt time.Time `json:"lastValidatedAt" format:"date-time"`
-	// Validation errors reported for the revision.
-	ValidationErrors []ModelListRevisionsResponseDataValidationError `json:"validationErrors"`
-	// Current validation status for the revision.
-	//
-	// Any of "REVISION_VALIDATION_STATUS_PENDING",
-	// "REVISION_VALIDATION_STATUS_SUCCESS", "REVISION_VALIDATION_STATUS_FAILED",
-	// "REVISION_VALIDATION_STATUS_ERROR".
-	ValidationStatus string `json:"validationStatus"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		CreatedAt        respjson.Field
-		RevisionID       respjson.Field
-		LastValidatedAt  respjson.Field
-		ValidationErrors respjson.Field
-		ValidationStatus respjson.Field
-		ExtraFields      map[string]respjson.Field
-		raw              string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ModelListRevisionsResponseData) RawJSON() string { return r.JSON.raw }
-func (r *ModelListRevisionsResponseData) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// One validation error reported for a model revision.
-type ModelListRevisionsResponseDataValidationError struct {
-	// Human-readable validation error message.
-	Message string `json:"message"`
-	// Validation rule that produced the error.
-	Rule string `json:"rule"`
-	// Severity level reported by the validation rule.
-	Severity string `json:"severity"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
 		Message     respjson.Field
-		Rule        respjson.Field
-		Severity    respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
 }
 
 // Returns the unmodified JSON received from the API
-func (r ModelListRevisionsResponseDataValidationError) RawJSON() string { return r.JSON.raw }
-func (r *ModelListRevisionsResponseDataValidationError) UnmarshalJSON(data []byte) error {
+func (r ModelUploadResponse) RawJSON() string { return r.JSON.raw }
+func (r *ModelUploadResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Object type. Always `list`.
-type ModelListRevisionsResponseObject string
-
-const (
-	ModelListRevisionsResponseObjectList ModelListRevisionsResponseObject = "list"
-)
-
-type ModelNewParams struct {
-	// Project identifier.
-	//
-	// Use [option.WithProjectID] on the client to set a global default for this field.
-	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
-	// ID of the supported base model from which this model was derived.
-	BaseModelID string `json:"baseModelId" api:"required"`
-	// Name for the custom model. May be bare or qualified as
-	// `<project_slug>/<model_name>`; a supplied project slug must match the project in
-	// the request path.
-	Name string `json:"name" api:"required"`
-	// Volume type to create. Use `model` or `adapter`; plural `models` and `adapters`
-	// are also accepted.
-	Type string `json:"type" api:"required"`
-	// Human-readable description of the model and its intended use.
-	Description param.Opt[string] `json:"description,omitzero"`
-	paramObj
+type ModelUploadResponseData struct {
+	JobID       string `json:"job_id" api:"required"`
+	ModelID     string `json:"model_id" api:"required"`
+	ModelName   string `json:"model_name" api:"required"`
+	ModelSource string `json:"model_source" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		JobID       respjson.Field
+		ModelID     respjson.Field
+		ModelName   respjson.Field
+		ModelSource respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
 }
 
-func (r ModelNewParams) MarshalJSON() (data []byte, err error) {
-	type shadow ModelNewParams
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ModelNewParams) UnmarshalJSON(data []byte) error {
+// Returns the unmodified JSON received from the API
+func (r ModelUploadResponseData) RawJSON() string { return r.JSON.raw }
+func (r *ModelUploadResponseData) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-type ModelGetParams struct {
-	// Project identifier.
-	//
-	// Use [option.WithProjectID] on the client to set a global default for this field.
-	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
-	paramObj
-}
-
-type ModelUpdateParams struct {
-	// Project identifier.
-	//
-	// Use [option.WithProjectID] on the client to set a global default for this field.
-	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
-	// Fields to update. If omitted, all mutable fields are overwritten.
-	UpdateMask param.Opt[string] `query:"updateMask,omitzero" format:"field-mask" json:"-"`
-	// Updated user-facing model description.
-	Description param.Opt[string] `json:"description,omitzero"`
-	// Updated inference-addressable model name.
-	Name param.Opt[string] `json:"name,omitzero"`
-	// Who can discover the model. `VISIBILITY_PRIVATE` restricts it to the project;
-	// `VISIBILITY_INTERNAL` shares it with the organization.
-	//
-	// Any of "VISIBILITY_PRIVATE", "VISIBILITY_INTERNAL".
-	Visibility ModelUpdateParamsVisibility `json:"visibility,omitzero"`
-	paramObj
-}
-
-func (r ModelUpdateParams) MarshalJSON() (data []byte, err error) {
-	type shadow ModelUpdateParams
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ModelUpdateParams) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// URLQuery serializes [ModelUpdateParams]'s query parameters as `url.Values`.
-func (r ModelUpdateParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-// Who can discover the model. `VISIBILITY_PRIVATE` restricts it to the project;
-// `VISIBILITY_INTERNAL` shares it with the organization.
-type ModelUpdateParamsVisibility string
-
-const (
-	ModelUpdateParamsVisibilityVisibilityPrivate  ModelUpdateParamsVisibility = "VISIBILITY_PRIVATE"
-	ModelUpdateParamsVisibilityVisibilityInternal ModelUpdateParamsVisibility = "VISIBILITY_INTERNAL"
-)
 
 type ModelListParams struct {
-	// Project identifier.
-	//
-	// Use [option.WithProjectID] on the client to set a global default for this field.
-	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
-	// Cursor from a previous model list response.
-	After param.Opt[string] `query:"after,omitzero" json:"-"`
-	// Maximum number of models to return.
-	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
-	// Organization whose shared models should be included. Defaults to the
-	// authenticated project's organization.
-	OrganizationID param.Opt[string] `query:"organizationId,omitzero" json:"-"`
-	// Model visibility. Private means it is scoped to the project. Internal means it
-	// is scoped to the organization.
-	//
-	// Any of "VISIBILITY_PRIVATE", "VISIBILITY_INTERNAL".
-	Visibility ModelListParamsVisibility `query:"visibility,omitzero" json:"-"`
+	// Filter models to only return dedicated models
+	Dedicated param.Opt[bool] `query:"dedicated,omitzero" json:"-"`
 	paramObj
 }
 
@@ -953,123 +187,40 @@ func (r ModelListParams) URLQuery() (v url.Values, err error) {
 	})
 }
 
-// Model visibility. Private means it is scoped to the project. Internal means it
-// is scoped to the organization.
-type ModelListParamsVisibility string
+type ModelUploadParams struct {
+	// The name to give to your uploaded model
+	ModelName string `json:"model_name" api:"required"`
+	// The source location of the model (Hugging Face repo or S3 path)
+	ModelSource string `json:"model_source" api:"required"`
+	// The base model to use for an adapter if setting it to run against a serverless
+	// pool. Only used for model_type `adapter`.
+	BaseModel param.Opt[string] `json:"base_model,omitzero"`
+	// A description of your model
+	Description param.Opt[string] `json:"description,omitzero"`
+	// Hugging Face token (if uploading from Hugging Face)
+	HfToken param.Opt[string] `json:"hf_token,omitzero"`
+	// The lora pool to use for an adapter if setting it to run against, say, a
+	// dedicated pool. Only used for model_type `adapter`.
+	LoraModel param.Opt[string] `json:"lora_model,omitzero"`
+	// Whether the model is a full model or an adapter
+	//
+	// Any of "model", "adapter".
+	ModelType ModelUploadParamsModelType `json:"model_type,omitzero"`
+	paramObj
+}
+
+func (r ModelUploadParams) MarshalJSON() (data []byte, err error) {
+	type shadow ModelUploadParams
+	return param.MarshalObject(r, (*shadow)(&r))
+}
+func (r *ModelUploadParams) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Whether the model is a full model or an adapter
+type ModelUploadParamsModelType string
 
 const (
-	ModelListParamsVisibilityVisibilityPrivate  ModelListParamsVisibility = "VISIBILITY_PRIVATE"
-	ModelListParamsVisibilityVisibilityInternal ModelListParamsVisibility = "VISIBILITY_INTERNAL"
-)
-
-type ModelDeleteParams struct {
-	// ID of the project that owns the model.
-	//
-	// Use [option.WithProjectID] on the client to set a global default for this field.
-	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
-	paramObj
-}
-
-type ModelListFilesParams struct {
-	// Project identifier.
-	//
-	// Use [option.WithProjectID] on the client to set a global default for this field.
-	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
-	// Revision identifier to read from.
-	RevisionID param.Opt[string] `query:"revisionId,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [ModelListFilesParams]'s query parameters as `url.Values`.
-func (r ModelListFilesParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type ModelListOrgScopedParams struct {
-	// Cursor from a previous list response.
-	After param.Opt[string] `query:"after,omitzero" json:"-"`
-	// Maximum number of results to return.
-	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [ModelListOrgScopedParams]'s query parameters as
-// `url.Values`.
-func (r ModelListOrgScopedParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-type ModelListRevisionsParams struct {
-	// Project identifier.
-	//
-	// Use [option.WithProjectID] on the client to set a global default for this field.
-	ProjectID param.Opt[string] `path:"projectId,omitzero" api:"required" json:"-"`
-	paramObj
-}
-
-type ModelListSupportedParams struct {
-	// Cursor from a previous supported-model list response.
-	After param.Opt[string] `query:"after,omitzero" json:"-"`
-	// Maximum number of models to return.
-	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
-	// Case-insensitive search across model IDs, names, and descriptions.
-	Search param.Opt[string] `query:"search,omitzero" json:"-"`
-	// Filter models to those with a deployment profile in the selected adapter serving
-	// mode.
-	//
-	// Any of "ADAPTER_MODE_FIXED", "ADAPTER_MODE_DYNAMIC", "ADAPTER_MODE_DISABLED".
-	AdapterMode ModelListSupportedParamsAdapterMode `query:"adapterMode,omitzero" json:"-"`
-	// Filter models by input modality.
-	//
-	// Any of "MODALITY_TEXT", "MODALITY_IMAGE", "MODALITY_AUDIO", "MODALITY_VIDEO".
-	Modality ModelListSupportedParamsModality `query:"modality,omitzero" json:"-"`
-	// Filter models by product surface.
-	//
-	// Any of "PRODUCT_SERVERLESS", "PRODUCT_DEDICATED", "PRODUCT_FINE_TUNING".
-	Product ModelListSupportedParamsProduct `query:"product,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [ModelListSupportedParams]'s query parameters as
-// `url.Values`.
-func (r ModelListSupportedParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
-}
-
-// Filter models to those with a deployment profile in the selected adapter serving
-// mode.
-type ModelListSupportedParamsAdapterMode string
-
-const (
-	ModelListSupportedParamsAdapterModeAdapterModeFixed    ModelListSupportedParamsAdapterMode = "ADAPTER_MODE_FIXED"
-	ModelListSupportedParamsAdapterModeAdapterModeDynamic  ModelListSupportedParamsAdapterMode = "ADAPTER_MODE_DYNAMIC"
-	ModelListSupportedParamsAdapterModeAdapterModeDisabled ModelListSupportedParamsAdapterMode = "ADAPTER_MODE_DISABLED"
-)
-
-// Filter models by input modality.
-type ModelListSupportedParamsModality string
-
-const (
-	ModelListSupportedParamsModalityModalityText  ModelListSupportedParamsModality = "MODALITY_TEXT"
-	ModelListSupportedParamsModalityModalityImage ModelListSupportedParamsModality = "MODALITY_IMAGE"
-	ModelListSupportedParamsModalityModalityAudio ModelListSupportedParamsModality = "MODALITY_AUDIO"
-	ModelListSupportedParamsModalityModalityVideo ModelListSupportedParamsModality = "MODALITY_VIDEO"
-)
-
-// Filter models by product surface.
-type ModelListSupportedParamsProduct string
-
-const (
-	ModelListSupportedParamsProductProductServerless ModelListSupportedParamsProduct = "PRODUCT_SERVERLESS"
-	ModelListSupportedParamsProductProductDedicated  ModelListSupportedParamsProduct = "PRODUCT_DEDICATED"
-	ModelListSupportedParamsProductProductFineTuning ModelListSupportedParamsProduct = "PRODUCT_FINE_TUNING"
+	ModelUploadParamsModelTypeModel   ModelUploadParamsModelType = "model"
+	ModelUploadParamsModelTypeAdapter ModelUploadParamsModelType = "adapter"
 )

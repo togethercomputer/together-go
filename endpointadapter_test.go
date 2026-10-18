@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestEndpointAdapterNewWithOptionalParams(t *testing.T) {
+func TestEndpointAdapterList(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,14 +25,7 @@ func TestEndpointAdapterNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Adapters.New(context.TODO(), together.EndpointAdapterNewParams{
-		ProjectID:         together.String("projectId"),
-		EndpointID:        "endpointId",
-		DeploymentID:      "deploymentId",
-		AdapterModelID:    "adapterModelId",
-		AdapterRevisionID: together.String("adapterRevisionId"),
-		Force:             together.Bool(true),
-	})
+	_, err := client.Endpoints.Adapters.List(context.TODO(), "endpointId")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -42,7 +35,7 @@ func TestEndpointAdapterNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointAdapterGetWithOptionalParams(t *testing.T) {
+func TestEndpointAdapterAdd(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -54,78 +47,11 @@ func TestEndpointAdapterGetWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Adapters.Get(
-		context.TODO(),
-		"id",
-		together.EndpointAdapterGetParams{
-			ProjectID:      together.String("projectId"),
-			EndpointID:     "endpointId",
-			DeploymentID:   "deploymentId",
-			AdapterModelID: together.String("adapterModelId"),
-		},
-	)
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestEndpointAdapterUpdateWithOptionalParams(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Endpoints.Adapters.Update(
-		context.TODO(),
-		"id",
-		together.EndpointAdapterUpdateParams{
-			ProjectID:         together.String("projectId"),
-			EndpointID:        "endpointId",
-			DeploymentID:      "deploymentId",
-			AdapterRevisionID: "adapterRevisionId",
-			Etag:              "etag",
-			AdapterModelID:    together.String("adapterModelId"),
-		},
-	)
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestEndpointAdapterListWithOptionalParams(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Endpoints.Adapters.List(
+	_, err := client.Endpoints.Adapters.Add(
 		context.TODO(),
 		"endpointId",
-		"deploymentId",
-		together.EndpointAdapterListParams{
-			ProjectID: together.String("projectId"),
-			After:     together.String("after"),
-			Limit:     together.Int(0),
+		together.EndpointAdapterAddParams{
+			ModelID: "username/Meta-Llama-3.1-8B-Instruct-def456:username/my-adapter-abc123",
 		},
 	)
 	if err != nil {
@@ -137,7 +63,7 @@ func TestEndpointAdapterListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestEndpointAdapterDeleteWithOptionalParams(t *testing.T) {
+func TestEndpointAdapterRemove(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -149,15 +75,11 @@ func TestEndpointAdapterDeleteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Endpoints.Adapters.Delete(
+	_, err := client.Endpoints.Adapters.Remove(
 		context.TODO(),
-		"id",
-		together.EndpointAdapterDeleteParams{
-			ProjectID:      together.String("projectId"),
-			EndpointID:     "endpointId",
-			DeploymentID:   "deploymentId",
-			Etag:           "etag",
-			AdapterModelID: together.String("adapterModelId"),
+		"endpointId",
+		together.EndpointAdapterRemoveParams{
+			ModelID: "model_id",
 		},
 	)
 	if err != nil {
