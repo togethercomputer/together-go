@@ -197,9 +197,6 @@ type VideoNewParams struct {
 	// time.
 	Steps param.Opt[int64] `json:"steps,omitzero"`
 	Width param.Opt[int64] `json:"width,omitzero"`
-	// Deprecated: use media.frame_images instead. Array of images to guide video
-	// generation, similar to keyframes.
-	FrameImages []VideoNewParamsFrameImage `json:"frame_images,omitzero"`
 	// Media inputs for video generation. The accepted fields depend on the model type
 	// (e.g. i2v, r2v, t2v, videoedit).
 	Media VideoNewParamsMedia `json:"media,omitzero"`
@@ -207,10 +204,6 @@ type VideoNewParams struct {
 	//
 	// Any of "MP4", "WEBM".
 	OutputFormat VideoNewParamsOutputFormat `json:"output_format,omitzero"`
-	// Deprecated: use media.reference_images instead. Unlike frame_images which
-	// constrain specific timeline positions, reference images guide the general
-	// appearance that should appear consistently across the video.
-	ReferenceImages []string `json:"reference_images,omitzero"`
 	paramObj
 }
 
@@ -221,62 +214,6 @@ func (r VideoNewParams) MarshalJSON() (data []byte, err error) {
 func (r *VideoNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-// The property InputImage is required.
-type VideoNewParamsFrameImage struct {
-	// URL path to hosted image that is used for a frame
-	InputImage string `json:"input_image" api:"required"`
-	// Optional param to specify where to insert the frame. If this is omitted, the
-	// following heuristics are applied:
-	//
-	// - frame_images size is one, frame is first.
-	// - If size is two, frames are first and last.
-	// - If size is larger, frames are first, last and evenly spaced between.
-	Frame VideoNewParamsFrameImageFrameUnion `json:"frame,omitzero"`
-	paramObj
-}
-
-func (r VideoNewParamsFrameImage) MarshalJSON() (data []byte, err error) {
-	type shadow VideoNewParamsFrameImage
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *VideoNewParamsFrameImage) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Only one field can be non-zero.
-//
-// Use [param.IsOmitted] to confirm if a field is set.
-type VideoNewParamsFrameImageFrameUnion struct {
-	OfFloat param.Opt[float64] `json:",omitzero,inline"`
-	// Check if union is this variant with
-	// !param.IsOmitted(union.OfVideoNewsFrameImageFrameString)
-	OfVideoNewsFrameImageFrameString param.Opt[string] `json:",omitzero,inline"`
-	paramUnion
-}
-
-func (u VideoNewParamsFrameImageFrameUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfFloat, u.OfVideoNewsFrameImageFrameString)
-}
-func (u *VideoNewParamsFrameImageFrameUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, u)
-}
-
-func (u *VideoNewParamsFrameImageFrameUnion) asAny() any {
-	if !param.IsOmitted(u.OfFloat) {
-		return &u.OfFloat.Value
-	} else if !param.IsOmitted(u.OfVideoNewsFrameImageFrameString) {
-		return &u.OfVideoNewsFrameImageFrameString
-	}
-	return nil
-}
-
-type VideoNewParamsFrameImageFrameString string
-
-const (
-	VideoNewParamsFrameImageFrameStringFirst VideoNewParamsFrameImageFrameString = "first"
-	VideoNewParamsFrameImageFrameStringLast  VideoNewParamsFrameImageFrameString = "last"
-)
 
 // Media inputs for video generation. The accepted fields depend on the model type
 // (e.g. i2v, r2v, t2v, videoedit).

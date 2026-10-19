@@ -1160,14 +1160,8 @@ type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion struct {
 	// automatically scale the number of GPU worker nodes between num_gpus and
 	// auto_scale_max_gpus based on the workload.
 	AutoScale param.Opt[bool] `json:"auto_scale,omitzero"`
-	// Maximum number of GPUs to which the cluster can be auto-scaled up. This field is
-	// required if auto_scaled is true.
+	// Maximum number of GPUs to which the cluster can be auto-scaled up.
 	AutoScaleMaxGPUs param.Opt[int64] `json:"auto_scale_max_gpus,omitzero"`
-	// Whether GPU cluster should be auto-scaled based on the workload. By default, it
-	// is not auto-scaled.
-	//
-	// Deprecated: deprecated
-	AutoScaled param.Opt[bool] `json:"auto_scaled,omitzero"`
 	// ID of the capacity pool to use for the cluster. This field is optional and only
 	// applicable if the cluster is created from a capacity pool.
 	CapacityPoolID param.Opt[string] `json:"capacity_pool_id,omitzero"`
@@ -1589,14 +1583,8 @@ type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia struct {
 	// automatically scale the number of GPU worker nodes between num_gpus and
 	// auto_scale_max_gpus based on the workload.
 	AutoScale param.Opt[bool] `json:"auto_scale,omitzero"`
-	// Maximum number of GPUs to which the cluster can be auto-scaled up. This field is
-	// required if auto_scaled is true.
+	// Maximum number of GPUs to which the cluster can be auto-scaled up.
 	AutoScaleMaxGPUs param.Opt[int64] `json:"auto_scale_max_gpus,omitzero"`
-	// Whether GPU cluster should be auto-scaled based on the workload. By default, it
-	// is not auto-scaled.
-	//
-	// Deprecated: deprecated
-	AutoScaled param.Opt[bool] `json:"auto_scaled,omitzero"`
 	// ID of the capacity pool to use for the cluster. This field is optional and only
 	// applicable if the cluster is created from a capacity pool.
 	CapacityPoolID param.Opt[string] `json:"capacity_pool_id,omitzero"`

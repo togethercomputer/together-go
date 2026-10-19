@@ -70,14 +70,14 @@ func (r *FineTuningService) List(ctx context.Context, opts ...option.RequestOpti
 }
 
 // Delete a fine-tuning job.
-func (r *FineTuningService) Delete(ctx context.Context, id string, body FineTuningDeleteParams, opts ...option.RequestOption) (res *FineTuningDeleteResponse, err error) {
+func (r *FineTuningService) Delete(ctx context.Context, id string, opts ...option.RequestOption) (res *FineTuningDeleteResponse, err error) {
 	opts = slices.Concat(r.Options, opts)
 	if id == "" {
 		err = errors.New("missing required id parameter")
 		return nil, err
 	}
 	path := fmt.Sprintf("v1/fine-tunes/%s", id)
-	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, body, &res, opts...)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodDelete, path, nil, &res, opts...)
 	return res, err
 }
 
@@ -2968,9 +2968,6 @@ type FineTuningNewParams struct {
 	// adjusted during training.
 	LrScheduler      FineTuningNewParamsLrScheduler      `json:"lr_scheduler,omitzero"`
 	MultimodalParams FineTuningNewParamsMultimodalParams `json:"multimodal_params,omitzero"`
-	// Whether to mask user messages in conversational data or prompts in instruction
-	// data.
-	TrainOnInputs FineTuningNewParamsTrainOnInputsUnion `json:"train_on_inputs,omitzero"`
 	// The training method to use. 'sft' for Supervised Fine-Tuning or 'dpo' for Direct
 	// Preference Optimization.
 	TrainingMethod FineTuningNewParamsTrainingMethodUnion `json:"training_method,omitzero"`
@@ -3131,39 +3128,6 @@ func (r FineTuningNewParamsMultimodalParams) MarshalJSON() (data []byte, err err
 func (r *FineTuningNewParamsMultimodalParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
-
-// Only one field can be non-zero.
-//
-// Use [param.IsOmitted] to confirm if a field is set.
-type FineTuningNewParamsTrainOnInputsUnion struct {
-	OfBool param.Opt[bool] `json:",omitzero,inline"`
-	// Check if union is this variant with
-	// !param.IsOmitted(union.OfFineTuningNewsTrainOnInputsString)
-	OfFineTuningNewsTrainOnInputsString param.Opt[string] `json:",omitzero,inline"`
-	paramUnion
-}
-
-func (u FineTuningNewParamsTrainOnInputsUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfBool, u.OfFineTuningNewsTrainOnInputsString)
-}
-func (u *FineTuningNewParamsTrainOnInputsUnion) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, u)
-}
-
-func (u *FineTuningNewParamsTrainOnInputsUnion) asAny() any {
-	if !param.IsOmitted(u.OfBool) {
-		return &u.OfBool.Value
-	} else if !param.IsOmitted(u.OfFineTuningNewsTrainOnInputsString) {
-		return &u.OfFineTuningNewsTrainOnInputsString
-	}
-	return nil
-}
-
-type FineTuningNewParamsTrainOnInputsString string
-
-const (
-	FineTuningNewParamsTrainOnInputsStringAuto FineTuningNewParamsTrainOnInputsString = "auto"
-)
 
 // Only one field can be non-zero.
 //
@@ -3454,20 +3418,6 @@ func init() {
 	apijson.RegisterFieldValidator[FineTuningNewParamsTrainingTypeLoRaTrainingType](
 		"type", "Lora",
 	)
-}
-
-type FineTuningDeleteParams struct {
-	// Deprecated and unused parameter.
-	Force param.Opt[bool] `query:"force,omitzero" json:"-"`
-	paramObj
-}
-
-// URLQuery serializes [FineTuningDeleteParams]'s query parameters as `url.Values`.
-func (r FineTuningDeleteParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
 }
 
 type FineTuningContentParams struct {

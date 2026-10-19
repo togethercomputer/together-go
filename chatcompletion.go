@@ -39,6 +39,7 @@ func NewChatCompletionService(opts ...option.RequestOption) (r ChatCompletionSer
 // and multi-turn conversations with system, user, and assistant messages.
 func (r *ChatCompletionService) New(ctx context.Context, body ChatCompletionNewParams, opts ...option.RequestOption) (res *ChatCompletion, err error) {
 	opts = slices.Concat(r.Options, opts)
+	opts = append([]option.RequestOption{option.WithBaseURL("https://api-inference.together.ai/")}, opts...)
 	path := "v1/chat/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &res, opts...)
 	return res, err
@@ -53,6 +54,7 @@ func (r *ChatCompletionService) NewStreaming(ctx context.Context, body ChatCompl
 	)
 	opts = slices.Concat(r.Options, opts)
 	opts = append(opts, option.WithJSONSet("stream", true))
+	opts = append([]option.RequestOption{option.WithBaseURL("https://api-inference.together.ai/")}, opts...)
 	path := "v1/chat/completions"
 	err = requestconfig.ExecuteNewRequest(ctx, http.MethodPost, path, body, &raw, opts...)
 	return ssestream.NewStream[ChatCompletionChunk](ssestream.NewDecoder(raw), err)
@@ -125,17 +127,14 @@ func (r *ChatCompletionChoice) UnmarshalJSON(data []byte) error {
 type ChatCompletionChoiceMessage struct {
 	Content string `json:"content" api:"required"`
 	// Any of "assistant".
-	Role string `json:"role" api:"required"`
-	// Deprecated: deprecated
-	FunctionCall     ChatCompletionChoiceMessageFunctionCall `json:"function_call"`
-	Reasoning        string                                  `json:"reasoning" api:"nullable"`
-	ReasoningContent string                                  `json:"reasoning_content" api:"nullable"`
-	ToolCalls        []ToolChoice                            `json:"tool_calls"`
+	Role             string       `json:"role" api:"required"`
+	Reasoning        string       `json:"reasoning" api:"nullable"`
+	ReasoningContent string       `json:"reasoning_content" api:"nullable"`
+	ToolCalls        []ToolChoice `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Content          respjson.Field
 		Role             respjson.Field
-		FunctionCall     respjson.Field
 		Reasoning        respjson.Field
 		ReasoningContent respjson.Field
 		ToolCalls        respjson.Field
@@ -147,25 +146,6 @@ type ChatCompletionChoiceMessage struct {
 // Returns the unmodified JSON received from the API
 func (r ChatCompletionChoiceMessage) RawJSON() string { return r.JSON.raw }
 func (r *ChatCompletionChoiceMessage) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Deprecated: deprecated
-type ChatCompletionChoiceMessageFunctionCall struct {
-	Arguments string `json:"arguments" api:"required"`
-	Name      string `json:"name" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Arguments   respjson.Field
-		Name        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ChatCompletionChoiceMessageFunctionCall) RawJSON() string { return r.JSON.raw }
-func (r *ChatCompletionChoiceMessageFunctionCall) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -230,19 +210,16 @@ func (r *ChatCompletionChunkChoice) UnmarshalJSON(data []byte) error {
 
 type ChatCompletionChunkChoiceDelta struct {
 	// Any of "system", "user", "assistant", "function", "tool".
-	Role    string `json:"role" api:"required"`
-	Content string `json:"content" api:"nullable"`
-	// Deprecated: deprecated
-	FunctionCall     ChatCompletionChunkChoiceDeltaFunctionCall `json:"function_call" api:"nullable"`
-	Reasoning        string                                     `json:"reasoning" api:"nullable"`
-	ReasoningContent string                                     `json:"reasoning_content" api:"nullable"`
-	TokenID          int64                                      `json:"token_id"`
-	ToolCalls        []ToolChoice                               `json:"tool_calls"`
+	Role             string       `json:"role" api:"required"`
+	Content          string       `json:"content" api:"nullable"`
+	Reasoning        string       `json:"reasoning" api:"nullable"`
+	ReasoningContent string       `json:"reasoning_content" api:"nullable"`
+	TokenID          int64        `json:"token_id"`
+	ToolCalls        []ToolChoice `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Role             respjson.Field
 		Content          respjson.Field
-		FunctionCall     respjson.Field
 		Reasoning        respjson.Field
 		ReasoningContent respjson.Field
 		TokenID          respjson.Field
@@ -255,25 +232,6 @@ type ChatCompletionChunkChoiceDelta struct {
 // Returns the unmodified JSON received from the API
 func (r ChatCompletionChunkChoiceDelta) RawJSON() string { return r.JSON.raw }
 func (r *ChatCompletionChunkChoiceDelta) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Deprecated: deprecated
-type ChatCompletionChunkChoiceDeltaFunctionCall struct {
-	Arguments string `json:"arguments" api:"required"`
-	Name      string `json:"name" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Arguments   respjson.Field
-		Name        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ChatCompletionChunkChoiceDeltaFunctionCall) RawJSON() string { return r.JSON.raw }
-func (r *ChatCompletionChunkChoiceDeltaFunctionCall) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -542,16 +500,11 @@ type ChatCompletionNewParamsMessageUnion struct {
 	OfChatCompletionNewsMessageChatCompletionUserMessageParam      *ChatCompletionNewParamsMessageChatCompletionUserMessageParam      `json:",omitzero,inline"`
 	OfChatCompletionNewsMessageChatCompletionAssistantMessageParam *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam `json:",omitzero,inline"`
 	OfChatCompletionNewsMessageChatCompletionToolMessageParam      *ChatCompletionNewParamsMessageChatCompletionToolMessageParam      `json:",omitzero,inline"`
-	OfChatCompletionNewsMessageChatCompletionFunctionMessageParam  *ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam  `json:",omitzero,inline"`
 	paramUnion
 }
 
 func (u ChatCompletionNewParamsMessageUnion) MarshalJSON() ([]byte, error) {
-	return param.MarshalUnion(u, u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionUserMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionToolMessageParam,
-		u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam)
+	return param.MarshalUnion(u, u.OfChatCompletionNewsMessageChatCompletionSystemMessageParam, u.OfChatCompletionNewsMessageChatCompletionUserMessageParam, u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam, u.OfChatCompletionNewsMessageChatCompletionToolMessageParam)
 }
 func (u *ChatCompletionNewParamsMessageUnion) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, u)
@@ -566,16 +519,6 @@ func (u *ChatCompletionNewParamsMessageUnion) asAny() any {
 		return u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam
 	} else if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionToolMessageParam) {
 		return u.OfChatCompletionNewsMessageChatCompletionToolMessageParam
-	} else if !param.IsOmitted(u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam) {
-		return u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam
-	}
-	return nil
-}
-
-// Returns a pointer to the underlying variant's property, if present.
-func (u ChatCompletionNewParamsMessageUnion) GetFunctionCall() *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall {
-	if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil {
-		return &vt.FunctionCall
 	}
 	return nil
 }
@@ -622,8 +565,6 @@ func (u ChatCompletionNewParamsMessageUnion) GetRole() *string {
 		return (*string)(&vt.Role)
 	} else if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil {
 		return (*string)(&vt.Role)
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam; vt != nil {
-		return (*string)(&vt.Role)
 	}
 	return nil
 }
@@ -638,8 +579,6 @@ func (u ChatCompletionNewParamsMessageUnion) GetName() *string {
 		return &vt.Name.Value
 	} else if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil && vt.Name.Valid() {
 		return &vt.Name.Value
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam; vt != nil {
-		return (*string)(&vt.Name)
 	}
 	return nil
 }
@@ -655,8 +594,6 @@ func (u ChatCompletionNewParamsMessageUnion) GetContent() (res chatCompletionNew
 	} else if vt := u.OfChatCompletionNewsMessageChatCompletionAssistantMessageParam; vt != nil && vt.Content.Valid() {
 		res.any = &vt.Content.Value
 	} else if vt := u.OfChatCompletionNewsMessageChatCompletionToolMessageParam; vt != nil {
-		res.any = &vt.Content
-	} else if vt := u.OfChatCompletionNewsMessageChatCompletionFunctionMessageParam; vt != nil {
 		res.any = &vt.Content
 	}
 	return
@@ -935,9 +872,7 @@ type ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam struct {
 	Reasoning        param.Opt[string] `json:"reasoning,omitzero"`
 	ReasoningContent param.Opt[string] `json:"reasoning_content,omitzero"`
 	Name             param.Opt[string] `json:"name,omitzero"`
-	// Deprecated: deprecated
-	FunctionCall ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall `json:"function_call,omitzero"`
-	ToolCalls    []ToolChoiceParam                                                             `json:"tool_calls,omitzero"`
+	ToolCalls        []ToolChoiceParam `json:"tool_calls,omitzero"`
 	paramObj
 }
 
@@ -953,23 +888,6 @@ func init() {
 	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionAssistantMessageParam](
 		"role", "assistant",
 	)
-}
-
-// Deprecated: deprecated
-//
-// The properties Arguments, Name are required.
-type ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall struct {
-	Arguments string `json:"arguments" api:"required"`
-	Name      string `json:"name" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionAssistantMessageParamFunctionCall) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
 }
 
 // The properties Content, Role, ToolCallID are required.
@@ -993,31 +911,6 @@ func (r *ChatCompletionNewParamsMessageChatCompletionToolMessageParam) Unmarshal
 func init() {
 	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionToolMessageParam](
 		"role", "tool",
-	)
-}
-
-// Deprecated: deprecated
-//
-// The properties Content, Name, Role are required.
-type ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam struct {
-	Content string `json:"content" api:"required"`
-	Name    string `json:"name" api:"required"`
-	// Any of "function".
-	Role string `json:"role,omitzero" api:"required"`
-	paramObj
-}
-
-func (r ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam) MarshalJSON() (data []byte, err error) {
-	type shadow ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-func init() {
-	apijson.RegisterFieldValidator[ChatCompletionNewParamsMessageChatCompletionFunctionMessageParam](
-		"role", "function",
 	)
 }
 

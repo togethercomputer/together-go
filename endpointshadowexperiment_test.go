@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
+func TestEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,10 +25,10 @@ func TestBetaEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.New(
+	_, err := client.Endpoints.ShadowExperiments.New(
 		context.TODO(),
 		"endpointId",
-		together.BetaEndpointShadowExperimentNewParams{
+		together.EndpointShadowExperimentNewParams{
 			ProjectID: together.String("projectId"),
 			Name:      "name",
 			Source: together.ShadowSourceParam{
@@ -42,7 +42,7 @@ func TestBetaEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
 					},
 				},
 			},
-			Targets: []together.BetaEndpointShadowExperimentNewParamsTarget{{
+			Targets: []together.EndpointShadowExperimentNewParamsTarget{{
 				Name:               "name",
 				TargetDeploymentID: "targetDeploymentId",
 				Description:        together.String("description"),
@@ -58,7 +58,7 @@ func TestBetaEndpointShadowExperimentNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointShadowExperimentGet(t *testing.T) {
+func TestEndpointShadowExperimentGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -70,10 +70,10 @@ func TestBetaEndpointShadowExperimentGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.Get(
+	_, err := client.Endpoints.ShadowExperiments.Get(
 		context.TODO(),
 		"id",
-		together.BetaEndpointShadowExperimentGetParams{
+		together.EndpointShadowExperimentGetParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 		},
@@ -87,7 +87,7 @@ func TestBetaEndpointShadowExperimentGet(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointShadowExperimentUpdateWithOptionalParams(t *testing.T) {
+func TestEndpointShadowExperimentUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -99,10 +99,10 @@ func TestBetaEndpointShadowExperimentUpdateWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.Update(
+	_, err := client.Endpoints.ShadowExperiments.Update(
 		context.TODO(),
 		"id",
-		together.BetaEndpointShadowExperimentUpdateParams{
+		together.EndpointShadowExperimentUpdateParams{
 			ProjectID:   together.String("projectId"),
 			EndpointID:  "endpointId",
 			UpdateMask:  "updateMask",
@@ -130,7 +130,7 @@ func TestBetaEndpointShadowExperimentUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointShadowExperimentListWithOptionalParams(t *testing.T) {
+func TestEndpointShadowExperimentListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -142,10 +142,10 @@ func TestBetaEndpointShadowExperimentListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.List(
+	_, err := client.Endpoints.ShadowExperiments.List(
 		context.TODO(),
 		"endpointId",
-		together.BetaEndpointShadowExperimentListParams{
+		together.EndpointShadowExperimentListParams{
 			ProjectID:      together.String("projectId"),
 			After:          together.String("after"),
 			IncludeTargets: together.Bool(true),
@@ -161,7 +161,7 @@ func TestBetaEndpointShadowExperimentListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointShadowExperimentDeleteWithOptionalParams(t *testing.T) {
+func TestEndpointShadowExperimentDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -173,10 +173,10 @@ func TestBetaEndpointShadowExperimentDeleteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.ShadowExperiments.Delete(
+	_, err := client.Endpoints.ShadowExperiments.Delete(
 		context.TODO(),
 		"id",
-		together.BetaEndpointShadowExperimentDeleteParams{
+		together.EndpointShadowExperimentDeleteParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			Etag:       together.String("etag"),

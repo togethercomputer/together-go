@@ -67,7 +67,6 @@ func TestClusterNewWithOptionalParams(t *testing.T) {
 			}},
 			AutoScale:        together.Bool(true),
 			AutoScaleMaxGPUs: together.Int(0),
-			AutoScaled:       together.Bool(true),
 			CapacityPoolID:   together.String("capacity_pool_id"),
 			ClusterConfig: together.ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionClusterConfig{
 				LoadBalancer:       "NONE",

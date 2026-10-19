@@ -134,10 +134,6 @@ type FileResponse struct {
 	FileType FileType `json:"FileType" api:"required"`
 	// The object type, which is always `file`.
 	Object constant.File `json:"object" default:"file"`
-	// Deprecated. Whether file has been fully uploaded.
-	//
-	// Deprecated: deprecated
-	Processed bool `json:"Processed" api:"required"`
 	// The purpose of the file as it was uploaded.
 	//
 	// Any of "fine-tune", "calibration", "eval", "batch-api".
@@ -158,7 +154,6 @@ type FileResponse struct {
 		Filename         respjson.Field
 		FileType         respjson.Field
 		Object           respjson.Field
-		Processed        respjson.Field
 		Purpose          respjson.Field
 		ProcessingStatus respjson.Field
 		ValidationReport respjson.Field

@@ -26,14 +26,8 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 		option.WithAPIKey("My API Key"),
 	)
 	_, err := client.Videos.New(context.TODO(), together.VideoNewParams{
-		Model: "model",
-		Fps:   together.Int(0),
-		FrameImages: []together.VideoNewParamsFrameImage{{
-			InputImage: "input_image",
-			Frame: together.VideoNewParamsFrameImageFrameUnion{
-				OfVideoNewsFrameImageFrameString: together.String("first"),
-			},
-		}},
+		Model:         "model",
+		Fps:           together.Int(0),
 		GenerateAudio: together.Bool(true),
 		GuidanceScale: together.Int(0),
 		Height:        together.Int(0),
@@ -58,17 +52,16 @@ func TestVideoNewWithOptionalParams(t *testing.T) {
 				OfString: together.String("string"),
 			},
 		},
-		NegativePrompt:  together.String("negative_prompt"),
-		OutputFormat:    together.VideoNewParamsOutputFormatMP4,
-		OutputQuality:   together.Int(0),
-		Prompt:          together.String("x"),
-		Ratio:           together.String("ratio"),
-		ReferenceImages: []string{"string"},
-		Resolution:      together.String("resolution"),
-		Seconds:         together.String("seconds"),
-		Seed:            together.Int(0),
-		Steps:           together.Int(10),
-		Width:           together.Int(0),
+		NegativePrompt: together.String("negative_prompt"),
+		OutputFormat:   together.VideoNewParamsOutputFormatMP4,
+		OutputQuality:  together.Int(0),
+		Prompt:         together.String("x"),
+		Ratio:          together.String("ratio"),
+		Resolution:     together.String("resolution"),
+		Seconds:        together.String("seconds"),
+		Seed:           together.Int(0),
+		Steps:          together.Int(10),
+		Width:          together.Int(0),
 	})
 	if err != nil {
 		var apierr *together.Error

@@ -13,11 +13,8 @@ import (
 // automatically. You should not instantiate this service directly, and instead use
 // the [NewBetaService] method instead.
 type BetaService struct {
-	Options      []option.RequestOption
-	Organization BetaOrganizationService
-	Endpoints    BetaEndpointService
-	Models       BetaModelService
-	Jig          BetaJigService
+	Options []option.RequestOption
+	Jig     BetaJigService
 }
 
 // NewBetaService generates a new service that applies the given options to each
@@ -26,9 +23,6 @@ type BetaService struct {
 func NewBetaService(opts ...option.RequestOption) (r BetaService) {
 	r = BetaService{}
 	r.Options = opts
-	r.Organization = NewBetaOrganizationService(opts...)
-	r.Endpoints = NewBetaEndpointService(opts...)
-	r.Models = NewBetaModelService(opts...)
 	r.Jig = NewBetaJigService(opts...)
 	return
 }

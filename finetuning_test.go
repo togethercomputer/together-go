@@ -66,9 +66,6 @@ func TestFineTuningNewWithOptionalParams(t *testing.T) {
 		Packing:      together.Bool(true),
 		RandomSeed:   together.Int(0),
 		Suffix:       together.String("suffix"),
-		TrainOnInputs: together.FineTuningNewParamsTrainOnInputsUnion{
-			OfFineTuningNewsTrainOnInputsString: together.String("auto"),
-		},
 		TrainingMethod: together.FineTuningNewParamsTrainingMethodUnion{
 			OfFineTuningNewsTrainingMethodTrainingMethodSft: &together.FineTuningNewParamsTrainingMethodTrainingMethodSft{
 				Method: "sft",
@@ -144,7 +141,7 @@ func TestFineTuningList(t *testing.T) {
 	}
 }
 
-func TestFineTuningDeleteWithOptionalParams(t *testing.T) {
+func TestFineTuningDelete(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -156,13 +153,7 @@ func TestFineTuningDeleteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.FineTuning.Delete(
-		context.TODO(),
-		"id",
-		together.FineTuningDeleteParams{
-			Force: together.Bool(true),
-		},
-	)
+	_, err := client.FineTuning.Delete(context.TODO(), "id")
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {

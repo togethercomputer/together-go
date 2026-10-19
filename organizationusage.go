@@ -11,24 +11,24 @@ import (
 	"github.com/togethercomputer/together-go/shared/constant"
 )
 
-// BetaOrganizationUsageService contains methods and other services that help with
+// OrganizationUsageService contains methods and other services that help with
 // interacting with the together API.
 //
 // Note, unlike clients, this service does not read variables from the environment
 // automatically. You should not instantiate this service directly, and instead use
-// the [NewBetaOrganizationUsageService] method instead.
-type BetaOrganizationUsageService struct {
+// the [NewOrganizationUsageService] method instead.
+type OrganizationUsageService struct {
 	Options []option.RequestOption
-	Costs   BetaOrganizationUsageCostService
+	Costs   OrganizationUsageCostService
 }
 
-// NewBetaOrganizationUsageService generates a new service that applies the given
+// NewOrganizationUsageService generates a new service that applies the given
 // options to each request. These options are applied after the parent client's
 // options (if there is one), and before any request-specific options.
-func NewBetaOrganizationUsageService(opts ...option.RequestOption) (r BetaOrganizationUsageService) {
-	r = BetaOrganizationUsageService{}
+func NewOrganizationUsageService(opts ...option.RequestOption) (r OrganizationUsageService) {
+	r = OrganizationUsageService{}
 	r.Options = opts
-	r.Costs = NewBetaOrganizationUsageCostService(opts...)
+	r.Costs = NewOrganizationUsageCostService(opts...)
 	return
 }
 

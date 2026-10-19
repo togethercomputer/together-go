@@ -192,19 +192,16 @@ func (r *CompletionChunkChoice) UnmarshalJSON(data []byte) error {
 
 type CompletionChunkChoiceDelta struct {
 	// Any of "system", "user", "assistant", "function", "tool".
-	Role    string `json:"role" api:"required"`
-	Content string `json:"content" api:"nullable"`
-	// Deprecated: deprecated
-	FunctionCall     CompletionChunkChoiceDeltaFunctionCall `json:"function_call" api:"nullable"`
-	Reasoning        string                                 `json:"reasoning" api:"nullable"`
-	ReasoningContent string                                 `json:"reasoning_content" api:"nullable"`
-	TokenID          int64                                  `json:"token_id"`
-	ToolCalls        []ToolChoice                           `json:"tool_calls"`
+	Role             string       `json:"role" api:"required"`
+	Content          string       `json:"content" api:"nullable"`
+	Reasoning        string       `json:"reasoning" api:"nullable"`
+	ReasoningContent string       `json:"reasoning_content" api:"nullable"`
+	TokenID          int64        `json:"token_id"`
+	ToolCalls        []ToolChoice `json:"tool_calls"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Role             respjson.Field
 		Content          respjson.Field
-		FunctionCall     respjson.Field
 		Reasoning        respjson.Field
 		ReasoningContent respjson.Field
 		TokenID          respjson.Field
@@ -217,25 +214,6 @@ type CompletionChunkChoiceDelta struct {
 // Returns the unmodified JSON received from the API
 func (r CompletionChunkChoiceDelta) RawJSON() string { return r.JSON.raw }
 func (r *CompletionChunkChoiceDelta) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Deprecated: deprecated
-type CompletionChunkChoiceDeltaFunctionCall struct {
-	Arguments string `json:"arguments" api:"required"`
-	Name      string `json:"name" api:"required"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Arguments   respjson.Field
-		Name        respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r CompletionChunkChoiceDeltaFunctionCall) RawJSON() string { return r.JSON.raw }
-func (r *CompletionChunkChoiceDeltaFunctionCall) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

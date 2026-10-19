@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaModelRemoteUploadNewWithOptionalParams(t *testing.T) {
+func TestEndpointAbExperimentNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,38 +25,18 @@ func TestBetaModelRemoteUploadNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Models.RemoteUploads.New(context.TODO(), together.BetaModelRemoteUploadNewParams{
-		ProjectID: together.String("projectId"),
-		ModelID:   "modelId",
-		RemoteURL: "remoteUrl",
-		Token:     together.String("token"),
-	})
-	if err != nil {
-		var apierr *together.Error
-		if errors.As(err, &apierr) {
-			t.Log(string(apierr.DumpRequest(true)))
-		}
-		t.Fatalf("err should be nil: %s", err.Error())
-	}
-}
-
-func TestBetaModelRemoteUploadGet(t *testing.T) {
-	baseURL := "http://localhost:4010"
-	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
-		baseURL = envURL
-	}
-	if !testutil.CheckTestServer(t, baseURL) {
-		return
-	}
-	client := together.NewClient(
-		option.WithBaseURL(baseURL),
-		option.WithAPIKey("My API Key"),
-	)
-	_, err := client.Beta.Models.RemoteUploads.Get(
+	_, err := client.Endpoints.AbExperiments.New(
 		context.TODO(),
-		"id",
-		together.BetaModelRemoteUploadGetParams{
+		"endpointId",
+		together.EndpointAbExperimentNewParams{
 			ProjectID: together.String("projectId"),
+			Members: []together.AbMemberParam{{
+				DeploymentID: "deploymentId",
+				Percent:      0,
+				Role:         together.AbMemberRoleAbExperimentMemberRoleControl,
+			}},
+			Name:        "name",
+			Description: together.String("description"),
 		},
 	)
 	if err != nil {
@@ -68,7 +48,7 @@ func TestBetaModelRemoteUploadGet(t *testing.T) {
 	}
 }
 
-func TestBetaModelRemoteUploadListWithOptionalParams(t *testing.T) {
+func TestEndpointAbExperimentGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -80,11 +60,14 @@ func TestBetaModelRemoteUploadListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Models.RemoteUploads.List(context.TODO(), together.BetaModelRemoteUploadListParams{
-		ProjectID: together.String("projectId"),
-		After:     together.String("after"),
-		Limit:     together.Int(0),
-	})
+	_, err := client.Endpoints.AbExperiments.Get(
+		context.TODO(),
+		"id",
+		together.EndpointAbExperimentGetParams{
+			ProjectID:  together.String("projectId"),
+			EndpointID: "endpointId",
+		},
+	)
 	if err != nil {
 		var apierr *together.Error
 		if errors.As(err, &apierr) {
@@ -94,7 +77,7 @@ func TestBetaModelRemoteUploadListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaModelRemoteUploadEventsWithOptionalParams(t *testing.T) {
+func TestEndpointAbExperimentUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -106,13 +89,80 @@ func TestBetaModelRemoteUploadEventsWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Models.RemoteUploads.Events(
+	_, err := client.Endpoints.AbExperiments.Update(
 		context.TODO(),
 		"id",
-		together.BetaModelRemoteUploadEventsParams{
+		together.EndpointAbExperimentUpdateParams{
+			ProjectID:   together.String("projectId"),
+			EndpointID:  "endpointId",
+			UpdateMask:  together.String("updateMask"),
+			Description: together.String("description"),
+			Etag:        together.String("etag"),
+			Members: []together.AbMemberParam{{
+				DeploymentID: "deploymentId",
+				Percent:      0,
+				Role:         together.AbMemberRoleAbExperimentMemberRoleControl,
+			}},
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestEndpointAbExperimentListWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Endpoints.AbExperiments.List(
+		context.TODO(),
+		"endpointId",
+		together.EndpointAbExperimentListParams{
 			ProjectID: together.String("projectId"),
 			After:     together.String("after"),
 			Limit:     together.Int(0),
+		},
+	)
+	if err != nil {
+		var apierr *together.Error
+		if errors.As(err, &apierr) {
+			t.Log(string(apierr.DumpRequest(true)))
+		}
+		t.Fatalf("err should be nil: %s", err.Error())
+	}
+}
+
+func TestEndpointAbExperimentDeleteWithOptionalParams(t *testing.T) {
+	baseURL := "http://localhost:4010"
+	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
+		baseURL = envURL
+	}
+	if !testutil.CheckTestServer(t, baseURL) {
+		return
+	}
+	client := together.NewClient(
+		option.WithBaseURL(baseURL),
+		option.WithAPIKey("My API Key"),
+	)
+	_, err := client.Endpoints.AbExperiments.Delete(
+		context.TODO(),
+		"id",
+		together.EndpointAbExperimentDeleteParams{
+			ProjectID:  together.String("projectId"),
+			EndpointID: "endpointId",
+			Etag:       together.String("etag"),
 		},
 	)
 	if err != nil {

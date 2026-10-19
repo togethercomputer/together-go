@@ -13,7 +13,7 @@ import (
 	"github.com/togethercomputer/together-go/option"
 )
 
-func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
+func TestEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -25,10 +25,10 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.Deployments.New(
+	_, err := client.Endpoints.Deployments.New(
 		context.TODO(),
 		"endpointId",
-		together.BetaEndpointDeploymentNewParams{
+		together.EndpointDeploymentNewParams{
 			ProjectID: together.String("projectId"),
 			Autoscaling: together.DeploymentAutoscalingParam{
 				MaxReplicas: together.Int(0),
@@ -76,8 +76,8 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 			Model:                           together.String("model"),
 			ModelID:                         together.String("modelId"),
 			ModelRevisionID:                 together.String("modelRevisionId"),
-			Placement: together.BetaEndpointDeploymentNewParamsPlacementUnion{
-				OfInline: &together.BetaEndpointDeploymentNewParamsPlacementInline{
+			Placement: together.EndpointDeploymentNewParamsPlacementUnion{
+				OfInline: &together.EndpointDeploymentNewParamsPlacementInline{
 					Inline: together.DeploymentPlacementConfigParam{
 						CompliancePolicy: together.DeploymentPlacementConfigCompliancePolicyParam{
 							Hipaa: together.Bool(true),
@@ -98,7 +98,7 @@ func TestBetaEndpointDeploymentNewWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointDeploymentGet(t *testing.T) {
+func TestEndpointDeploymentGet(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -110,10 +110,10 @@ func TestBetaEndpointDeploymentGet(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.Deployments.Get(
+	_, err := client.Endpoints.Deployments.Get(
 		context.TODO(),
 		"id",
-		together.BetaEndpointDeploymentGetParams{
+		together.EndpointDeploymentGetParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 		},
@@ -127,7 +127,7 @@ func TestBetaEndpointDeploymentGet(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
+func TestEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -139,10 +139,10 @@ func TestBetaEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.Deployments.Update(
+	_, err := client.Endpoints.Deployments.Update(
 		context.TODO(),
 		"id",
-		together.BetaEndpointDeploymentUpdateParams{
+		together.EndpointDeploymentUpdateParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			UpdateMask: together.String("updateMask"),
@@ -198,7 +198,7 @@ func TestBetaEndpointDeploymentUpdateWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointDeploymentListWithOptionalParams(t *testing.T) {
+func TestEndpointDeploymentListWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -210,10 +210,10 @@ func TestBetaEndpointDeploymentListWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.Deployments.List(
+	_, err := client.Endpoints.Deployments.List(
 		context.TODO(),
 		"endpointId",
-		together.BetaEndpointDeploymentListParams{
+		together.EndpointDeploymentListParams{
 			ProjectID: together.String("projectId"),
 			After:     together.String("after"),
 			Filter:    together.String("filter"),
@@ -230,7 +230,7 @@ func TestBetaEndpointDeploymentListWithOptionalParams(t *testing.T) {
 	}
 }
 
-func TestBetaEndpointDeploymentDeleteWithOptionalParams(t *testing.T) {
+func TestEndpointDeploymentDeleteWithOptionalParams(t *testing.T) {
 	baseURL := "http://localhost:4010"
 	if envURL, ok := os.LookupEnv("TEST_API_BASE_URL"); ok {
 		baseURL = envURL
@@ -242,10 +242,10 @@ func TestBetaEndpointDeploymentDeleteWithOptionalParams(t *testing.T) {
 		option.WithBaseURL(baseURL),
 		option.WithAPIKey("My API Key"),
 	)
-	_, err := client.Beta.Endpoints.Deployments.Delete(
+	_, err := client.Endpoints.Deployments.Delete(
 		context.TODO(),
 		"id",
-		together.BetaEndpointDeploymentDeleteParams{
+		together.EndpointDeploymentDeleteParams{
 			ProjectID:  together.String("projectId"),
 			EndpointID: "endpointId",
 			Etag:       together.String("etag"),
