@@ -35,7 +35,7 @@ go get -u 'github.com/togethercomputer/together-go@v0.12.0'
 
 ## Requirements
 
-This library requires Go 1.22+.
+This library requires Go 1.27.3+.
 
 ## Usage
 

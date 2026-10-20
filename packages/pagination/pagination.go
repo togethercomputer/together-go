@@ -3,6 +3,7 @@
 package pagination
 
 import (
+	"iter"
 	"net/http"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
@@ -116,4 +117,14 @@ func (r *CursorPaginationAutoPager[T]) Err() error {
 
 func (r *CursorPaginationAutoPager[T]) Index() int {
 	return r.run
+}
+
+func (r *CursorPaginationAutoPager[T]) All() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for r.Next() {
+			if !yield(r.Current()) {
+				break
+			}
+		}
+	}
 }
