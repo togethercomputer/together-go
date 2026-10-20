@@ -57,10 +57,10 @@ func main() {
 		option.WithAPIKey("My API Key"), // defaults to os.LookupEnv("TOGETHER_API_KEY")
 	)
 	chatCompletion, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionNewParamsMessageUnion{{
-			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
-				Role: "user",
-				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+		Messages: []together.ChatCompletionMessageParamUnion{{
+			OfChatCompletionUserMessage: &together.ChatCompletionUserMessageParam{
+				Role: together.ChatCompletionUserMessageParamRoleUser,
+				Content: together.ChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test!"),
 				},
 			},
@@ -333,10 +333,10 @@ To handle errors, we recommend that you use the `errors.As` pattern:
 
 ```go
 _, err := client.Chat.Completions.New(context.TODO(), together.ChatCompletionNewParams{
-	Messages: []together.ChatCompletionNewParamsMessageUnion{{
-		OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
-			Role: "user",
-			Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+	Messages: []together.ChatCompletionMessageParamUnion{{
+		OfChatCompletionUserMessage: &together.ChatCompletionUserMessageParam{
+			Role: together.ChatCompletionUserMessageParamRoleUser,
+			Content: together.ChatCompletionUserMessageParamContentUnion{
 				OfString: together.String("Say this is a test"),
 			},
 		},
@@ -370,10 +370,10 @@ defer cancel()
 client.Chat.Completions.New(
 	ctx,
 	together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionNewParamsMessageUnion{{
-			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
-				Role: "user",
-				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+		Messages: []together.ChatCompletionMessageParamUnion{{
+			OfChatCompletionUserMessage: &together.ChatCompletionUserMessageParam{
+				Role: together.ChatCompletionUserMessageParamRoleUser,
+				Content: together.ChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -440,10 +440,10 @@ client := together.NewClient(
 client.Chat.Completions.New(
 	context.TODO(),
 	together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionNewParamsMessageUnion{{
-			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
-				Role: "user",
-				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+		Messages: []together.ChatCompletionMessageParamUnion{{
+			OfChatCompletionUserMessage: &together.ChatCompletionUserMessageParam{
+				Role: together.ChatCompletionUserMessageParamRoleUser,
+				Content: together.ChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
@@ -465,10 +465,10 @@ var response *http.Response
 chatCompletion, err := client.Chat.Completions.New(
 	context.TODO(),
 	together.ChatCompletionNewParams{
-		Messages: []together.ChatCompletionNewParamsMessageUnion{{
-			OfChatCompletionNewsMessageChatCompletionUserMessageParam: &together.ChatCompletionNewParamsMessageChatCompletionUserMessageParam{
-				Role: "user",
-				Content: together.ChatCompletionNewParamsMessageChatCompletionUserMessageParamContentUnion{
+		Messages: []together.ChatCompletionMessageParamUnion{{
+			OfChatCompletionUserMessage: &together.ChatCompletionUserMessageParam{
+				Role: together.ChatCompletionUserMessageParamRoleUser,
+				Content: together.ChatCompletionUserMessageParamContentUnion{
 					OfString: together.String("Say this is a test"),
 				},
 			},
