@@ -182,15 +182,15 @@ type Remediation struct {
 	InstanceID string `json:"instance_id" api:"required"`
 	// Remediation mode specifies how the remediation should be performed.
 	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
-	//     provisioning a replacement.
-	//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
-	//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Cordons and power-cycles the bare-metal
-	//     host while preserving host and node identity.
+	// - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
+	//   available host.
+	// - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
+	//   provisions a new one on a different host.
+	// - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+	//   provisioning a replacement.
+	// - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+	// - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Cordons and power-cycles the bare-metal
+	//   host while preserving host and node identity.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM",
@@ -198,26 +198,26 @@ type Remediation struct {
 	Mode RemediationMode `json:"mode" api:"required"`
 	// RemediationState represents the lifecycle state of a remediation.
 	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//   - `QUARANTINING`: Cordoning or preparing the host before remediation.
-	//   - `QUARANTINED`: Host has been cordoned or isolated for remediation.
+	// - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
+	// - `PENDING`: Approved and queued for processing.
+	// - `RUNNING`: Actively being processed.
+	// - `SUCCEEDED`: Successfully completed.
+	// - `FAILED`: Failed with an error.
+	// - `CANCELLED`: Cancelled by user or system.
+	// - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
+	//   processing.
+	// - `QUARANTINING`: Cordoning or preparing the host before remediation.
+	// - `QUARANTINED`: Host has been cordoned or isolated for remediation.
 	//
 	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
 	// "CANCELLED", "AUTO_RESOLVED", "QUARANTINING", "QUARANTINED".
 	State RemediationState `json:"state" api:"required"`
 	// RemediationTrigger specifies how the remediation was triggered.
 	//
-	//   - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
-	//     or API call).
-	//   - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
-	//     approval.
+	// - `REMEDIATION_TRIGGER_MANUAL`: A user-initiated remediation (either via web UI
+	//   or API call).
+	// - `REMEDIATION_TRIGGER_AUTOMATED`: A system-initiated remediation that requires
+	//   approval.
 	//
 	// Any of "REMEDIATION_TRIGGER_MANUAL", "REMEDIATION_TRIGGER_AUTOMATED".
 	Trigger RemediationTrigger `json:"trigger" api:"required"`
@@ -500,15 +500,15 @@ func (r *RemediationLinkedAlertAnnotationXidEvent) UnmarshalJSON(data []byte) er
 type RemediationParam struct {
 	// Remediation mode specifies how the remediation should be performed.
 	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
-	//     provisioning a replacement.
-	//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
-	//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Cordons and power-cycles the bare-metal
-	//     host while preserving host and node identity.
+	// - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
+	//   available host.
+	// - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
+	//   provisions a new one on a different host.
+	// - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+	//   provisioning a replacement.
+	// - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+	// - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Cordons and power-cycles the bare-metal
+	//   host while preserving host and node identity.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM",
@@ -681,16 +681,16 @@ type ClusterRemediationListParams struct {
 	Mode []string `query:"mode,omitzero" json:"-"`
 	// Filter by state(s). Returns remediations matching any of the specified states.
 	//
-	//   - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
-	//   - `PENDING`: Approved and queued for processing.
-	//   - `RUNNING`: Actively being processed.
-	//   - `SUCCEEDED`: Successfully completed.
-	//   - `FAILED`: Failed with an error.
-	//   - `CANCELLED`: Cancelled by user or system.
-	//   - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
-	//     processing.
-	//   - `QUARANTINING`: Cordoning or preparing the host before remediation.
-	//   - `QUARANTINED`: Host has been cordoned or isolated for remediation.
+	// - `PENDING_APPROVAL`: Awaiting approval before processing can begin.
+	// - `PENDING`: Approved and queued for processing.
+	// - `RUNNING`: Actively being processed.
+	// - `SUCCEEDED`: Successfully completed.
+	// - `FAILED`: Failed with an error.
+	// - `CANCELLED`: Cancelled by user or system.
+	// - `AUTO_RESOLVED`: The underlying issue was automatically resolved before
+	//   processing.
+	// - `QUARANTINING`: Cordoning or preparing the host before remediation.
+	// - `QUARANTINED`: Host has been cordoned or isolated for remediation.
 	//
 	// Any of "PENDING_APPROVAL", "PENDING", "RUNNING", "SUCCEEDED", "FAILED",
 	// "CANCELLED", "AUTO_RESOLVED", "QUARANTINING", "QUARANTINED".
@@ -720,16 +720,16 @@ type ClusterRemediationApproveParams struct {
 	// Remediation mode to use after approval. When omitted, the remediation keeps its
 	// existing mode.
 	//
-	//   - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
-	//     available host.
-	//   - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
-	//     provisions a new one on a different host.
-	//   - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
-	//     provisioning a replacement.
-	//   - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
-	//   - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Power-cycles the bare-metal host after
-	//     cordoning it. This mode cannot be set as an approval override; create a host
-	//     power-cycle remediation directly.
+	// - `REMEDIATION_MODE_VM_ONLY`: Deletes the VM and provisions a new one on any
+	//   available host.
+	// - `REMEDIATION_MODE_HOST_AWARE`: Cordons the host, deletes the VM, and
+	//   provisions a new one on a different host.
+	// - `REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT`: Evicts the VM without
+	//   provisioning a replacement.
+	// - `REMEDIATION_MODE_REBOOT_VM`: Reboots the VM in place.
+	// - `REMEDIATION_MODE_HOST_POWER_CYCLE`: Power-cycles the bare-metal host after
+	//   cordoning it. This mode cannot be set as an approval override; create a host
+	//   power-cycle remediation directly.
 	//
 	// Any of "REMEDIATION_MODE_VM_ONLY", "REMEDIATION_MODE_HOST_AWARE",
 	// "REMEDIATION_MODE_EVICT_WITHOUT_REPLACEMENT", "REMEDIATION_MODE_REBOOT_VM",

@@ -1081,10 +1081,10 @@ type EvalNewParamsParametersEvaluationClassifyParametersJudge struct {
 	// Together dedicated deployment endpoint. Default concurrency: 5 workers (minimum
 	// enforced even if num_workers is set lower).
 	//
-	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
-	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
-	//     concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
-	//     endpoints.
+	// - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//   OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//   concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
+	//   endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
@@ -1164,10 +1164,10 @@ type EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateEvaluatio
 	// even if num_workers is set lower). Authentication uses the requesting user's
 	// Together API token automatically.
 	//
-	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
-	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
-	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
-	//     for proxy/aggregator endpoints.
+	// - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//   OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//   concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//   for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
@@ -1236,10 +1236,10 @@ type EvalNewParamsParametersEvaluationScoreParametersJudge struct {
 	// Together dedicated deployment endpoint. Default concurrency: 5 workers (minimum
 	// enforced even if num_workers is set lower).
 	//
-	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
-	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
-	//     concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
-	//     endpoints.
+	// - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//   OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//   concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
+	//   endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
@@ -1319,10 +1319,10 @@ type EvalNewParamsParametersEvaluationScoreParametersModelToEvaluateEvaluationMo
 	// even if num_workers is set lower). Authentication uses the requesting user's
 	// Together API token automatically.
 	//
-	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
-	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
-	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
-	//     for proxy/aggregator endpoints.
+	// - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//   OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//   concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//   for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
@@ -1399,10 +1399,10 @@ type EvalNewParamsParametersEvaluationCompareParametersJudge struct {
 	// Together dedicated deployment endpoint. Default concurrency: 5 workers (minimum
 	// enforced even if num_workers is set lower).
 	//
-	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
-	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
-	//     concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
-	//     endpoints.
+	// - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//   OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//   concurrency: 2 workers for first-party APIs, 20 for proxy/aggregator
+	//   endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
@@ -1482,10 +1482,10 @@ type EvalNewParamsParametersEvaluationCompareParametersModelAEvaluationModelRequ
 	// even if num_workers is set lower). Authentication uses the requesting user's
 	// Together API token automatically.
 	//
-	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
-	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
-	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
-	//     for proxy/aggregator endpoints.
+	// - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//   OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//   concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//   for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
@@ -1560,10 +1560,10 @@ type EvalNewParamsParametersEvaluationCompareParametersModelBEvaluationModelRequ
 	// even if num_workers is set lower). Authentication uses the requesting user's
 	// Together API token automatically.
 	//
-	//   - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
-	//     OpenRouter). Requires `external_api_token` and `external_base_url`. Default
-	//     concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
-	//     for proxy/aggregator endpoints.
+	// - `external`: An external inference API (e.g. OpenAI, Anthropic, Google,
+	//   OpenRouter). Requires `external_api_token` and `external_base_url`. Default
+	//   concurrency: 2 workers for first-party APIs (OpenAI, Anthropic, Google), 20
+	//   for proxy/aggregator endpoints.
 	//
 	// Any of "serverless", "dedicated", "external".
 	ModelSource string `json:"model_source,omitzero" api:"required"`
