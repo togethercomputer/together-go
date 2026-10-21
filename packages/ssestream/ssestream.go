@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"iter"
 	"net/http"
 	"strings"
 
@@ -134,7 +135,7 @@ func (s *eventStreamDecoder) Err() error {
 }
 
 func (e *eventStreamDecoder) All() iter.Seq[Event] {
-	return func(yield func(T) bool) {
+	return func(yield func(Event) bool) {
 		for e.Next() {
 			if !yield(e.Event()) {
 				break
