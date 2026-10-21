@@ -637,8 +637,6 @@ type ClusterRemediationNewParams struct {
 	// can have multiple remediations over time (e.g., failed attempts followed by
 	// retries).
 	Remediation RemediationParam
-	// Client-specified ID for idempotency.
-	RemediationID param.Opt[string] `query:"remediation_id,omitzero" json:"-"`
 	paramObj
 }
 
@@ -647,15 +645,6 @@ func (r ClusterRemediationNewParams) MarshalJSON() (data []byte, err error) {
 }
 func (r *ClusterRemediationNewParams) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
-}
-
-// URLQuery serializes [ClusterRemediationNewParams]'s query parameters as
-// `url.Values`.
-func (r ClusterRemediationNewParams) URLQuery() (v url.Values, err error) {
-	return apiquery.MarshalWithSettings(r, apiquery.QuerySettings{
-		ArrayFormat:  apiquery.ArrayQueryFormatComma,
-		NestedFormat: apiquery.NestedQueryFormatBrackets,
-	})
 }
 
 type ClusterRemediationGetParams struct {

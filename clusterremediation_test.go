@@ -34,7 +34,6 @@ func TestClusterRemediationNewWithOptionalParams(t *testing.T) {
 				Mode:   together.RemediationModeRemediationModeVmOnly,
 				Reason: together.String("reason"),
 			},
-			RemediationID: together.String("remediation_id"),
 		},
 	)
 	if err != nil {
