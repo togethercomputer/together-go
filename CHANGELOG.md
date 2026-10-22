@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/togethercomputer/together-go/compare/v0.13.0...v0.14.0) (2026-10-22)
+
+
+### Features
+
+* **openapi:** add applied_credit to billing usage line items ([7f826e1](https://github.com/togethercomputer/together-go/commit/7f826e1d9702eb39714e5cbfb727873e32e4a6e5))
+
 ## [0.13.0](https://github.com/togethercomputer/together-go/compare/v0.12.0...v0.13.0) (2026-10-21)
 
 
