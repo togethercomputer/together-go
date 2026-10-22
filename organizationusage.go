@@ -47,6 +47,8 @@ type BillingUsageLineItem struct {
 	Quantity string `json:"quantity" api:"required"`
 	// Per-unit price in USD as a decimal string.
 	UnitPrice string `json:"unit_price" api:"required"`
+	// Credit covering this usage. Omitted for uncovered usage.
+	AppliedCredit BillingUsageLineItemAppliedCredit `json:"applied_credit"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Attributes        respjson.Field
@@ -55,6 +57,7 @@ type BillingUsageLineItem struct {
 		ProductName       respjson.Field
 		Quantity          respjson.Field
 		UnitPrice         respjson.Field
+		AppliedCredit     respjson.Field
 		ExtraFields       map[string]respjson.Field
 		raw               string
 	} `json:"-"`
@@ -63,6 +66,24 @@ type BillingUsageLineItem struct {
 // Returns the unmodified JSON received from the API
 func (r BillingUsageLineItem) RawJSON() string { return r.JSON.raw }
 func (r *BillingUsageLineItem) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Credit covering this usage. Omitted for uncovered usage.
+type BillingUsageLineItemAppliedCredit struct {
+	// Any of "PREPAID", "POSTPAID", "CREDIT".
+	Type string `json:"type" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		Type        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r BillingUsageLineItemAppliedCredit) RawJSON() string { return r.JSON.raw }
+func (r *BillingUsageLineItemAppliedCredit) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
