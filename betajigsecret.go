@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/togethercomputer/together-go/internal/apijson"
 	"github.com/togethercomputer/together-go/internal/requestconfig"
@@ -96,6 +97,9 @@ type Secret struct {
 	CreatedBy string `json:"created_by"`
 	// Description is a human-readable description of the secret's purpose
 	Description string `json:"description"`
+	// ExpiresAt is the ISO8601 timestamp when this secret expires and is deleted.
+	// Changing the value extends it. Omitted for secrets that never expire
+	ExpiresAt time.Time `json:"expires_at" format:"date-time"`
 	// LastUpdatedBy is the identifier of who last updated this secret.
 	LastUpdatedBy string `json:"last_updated_by"`
 	// Name is the name/key of the secret
@@ -104,6 +108,8 @@ type Secret struct {
 	//
 	// Any of "secret".
 	Object SecretObject `json:"object"`
+	// TTLSeconds is the secret's lifetime in seconds. Omitted when no TTL is set
+	TtlSeconds int64 `json:"ttl_seconds"`
 	// UpdatedAt is the ISO8601 timestamp when this secret was last updated
 	UpdatedAt string `json:"updated_at"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -112,9 +118,11 @@ type Secret struct {
 		CreatedAt     respjson.Field
 		CreatedBy     respjson.Field
 		Description   respjson.Field
+		ExpiresAt     respjson.Field
 		LastUpdatedBy respjson.Field
 		Name          respjson.Field
 		Object        respjson.Field
+		TtlSeconds    respjson.Field
 		UpdatedAt     respjson.Field
 		ExtraFields   map[string]respjson.Field
 		raw           string
@@ -179,6 +187,9 @@ type BetaJigSecretNewParams struct {
 	// ProjectID is ignored - the project is automatically determined from your
 	// authentication
 	ProjectID param.Opt[string] `json:"project_id,omitzero"`
+	// TTLSeconds is how long the secret lives before it is deleted, between 86400 (1
+	// day) and 1209600 (14 days)
+	TtlSeconds param.Opt[int64] `json:"ttl_seconds,omitzero"`
 	paramObj
 }
 
@@ -201,6 +212,9 @@ type BetaJigSecretUpdateParams struct {
 	// ProjectID is ignored - the project is automatically determined from your
 	// authentication
 	ProjectID param.Opt[string] `json:"project_id,omitzero"`
+	// TTLSeconds sets a new lifetime and restarts the expiry from now, between 86400
+	// (1 day) and 1209600 (14 days)
+	TtlSeconds param.Opt[int64] `json:"ttl_seconds,omitzero"`
 	// Value is the new sensitive data to store securely. Updating this replaces the
 	// existing secret value.
 	Value param.Opt[string] `json:"value,omitzero"`

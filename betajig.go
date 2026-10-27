@@ -432,13 +432,17 @@ type DeploymentEnvironmentVariable struct {
 	// for sensitive values like API keys or passwords. Either Value or ValueFromSecret
 	// must be set, but not both
 	ValueFromSecret string `json:"value_from_secret"`
+	// ValueFromSecretExpiresAt is the ISO8601 timestamp when the referenced secret
+	// expires and is deleted. Read-only, ignored in requests
+	ValueFromSecretExpiresAt time.Time `json:"value_from_secret_expires_at" format:"date-time"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Name            respjson.Field
-		Value           respjson.Field
-		ValueFromSecret respjson.Field
-		ExtraFields     map[string]respjson.Field
-		raw             string
+		Name                     respjson.Field
+		Value                    respjson.Field
+		ValueFromSecret          respjson.Field
+		ValueFromSecretExpiresAt respjson.Field
+		ExtraFields              map[string]respjson.Field
+		raw                      string
 	} `json:"-"`
 }
 
@@ -675,13 +679,17 @@ type DeploymentRevisionEnvironmentVariable struct {
 	// for sensitive values like API keys or passwords. Either Value or ValueFromSecret
 	// must be set, but not both
 	ValueFromSecret string `json:"value_from_secret"`
+	// ValueFromSecretExpiresAt is the ISO8601 timestamp when the referenced secret
+	// expires and is deleted. Read-only, ignored in requests
+	ValueFromSecretExpiresAt time.Time `json:"value_from_secret_expires_at" format:"date-time"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		Name            respjson.Field
-		Value           respjson.Field
-		ValueFromSecret respjson.Field
-		ExtraFields     map[string]respjson.Field
-		raw             string
+		Name                     respjson.Field
+		Value                    respjson.Field
+		ValueFromSecret          respjson.Field
+		ValueFromSecretExpiresAt respjson.Field
+		ExtraFields              map[string]respjson.Field
+		raw                      string
 	} `json:"-"`
 }
 

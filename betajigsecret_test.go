@@ -30,6 +30,7 @@ func TestBetaJigSecretNewWithOptionalParams(t *testing.T) {
 		Value:       "x",
 		Description: together.String("description"),
 		ProjectID:   together.String("project_id"),
+		TtlSeconds:  together.Int(86400),
 	})
 	if err != nil {
 		var apierr *together.Error
@@ -81,6 +82,7 @@ func TestBetaJigSecretUpdateWithOptionalParams(t *testing.T) {
 			Description: together.String("description"),
 			Name:        together.String("x"),
 			ProjectID:   together.String("project_id"),
+			TtlSeconds:  together.Int(86400),
 			Value:       together.String("x"),
 		},
 	)
