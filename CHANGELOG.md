@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.14.0](https://github.com/togethercomputer/together-go/compare/v0.13.0...v0.14.0) (2026-10-30)
+
+
+### Features
+
+* **clusters:** add GB200 GPU cluster type ([35ff35f](https://github.com/togethercomputer/together-go/commit/35ff35f838694e72da122a29b787a295b64f1d46))
+* **openapi:** add applied_credit to billing usage line items ([7f826e1](https://github.com/togethercomputer/together-go/commit/7f826e1d9702eb39714e5cbfb727873e32e4a6e5))
+* **rl:** add methods to extend and manage model resources expiry ([35271ef](https://github.com/togethercomputer/together-go/commit/35271ef6e213f7a1a67beaab381c90e703c44a2d))
+* **rl:** inactive_timeout and extend-expiry in seconds ([e4a0e44](https://github.com/togethercomputer/together-go/commit/e4a0e44651d9cd7b9b0249dd5df0f7809ba9e211))
+* **secrets:** Add parameters for secret expiry ttl ([16ca009](https://github.com/togethercomputer/together-go/commit/16ca009b4ab86f0439e91f7fae12c524431863f0))
+
+
+### Bug Fixes
+
+* **clusters:** Update add-on specs ([5dda622](https://github.com/togethercomputer/together-go/commit/5dda622c9d3dbc93775b9f5b4e5144272cb0a826))
+
 ## [0.13.0](https://github.com/togethercomputer/together-go/compare/v0.12.0...v0.13.0) (2026-10-21)
 
 
