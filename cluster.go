@@ -276,15 +276,12 @@ type ClusterAddOnConfig struct {
 	Ingress  ClusterAddOnConfigIngress  `json:"ingress"`
 	// Configuration for the Slurm Web add-on.
 	SlurmWeb ClusterAddOnConfigSlurmWeb `json:"slurm_web"`
-	// Configuration for the Model Aware TorchPass add-on.
-	Torchpass ClusterAddOnConfigTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Dashboard   respjson.Field
 		Headlamp    respjson.Field
 		Ingress     respjson.Field
 		SlurmWeb    respjson.Field
-		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -364,24 +361,6 @@ func (r *ClusterAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
-// Configuration for the Model Aware TorchPass add-on.
-type ClusterAddOnConfigTorchpass struct {
-	// Whether to enable the Model Aware TorchPass add-on.
-	Enabled bool `json:"enabled"`
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		Enabled     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ClusterAddOnConfigTorchpass) RawJSON() string { return r.JSON.raw }
-func (r *ClusterAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
 // State for a cluster add-on.
 type ClusterAddOnState struct {
 	Dashboard ClusterAddOnStateDashboard `json:"dashboard"`
@@ -390,15 +369,12 @@ type ClusterAddOnState struct {
 	Ingress  ClusterAddOnStateIngress  `json:"ingress"`
 	// State for the Slurm Web add-on.
 	SlurmWeb ClusterAddOnStateSlurmWeb `json:"slurm_web"`
-	// State for the Model Aware TorchPass add-on.
-	Torchpass ClusterAddOnStateTorchpass `json:"torchpass"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		Dashboard   respjson.Field
 		Headlamp    respjson.Field
 		Ingress     respjson.Field
 		SlurmWeb    respjson.Field
-		Torchpass   respjson.Field
 		ExtraFields map[string]respjson.Field
 		raw         string
 	} `json:"-"`
@@ -465,21 +441,6 @@ type ClusterAddOnStateSlurmWeb struct {
 // Returns the unmodified JSON received from the API
 func (r ClusterAddOnStateSlurmWeb) RawJSON() string { return r.JSON.raw }
 func (r *ClusterAddOnStateSlurmWeb) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// State for the Model Aware TorchPass add-on.
-type ClusterAddOnStateTorchpass struct {
-	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
-	JSON struct {
-		ExtraFields map[string]respjson.Field
-		raw         string
-	} `json:"-"`
-}
-
-// Returns the unmodified JSON received from the API
-func (r ClusterAddOnStateTorchpass) RawJSON() string { return r.JSON.raw }
-func (r *ClusterAddOnStateTorchpass) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1288,7 +1249,7 @@ func init() {
 
 // The properties AddOnType, Name are required.
 type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOn struct {
-	// Type of add-on. Valid values: 'dashboard', 'ingress', 'torchpass'.
+	// Type of add-on. Valid values: 'dashboard', 'ingress'
 	AddOnType string `json:"add_on_type" api:"required"`
 	// Human-readable name for this add-on instance.
 	Name string `json:"name" api:"required"`
@@ -1313,8 +1274,6 @@ type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfig struct 
 	Ingress  ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigIngress  `json:"ingress,omitzero"`
 	// Configuration for the Slurm Web add-on.
 	SlurmWeb ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
-	// Configuration for the Model Aware TorchPass add-on.
-	Torchpass ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
 }
 
@@ -1379,21 +1338,6 @@ func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurm
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Configuration for the Model Aware TorchPass add-on.
-type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass struct {
-	// Whether to enable the Model Aware TorchPass add-on.
-	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	paramObj
-}
-
-func (r ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -1706,7 +1650,7 @@ func init() {
 
 // The properties AddOnType, Name are required.
 type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOn struct {
-	// Type of add-on. Valid values: 'dashboard', 'ingress', 'torchpass'.
+	// Type of add-on. Valid values: 'dashboard', 'ingress'
 	AddOnType string `json:"add_on_type" api:"required"`
 	// Human-readable name for this add-on instance.
 	Name string `json:"name" api:"required"`
@@ -1731,8 +1675,6 @@ type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfig struct {
 	Ingress  ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigIngress  `json:"ingress,omitzero"`
 	// Configuration for the Slurm Web add-on.
 	SlurmWeb ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
-	// Configuration for the Model Aware TorchPass add-on.
-	Torchpass ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
 }
 
@@ -1797,21 +1739,6 @@ func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmW
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Configuration for the Model Aware TorchPass add-on.
-type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass struct {
-	// Whether to enable the Model Aware TorchPass add-on.
-	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	paramObj
-}
-
-func (r ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidiaAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
@@ -2028,8 +1955,6 @@ type ClusterUpdateParamsAddOnConfig struct {
 	Ingress  ClusterUpdateParamsAddOnConfigIngress  `json:"ingress,omitzero"`
 	// Configuration for the Slurm Web add-on.
 	SlurmWeb ClusterUpdateParamsAddOnConfigSlurmWeb `json:"slurm_web,omitzero"`
-	// Configuration for the Model Aware TorchPass add-on.
-	Torchpass ClusterUpdateParamsAddOnConfigTorchpass `json:"torchpass,omitzero"`
 	paramObj
 }
 
@@ -2094,21 +2019,6 @@ func (r ClusterUpdateParamsAddOnConfigSlurmWeb) MarshalJSON() (data []byte, err 
 	return param.MarshalObject(r, (*shadow)(&r))
 }
 func (r *ClusterUpdateParamsAddOnConfigSlurmWeb) UnmarshalJSON(data []byte) error {
-	return apijson.UnmarshalRoot(data, r)
-}
-
-// Configuration for the Model Aware TorchPass add-on.
-type ClusterUpdateParamsAddOnConfigTorchpass struct {
-	// Whether to enable the Model Aware TorchPass add-on.
-	Enabled param.Opt[bool] `json:"enabled,omitzero"`
-	paramObj
-}
-
-func (r ClusterUpdateParamsAddOnConfigTorchpass) MarshalJSON() (data []byte, err error) {
-	type shadow ClusterUpdateParamsAddOnConfigTorchpass
-	return param.MarshalObject(r, (*shadow)(&r))
-}
-func (r *ClusterUpdateParamsAddOnConfigTorchpass) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 

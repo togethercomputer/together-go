@@ -60,9 +60,6 @@ func TestClusterNewWithOptionalParams(t *testing.T) {
 					SlurmWeb: together.ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigSlurmWeb{
 						Enabled: together.Bool(true),
 					},
-					Torchpass: together.ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersionAddOnConfigTorchpass{
-						Enabled: together.Bool(true),
-					},
 				},
 			}},
 			AutoScale:        together.Bool(true),
@@ -184,9 +181,6 @@ func TestClusterUpdateWithOptionalParams(t *testing.T) {
 						Enabled: together.Bool(true),
 					},
 					SlurmWeb: together.ClusterUpdateParamsAddOnConfigSlurmWeb{
-						Enabled: together.Bool(true),
-					},
-					Torchpass: together.ClusterUpdateParamsAddOnConfigTorchpass{
 						Enabled: together.Bool(true),
 					},
 				},
