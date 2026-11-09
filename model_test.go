@@ -117,6 +117,7 @@ func TestModelListWithOptionalParams(t *testing.T) {
 		ProjectID:      together.String("projectId"),
 		After:          together.String("after"),
 		Limit:          together.Int(0),
+		OrderBy:        together.String("orderBy"),
 		OrganizationID: together.String("organizationId"),
 		Visibility:     together.ModelListParamsVisibilityVisibilityPrivate,
 	})
@@ -202,8 +203,9 @@ func TestModelListOrgScopedWithOptionalParams(t *testing.T) {
 		context.TODO(),
 		"organizationId",
 		together.ModelListOrgScopedParams{
-			After: together.String("after"),
-			Limit: together.Int(0),
+			After:   together.String("after"),
+			Limit:   together.Int(0),
+			OrderBy: together.String("orderBy"),
 		},
 	)
 	if err != nil {

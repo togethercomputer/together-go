@@ -317,8 +317,12 @@ type Model struct {
 	BaseModel string `json:"baseModel"`
 	// ID of the supported or custom base model from which this model was derived.
 	BaseModelID string `json:"baseModelId"`
+	// Output only. Timestamp when the model was created.
+	CreatedAt time.Time `json:"createdAt" format:"date-time"`
 	// Human-readable description of the model and its intended use.
 	Description string `json:"description"`
+	// Output only. Timestamp when the model was last updated.
+	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID             respjson.Field
@@ -329,7 +333,9 @@ type Model struct {
 		Weights        respjson.Field
 		BaseModel      respjson.Field
 		BaseModelID    respjson.Field
+		CreatedAt      respjson.Field
 		Description    respjson.Field
+		UpdatedAt      respjson.Field
 		ExtraFields    map[string]respjson.Field
 		raw            string
 	} `json:"-"`
@@ -946,6 +952,9 @@ type ModelListParams struct {
 	After param.Opt[string] `query:"after,omitzero" json:"-"`
 	// Maximum number of models to return.
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Sort field for the results. Supports `created_at`, optionally followed by `asc`
+	// or `desc`. Defaults to ascending.
+	OrderBy param.Opt[string] `query:"orderBy,omitzero" json:"-"`
 	// Organization whose shared models should be included. Defaults to the
 	// authenticated project's organization.
 	OrganizationID param.Opt[string] `query:"organizationId,omitzero" json:"-"`
@@ -1005,6 +1014,9 @@ type ModelListOrgScopedParams struct {
 	After param.Opt[string] `query:"after,omitzero" json:"-"`
 	// Maximum number of results to return.
 	Limit param.Opt[int64] `query:"limit,omitzero" json:"-"`
+	// Sort field for the results. Supports `created_at`, optionally followed by `asc`
+	// or `desc`. Defaults to ascending.
+	OrderBy param.Opt[string] `query:"orderBy,omitzero" json:"-"`
 	paramObj
 }
 
