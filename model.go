@@ -261,6 +261,24 @@ func (r *ModelService) ListSupportedAutoPaging(ctx context.Context, query ModelL
 	return pagination.NewCursorPaginationAutoPager(r.ListSupported(ctx, query, opts...))
 }
 
+// Retrieves a custom model shared with every project in the specified
+// organization, regardless of which project owns it. Returns not found if the
+// model belongs to another organization or is not organization-scoped.
+func (r *ModelService) GetOrgModel(ctx context.Context, organizationID string, modelID string, opts ...option.RequestOption) (res *Model, err error) {
+	opts = slices.Concat(r.Options, opts)
+	if organizationID == "" {
+		err = errors.New("missing required organizationId parameter")
+		return nil, err
+	}
+	if modelID == "" {
+		err = errors.New("missing required modelId parameter")
+		return nil, err
+	}
+	path := fmt.Sprintf("v2/organizations/%s/models/%s", organizationID, modelID)
+	err = requestconfig.ExecuteNewRequest(ctx, http.MethodGet, path, nil, &res, opts...)
+	return res, err
+}
+
 // Retrieves a Together-hosted base model and the certified model, configuration,
 // hardware, and performance profiles available for deployment.
 func (r *ModelService) GetSupported(ctx context.Context, id string, opts ...option.RequestOption) (res *SupportedModel, err error) {
