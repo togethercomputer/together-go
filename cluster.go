@@ -132,7 +132,7 @@ type Cluster struct {
 	// Type of GPU used by the cluster.
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
-	// "H100_SXM_INF", "B300_SXM", "GB200_SXM".
+	// "H100_SXM_INF", "B300_SXM", "GB200_NVL".
 	GPUType        ClusterGPUType         `json:"gpu_type" api:"required"`
 	GPUWorkerNodes []ClusterGPUWorkerNode `json:"gpu_worker_nodes" api:"required"`
 	KubeConfig     string                 `json:"kube_config" api:"required"`
@@ -528,7 +528,7 @@ const (
 	ClusterGPUTypeB200Sxm    ClusterGPUType = "B200_SXM"
 	ClusterGPUTypeH100SxmInf ClusterGPUType = "H100_SXM_INF"
 	ClusterGPUTypeB300Sxm    ClusterGPUType = "B300_SXM"
-	ClusterGPUTypeGb200Sxm   ClusterGPUType = "GB200_SXM"
+	ClusterGPUTypeGb200Nvl   ClusterGPUType = "GB200_NVL"
 )
 
 type ClusterGPUWorkerNode struct {
@@ -1110,7 +1110,7 @@ type ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion struct {
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
-	// "H100_SXM_INF", "B300_SXM", "GB200_SXM".
+	// "H100_SXM_INF", "B300_SXM", "GB200_NVL".
 	GPUType string `json:"gpu_type,omitzero" api:"required"`
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
@@ -1200,7 +1200,7 @@ func init() {
 		"billing_type", "RESERVED", "ON_DEMAND", "SCHEDULED_CAPACITY",
 	)
 	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion](
-		"gpu_type", "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM", "H100_SXM_INF", "B300_SXM", "GB200_SXM",
+		"gpu_type", "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM", "H100_SXM_INF", "B300_SXM", "GB200_NVL",
 	)
 	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestNvidiaVersion](
 		"cluster_type", "KUBERNETES", "SLURM",
@@ -1516,7 +1516,7 @@ type ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia struct {
 	// Type of GPU to use in the cluster
 	//
 	// Any of "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM",
-	// "H100_SXM_INF", "B300_SXM", "GB200_SXM".
+	// "H100_SXM_INF", "B300_SXM", "GB200_NVL".
 	GPUType string `json:"gpu_type,omitzero" api:"required"`
 	// Number of GPUs to allocate in the cluster. This must be multiple of 8. For
 	// example, 8, 16 or 24
@@ -1601,7 +1601,7 @@ func init() {
 		"billing_type", "RESERVED", "ON_DEMAND", "SCHEDULED_CAPACITY",
 	)
 	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia](
-		"gpu_type", "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM", "H100_SXM_INF", "B300_SXM", "GB200_SXM",
+		"gpu_type", "H100_SXM", "H200_SXM", "RTX_6000_PCI", "L40_PCIE", "B200_SXM", "H100_SXM_INF", "B300_SXM", "GB200_NVL",
 	)
 	apijson.RegisterFieldValidator[ClusterNewParamsBodyGPUClusterCreateRequestLegacyNvidia](
 		"cluster_type", "KUBERNETES", "SLURM",
