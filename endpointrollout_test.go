@@ -49,6 +49,7 @@ func TestEndpointRolloutNewWithOptionalParams(t *testing.T) {
 			FinalSourceReplicas: together.Int(0),
 			FinalTargetReplicas: together.Int(0),
 			MaxSurge:            together.Int(1),
+			MaxUnavailable:      together.Int(0),
 			Metrics: []together.MetricRuleParam{{
 				Name:       together.MetricRuleNameRouterLatency,
 				Percentile: together.Int(95),
@@ -264,6 +265,7 @@ func TestEndpointRolloutPreviewDefaultsWithOptionalParams(t *testing.T) {
 			FinalSourceReplicas: together.Int(0),
 			FinalTargetReplicas: together.Int(0),
 			MaxSurge:            together.Int(1),
+			MaxUnavailable:      together.Int(0),
 			Metrics: []together.MetricRuleParam{{
 				Name:       together.MetricRuleNameRouterLatency,
 				Percentile: together.Int(95),

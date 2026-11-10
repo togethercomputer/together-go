@@ -790,6 +790,8 @@ type Rollout struct {
 	// Output only. The maxSurge the rollout was created with. Absent when it was not
 	// set.
 	MaxSurge int64 `json:"maxSurge"`
+	// The maxUnavailable the rollout was created with. Absent when it was not set.
+	MaxUnavailable int64 `json:"maxUnavailable"`
 	// Pause metadata returned while a rollout is paused.
 	PauseInfo PauseInfo `json:"pauseInfo"`
 	// Output only. Timestamp when the rollout started running.
@@ -809,6 +811,7 @@ type Rollout struct {
 		CurrentTrafficPercent respjson.Field
 		Etag                  respjson.Field
 		MaxSurge              respjson.Field
+		MaxUnavailable        respjson.Field
 		PauseInfo             respjson.Field
 		StartedAt             respjson.Field
 		ExtraFields           map[string]respjson.Field
@@ -1029,6 +1032,21 @@ type RolloutDefaultsPreviewSpec struct {
 	// step-raise bound applies. Available on the canary strategy only for now; a
 	// rolling or blue-green rollout that sets it is rejected at create and preview.
 	MaxSurge int64 `json:"maxSurge"`
+	// Count of source replicas that may be missing or retired ahead of their
+	// replacements at any one time. Defaults to 0, so the rollout waits for capacity
+	// and refuses a degraded source. Spent three ways. A source already degraded at
+	// create (ready below desired by at most this many) is admitted. The engine
+	// retires source replicas ahead of a target raise to stay under maxSurge. When the
+	// target cannot be placed, it retires source replicas to make room, and only when
+	// both legs use the same GPU type; a target that cannot be placed on the source's
+	// cluster gains nothing from the retire, and the rollout then pauses naming it. It
+	// is a concurrent bound measured against the source's routed-share need, which
+	// drops after every traffic shift, so a full cluster is walked rung by rung. The
+	// last source replica is never retired before traffic moves, except at the final
+	// 100% rung, where the allowance may stop the source before the target's last
+	// replicas are ready. A 1-replica source with maxUnavailable 1 on a full cluster
+	// serves nothing while the replacement starts.
+	MaxUnavailable int64 `json:"maxUnavailable"`
 	// Optional metric gates evaluated after each step's soak. Canary only; rejected on
 	// rolling and blue-green rollouts.
 	Metrics []MetricRule `json:"metrics"`
@@ -1044,6 +1062,7 @@ type RolloutDefaultsPreviewSpec struct {
 		FinalSourceReplicas respjson.Field
 		FinalTargetReplicas respjson.Field
 		MaxSurge            respjson.Field
+		MaxUnavailable      respjson.Field
 		Metrics             respjson.Field
 		Rolling             respjson.Field
 		ExtraFields         map[string]respjson.Field
@@ -1354,6 +1373,21 @@ type EndpointRolloutNewParams struct {
 	// step-raise bound applies. Available on the canary strategy only for now; a
 	// rolling or blue-green rollout that sets it is rejected at create and preview.
 	MaxSurge param.Opt[int64] `json:"maxSurge,omitzero"`
+	// Count of source replicas that may be missing or retired ahead of their
+	// replacements at any one time. Defaults to 0, so the rollout waits for capacity
+	// and refuses a degraded source. Spent three ways. A source already degraded at
+	// create (ready below desired by at most this many) is admitted. The engine
+	// retires source replicas ahead of a target raise to stay under maxSurge. When the
+	// target cannot be placed, it retires source replicas to make room, and only when
+	// both legs use the same GPU type; a target that cannot be placed on the source's
+	// cluster gains nothing from the retire, and the rollout then pauses naming it. It
+	// is a concurrent bound measured against the source's routed-share need, which
+	// drops after every traffic shift, so a full cluster is walked rung by rung. The
+	// last source replica is never retired before traffic moves, except at the final
+	// 100% rung, where the allowance may stop the source before the target's last
+	// replicas are ready. A 1-replica source with maxUnavailable 1 on a full cluster
+	// serves nothing while the replacement starts.
+	MaxUnavailable param.Opt[int64] `json:"maxUnavailable,omitzero"`
 	// Blue-green strategy configuration for a single cutover to the target deployment.
 	BlueGreen BlueGreenConfigParam `json:"blueGreen,omitzero"`
 	// Canary strategy configuration for gradual traffic progression. An empty config
@@ -1537,6 +1571,21 @@ type EndpointRolloutPreviewDefaultsParams struct {
 	// step-raise bound applies. Available on the canary strategy only for now; a
 	// rolling or blue-green rollout that sets it is rejected at create and preview.
 	MaxSurge param.Opt[int64] `json:"maxSurge,omitzero"`
+	// Count of source replicas that may be missing or retired ahead of their
+	// replacements at any one time. Defaults to 0, so the rollout waits for capacity
+	// and refuses a degraded source. Spent three ways. A source already degraded at
+	// create (ready below desired by at most this many) is admitted. The engine
+	// retires source replicas ahead of a target raise to stay under maxSurge. When the
+	// target cannot be placed, it retires source replicas to make room, and only when
+	// both legs use the same GPU type; a target that cannot be placed on the source's
+	// cluster gains nothing from the retire, and the rollout then pauses naming it. It
+	// is a concurrent bound measured against the source's routed-share need, which
+	// drops after every traffic shift, so a full cluster is walked rung by rung. The
+	// last source replica is never retired before traffic moves, except at the final
+	// 100% rung, where the allowance may stop the source before the target's last
+	// replicas are ready. A 1-replica source with maxUnavailable 1 on a full cluster
+	// serves nothing while the replacement starts.
+	MaxUnavailable param.Opt[int64] `json:"maxUnavailable,omitzero"`
 	// Blue-green strategy configuration for a single cutover to the target deployment.
 	BlueGreen BlueGreenConfigParam `json:"blueGreen,omitzero"`
 	// Canary strategy configuration for gradual traffic progression. An empty config
