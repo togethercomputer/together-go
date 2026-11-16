@@ -29,19 +29,19 @@ func TestEvalNewWithOptionalParams(t *testing.T) {
 	_, err := client.Evals.New(context.TODO(), together.EvalNewParams{
 		Parameters: together.EvalNewParamsParametersUnion{
 			OfEvalNewsParametersEvaluationClassifyParameters: &together.EvalNewParamsParametersEvaluationClassifyParameters{
-				InputDataFilePath: "file-1234-aefd",
+				InputDataFilePath: "input_data_file_path",
 				Judge: together.EvalNewParamsParametersEvaluationClassifyParametersJudge{
-					Model:            "Qwen/Qwen3.5-9B",
+					Model:            "model",
 					ModelSource:      "serverless",
-					SystemTemplate:   "Imagine you are a helpful assistant",
+					SystemTemplate:   "system_template",
 					ExternalAPIToken: together.String("external_api_token"),
 					ExternalBaseURL:  together.String("external_base_url"),
-					MaxTokens:        together.Int(8192),
-					NumWorkers:       together.Int(5),
+					MaxTokens:        together.Int(1),
+					NumWorkers:       together.Int(1),
 					Temperature:      together.Float(0),
 				},
-				Labels:     []string{"yes", "no"},
-				PassLabels: []string{"yes"},
+				Labels:     []string{"string", "string"},
+				PassLabels: []string{"string"},
 				ModelToEvaluate: together.EvalNewParamsParametersEvaluationClassifyParametersModelToEvaluateUnion{
 					OfString: together.String("string"),
 				},
