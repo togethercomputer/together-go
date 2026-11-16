@@ -221,10 +221,16 @@ type Deployment struct {
 	//
 	// Any of "deployment".
 	Object DeploymentObject `json:"object"`
+	// PlacementGroup co-locates deployments that share this value onto one cluster.
+	// Empty when the deployment is not in a group
+	PlacementGroup string `json:"placement_group"`
 	// Port is the container port that the deployment exposes
 	Port int64 `json:"port"`
 	// ReadyReplicas is the current number of replicas that are in the Ready state
 	ReadyReplicas int64 `json:"ready_replicas"`
+	// Regions confines the deployment to clusters in these regions (exact region or a
+	// prefix family like "us-east"). Empty means any region
+	Regions []string `json:"regions"`
 	// ReplicaEvents is a mapping of replica names or IDs to their status events
 	ReplicaEvents map[string]DeploymentReplicaEvent `json:"replica_events"`
 	// Status represents the overall status of the deployment (e.g., Updating, Scaling,
@@ -264,8 +270,10 @@ type Deployment struct {
 		ModelMounts                   respjson.Field
 		Name                          respjson.Field
 		Object                        respjson.Field
+		PlacementGroup                respjson.Field
 		Port                          respjson.Field
 		ReadyReplicas                 respjson.Field
+		Regions                       respjson.Field
 		ReplicaEvents                 respjson.Field
 		Status                        respjson.Field
 		Storage                       respjson.Field
@@ -624,6 +632,12 @@ type DeploymentRevision struct {
 	Volumes []DeploymentRevisionVolume `json:"volumes" api:"required"`
 	// Autoscaling configuration captured for this revision.
 	Autoscaling DeploymentRevisionAutoscalingUnion `json:"autoscaling"`
+	// Placement group this revision co-locates into. Empty when the revision is not in
+	// a group.
+	PlacementGroup string `json:"placement_group"`
+	// Regions this revision is confined to (exact region or a prefix family like
+	// "us-east"). Empty means any region.
+	Regions []string `json:"regions"`
 	// Seconds to wait for graceful shutdown before forcefully terminating a replica.
 	TerminationGracePeriodSeconds int64 `json:"termination_grace_period_seconds"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
@@ -648,6 +662,8 @@ type DeploymentRevision struct {
 		Storage                       respjson.Field
 		Volumes                       respjson.Field
 		Autoscaling                   respjson.Field
+		PlacementGroup                respjson.Field
+		Regions                       respjson.Field
 		TerminationGracePeriodSeconds respjson.Field
 		ExtraFields                   map[string]respjson.Field
 		raw                           string
@@ -979,6 +995,10 @@ type BetaJigUpdateParams struct {
 	// Name is the new unique identifier for your deployment. Must contain only
 	// alphanumeric characters, underscores, or hyphens (1-100 characters)
 	Name param.Opt[string] `json:"name,omitzero"`
+	// PlacementGroup co-locates deployments that share this value onto one cluster. A
+	// member that cannot co-locate stays pending. Send an empty string to clear the
+	// group; omit to leave it unchanged
+	PlacementGroup param.Opt[string] `json:"placement_group,omitzero"`
 	// Port is the container port your application listens on (e.g., 8080 for web
 	// servers)
 	Port param.Opt[int64] `json:"port,omitzero"`
@@ -1012,6 +1032,10 @@ type BetaJigUpdateParams struct {
 	// Replacement model weights to mount into the deployment. At most one mount is
 	// supported, and it cannot be used with volumes.
 	ModelMounts []BetaJigUpdateParamsModelMount `json:"model_mounts,omitzero"`
+	// Regions confines the deployment to clusters in these regions (exact region or a
+	// prefix family like "us-east"). Send an empty array to clear the region pin; omit
+	// to leave it unchanged
+	Regions []string `json:"regions,omitzero"`
 	// Volumes is a list of volume mounts to attach to the container. Replaces all
 	// existing volumes.
 	Volumes []BetaJigUpdateParamsVolume `json:"volumes,omitzero"`
@@ -1301,6 +1325,10 @@ type BetaJigDeployParams struct {
 	// MinReplicas is the minimum number of container instances to run. Defaults to 1
 	// if not specified
 	MinReplicas param.Opt[int64] `json:"min_replicas,omitzero"`
+	// PlacementGroup co-locates deployments that share this value onto one cluster, so
+	// in-cluster traffic between them stays local. A member that cannot co-locate
+	// stays pending. Leave empty for no group
+	PlacementGroup param.Opt[string] `json:"placement_group,omitzero"`
 	// Port is the container port your application listens on (e.g., 8080 for web
 	// servers). Required if your application serves traffic
 	Port param.Opt[int64] `json:"port,omitzero"`
@@ -1332,6 +1360,11 @@ type BetaJigDeployParams struct {
 	// Model weights to preload from Together's model registry into the container. At
 	// most one mount is supported, and it cannot be used with volumes.
 	ModelMounts []BetaJigDeployParamsModelMount `json:"model_mounts,omitzero"`
+	// Regions confines the deployment to clusters in these regions. Each entry is an
+	// exact region or a prefix family like "us-east" that matches every "us-east-\*".
+	// A deployment that cannot place in any of them stays pending. Empty means any
+	// region
+	Regions []string `json:"regions,omitzero"`
 	// Volumes is a list of volume mounts to attach to the container. Each mount must
 	// reference an existing volume by name
 	Volumes []BetaJigDeployParamsVolume `json:"volumes,omitzero"`

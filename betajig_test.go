@@ -81,7 +81,9 @@ func TestBetaJigUpdateWithOptionalParams(t *testing.T) {
 				RevisionID: together.String("rv_8kQ2mN4pL7xR9tV1wY3zA"),
 			}},
 			Name:                          together.String("x"),
+			PlacementGroup:                together.String("placement_group"),
 			Port:                          together.Int(1),
+			Regions:                       []string{"string"},
 			Storage:                       together.Int(400),
 			TerminationGracePeriodSeconds: together.Int(0),
 			Volumes: []together.BetaJigUpdateParamsVolume{{
@@ -165,7 +167,9 @@ func TestBetaJigDeployWithOptionalParams(t *testing.T) {
 			MountPath:  "/models",
 			RevisionID: together.String("rv_8kQ2mN4pL7xR9tV1wY3zA"),
 		}},
+		PlacementGroup:                together.String("placement_group"),
 		Port:                          together.Int(1),
+		Regions:                       []string{"string"},
 		Storage:                       together.Int(400),
 		TerminationGracePeriodSeconds: together.Int(0),
 		Volumes: []together.BetaJigDeployParamsVolume{{
