@@ -536,6 +536,11 @@ type SupportedModel struct {
 	ServerlessEndpoint string `json:"serverlessEndpoint"`
 	// Searchable catalog tags for the model.
 	Tags []string `json:"tags"`
+	// Serverless prices for usage not measured in tokens, such as minutes of
+	// transcribed audio or characters of synthesized speech, ordered by unit then
+	// tier. Empty when none are curated; a model priced the same on every tier lists
+	// only `PRICING_TIER_STANDARD`.
+	UnitPrices []SupportedModelUnitPrice `json:"unitPrices"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
 		ID                 respjson.Field
@@ -563,6 +568,7 @@ type SupportedModel struct {
 		Pricing            respjson.Field
 		ServerlessEndpoint respjson.Field
 		Tags               respjson.Field
+		UnitPrices         respjson.Field
 		ExtraFields        map[string]respjson.Field
 		raw                string
 	} `json:"-"`
@@ -605,6 +611,36 @@ type SupportedModelPricing struct {
 // Returns the unmodified JSON received from the API
 func (r SupportedModelPricing) RawJSON() string { return r.JSON.raw }
 func (r *SupportedModelPricing) UnmarshalJSON(data []byte) error {
+	return apijson.UnmarshalRoot(data, r)
+}
+
+// Serverless display price in USD per one non-token unit on one request tier.
+type SupportedModelUnitPrice struct {
+	// Price in USD per one unit.
+	PriceUsd float64 `json:"priceUsd" api:"required"`
+	// Request tier the price applies to, such as synchronous HTTP, batch, or streaming
+	// realtime sessions.
+	//
+	// Any of "PRICING_TIER_STANDARD", "PRICING_TIER_BATCH", "PRICING_TIER_REALTIME".
+	Tier string `json:"tier" api:"required"`
+	// Billing unit, either one minute of input audio (speech-to-text) or one million
+	// input characters (text-to-speech).
+	//
+	// Any of "PRICING_UNIT_AUDIO_MINUTE", "PRICING_UNIT_MILLION_CHARACTERS".
+	Unit string `json:"unit" api:"required"`
+	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
+	JSON struct {
+		PriceUsd    respjson.Field
+		Tier        respjson.Field
+		Unit        respjson.Field
+		ExtraFields map[string]respjson.Field
+		raw         string
+	} `json:"-"`
+}
+
+// Returns the unmodified JSON received from the API
+func (r SupportedModelUnitPrice) RawJSON() string { return r.JSON.raw }
+func (r *SupportedModelUnitPrice) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
