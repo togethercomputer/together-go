@@ -287,8 +287,18 @@ type EndpointAdapterNewResponse struct {
 	DesiredRevisionID string `json:"desiredRevisionId" api:"required"`
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
-	// Per-cluster adapter load state reported by the controller.
+	// Per-cluster adapter load state reported by the controller for the clusters the
+	// deployment is placed on. Empty while the deployment is stopped or being torn
+	// down, and briefly after AddAdapter.
 	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
+	// Whether the adapter can serve requests right now. INACTIVE means the deployment
+	// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+	// has not finished loading it; READY means every placed cluster serves it; FAILED
+	// means a placed cluster failed to load it.
+	//
+	// Any of "ADAPTER_SERVING_STATE_INACTIVE", "ADAPTER_SERVING_STATE_LOADING",
+	// "ADAPTER_SERVING_STATE_READY", "ADAPTER_SERVING_STATE_FAILED".
+	ServingState EndpointAdapterNewResponseServingState `json:"servingState" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -302,6 +312,7 @@ type EndpointAdapterNewResponse struct {
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
 		PerCluster        respjson.Field
+		ServingState      respjson.Field
 		AdapterModel      respjson.Field
 		DesiredRevision   respjson.Field
 		ExtraFields       map[string]respjson.Field
@@ -315,6 +326,19 @@ func (r *EndpointAdapterNewResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Whether the adapter can serve requests right now. INACTIVE means the deployment
+// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+// has not finished loading it; READY means every placed cluster serves it; FAILED
+// means a placed cluster failed to load it.
+type EndpointAdapterNewResponseServingState string
+
+const (
+	EndpointAdapterNewResponseServingStateAdapterServingStateInactive EndpointAdapterNewResponseServingState = "ADAPTER_SERVING_STATE_INACTIVE"
+	EndpointAdapterNewResponseServingStateAdapterServingStateLoading  EndpointAdapterNewResponseServingState = "ADAPTER_SERVING_STATE_LOADING"
+	EndpointAdapterNewResponseServingStateAdapterServingStateReady    EndpointAdapterNewResponseServingState = "ADAPTER_SERVING_STATE_READY"
+	EndpointAdapterNewResponseServingStateAdapterServingStateFailed   EndpointAdapterNewResponseServingState = "ADAPTER_SERVING_STATE_FAILED"
+)
+
 // Adapter attached to a deployment with desired revision and observed load state.
 type EndpointAdapterGetResponse struct {
 	// Adapter attachment `dad_` id used by get, update, and remove; stale ids never
@@ -326,8 +350,18 @@ type EndpointAdapterGetResponse struct {
 	DesiredRevisionID string `json:"desiredRevisionId" api:"required"`
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
-	// Per-cluster adapter load state reported by the controller.
+	// Per-cluster adapter load state reported by the controller for the clusters the
+	// deployment is placed on. Empty while the deployment is stopped or being torn
+	// down, and briefly after AddAdapter.
 	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
+	// Whether the adapter can serve requests right now. INACTIVE means the deployment
+	// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+	// has not finished loading it; READY means every placed cluster serves it; FAILED
+	// means a placed cluster failed to load it.
+	//
+	// Any of "ADAPTER_SERVING_STATE_INACTIVE", "ADAPTER_SERVING_STATE_LOADING",
+	// "ADAPTER_SERVING_STATE_READY", "ADAPTER_SERVING_STATE_FAILED".
+	ServingState EndpointAdapterGetResponseServingState `json:"servingState" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -341,6 +375,7 @@ type EndpointAdapterGetResponse struct {
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
 		PerCluster        respjson.Field
+		ServingState      respjson.Field
 		AdapterModel      respjson.Field
 		DesiredRevision   respjson.Field
 		ExtraFields       map[string]respjson.Field
@@ -354,6 +389,19 @@ func (r *EndpointAdapterGetResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Whether the adapter can serve requests right now. INACTIVE means the deployment
+// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+// has not finished loading it; READY means every placed cluster serves it; FAILED
+// means a placed cluster failed to load it.
+type EndpointAdapterGetResponseServingState string
+
+const (
+	EndpointAdapterGetResponseServingStateAdapterServingStateInactive EndpointAdapterGetResponseServingState = "ADAPTER_SERVING_STATE_INACTIVE"
+	EndpointAdapterGetResponseServingStateAdapterServingStateLoading  EndpointAdapterGetResponseServingState = "ADAPTER_SERVING_STATE_LOADING"
+	EndpointAdapterGetResponseServingStateAdapterServingStateReady    EndpointAdapterGetResponseServingState = "ADAPTER_SERVING_STATE_READY"
+	EndpointAdapterGetResponseServingStateAdapterServingStateFailed   EndpointAdapterGetResponseServingState = "ADAPTER_SERVING_STATE_FAILED"
+)
+
 // Adapter attached to a deployment with desired revision and observed load state.
 type EndpointAdapterUpdateResponse struct {
 	// Adapter attachment `dad_` id used by get, update, and remove; stale ids never
@@ -365,8 +413,18 @@ type EndpointAdapterUpdateResponse struct {
 	DesiredRevisionID string `json:"desiredRevisionId" api:"required"`
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
-	// Per-cluster adapter load state reported by the controller.
+	// Per-cluster adapter load state reported by the controller for the clusters the
+	// deployment is placed on. Empty while the deployment is stopped or being torn
+	// down, and briefly after AddAdapter.
 	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
+	// Whether the adapter can serve requests right now. INACTIVE means the deployment
+	// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+	// has not finished loading it; READY means every placed cluster serves it; FAILED
+	// means a placed cluster failed to load it.
+	//
+	// Any of "ADAPTER_SERVING_STATE_INACTIVE", "ADAPTER_SERVING_STATE_LOADING",
+	// "ADAPTER_SERVING_STATE_READY", "ADAPTER_SERVING_STATE_FAILED".
+	ServingState EndpointAdapterUpdateResponseServingState `json:"servingState" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -380,6 +438,7 @@ type EndpointAdapterUpdateResponse struct {
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
 		PerCluster        respjson.Field
+		ServingState      respjson.Field
 		AdapterModel      respjson.Field
 		DesiredRevision   respjson.Field
 		ExtraFields       map[string]respjson.Field
@@ -393,6 +452,19 @@ func (r *EndpointAdapterUpdateResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
 
+// Whether the adapter can serve requests right now. INACTIVE means the deployment
+// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+// has not finished loading it; READY means every placed cluster serves it; FAILED
+// means a placed cluster failed to load it.
+type EndpointAdapterUpdateResponseServingState string
+
+const (
+	EndpointAdapterUpdateResponseServingStateAdapterServingStateInactive EndpointAdapterUpdateResponseServingState = "ADAPTER_SERVING_STATE_INACTIVE"
+	EndpointAdapterUpdateResponseServingStateAdapterServingStateLoading  EndpointAdapterUpdateResponseServingState = "ADAPTER_SERVING_STATE_LOADING"
+	EndpointAdapterUpdateResponseServingStateAdapterServingStateReady    EndpointAdapterUpdateResponseServingState = "ADAPTER_SERVING_STATE_READY"
+	EndpointAdapterUpdateResponseServingStateAdapterServingStateFailed   EndpointAdapterUpdateResponseServingState = "ADAPTER_SERVING_STATE_FAILED"
+)
+
 // Adapter attached to a deployment with desired revision and observed load state.
 type EndpointAdapterListResponse struct {
 	// Adapter attachment `dad_` id used by get, update, and remove; stale ids never
@@ -404,8 +476,18 @@ type EndpointAdapterListResponse struct {
 	DesiredRevisionID string `json:"desiredRevisionId" api:"required"`
 	// Row-level etag required for UpdateAdapter and RemoveAdapter.
 	Etag string `json:"etag" api:"required"`
-	// Per-cluster adapter load state reported by the controller.
+	// Per-cluster adapter load state reported by the controller for the clusters the
+	// deployment is placed on. Empty while the deployment is stopped or being torn
+	// down, and briefly after AddAdapter.
 	PerCluster []DeploymentAdapterStatus `json:"perCluster" api:"required"`
+	// Whether the adapter can serve requests right now. INACTIVE means the deployment
+	// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+	// has not finished loading it; READY means every placed cluster serves it; FAILED
+	// means a placed cluster failed to load it.
+	//
+	// Any of "ADAPTER_SERVING_STATE_INACTIVE", "ADAPTER_SERVING_STATE_LOADING",
+	// "ADAPTER_SERVING_STATE_READY", "ADAPTER_SERVING_STATE_FAILED".
+	ServingState EndpointAdapterListResponseServingState `json:"servingState" api:"required"`
 	// Resource name of the adapter model, using
 	// projects/{projectId}/models/{adapterModelId}.
 	AdapterModel string `json:"adapterModel"`
@@ -419,6 +501,7 @@ type EndpointAdapterListResponse struct {
 		DesiredRevisionID respjson.Field
 		Etag              respjson.Field
 		PerCluster        respjson.Field
+		ServingState      respjson.Field
 		AdapterModel      respjson.Field
 		DesiredRevision   respjson.Field
 		ExtraFields       map[string]respjson.Field
@@ -431,6 +514,19 @@ func (r EndpointAdapterListResponse) RawJSON() string { return r.JSON.raw }
 func (r *EndpointAdapterListResponse) UnmarshalJSON(data []byte) error {
 	return apijson.UnmarshalRoot(data, r)
 }
+
+// Whether the adapter can serve requests right now. INACTIVE means the deployment
+// is stopped, scaled to zero, or being torn down; LOADING means a placed cluster
+// has not finished loading it; READY means every placed cluster serves it; FAILED
+// means a placed cluster failed to load it.
+type EndpointAdapterListResponseServingState string
+
+const (
+	EndpointAdapterListResponseServingStateAdapterServingStateInactive EndpointAdapterListResponseServingState = "ADAPTER_SERVING_STATE_INACTIVE"
+	EndpointAdapterListResponseServingStateAdapterServingStateLoading  EndpointAdapterListResponseServingState = "ADAPTER_SERVING_STATE_LOADING"
+	EndpointAdapterListResponseServingStateAdapterServingStateReady    EndpointAdapterListResponseServingState = "ADAPTER_SERVING_STATE_READY"
+	EndpointAdapterListResponseServingStateAdapterServingStateFailed   EndpointAdapterListResponseServingState = "ADAPTER_SERVING_STATE_FAILED"
+)
 
 // Empty response returned after a successful delete operation.
 type EndpointAdapterDeleteResponse struct {
