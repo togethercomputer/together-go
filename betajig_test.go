@@ -86,6 +86,7 @@ func TestBetaJigUpdateWithOptionalParams(t *testing.T) {
 			Regions:                       []string{"string"},
 			Storage:                       together.Int(400),
 			TerminationGracePeriodSeconds: together.Int(0),
+			TrafficWeight:                 together.Int(0),
 			Volumes: []together.BetaJigUpdateParamsVolume{{
 				MountPath: "mount_path",
 				Name:      "name",
@@ -172,6 +173,7 @@ func TestBetaJigDeployWithOptionalParams(t *testing.T) {
 		Regions:                       []string{"string"},
 		Storage:                       together.Int(400),
 		TerminationGracePeriodSeconds: together.Int(0),
+		TrafficWeight:                 together.Int(0),
 		Volumes: []together.BetaJigDeployParamsVolume{{
 			MountPath: "mount_path",
 			Name:      "name",

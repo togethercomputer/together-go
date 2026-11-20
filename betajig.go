@@ -244,6 +244,9 @@ type Deployment struct {
 	// TerminationGracePeriodSeconds is the time in seconds to wait for graceful
 	// shutdown before forcefully terminating the replica
 	TerminationGracePeriodSeconds int64 `json:"termination_grace_period_seconds"`
+	// TrafficWeight is the deployment's share of its model's traffic, relative to the
+	// other deployments of that model
+	TrafficWeight int64 `json:"traffic_weight"`
 	// UpdatedAt is the ISO8601 timestamp when this deployment was last updated
 	UpdatedAt time.Time `json:"updated_at" format:"date-time"`
 	// Volumes is a list of volume mounts for this deployment
@@ -278,6 +281,7 @@ type Deployment struct {
 		Status                        respjson.Field
 		Storage                       respjson.Field
 		TerminationGracePeriodSeconds respjson.Field
+		TrafficWeight                 respjson.Field
 		UpdatedAt                     respjson.Field
 		Volumes                       respjson.Field
 		ExtraFields                   map[string]respjson.Field
@@ -1008,6 +1012,9 @@ type BetaJigUpdateParams struct {
 	// TerminationGracePeriodSeconds is the time in seconds to wait for graceful
 	// shutdown before forcefully terminating the replica
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"termination_grace_period_seconds,omitzero"`
+	// TrafficWeight is the deployment's share of its model's traffic, relative to the
+	// other deployments of that model.
+	TrafficWeight param.Opt[int64] `json:"traffic_weight,omitzero"`
 	// Args overrides the container's CMD. Provide as an array of arguments (e.g.,
 	// ["python", "app.py"])
 	Args []string `json:"args,omitzero"`
@@ -1338,6 +1345,9 @@ type BetaJigDeployParams struct {
 	// TerminationGracePeriodSeconds is the time in seconds to wait for graceful
 	// shutdown before forcefully terminating the replica
 	TerminationGracePeriodSeconds param.Opt[int64] `json:"termination_grace_period_seconds,omitzero"`
+	// TrafficWeight is the deployment's share of its model's traffic, relative to the
+	// other deployments of that model.
+	TrafficWeight param.Opt[int64] `json:"traffic_weight,omitzero"`
 	// Args overrides the container's CMD. Provide as an array of arguments (e.g.,
 	// ["python", "app.py"])
 	Args []string `json:"args,omitzero"`
