@@ -215,6 +215,9 @@ type Deployment struct {
 	MinReplicas int64 `json:"min_replicas"`
 	// Model weights mounted into this deployment, including the pinned revisions.
 	ModelMounts []DeploymentModelMount `json:"model_mounts"`
+	// ModelName is the model the deployment handles traffic for. Equals name unless
+	// set
+	ModelName string `json:"model_name"`
 	// Name is the name of the deployment
 	Name string `json:"name"`
 	// The object type, which is always `deployment`.
@@ -271,6 +274,7 @@ type Deployment struct {
 		Memory                        respjson.Field
 		MinReplicas                   respjson.Field
 		ModelMounts                   respjson.Field
+		ModelName                     respjson.Field
 		Name                          respjson.Field
 		Object                        respjson.Field
 		PlacementGroup                respjson.Field
@@ -996,8 +1000,11 @@ type BetaJigUpdateParams struct {
 	Memory param.Opt[float64] `json:"memory,omitzero"`
 	// MinReplicas is the minimum number of replicas to run
 	MinReplicas param.Opt[int64] `json:"min_replicas,omitzero"`
-	// Name is the new unique identifier for your deployment. Must contain only
-	// alphanumeric characters, underscores, or hyphens (1-100 characters)
+	// ModelName changes the model this deployment handles traffic for. Can be omitted.
+	// Send the deployment name to reset it
+	ModelName param.Opt[string] `json:"model_name,omitzero"`
+	// Name is the deployment's current name. Deployment names cannot be changed after
+	// creation
 	Name param.Opt[string] `json:"name,omitzero"`
 	// PlacementGroup co-locates deployments that share this value onto one cluster. A
 	// member that cannot co-locate stays pending. Send an empty string to clear the
@@ -1332,6 +1339,11 @@ type BetaJigDeployParams struct {
 	// MinReplicas is the minimum number of container instances to run. Defaults to 1
 	// if not specified
 	MinReplicas param.Opt[int64] `json:"min_replicas,omitzero"`
+	// ModelName is the model this deployment handles traffic for. Defaults to name of
+	// the deployment. A value used by one project as a deployment or model name is
+	// unavailable to other projects; within a project, any number of deployments may
+	// share a model name
+	ModelName param.Opt[string] `json:"model_name,omitzero"`
 	// PlacementGroup co-locates deployments that share this value onto one cluster, so
 	// in-cluster traffic between them stays local. A member that cannot co-locate
 	// stays pending. Leave empty for no group
