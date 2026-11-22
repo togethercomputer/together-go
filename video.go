@@ -75,6 +75,10 @@ type VideoJob struct {
 	CompletedAt float64 `json:"completed_at"`
 	// Error payload that explains why generation failed, if applicable.
 	Error VideoJobError `json:"error"`
+	// Estimated Unix timestamp (seconds) for when the job is expected to finish. This
+	// is an estimate, not a guarantee. It is only returned when creating a video and
+	// an estimate is available.
+	EstimatedDoneAt float64 `json:"estimated_done_at"`
 	// The object type, which is always video.
 	//
 	// Any of "video".
@@ -84,18 +88,19 @@ type VideoJob struct {
 	Outputs VideoJobOutputs `json:"outputs"`
 	// JSON contains metadata for fields, check presence with [respjson.Field.Valid].
 	JSON struct {
-		ID          respjson.Field
-		CreatedAt   respjson.Field
-		Model       respjson.Field
-		Seconds     respjson.Field
-		Size        respjson.Field
-		Status      respjson.Field
-		CompletedAt respjson.Field
-		Error       respjson.Field
-		Object      respjson.Field
-		Outputs     respjson.Field
-		ExtraFields map[string]respjson.Field
-		raw         string
+		ID              respjson.Field
+		CreatedAt       respjson.Field
+		Model           respjson.Field
+		Seconds         respjson.Field
+		Size            respjson.Field
+		Status          respjson.Field
+		CompletedAt     respjson.Field
+		Error           respjson.Field
+		EstimatedDoneAt respjson.Field
+		Object          respjson.Field
+		Outputs         respjson.Field
+		ExtraFields     map[string]respjson.Field
+		raw             string
 	} `json:"-"`
 }
 
