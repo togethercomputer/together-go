@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.14.0](https://github.com/togethercomputer/together-go/compare/v0.13.0...v0.14.0) (2026-11-24)
+
+
+### Features
+
+* **clusters:** add GB200 GPU cluster type ([35ff35f](https://github.com/togethercomputer/together-go/commit/35ff35f838694e72da122a29b787a295b64f1d46))
+* **deployments:** add model_name to deployment create, update, and response ([275e532](https://github.com/togethercomputer/together-go/commit/275e532b885a677ad1c2bfccd2872ab8182f8513))
+* **deployments:** add placement_group and regions to deployment config ([0b389ca](https://github.com/togethercomputer/together-go/commit/0b389ca0ec9762dbbec6b0e7efbc8cf77675d3f5))
+* **deployments:** add servingState to deployment adapter entries ([450bacb](https://github.com/togethercomputer/together-go/commit/450bacb60d1510911e9ed0c78e28e778e76ed0d8))
+* **deployments:** add traffic_weight to deployments ([733ead6](https://github.com/togethercomputer/together-go/commit/733ead65e4d45e5075521c13db740f0647cd8242))
+* **models:** add created_at sort and model timestamps ([738714f](https://github.com/togethercomputer/together-go/commit/738714f610735c71aea17ea5059e51f525ace785))
+* **models:** add organization model retrieve endpoint to SDK ([0c7b95a](https://github.com/togethercomputer/together-go/commit/0c7b95a2a0375a9b58e1800467ae480833ba60cb))
+* **openapi:** add applied_credit to billing usage line items ([7f826e1](https://github.com/togethercomputer/together-go/commit/7f826e1d9702eb39714e5cbfb727873e32e4a6e5))
+* **rl:** add methods to extend and manage model resources expiry ([35271ef](https://github.com/togethercomputer/together-go/commit/35271ef6e213f7a1a67beaab381c90e703c44a2d))
+* **rl:** add num_trainer_replicas for generator-only model resources ([884a165](https://github.com/togethercomputer/together-go/commit/884a165f6562f8a5bc727216ebb6d5da7c8a2f3f))
+* **rl:** add rollout time and price estimate ([679223a](https://github.com/togethercomputer/together-go/commit/679223a00d419fb9b0f6279776b426a406777995))
+* **rl:** inactive_timeout and extend-expiry in seconds ([e4a0e44](https://github.com/togethercomputer/together-go/commit/e4a0e44651d9cd7b9b0249dd5df0f7809ba9e211))
+* **rollout:** bound a step's target raise with maxSurge ([0ce34e4](https://github.com/togethercomputer/together-go/commit/0ce34e4a1e60f259e920a2eba05cbc14e8f84819))
+* **rollout:** document maxUnavailable serving allowance ([aa5e60c](https://github.com/togethercomputer/together-go/commit/aa5e60ca1209d6e0f5fd11aa682896fd349bdee9))
+* **secrets:** Add parameters for secret expiry ttl ([16ca009](https://github.com/togethercomputer/together-go/commit/16ca009b4ab86f0439e91f7fae12c524431863f0))
+* **supported-models:** expose unitPrices for non-token serverless pricing ([ebaeeb0](https://github.com/togethercomputer/together-go/commit/ebaeeb043591ab24f7b68266b37d29c454a1fa2f))
+* **videos:** tell callers when their video will likely be ready ([379a599](https://github.com/togethercomputer/together-go/commit/379a599aeaaf64a19cadeb958930fe72430331f6))
+
+
+### Bug Fixes
+
+* **clusters:** rename GB200_SXM GPU type to GB200_NVL ([efb0595](https://github.com/togethercomputer/together-go/commit/efb05952ba118255b872379d8ba99fc9de2d43fc))
+* **clusters:** Update add-on specs ([5dda622](https://github.com/togethercomputer/together-go/commit/5dda622c9d3dbc93775b9f5b4e5144272cb0a826))
+
+
+### Chores
+
+* drop terraform generator ([5658620](https://github.com/togethercomputer/together-go/commit/5658620ab19b9f9d63fbd03df0109e49cfa6184c))
+* **evals:** mark evaluation endpoints deprecated with 410 Gone ([501ef0b](https://github.com/togethercomputer/together-go/commit/501ef0bb10afced81289f3107b9c5c0659ab2733))
+* **rl:** Drop the stale expert-module note from lora_trainable_modules ([e9e69af](https://github.com/togethercomputer/together-go/commit/e9e69af89d0956af477524881a5b1f5086a3c758))
+
+
+### Documentation
+
+* **whoami:** add a response example for each caller type ([e670bc8](https://github.com/togethercomputer/together-go/commit/e670bc8205b90c0fd442c6700b6ada3099dd0f50))
+
 ## [0.13.0](https://github.com/togethercomputer/together-go/compare/v0.12.0...v0.13.0) (2026-10-21)
 
 
